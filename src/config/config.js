@@ -18,7 +18,7 @@ window.MCP_ASSUME_ONLINE = true;
 // DO NOT hardcode actual API keys here
 
 // Application version
-window.APP_VERSION = '1.0.0';
+window.APP_VERSION = '1.0.1';
 
 // GitHub repository URL
 window.GITHUB_URL = 'https://github.com/h1ddenpr0cess20/Wordmark';

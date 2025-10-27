@@ -11,4 +11,4 @@
 - Split the settings panel into per-tab HTML partials and load them dynamically for easier maintenance.
 - Added a response verbosity dropdown to the Model settings tab with persistence across sessions.
 - Limited vector store activation to two stores at a time and updated settings messaging to match the new cap.
-- Auto-load assistant files/vector stores on startup, throttle vector store API calls with a three-second cooldown, and present friendlier names with a tighter list of 10 items.
+- Load assistant files/vector stores on demand via the Refresh controls, throttle vector store API calls with a three-second cooldown, and present friendlier names with a tighter list of 10 items.

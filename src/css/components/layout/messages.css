@@ -719,6 +719,41 @@
   overflow-x: auto;
 }
 
+@media (max-width: 640px) {
+  .thinking-container {
+    max-width: 100%;
+    width: 100%;
+    font-size: 0.85rem;
+    line-height: 1.4;
+    padding: 12px 14px 14px;
+    margin-top: 12px;
+  }
+
+  .thinking-container:not(.collapsed) {
+    margin-bottom: 16px;
+  }
+
+  .thinking-title {
+    font-size: 0.85rem;
+    padding: 12px 14px 12px 0;
+  }
+
+  .thinking-title::before {
+    font-size: 0.7rem;
+  }
+
+  .thinking-title::after {
+    font-size: 0.7rem;
+    padding-left: 8px;
+  }
+
+  .thinking-content {
+    max-height: 220px;
+    font-size: 0.85rem;
+    padding-right: 4px;
+  }
+}
+
 .image-placeholder {
   padding: 40px;
   background: var(--bg-secondary);
