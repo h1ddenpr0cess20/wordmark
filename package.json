@@ -9,7 +9,6 @@
     "start:https": "npx http-server -p 8443 -c-1 --cors -S -C cert.pem -K key.pem",
     "dev": "npx http-server -p 3000 -c-1 --cors -o",
     "dev:https": "npx http-server -p 3443 -c-1 --cors -S -C cert.pem -K key.pem -o",
-    "build": "echo 'No build step required - static web app'",
     "test": "node --test tests/**/*.spec.js",
     "test:watch": "node --test --watch tests/**/*.spec.js",
     "lint": "npx eslint src/js/**/*.js",
