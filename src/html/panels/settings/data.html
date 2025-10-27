@@ -1,0 +1,54 @@
+<div class="settings-group">
+  <h3>Data Settings</h3>
+  <div class="setting-item">
+    <label for="data-settings-toggle">Enable Data Features</label>
+    <div class="toggle-container">
+      <input type="checkbox" id="data-settings-toggle" class="toggle-input">
+      <label for="data-settings-toggle" class="toggle-switch"></label>
+    </div>
+    <p class="info-text">When disabled, Data tab controls are muted and no data operations will be performed.</p>
+  </div>
+</div>
+<div class="settings-group">
+  <h3>File Manager</h3>
+  <p class="info-text">Upload, list, and delete files.</p>
+
+  <div class="setting-item">
+    <label for="assistant-file-upload">Upload Files</label>
+    <input type="file" id="assistant-file-upload" multiple>
+    <div class="action-buttons with-margin">
+      <button type="button" id="upload-assistant-files" class="primary-button" title="Upload selected files">Upload</button>
+      <button type="button" id="refresh-assistant-files" class="tool-action-button" title="Refresh file list">Refresh</button>
+      <button type="button" id="delete-all-assistant-files" class="tool-action-button" title="Delete all assistant files">Delete All</button>
+    </div>
+  </div>
+
+  <div class="setting-item">
+    <label>Your Assistant Files</label>
+    <div id="assistant-file-list">
+      <div class="loading-text">Loading assistant files...</div>
+    </div>
+  </div>
+</div>
+
+<div class="settings-group vector-store-manager" id="vector-store-manager">
+  <h3>Vector Store Manager</h3>
+  <p class="info-text">Manage document vector stores for the File Search tool. Upload documents to create vector stores, then enable up to two for use in conversations.</p>
+
+  <div class="setting-item">
+    <div class="vector-store-controls">
+      <button type="button" id="refresh-vector-stores" class="primary-button" title="Refresh vector store list">
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><use href="src/assets/icons.svg#refresh-cw"></use></svg>
+        Refresh List
+      </button>
+      <button type="button" id="clear-active-vector-store" class="tool-action-button" title="Clear all active vector stores">Clear All</button>
+    </div>
+  </div>
+
+  <div class="setting-item">
+    <label>Your Vector Stores</label>
+    <div id="vector-store-list">
+      <div class="loading-text">Loading vector stores...</div>
+    </div>
+  </div>
+</div>

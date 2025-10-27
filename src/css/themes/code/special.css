@@ -1,0 +1,107 @@
+/* Special theme code syntax highlighting */
+
+/* Teletext Theme Code Blocks */
+.theme-teletext {
+  --code-number: #ff0000; /* numbers/literals/bullets */
+  --code-accent: #ffff00; /* keywords/types/titles */
+  --code-accent-2: #00ffff; /* attributes/built_in/title */
+  --code-string: #00ff00; /* strings/regex */
+  --code-comment: #ff00ff; /* comments/quotes */
+}
+.theme-teletext pre {
+  background-color: #000000 !important;
+  border: 1px solid #0000ff !important;
+}
+
+.theme-teletext pre code {
+  color: #ffffff !important;
+}
+
+.theme-teletext .hljs-keyword,
+.theme-teletext .hljs-meta,
+.theme-teletext .hljs-selector-tag,
+.theme-teletext .hljs-title,
+.theme-teletext .hljs-title.function_,
+.theme-teletext .hljs-type {
+  color: #ffff00 !important;
+}
+
+.theme-teletext .hljs-attribute, 
+.theme-teletext .hljs-built_in {
+  color: #00ffff !important;
+}
+
+.theme-teletext .hljs-string,
+.theme-teletext .hljs-attr,
+.theme-teletext .hljs-addition,
+.theme-teletext .hljs-doctag,
+.theme-teletext .hljs-regexp,
+.theme-teletext .hljs-symbol {
+  color: #00ff00 !important;
+}
+
+.theme-teletext .hljs-comment,
+.theme-teletext .hljs-quote {
+  color: #ff00ff !important;
+  font-style: italic;
+}
+
+/* number/literal/bullet colors provided by --code-number */
+
+.theme-teletext .hljs-variable,
+.theme-teletext .hljs-tag,
+.theme-teletext .hljs-name,
+.theme-teletext .hljs-template-variable,
+.theme-teletext .hljs-deletion {
+  color: #00ffff !important;
+}
+
+.theme-teletext .hljs-property,
+.theme-teletext .hljs-subst,
+.theme-teletext .hljs-params,
+.theme-teletext .hljs-meta-string {
+  color: #ffff00 !important;
+}
+
+/* Terminal Theme Code Blocks */
+.theme-terminal {
+  --code-number: #ff3333; /* numbers/literals/bullets */
+  --code-accent: #88ff88; /* keywords */
+  --code-accent-2: #33ff33; /* built_in/function/title */
+  --code-string: #ffff33; /* strings */
+  --code-comment: #33cc33; /* comments */
+}
+.theme-terminal pre {
+  background-color: #000000 !important;
+  border: 1px solid #224422 !important;
+}
+
+.theme-terminal pre code {
+  color: #33ff33 !important;
+  font-family: "Courier New", monospace;
+}
+
+.theme-terminal .hljs-keyword { color: #88ff88 !important; }
+.theme-terminal .hljs-string { color: #ffff33 !important; }
+.theme-terminal .hljs-comment { color: #33cc33 !important; }
+.theme-terminal .hljs-function { color: #33ff33 !important; }
+/* number color provided by --code-number */
+
+/* Override copy button styles to match special themes only */
+.theme-teletext pre .copy-btn,
+.theme-terminal pre .copy-btn {
+  background: transparent !important;
+  color: var(--text-primary) !important;
+  border: none !important;
+  border-radius: 4px !important;
+  padding: 4px 8px !important;
+  font-size: 12px !important;
+  opacity: 0.8 !important;
+  z-index: 10 !important;
+}
+
+.theme-teletext pre .copy-btn:hover,
+.theme-terminal pre .copy-btn:hover {
+  background-color: var(--accent-hover) !important;
+  opacity: 1 !important;
+}

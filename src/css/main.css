@@ -1,0 +1,47 @@
+/* Main CSS file that imports all modular components */
+
+/* Import variables first */
+@import url('./themes/variables.css');
+
+/* Import base themes */
+@import url('./themes/base/base.css');
+@import url('./themes/base/dark.css');
+@import url('./themes/base/light.css');
+@import url('./themes/base/metal.css');
+@import url('./themes/base/neon.css');
+@import url('./themes/base/special.css');
+@import url('./themes/base/country.css');
+
+/* Import fonts */
+@import url('./themes/fonts/fonts.css');
+
+/* Import code themes */
+@import url('./themes/code/base.css');
+@import url('./themes/code/dark.css');
+@import url('./themes/code/light.css');
+@import url('./themes/code/metal.css');
+@import url('./themes/code/neon.css');
+@import url('./themes/code/special.css');
+@import url('./themes/code/country.css');
+
+/* Base styles */
+@import url('./global.css');
+
+/* Layout Components */
+@import url('./components/layout/layout.css');
+@import url('./components/layout/messages.css');
+@import url('./components/layout/mobile.css');
+
+/* UI Components */
+@import url('./components/ui/controls.css');
+@import url('./components/ui/settings.css');
+@import url('./components/ui/api-keys.css');
+@import url('./components/ui/tool-settings.css');
+@import url('./components/ui/animations.css');
+@import url('./components/ui/pages.css');
+@import url('./components/ui/file-attachments.css');
+@import url('./components/ui/vector-store-manager.css');
+
+/* Feature Components */
+@import url('./components/features/history.css');
+@import url('./components/features/gallery.css');

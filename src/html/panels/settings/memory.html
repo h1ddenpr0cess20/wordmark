@@ -1,0 +1,36 @@
+<div class="settings-group">
+  <h3>Memory</h3>
+
+  <div class="setting-item">
+    <label for="memory-toggle">Enable Memory</label>
+    <div class="toggle-container">
+      <input type="checkbox" id="memory-toggle">
+      <label for="memory-toggle" class="toggle-switch"></label>
+    </div>
+    <p class="info-text">When enabled, the assistant can store brief user-provided details via a dedicated function and include them in the system prompt.</p>
+  </div>
+
+  <div class="setting-item">
+    <label for="memory-limit">Memory Limit</label>
+    <input type="number" id="memory-limit" min="1" step="1" value="25" class="number-compact" aria-label="Maximum number of stored memories">
+    <p class="info-text">Maximum number of short memories to retain (default 25). Oldest memories are dropped when the limit is exceeded.</p>
+  </div>
+
+  <div class="setting-item tools-api-keys-actions">
+    <button type="button" id="clear-memories" class="primary-button" title="Clear all saved memories">Clear Memories</button>
+  </div>
+
+  <div class="setting-item">
+    <label for="memory-add-input">Add Memory</label>
+    <textarea id="memory-add-input" rows="2" placeholder="Memories are added automatically when you ask the assistant to remember. You can also add one manually here (max 600 characters)"></textarea>
+    <div class="action-buttons with-margin">
+      <button type="button" id="memory-add-button" class="primary-button" title="Add Memory">Add Memory</button>
+    </div>
+    <p class="info-text">Memories are captured automatically on request. Keep manual entries brief — a few words to a sentence is best. Maximum 600 characters (about three long sentences).</p>
+  </div>
+
+  <div class="setting-item">
+    <label>Saved Memories</label>
+    <div id="memory-list" class="memory-list" aria-live="polite"></div>
+  </div>
+</div>

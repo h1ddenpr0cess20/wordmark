@@ -1,0 +1,436 @@
+/* Input container */
+.input-container {
+  display: flex;
+  padding: 14px 16px;
+  background-color: var(--bg-primary);
+  border-top: 1px solid var(--border-color);
+  position: relative;
+  z-index: 10;
+}
+
+.input-wrapper {
+  position: relative;
+  flex: 1;
+}
+
+#user-input {
+  width: 100%;
+  border: 1px solid var(--border-color);
+  background-color: var(--bg-secondary);
+  color: var(--text-primary);
+  border-radius: 8px;
+  padding: 16px 60px 16px 16px;
+  resize: none;
+  height: 56px;
+  max-height: 160px;
+  overflow-y: auto;
+  font-family: inherit;
+  font-size: 1rem;
+  outline: none;
+  transition: border-color 0.2s;
+  box-sizing: border-box;
+}
+
+#user-input:focus {
+  border-color: var(--accent-color);
+}
+
+#send-button {
+  position: absolute;
+  right: 5px;
+  bottom: 5px;
+  background: transparent;
+  color: var(--accent-color);
+  border: none;
+  border-radius: 6px;
+  width: 48px;
+  height: 48px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  z-index: 2;
+  margin: 0;
+  padding: 0;
+}
+
+#send-button .send-icon,
+#send-button .stop-icon {
+  transition: all 0.2s ease;
+  fill: currentColor;
+  stroke: none;
+}
+
+
+#send-button .stopping-spinner {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  fill: none;
+  stroke: currentColor;
+}
+
+#send-button .stopping-spinner svg {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+#send-button.stop-mode {
+  color: var(--error-bg);
+}
+
+#send-button.stop-mode .send-icon {
+  display: none;
+}
+
+#send-button.stop-mode .stop-icon {
+  display: block !important;
+}
+
+#send-button.stopping {
+  color: var(--error-bg);
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
+#send-button.stopping .send-icon,
+#send-button.stopping .stop-icon {
+  display: none;
+}
+
+#send-button.stopping .stopping-spinner {
+  display: block !important;
+}
+
+#send-button:hover {
+  color: var(--accent-color);
+  transform: scale(1.05);
+}
+
+#send-button:active {
+  transform: scale(0.95);
+}
+
+#settings-button,
+#history-button,
+#gallery-button {
+  position: absolute;
+  top: 20px;
+  border: 1px solid var(--border-color);
+  color: var(--text-secondary);
+  background-color: var(--bg-secondary);
+  border-radius: 50%;
+  width: 38px;
+  height: 38px;
+  font-size: 18px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  cursor: pointer;
+  transition: all 0.2s;
+  z-index: 100;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+}
+
+#settings-button {
+  right: 20px;
+}
+
+#history-button {
+  right: 68px;
+}
+
+#gallery-button {
+  right: 118px;
+}
+
+#settings-button:hover,
+#history-button:hover,
+#gallery-button:hover {
+  border-color: var(--accent-color);
+  color: var(--accent-color);
+}
+
+
+#stop-button {
+  background-color: var(--error-bg);
+  color: var(--button-text-color);
+}
+
+#stop-button:hover {
+  background-color: #5a3a3a;
+}
+
+#stop-button:active {
+  transform: scale(0.95);
+}
+
+.toggle-container {
+  position: relative;
+  display: inline-block;
+  margin-left: 10px;
+}
+
+.toggle-container input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.toggle-switch {
+  position: relative;
+  display: inline-block;
+  width: 48px;
+  height: 24px;
+  background-color: var(--bg-secondary);
+  border-radius: 24px;
+  transition: background-color 0.2s;
+  border: 1px solid var(--border-color);
+  cursor: pointer;
+  
+}
+
+.toggle-switch:after {
+  content: "";
+  position: absolute;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background-color: var(--text-secondary);
+  top: 2px;
+  left: 2px;
+  transition: transform 0.2s;
+}
+
+input:checked + .toggle-switch {
+  background-color: var(--accent-color);
+}
+
+input:checked + .toggle-switch:after {
+  transform: translateX(24px);
+  background-color: white;
+}
+
+input:focus + .toggle-switch {
+  border-color: var(--accent-color);
+}
+
+.tts-controls {
+  display: flex;
+  align-items: center;
+  margin-top: 8px;
+  gap: 8px;
+}
+.tts-play-pause, .tts-stop, .tts-refresh, .tts-download {
+  padding: 6px;
+  border-radius: 6px;
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 28px;
+  height: 28px;
+  transition: background-color 0.2s, transform 0.1s;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+.tts-play-pause {
+  background-color: var(--accent-color);
+  color: var(--button-text-color);
+}
+.tts-play-pause:hover {
+  background-color: var(--accent-hover, #0056b3);
+  transform: translateY(-1px);
+}
+.tts-stop {
+  background-color: var(--error-bg, #e74c3c);
+  color: var(--error-contrast, white);
+}
+.tts-stop:hover {
+  background-color: var(--error-hover, #c0392b);
+  transform: translateY(-1px);
+}
+.tts-refresh {
+  background-color: var(--success-color, #27ae60);
+  color: var(--success-contrast, white);
+}
+.tts-refresh:hover {
+  background-color: var(--success-hover, #219a52);
+  transform: translateY(-1px);
+}
+.tts-download {
+  background-color: var(--info-color, #3498db);
+  color: var(--info-contrast, white);
+}
+.tts-download:hover {
+  background-color: var(--info-hover, #2980b9);
+  transform: translateY(-1px);
+}
+.tts-status {
+  font-size: 0.85em;
+  color: var(--text-secondary);
+  font-style: italic;
+  display: none;
+}
+.tts-loading-spinner {
+  display: none;
+  width: 12px;
+  height: 12px;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  border-radius: 50%;
+  border-top-color: white;
+  animation: tts-spin 1s linear infinite;
+  margin-right: 4px;
+}
+@keyframes tts-spin {
+  to { transform: rotate(360deg); }
+}
+
+#upload-button {
+  position: absolute;
+  right: 55px;
+  bottom: 5px;
+  background: transparent;
+  color: var(--accent-color);
+  border: none;
+  border-radius: 6px;
+  width: 48px;
+  height: 48px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  z-index: 2;
+  margin: 0;
+  padding: 0;
+}
+
+#upload-button:hover {
+  color: var(--accent-color);
+  transform: scale(1.05);
+}
+
+#upload-button:active {
+  transform: scale(0.95);
+}
+
+.upload-previews {
+  display: flex;
+  gap: 6px;
+  margin-bottom: 6px;
+}
+
+.upload-preview-container {
+  position: relative;
+  display: inline-block;
+}
+
+.upload-preview-img {
+  width: 40px;
+  height: 40px;
+  object-fit: cover;
+  border-radius: 4px;
+  display: block;
+}
+
+.upload-preview-remove {
+  position: absolute;
+  top: -6px;
+  right: -6px;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background-color: var(--error-bg);
+  color: white;
+  border: 2px solid var(--bg-primary);
+  font-size: 12px;
+  font-weight: bold;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+  line-height: 1;
+  padding: 0;
+}
+
+.upload-preview-remove:hover {
+  background-color: var(--error-color);
+  transform: scale(1.1);
+}
+
+.input-wrapper.drag-over {
+  background-color: rgba(var(--accent-color-rgb), 0.1);
+  border-radius: 8px;
+  position: relative;
+}
+
+.input-wrapper.drag-over::before {
+  content: "Drop images here to attach";
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background-color: var(--accent-color);
+  color: var(--bg-primary);
+  padding: 8px 16px;
+  border-radius: 4px;
+  font-size: 0.9rem;
+  font-weight: 500;
+  z-index: 10;
+  pointer-events: none;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+}
+
+.input-wrapper.drag-over #user-input {
+  border-color: var(--accent-color);
+  border-width: 2px;
+  opacity: 0.7;
+}
+
+/* Upload menu */
+.upload-menu {
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  padding: 4px;
+  z-index: 1000;
+  min-width: 180px;
+}
+
+.upload-menu-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  border: none;
+  background: transparent;
+  color: var(--text-primary);
+  cursor: pointer;
+  border-radius: 6px;
+  transition: background-color 0.2s;
+  font-size: 0.95rem;
+  width: 100%;
+  text-align: left;
+}
+
+.upload-menu-item:hover {
+  background: var(--bg-tertiary);
+}
+
+.upload-menu-item svg {
+  flex-shrink: 0;
+  color: var(--text-secondary);
+}
+
+.upload-menu-item:hover svg {
+  color: var(--accent-color);
+}

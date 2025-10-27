@@ -1,0 +1,42 @@
+<div class="settings-group">
+  <h3>Text-to-Speech Settings</h3>
+  <div class="setting-item">
+    <label for="tts-toggle">Enable Text-to-Speech</label>
+    <div class="toggle-container">
+      <input type="checkbox" id="tts-toggle">
+      <label for="tts-toggle" class="toggle-switch"></label>
+    </div>
+    <p class="info-text">Enable or disable text-to-speech for AI responses</p>
+  </div>
+
+  <div class="setting-item">
+    <label for="tts-autoplay-toggle">Autoplay Messages</label>
+    <div class="toggle-container">
+      <input type="checkbox" id="tts-autoplay-toggle" checked>
+      <label for="tts-autoplay-toggle" class="toggle-switch"></label>
+    </div>
+    <p class="info-text">Automatically play TTS for new messages and play them in sequence</p>
+  </div>
+
+  <div class="setting-item">
+    <label for="tts-voice-selector">TTS Voice</label>
+    <select id="tts-voice-selector">
+      <!-- Voice options will be populated dynamically -->
+    </select>
+    <p class="info-text">Select which voice to use for speech generation</p>
+  </div>
+
+  <div class="setting-item">
+    <label for="tts-instructions">Voice Instructions (Optional)</label>
+    <textarea id="tts-instructions" placeholder="Enter instructions for speech style (e.g., 'Speak in a cheerful tone')"></textarea>
+    <p class="info-text">Custom instructions for how the AI should speak. If left empty and using personality, will use the personality for instructions.</p>
+  </div>
+
+  <div class="setting-item">
+    <div class="action-buttons">
+      <button type="button" id="test-tts" title="Test TTS Settings">Test Voice</button>
+      <button type="button" id="stop-tts" title="Stop Voice Playback">Stop Voice</button>
+      <button type="button" id="clear-tts-cache" title="Clean up stored audio files">Clear Audio Cache</button>
+    </div>
+  </div>
+</div>

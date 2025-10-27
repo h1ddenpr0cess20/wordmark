@@ -1,0 +1,60 @@
+/* Neon code theme styles for syntax highlighting */
+
+/* Base neon code block styling */
+[class*="theme-neon-"] pre code,
+[class*="theme-neon-"] .code-block {
+  background-color: rgba(0, 0, 0, 0.8);
+  color: var(--accent-color);
+  border: none;
+  box-shadow: 0 0 10px var(--neon-glow), inset 0 0 20px var(--neon-glow-inner);
+  border-radius: 8px;
+  padding: 16px;
+  margin: 12px 0;
+  position: relative;
+  overflow-x: auto;
+}
+
+/* Base neon syntax highlighting with glow effects */
+[class*="theme-neon-"] .hljs-keyword { 
+  color: var(--neon-keyword);
+  text-shadow: 0 0 5px var(--neon-keyword);
+}
+[class*="theme-neon-"] .hljs-string { 
+  color: var(--neon-string);
+  text-shadow: 0 0 5px var(--neon-string);
+}
+[class*="theme-neon-"] .hljs-comment { 
+  color: var(--neon-comment);
+  text-shadow: 0 0 3px var(--neon-comment);
+}
+[class*="theme-neon-"] .hljs-function { 
+  color: var(--accent-color);
+  text-shadow: 0 0 5px var(--accent-color);
+}
+[class*="theme-neon-"] .hljs-number { 
+  color: var(--neon-number);
+  text-shadow: 0 0 5px var(--neon-number);
+}
+[class*="theme-neon-"] .hljs-variable { 
+  color: var(--neon-variable);
+  text-shadow: 0 0 5px var(--neon-variable);
+}
+[class*="theme-neon-"] .hljs-type { 
+  color: var(--neon-type);
+  text-shadow: 0 0 5px var(--neon-type);
+}
+[class*="theme-neon-"] .hljs-title {
+  font-weight: bold;
+  text-shadow: 0 0 8px currentColor;
+}
+[class*="theme-neon-"] .hljs-operator { 
+  color: var(--neon-operator);
+}
+[class*="theme-neon-"] .hljs-punctuation { 
+  color: var(--neon-punctuation);
+}
+[class*="theme-neon-"] .hljs-attr { 
+  color: var(--neon-attr);
+}
+
+/* Copy button: unified in messages.css and code/base.css */

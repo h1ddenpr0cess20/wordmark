@@ -1,0 +1,140 @@
+<!-- Settings Panel -->
+<div id="settings-panel" aria-labelledby="settings-panel-header" aria-hidden="true" inert>
+  <div class="settings-header">
+    <div>
+      <h2 id="settings-panel-header">Chat Settings</h2>
+      <div class="header-spacer"></div>
+    </div>
+    <button type="button" class="close-settings" aria-label="Close Settings" title="Close Settings">
+      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><use href="src/assets/icons.svg#x"></use></svg>
+    </button>
+  </div>
+
+  <!-- Tabs Navigation -->
+  <div class="settings-tabs" role="tablist">
+    <button type="button" id="tab-personality" class="tab-button active" role="tab" aria-selected="true" aria-controls="content-personality">Personality</button>
+    <button type="button" id="tab-model" class="tab-button" role="tab" aria-selected="false" aria-controls="content-model">Model</button>
+    <button type="button" id="tab-tools" class="tab-button" role="tab" aria-selected="false" aria-controls="content-tools">Tools</button>
+    <button type="button" id="tab-data" class="tab-button" role="tab" aria-selected="false" aria-controls="content-data">Data</button>
+    <button type="button" id="tab-memory" class="tab-button" role="tab" aria-selected="false" aria-controls="content-memory">Memory</button>
+    <button type="button" id="tab-tts" class="tab-button" role="tab" aria-selected="false" aria-controls="content-tts">TTS</button>
+    <button type="button" id="tab-theme" class="tab-button" role="tab" aria-selected="false" aria-controls="content-theme">Theme</button>
+    <button type="button" id="tab-apikeys" class="tab-button" role="tab" aria-selected="false" aria-controls="content-apikeys">API Keys</button>
+    <button type="button" id="tab-location" class="tab-button" role="tab" aria-selected="false" aria-controls="content-location">Location</button>
+    <button type="button" id="tab-about" class="tab-button" role="tab" aria-selected="false" aria-controls="content-about">About</button>
+  </div>
+
+  <div class="tab-content-container">
+    <!-- Personality Tab Content -->
+    <div id="content-personality" class="tab-content active" role="tabpanel" aria-labelledby="tab-personality">
+      <!-- Loaded from src/html/panels/settings/personality.html -->
+    </div>
+
+    <!-- Theme Tab Content -->
+    <div id="content-theme" class="tab-content" role="tabpanel" aria-labelledby="tab-theme">
+      <!-- Loaded from src/html/panels/settings/theme.html -->
+    </div>
+
+    <!-- TTS Tab Content -->
+    <div id="content-tts" class="tab-content" role="tabpanel" aria-labelledby="tab-tts">
+      <!-- Loaded from src/html/panels/settings/tts.html -->
+    </div>
+
+    <!-- Model Settings Tab Content -->
+    <div id="content-model" class="tab-content" role="tabpanel" aria-labelledby="tab-model">
+      <!-- Loaded from src/html/panels/settings/model.html -->
+    </div>
+
+    <!-- API Keys Tab Content -->
+    <div id="content-apikeys" class="tab-content" role="tabpanel" aria-labelledby="tab-apikeys">
+      <!-- Loaded from src/html/panels/settings/apiKeys.html -->
+    </div>
+
+    <!-- Tools Tab Content -->
+    <div id="content-tools" class="tab-content" role="tabpanel" aria-labelledby="tab-tools">
+      <!-- Loaded from src/html/panels/settings/tools.html -->
+    </div>
+
+    <!-- Data Tab Content -->
+    <div id="content-data" class="tab-content" role="tabpanel" aria-labelledby="tab-data">
+      <!-- Loaded from src/html/panels/settings/data.html -->
+    </div>
+
+    <!-- Memory Tab Content -->
+    <div id="content-memory" class="tab-content" role="tabpanel" aria-labelledby="tab-memory">
+      <!-- Loaded from src/html/panels/settings/memory.html -->
+    </div>
+
+    <!-- Location Tab Content -->
+    <div id="content-location" class="tab-content" role="tabpanel" aria-labelledby="tab-location">
+      <!-- Loaded from src/html/panels/settings/location.html -->
+    </div>
+
+    <!-- About Tab Content -->
+    <div id="content-about" class="tab-content" role="tabpanel" aria-labelledby="tab-about">
+      <!-- Loaded from src/html/panels/settings/about.html -->
+    </div>
+  </div>
+</div>
+
+<!-- History Panel -->
+<div id="history-panel" aria-labelledby="history-panel-header" aria-hidden="true" inert>
+  <div class="settings-header">
+    <div>
+      <h2 id="history-panel-header">Chat History</h2>
+      <div class="header-spacer"></div>
+    </div>
+    <button type="button" class="close-history" aria-label="Close History" title="Close History">
+      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><use href="src/assets/icons.svg#x"></use></svg>
+    </button>
+  </div>
+  <div class="history-export-controls">
+    <label class="visually-hidden" for="export-format">Export Format</label>
+    <select id="export-format" class="export-format-select" title="Choose export format">
+      <option value="md">Markdown (.md)</option>
+      <option value="txt">Plain Text (.txt)</option>
+      <option value="html">HTML (.html)</option>
+      <option value="json">JSON (.json)</option>
+      <option value="csv">CSV (.csv)</option>
+    </select>
+    <button type="button" id="export-chat" title="Export chat to selected format">Export Chat</button>
+  </div>
+  <div id="history-list"></div>
+</div>
+
+<!-- Gallery Panel -->
+<div id="gallery-panel" aria-labelledby="gallery-panel-header" aria-hidden="true" inert>
+  <div class="settings-header">
+    <div>
+      <h2 id="gallery-panel-header">Image Gallery</h2>
+      <div class="header-info">Total: <span id="gallery-count">0</span></div>
+    </div>
+    <button type="button" class="close-gallery" aria-label="Close Gallery" title="Close Gallery">
+      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><use href="src/assets/icons.svg#x"></use></svg>
+    </button>
+  </div>
+
+  <div class="gallery-tools">
+    <button type="button" id="refresh-gallery" title="Refresh Gallery">
+      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><use href="src/assets/icons.svg#refresh-arrows"></use></svg>
+      Refresh
+    </button>
+    <button type="button" id="bulk-delete-images" title="Delete Selected Images">
+      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><use href="src/assets/icons.svg#trash"></use></svg>
+      Delete Selected
+    </button>
+  </div>
+
+  <div class="gallery-tabs">
+    <button type="button" class="gallery-tab active" id="gallery-tab-generated" data-tab="generated">
+      <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><use href="src/assets/icons.svg#plus-circle"></use></svg>
+      Generated (<span id="generated-count">0</span>)
+    </button>
+    <button type="button" class="gallery-tab" id="gallery-tab-uploaded" data-tab="uploaded">
+      <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><use href="src/assets/icons.svg#download"></use></svg>
+      Uploaded (<span id="uploaded-count">0</span>)
+    </button>
+  </div>
+
+  <div id="gallery-grid"></div>
+</div>

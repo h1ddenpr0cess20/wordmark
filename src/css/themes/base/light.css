@@ -1,0 +1,164 @@
+/* Light theme variables and styles */
+
+.theme-light-gray {
+  --bg-primary: #f0f0f0;
+  --bg-secondary: #e0e0e0;
+  --text-primary: #333333;
+  --text-secondary: #666666;
+  --accent-color: #999999;
+  --accent-hover: #777777;
+  --border-color: #cccccc;
+  
+  /* RGB equivalents for transparency effects */
+  --bg-primary-rgb: 240, 240, 240;
+  --bg-secondary-rgb: 224, 224, 224;
+  --text-primary-rgb: 51, 51, 51;
+  --text-secondary-rgb: 102, 102, 102;
+  --accent-color-rgb: 153, 153, 153;
+  --accent-hover-rgb: 119, 119, 119;
+  --border-color-rgb: 204, 204, 204;
+  
+  --user-bg: #d8d8d8;
+  --assistant-bg: #e8e8e8;
+  --error-bg: #ffe5e5;
+  --error-text: #d03030;
+  --body-bg-color-1: #f0f0f0;
+  --body-bg-color-2: #e0e0e0;
+  --button-text-color: #ffffff;
+}
+
+.theme-light-red {
+  --bg-primary: #fff0f0;
+  --bg-secondary: #ffe5e5;
+  --text-primary: #333333;
+  --text-secondary: #775050;
+  --accent-color: #ffb0b0;
+  --accent-hover: #ff9090;
+  --border-color: #ffcccc;
+  --user-bg: #ffe0e0;
+  --assistant-bg: #fff0f0;
+  --error-bg: #ffe0e0;
+  --error-text: #cc3030;
+  --body-bg-color-1: #fff0f0;
+  --body-bg-color-2: #ffe5e5;
+  --button-text-color: #333333;
+}
+
+.theme-light-orange {
+  --bg-primary: #fff5e8;
+  --bg-secondary: #ffebd7;
+  --text-primary: #333333;
+  --text-secondary: #775e50;
+  --accent-color: #ffcc99;
+  --accent-hover: #ffbb77;
+  --border-color: #ffe0bb;
+  --user-bg: #ffeed3;
+  --assistant-bg: #fff5e8;
+  --error-bg: #ffe5d0;
+  --error-text: #cc6630;
+  --body-bg-color-1: #fff5e8;
+  --body-bg-color-2: #ffebd7;
+  --button-text-color: #333333;
+}
+
+.theme-light-yellow {
+  --bg-primary: #fffce6;
+  --bg-secondary: #fff9d0;
+  --text-primary: #333333;
+  --text-secondary: #777550;
+  --accent-color: #ffe58a;
+  --accent-hover: #ffd450;
+  --border-color: #ffefb3;
+  --user-bg: #fff7c2;
+  --assistant-bg: #ffffee;
+  --error-bg: #fff2c2;
+  --error-text: #cc9930;
+  --body-bg-color-1: #fffce6;
+  --body-bg-color-2: #fff9d0;
+  --button-text-color: #333333;
+}
+
+.theme-light-green {
+  --bg-primary: #f4fbf2;
+  --bg-secondary: #e8f7e5;
+  --text-primary: #333333;
+  --text-secondary: #567d46;
+  --accent-color: #85bb65;
+  --accent-hover: #6fae55;
+  --border-color: #c7e9c0;
+  --user-bg: #eaf7e5;
+  --assistant-bg: #f4fbf2;
+  --error-bg: #eaf7e5;
+  --error-text: #309933;
+  --body-bg-color-1: #f4fbf2;
+  --body-bg-color-2: #e8f7e5;
+  --button-text-color: #333333;
+}
+
+.theme-light-blue {
+  --bg-primary: #f0f8ff;
+  --bg-secondary: #e5f2ff;
+  --text-primary: #333333;
+  --text-secondary: #506a77;
+  --accent-color: #b0d8ff;
+  --accent-hover: #90c8ff;
+  --border-color: #cce5ff;
+  --user-bg: #e0f0ff;
+  --assistant-bg: #f0f8ff;
+  --error-bg: #e0eeff;
+  --error-text: #3077cc;
+  --body-bg-color-1: #f0f8ff;
+  --body-bg-color-2: #e5f2ff;
+  --button-text-color: #333333;
+}
+
+.theme-light-purple {
+  --bg-primary: #f8f0ff;
+  --bg-secondary: #f2e5ff;
+  --text-primary: #333333;
+  --text-secondary: #6a5077;
+  --accent-color: #d8b0ff;
+  --accent-hover: #c890ff;
+  --border-color: #e5ccff;
+  --user-bg: #f0e0ff;
+  --assistant-bg: #f8f0ff;
+  --error-bg: #eee0ff;
+  --error-text: #7730cc;
+  --body-bg-color-1: #f8f0ff;
+  --body-bg-color-2: #f2e5ff;
+  --button-text-color: #333333;
+}
+
+.theme-light-pink {
+  --bg-primary: #fff0f8;
+  --bg-secondary: #ffe5f2;
+  --text-primary: #333333;
+  --text-secondary: #775066;
+  --accent-color: #ffb0d8;
+  --accent-hover: #ff90c8;
+  --border-color: #ffcce5;
+  --user-bg: #ffe0f0;
+  --assistant-bg: #fff0f8;
+  --error-bg: #ffe0ee;
+  --error-text: #cc3077;
+  --body-bg-color-1: #fff0f8;
+  --body-bg-color-2: #ffe5f2;
+  --button-text-color: #333333;
+}
+
+.theme-minimal-light {
+  --bg-primary: #ffffff;
+  --bg-secondary: #f8f8f8;
+  --text-primary: #222222;
+  --text-secondary: #666666;
+  --accent-color: #dddddd;
+  --accent-hover: #cccccc;
+  --border-color: #eeeeee;
+  --user-bg: #f0f0f0;
+  --assistant-bg: #fcfcfc;
+  --error-bg: #f5f5f5;
+  --error-text: #d04040;
+  --body-bg-color-1: #ffffff;
+  --body-bg-color-2: #fafafa;
+  --button-text-color: #333333;
+}

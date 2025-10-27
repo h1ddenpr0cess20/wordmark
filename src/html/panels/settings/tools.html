@@ -1,0 +1,62 @@
+<div class="settings-group">
+  <h3>Tools Configuration</h3>
+
+  <div class="setting-item">
+    <label for="tool-calling-toggle">Enable Tool Calling</label>
+    <div class="toggle-container">
+      <input type="checkbox" id="tool-calling-toggle">
+      <label for="tool-calling-toggle" class="toggle-switch"></label>
+    </div>
+    <p class="info-text">Enable or disable function/tool calling. Disabling this will make the assistant behave like a standard chatbot.</p>
+  </div>
+
+  <div class="setting-item">
+    <label for="individual-tool-settings">Individual Tool Settings</label>
+    <p class="info-text">Toggle individual tools on/off. Changes take effect immediately.</p>
+    <div class="tools-bulk-actions">
+      <button type="button" id="enable-all-tools" class="tool-action-button">Enable All</button>
+      <button type="button" id="disable-all-tools" class="tool-action-button">Disable All</button>
+    </div>
+    <div id="individual-tools-container">
+      <!-- Tool toggles will be added here dynamically -->
+    </div>
+  </div>
+</div>
+
+<div class="settings-group">
+  <h3>MCP Servers</h3>
+  <p class="info-text">Configure Model Context Protocol servers to provide additional tools and resources. Each server runs as a separate process and can offer custom functionality.</p>
+
+  <div class="setting-item">
+    <label>Add New MCP Server</label>
+    <div class="mcp-add-form">
+      <div class="form-row">
+        <label for="mcp-server-name">Display Name</label>
+        <input type="text" id="mcp-server-name" placeholder="e.g., My Custom MCP Server" autocomplete="off">
+      </div>
+      <div class="form-row">
+        <label for="mcp-server-label">Server Label (identifier)</label>
+        <input type="text" id="mcp-server-label" placeholder="e.g., my_custom_server" autocomplete="off">
+      </div>
+      <div class="form-row">
+        <label for="mcp-server-url">Server URL</label>
+        <input type="text" id="mcp-server-url" placeholder="e.g., http://localhost:9404/mcp" autocomplete="off">
+      </div>
+      <div class="form-row">
+        <label for="mcp-server-approval">Require Approval</label>
+        <select id="mcp-server-approval">
+          <option value="always">Always</option>
+          <option value="auto">Auto</option>
+          <option value="never">Never</option>
+        </select>
+      </div>
+      <div class="form-row">
+        <label for="mcp-server-description">Description (optional)</label>
+        <textarea id="mcp-server-description" rows="2" placeholder="Brief description of what this server provides"></textarea>
+      </div>
+      <div class="action-buttons">
+        <button type="button" id="add-mcp-server" class="primary-button" title="Add MCP Server">Add Server</button>
+      </div>
+    </div>
+  </div>
+</div>

@@ -1,0 +1,113 @@
+{
+  "name": "wordmark",
+  "version": "1.0.0",
+  "description": "Client-side AI assistant for the OpenAI Responses API and local LM Studio servers.",
+  "main": "index.html",
+  "type": "module",
+  "scripts": {
+    "start": "npx http-server -p 8080 -c-1 --cors",
+    "start:https": "npx http-server -p 8443 -c-1 --cors -S -C cert.pem -K key.pem",
+    "dev": "npx http-server -p 3000 -c-1 --cors -o",
+    "dev:https": "npx http-server -p 3443 -c-1 --cors -S -C cert.pem -K key.pem -o",
+    "build": "echo 'No build step required - static web app'",
+    "test": "node --test tests/**/*.spec.js",
+    "test:watch": "node --test --watch tests/**/*.spec.js",
+    "lint": "npx eslint src/js/**/*.js",
+    "lint:fix": "npx eslint src/js/**/*.js --fix",
+    "validate": "npx html-validate index.html src/html/*.html",
+    "serve": "npm run start",
+    "preview": "npm run dev",
+    "cert:generate": "openssl req -x509 -newkey rsa:4096 -keyout key.pem -out cert.pem -days 365 -nodes -subj '/C=US/ST=Local/L=Local/O=Wordmark/CN=localhost'",
+    "deps:check": "npx npm-check-updates",
+    "deps:update": "npx npm-check-updates -u && npm install",
+    "docker:build": "docker build -t wordmark .",
+    "docker:run": "docker run --rm -p 8080:80 wordmark:latest"
+  },
+  "keywords": [
+    "ai",
+    "assistant",
+    "chatbot",
+    "openai",
+    "responses-api",
+    "lmstudio",
+    "local-ai",
+    "llm",
+    "generative-ai",
+    "conversational-ai",
+    "web-app",
+    "javascript",
+    "es6",
+    "modular",
+    "privacy",
+    "client-side",
+    "open-source"
+  ],
+  "author": {
+    "name": "Dustin Whyte",
+    "url": "https://github.com/h1ddenpr0cess20"
+  },
+  "license": "MIT",
+  "homepage": "",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/h1ddenpr0cess20/Wordmark.git"
+  },
+  "bugs": {
+    "url": "https://github.com/h1ddenpr0cess20/Wordmark/issues"
+  },
+  "engines": {
+    "node": ">=16.0.0",
+    "npm": ">=8.0.0"
+  },
+  "browserslist": [
+    "last 2 Chrome versions",
+    "last 2 Firefox versions",
+    "last 2 Safari versions",
+    "last 2 Edge versions",
+    "not dead",
+    "not ie 11"
+  ],
+  "devDependencies": {
+    "eslint": "^9.37.0",
+    "html-validate": "^10.1.2",
+    "http-server": "^14.1.1",
+    "npm-check-updates": "^19.1.0"
+  },
+  "dependencies": {},
+  "optionalDependencies": {},
+  "peerDependencies": {},
+  "bundledDependencies": [
+    "dompurify",
+    "marked",
+    "highlight.js"
+  ],
+  "files": [
+    "index.html",
+    "src/",
+    "README.md",
+    "LICENSE",
+    "robots.txt",
+    "sitemap.xml"
+  ],
+  "directories": {
+    "lib": "src/js/lib",
+    "doc": "."
+  },
+  "config": {
+    "port": 8080,
+    "https_port": 8443
+  },
+  "funding": {
+    "type": "crypto",
+    "url": "https://github.com/h1ddenpr0cess20/Wordmark#-support"
+  },
+  "os": [
+    "darwin",
+    "linux",
+    "win32"
+  ],
+  "cpu": [
+    "x64",
+    "arm64"
+  ]
+}

@@ -1,0 +1,54 @@
+<div class="settings-group">
+  <h3>API Keys Configuration</h3>
+  <p class="info-text">Store your API keys securely in your browser. Keys are saved in your browser's local storage and are never sent to our servers.</p>
+
+  <div class="setting-item">
+    <label for="openai-api-key">OpenAI API Key</label>
+    <div class="api-key-input-container">
+      <input type="text" id="openai-api-key" class="secret-input masked" placeholder="Enter your OpenAI API key" autocomplete="off" data-1p-ignore data-lpignore="true" data-bwignore="true">
+      <button type="button" class="toggle-password" data-for="openai-api-key" title="Show/Hide API Key" aria-label="Show or hide OpenAI API key">
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><use href="src/assets/icons.svg#eye"></use></svg>
+      </button>
+    </div>
+    <p class="info-text">Required for OpenAI models. <a href="https://platform.openai.com/api-keys" target="_blank">Get API Key</a></p>
+  </div>
+
+  <div class="setting-item">
+    <label for="xai-api-key">xAI API Key</label>
+    <div class="api-key-input-container">
+      <input type="text" id="xai-api-key" class="secret-input masked" placeholder="Enter your xAI API key" autocomplete="off" data-1p-ignore data-lpignore="true" data-bwignore="true">
+      <button type="button" class="toggle-password" data-for="xai-api-key" title="Show/Hide API Key" aria-label="Show or hide xAI API key">
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><use href="src/assets/icons.svg#eye"></use></svg>
+      </button>
+    </div>
+    <p class="info-text">Required for xAI Grok models. <a href="https://console.x.ai/" target="_blank">Get API Key</a></p>
+  </div>
+<!-- 
+  <div class="setting-item">
+    <label for="huggingface-api-key">Hugging Face API Key</label>
+    <div class="api-key-input-container">
+      <input type="text" id="huggingface-api-key" class="secret-input masked" placeholder="Enter your Hugging Face API key" autocomplete="off" data-1p-ignore data-lpignore="true" data-bwignore="true">
+      <button type="button" class="toggle-password" data-for="huggingface-api-key" title="Show/Hide API Key" aria-label="Show or hide Hugging Face API key">
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><use href="src/assets/icons.svg#eye"></use></svg>
+      </button>
+    </div>
+    <p class="info-text">Required for Hugging Face models. <a href="https://huggingface.co/settings/tokens" target="_blank">Get API Key</a></p>
+  </div> -->
+
+  <div class="api-keys-action-buttons">
+    <button type="button" id="save-api-keys" class="primary-button" title="Save API Keys">Save API Keys</button>
+  </div>
+
+  <div class="setting-item lmstudio-server-url">
+    <h3>LM Studio Configuration</h3>
+    <label for="lmstudio-server-url">LM Studio Base URL</label>
+    <div class="api-key-input-container">
+      <input type="text" id="lmstudio-server-url" placeholder="http://localhost:1234">
+    </div>
+    <p class="info-text">The base URL of your LM Studio server. Default is http://localhost:1234 for local instances.</p>
+    <div class="lmstudio-action-buttons">
+      <button type="button" id="save-lmstudio-url" class="primary-button" title="Save LM Studio Base URL">Save LM Studio URL</button>
+    </div>
+  </div>
+
+</div>

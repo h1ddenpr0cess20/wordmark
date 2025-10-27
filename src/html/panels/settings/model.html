@@ -1,0 +1,38 @@
+<div class="settings-group">
+  <h3>AI Model Configuration</h3>
+  <div class="setting-item">
+    <label for="service-selector">AI Service Provider</label>
+    <select id="service-selector">
+      <!-- Service options will be populated dynamically from config.js -->
+    </select>
+  </div>
+  <div class="setting-item">
+    <label for="model-selector">AI Model</label>
+    <div class="model-selector-container">
+      <select id="model-selector"></select>
+      <button type="button" id="refresh-lmstudio-models" class="small-button" title="Refresh LM Studio Models" aria-label="Refresh LM Studio models">
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><use href="src/assets/icons.svg#refresh-cw"></use></svg>
+      </button>
+    </div>
+    <p class="info-text lmstudio-refresh-info hidden">Click the refresh button to update the list of LM Studio models available from your server.</p>
+  </div>
+  <div class="setting-item">
+    <label for="reasoning-effort">Reasoning Effort</label>
+    <select id="reasoning-effort">
+      <option value="low">Low</option>
+      <option value="medium" selected>Medium</option>
+      <option value="high">High</option>
+    </select>
+    <p id="reasoning-effort-help" class="info-text">Higher effort spends more time on structured reasoning before replying; lower effort responds faster.</p>
+  </div>
+  <div class="setting-item">
+    <label for="verbosity-level">Response Verbosity</label>
+    <select id="verbosity-level">
+      <option value="low">Low</option>
+      <option value="medium" selected>Medium</option>
+      <option value="high">High</option>
+    </select>
+    <p id="verbosity-help" class="info-text">Higher verbosity produces longer, more detailed answers; lower verbosity keeps replies concise.</p>
+  </div>
+
+</div>

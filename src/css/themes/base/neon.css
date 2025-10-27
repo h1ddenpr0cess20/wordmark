@@ -1,0 +1,591 @@
+/* Neon theme variables and styles */
+
+/* Neon Blue Theme */
+.theme-neon-blue {
+  --bg-primary: #0a0a0a;
+  --bg-secondary: #121212;
+  --text-primary: #00bfff;
+  --text-secondary: #87ceeb;
+  --accent-color: #00bfff;
+  --accent-hover: #1e90ff;
+  --border-color: #00bfff;
+  
+  /* RGB equivalents for transparency effects */
+  --bg-primary-rgb: 10, 10, 10;
+  --bg-secondary-rgb: 18, 18, 18;
+  --text-primary-rgb: 0, 191, 255;
+  --text-secondary-rgb: 135, 206, 235;
+  --accent-color-rgb: 0, 191, 255;
+  --accent-hover-rgb: 30, 144, 255;
+  --border-color-rgb: 0, 191, 255;
+  
+  --user-bg: #001122;
+  --assistant-bg: #000a1a;
+  --error-bg: #2a0000;
+  --error-text: #ff4444;
+  --body-bg-color-1: #0a0a0a;
+  --body-bg-color-2: #001122;
+  --button-text-color: #000000;
+}
+
+/* Neon Pink Theme */
+.theme-neon-pink {
+  --bg-primary: #0a0a0a;
+  --bg-secondary: #121212;
+  --text-primary: #ff1493;
+  --text-secondary: #ff69b4;
+  --accent-color: #ff1493;
+  --accent-hover: #ff69b4;
+  --border-color: #ff1493;
+  --user-bg: #220011;
+  --assistant-bg: #1a000a;
+  --error-bg: #2a0000;
+  --error-text: #ff4444;
+  --body-bg-color-1: #0a0a0a;
+  --body-bg-color-2: #220011;
+  --button-text-color: #000000;
+}
+
+/* Neon Green Theme */
+.theme-neon-green {
+  --bg-primary: #0a0a0a;
+  --bg-secondary: #121212;
+  --text-primary: #00ff00;
+  --text-secondary: #32cd32;
+  --accent-color: #00ff00;
+  --accent-hover: #32cd32;
+  --border-color: #00ff00;
+  --user-bg: #002200;
+  --assistant-bg: #001a00;
+  --error-bg: #2a0000;
+  --error-text: #ff4444;
+  --body-bg-color-1: #0a0a0a;
+  --body-bg-color-2: #002200;
+  --button-text-color: #000000;
+}
+
+/* Neon Purple Theme */
+.theme-neon-purple {
+  --bg-primary: #0a0a0a;
+  --bg-secondary: #121212;
+  --text-primary: #8a2be2;
+  --text-secondary: #9932cc;
+  --accent-color: #8a2be2;
+  --accent-hover: #9932cc;
+  --border-color: #8a2be2;
+  --user-bg: #110022;
+  --assistant-bg: #0a001a;
+  --error-bg: #2a0000;
+  --error-text: #ff4444;
+  --body-bg-color-1: #0a0a0a;
+  --body-bg-color-2: #110022;
+  --button-text-color: #ffffff;
+}
+
+/* Neon Orange Theme */
+.theme-neon-orange {
+  --bg-primary: #0a0a0a;
+  --bg-secondary: #121212;
+  --text-primary: #ff4500;
+  --text-secondary: #ff6347;
+  --accent-color: #ff4500;
+  --accent-hover: #ff6347;
+  --border-color: #ff4500;
+  --user-bg: #221100;
+  --assistant-bg: #1a0a00;
+  --error-bg: #2a0000;
+  --error-text: #ff4444;
+  --body-bg-color-1: #0a0a0a;
+  --body-bg-color-2: #221100;
+  --button-text-color: #000000;
+}
+
+/* Neon Cyan Theme */
+.theme-neon-cyan {
+  --bg-primary: #0a0a0a;
+  --bg-secondary: #121212;
+  --text-primary: #00ffff;
+  --text-secondary: #40e0d0;
+  --accent-color: #00ffff;
+  --accent-hover: #40e0d0;
+  --border-color: #00ffff;
+  --user-bg: #002222;
+  --assistant-bg: #001a1a;
+  --error-bg: #2a0000;
+  --error-text: #ff4444;
+  --body-bg-color-1: #0a0a0a;
+  --body-bg-color-2: #002222;
+  --button-text-color: #000000;
+}
+
+/* Shared Neon Glow Effects */
+.theme-neon-blue,
+.theme-neon-pink,
+.theme-neon-green,
+.theme-neon-purple,
+.theme-neon-orange,
+.theme-neon-cyan {
+  font-family: 'Orbitron', 'Arial', sans-serif;
+}
+
+/* Neon Blue Specific Styles */
+.theme-neon-blue .message-content {
+  text-shadow: 0 0 2px #00bfff;
+}
+
+.theme-neon-blue h1,
+.theme-neon-blue h2,
+.theme-neon-blue h3 {
+  text-shadow: 0 0 5px #00bfff, 0 0 10px #00bfff, 0 0 15px #00bfff;
+}
+
+.theme-neon-blue #send-button {
+  background: transparent !important;
+  color: var(--text-primary) !important;
+  border: none !important;
+  box-shadow: none !important;
+}
+
+.theme-neon-blue input,
+.theme-neon-blue select,
+.theme-neon-blue textarea {
+  box-shadow: 0 0 5px #00bfff, inset 0 0 5px rgba(0, 191, 255, 0.1);
+  border: 1px solid #00bfff;
+}
+
+.theme-neon-blue #send-button:hover {
+  background: transparent !important;
+  color: var(--accent-color) !important;
+  box-shadow: none !important;
+}
+
+.theme-neon-blue .message-content {
+  border: 1px solid rgba(0, 191, 255, 0.3);
+  box-shadow: 0 0 5px #00bfff, 0 0 10px #00bfff, 0 0 15px #00bfff;
+}
+
+.theme-neon-blue #chat-container {
+  box-shadow: inset 0 0 50px rgba(0, 191, 255, 0.1);
+}
+
+/* Neon Pink Specific Styles */
+.theme-neon-pink .message-content {
+  text-shadow: 0 0 2px #ff1493;
+}
+
+.theme-neon-pink h1,
+.theme-neon-pink h2,
+.theme-neon-pink h3 {
+  text-shadow: 0 0 5px #ff1493, 0 0 10px #ff1493, 0 0 15px #ff1493;
+}
+
+.theme-neon-pink #send-button {
+  background: transparent !important;
+  color: var(--text-primary) !important;
+  border: none !important;
+  box-shadow: none !important;
+}
+
+.theme-neon-pink input,
+.theme-neon-pink select,
+.theme-neon-pink textarea {
+  box-shadow: 0 0 5px #ff1493, inset 0 0 5px rgba(255, 20, 147, 0.1);
+  border: 1px solid #ff1493;
+}
+
+.theme-neon-pink #send-button:hover {
+  background: transparent !important;
+  color: var(--accent-color) !important;
+  box-shadow: none !important;
+}
+
+.theme-neon-pink .message-content {
+  border: 1px solid rgba(255, 20, 147, 0.3);
+  box-shadow: 0 0 5px #ff1493, 0 0 10px #ff1493, 0 0 15px #ff1493;
+}
+
+.theme-neon-pink #chat-container {
+  box-shadow: inset 0 0 50px rgba(255, 20, 147, 0.1);
+}
+
+/* Neon Green Specific Styles */
+.theme-neon-green .message-content {
+  text-shadow: 0 0 2px #00ff00;
+}
+
+.theme-neon-green h1,
+.theme-neon-green h2,
+.theme-neon-green h3 {
+  text-shadow: 0 0 5px #00ff00, 0 0 10px #00ff00, 0 0 15px #00ff00;
+}
+
+.theme-neon-green #send-button {
+  background: transparent !important;
+  color: var(--text-primary) !important;
+  border: none !important;
+  box-shadow: none !important;
+}
+
+.theme-neon-green input,
+.theme-neon-green select,
+.theme-neon-green textarea {
+  box-shadow: 0 0 5px #00ff00, inset 0 0 5px rgba(0, 255, 0, 0.1);
+  border: 1px solid #00ff00;
+}
+
+.theme-neon-green #send-button:hover {
+  background: transparent !important;
+  color: var(--accent-color) !important;
+  box-shadow: none !important;
+}
+
+.theme-neon-green .message-content {
+  border: 1px solid rgba(0, 255, 0, 0.3);
+  box-shadow: 0 0 5px #00ff00, 0 0 10px #00ff00, 0 0 15px #00ff00;
+}
+
+.theme-neon-green #chat-container {
+  box-shadow: inset 0 0 50px rgba(0, 255, 0, 0.1);
+}
+
+/* Neon Purple Specific Styles */
+.theme-neon-purple .message-content {
+  text-shadow: 0 0 2px #8a2be2;
+}
+
+.theme-neon-purple h1,
+.theme-neon-purple h2,
+.theme-neon-purple h3 {
+  text-shadow: 0 0 5px #8a2be2, 0 0 10px #8a2be2, 0 0 15px #8a2be2;
+}
+
+.theme-neon-purple #send-button {
+  background: transparent !important;
+  color: var(--text-primary) !important;
+  border: none !important;
+  box-shadow: none !important;
+}
+
+.theme-neon-purple input,
+.theme-neon-purple select,
+.theme-neon-purple textarea {
+  box-shadow: 0 0 5px #8a2be2, inset 0 0 5px rgba(138, 43, 226, 0.1);
+  border: 1px solid #8a2be2;
+}
+
+.theme-neon-purple #send-button:hover {
+  background: transparent !important;
+  color: var(--accent-color) !important;
+  box-shadow: none !important;
+}
+
+.theme-neon-purple .message-content {
+  border: 1px solid rgba(138, 43, 226, 0.3);
+  box-shadow: 0 0 5px #8a2be2, 0 0 10px #8a2be2, 0 0 15px #8a2be2;
+}
+
+.theme-neon-purple #chat-container {
+  box-shadow: inset 0 0 50px rgba(138, 43, 226, 0.1);
+}
+
+/* Neon Orange Specific Styles */
+/* Neon Orange Specific Styles */
+.theme-neon-orange .message-content {
+  text-shadow: 0 0 2px #ff4500;
+}
+
+.theme-neon-orange h1,
+.theme-neon-orange h2,
+.theme-neon-orange h3 {
+  text-shadow: 0 0 5px #ff4500, 0 0 10px #ff4500, 0 0 15px #ff4500;
+}
+
+.theme-neon-orange #send-button {
+  background: transparent !important;
+  color: var(--text-primary) !important;
+  border: none !important;
+  box-shadow: none !important;
+}
+
+.theme-neon-orange input,
+.theme-neon-orange select,
+.theme-neon-orange textarea {
+  box-shadow: 0 0 5px #ff4500, inset 0 0 5px rgba(255, 69, 0, 0.1);
+  border: 1px solid #ff4500;
+}
+
+.theme-neon-orange #send-button:hover {
+  background: transparent !important;
+  color: var(--accent-color) !important;
+  box-shadow: none !important;
+}
+
+.theme-neon-orange .message-content {
+  border: 1px solid rgba(255, 69, 0, 0.3);
+  box-shadow: 0 0 5px #ff4500, 0 0 10px #ff4500, 0 0 15px #ff4500;
+}
+
+.theme-neon-orange #chat-container {
+  box-shadow: inset 0 0 50px rgba(255, 69, 0, 0.1);
+}
+
+/* Neon Cyan Specific Styles */
+/* Neon Cyan Specific Styles */
+.theme-neon-cyan .message-content {
+  text-shadow: 0 0 2px #00ffff;
+}
+
+.theme-neon-cyan h1,
+.theme-neon-cyan h2,
+.theme-neon-cyan h3 {
+  text-shadow: 0 0 5px #00ffff, 0 0 10px #00ffff, 0 0 15px #00ffff;
+}
+
+.theme-neon-cyan #send-button {
+  background: transparent !important;
+  color: var(--text-primary) !important;
+  border: none !important;
+  box-shadow: none !important;
+}
+
+.theme-neon-cyan input,
+.theme-neon-cyan select,
+.theme-neon-cyan textarea {
+  box-shadow: 0 0 5px #00ffff, inset 0 0 5px rgba(0, 255, 255, 0.1);
+  border: 1px solid #00ffff;
+}
+
+.theme-neon-cyan #send-button:hover {
+  background: transparent !important;
+  color: var(--accent-color) !important;
+  box-shadow: none !important;
+}
+
+.theme-neon-cyan .message-content {
+  border: 1px solid rgba(0, 255, 255, 0.3);
+  box-shadow: 0 0 5px #00ffff, 0 0 10px #00ffff, 0 0 15px #00ffff;
+}
+
+.theme-neon-cyan #chat-container {
+  box-shadow: inset 0 0 50px rgba(0, 255, 255, 0.1);
+}
+
+/* Shared Neon Effects */
+.theme-neon-blue .settings-panel,
+.theme-neon-pink .settings-panel,
+.theme-neon-green .settings-panel,
+.theme-neon-purple .settings-panel,
+.theme-neon-orange .settings-panel,
+.theme-neon-cyan .settings-panel {
+  background-color: rgba(0, 0, 0, 0.8) !important;
+  backdrop-filter: blur(10px);
+}
+
+/* Neon scrollbar styling */
+.theme-neon-blue ::-webkit-scrollbar-thumb,
+.theme-neon-pink ::-webkit-scrollbar-thumb,
+.theme-neon-green ::-webkit-scrollbar-thumb,
+.theme-neon-purple ::-webkit-scrollbar-thumb,
+.theme-neon-orange ::-webkit-scrollbar-thumb,
+.theme-neon-cyan ::-webkit-scrollbar-thumb {
+  background: linear-gradient(to bottom, var(--accent-color), transparent);
+  border-radius: 10px;
+  box-shadow: 0 0 5px var(--accent-color);
+}
+
+/* Neon input focus effects */
+.theme-neon-blue input:focus,
+.theme-neon-blue textarea:focus,
+.theme-neon-blue select:focus {
+  box-shadow: 0 0 10px #00bfff, 0 0 20px #00bfff, inset 0 0 10px rgba(0, 191, 255, 0.2);
+  outline: none;
+}
+
+.theme-neon-pink input:focus,
+.theme-neon-pink textarea:focus,
+.theme-neon-pink select:focus {
+  box-shadow: 0 0 10px #ff1493, 0 0 20px #ff1493, inset 0 0 10px rgba(255, 20, 147, 0.2);
+  outline: none;
+}
+
+.theme-neon-green input:focus,
+.theme-neon-green textarea:focus,
+.theme-neon-green select:focus {
+  box-shadow: 0 0 10px #00ff00, 0 0 20px #00ff00, inset 0 0 10px rgba(0, 255, 0, 0.2);
+  outline: none;
+}
+
+.theme-neon-purple input:focus,
+.theme-neon-purple textarea:focus,
+.theme-neon-purple select:focus {
+  box-shadow: 0 0 10px #8a2be2, 0 0 20px #8a2be2, inset 0 0 10px rgba(138, 43, 226, 0.2);
+  outline: none;
+}
+
+.theme-neon-orange input:focus,
+.theme-neon-orange textarea:focus,
+.theme-neon-orange select:focus {
+  box-shadow: 0 0 10px #ff4500, 0 0 20px #ff4500, inset 0 0 10px rgba(255, 69, 0, 0.2);
+  outline: none;
+}
+
+.theme-neon-cyan input:focus,
+.theme-neon-cyan textarea:focus,
+.theme-neon-cyan select:focus {
+  box-shadow: 0 0 10px #00ffff, 0 0 20px #00ffff, inset 0 0 10px rgba(0, 255, 255, 0.2);
+  outline: none;
+}
+
+/* Fix active tab text contrast for all neon themes */
+.theme-neon-blue .tab-button.active,
+.theme-neon-pink .tab-button.active,
+.theme-neon-green .tab-button.active,
+.theme-neon-purple .tab-button.active,
+.theme-neon-orange .tab-button.active,
+.theme-neon-cyan .tab-button.active {
+  color: #000000 !important;
+  background-color: var(--accent-color) !important;
+  border-bottom: 3px solid var(--accent-color) !important;
+  box-shadow: 0 0 15px var(--accent-color), 0 0 25px var(--accent-color), inset 0 0 10px rgba(255, 255, 255, 0.2) !important;
+  font-weight: bold !important;
+}
+
+/* Special case for purple theme - use white text on purple background */
+.theme-neon-purple .tab-button.active {
+  color: #ffffff !important;
+  background-color: var(--accent-color) !important;
+  border-bottom: 3px solid var(--accent-color) !important;
+  box-shadow: 0 0 15px var(--accent-color), 0 0 25px var(--accent-color), inset 0 0 10px rgba(255, 255, 255, 0.2) !important;
+  font-weight: bold !important;
+}
+
+/* Fix regular tab button text color to ensure visibility */
+.theme-neon-blue .tab-button,
+.theme-neon-pink .tab-button,
+.theme-neon-green .tab-button,
+.theme-neon-purple .tab-button,
+.theme-neon-orange .tab-button,
+.theme-neon-cyan .tab-button {
+  color: var(--text-secondary) !important;
+  background-color: rgba(0, 0, 0, 0.4) !important;
+  border: 1px solid rgba(128, 128, 128, 0.3) !important;
+}
+
+.theme-neon-blue .tab-button:hover,
+.theme-neon-pink .tab-button:hover,
+.theme-neon-green .tab-button:hover,
+.theme-neon-purple .tab-button:hover,
+.theme-neon-orange .tab-button:hover,
+.theme-neon-cyan .tab-button:hover {
+  color: var(--text-primary) !important;
+  background-color: rgba(0, 0, 0, 0.6) !important;
+  border: 1px solid var(--accent-color) !important;
+  box-shadow: 0 0 8px var(--accent-color) !important;
+}
+
+/* Neon logo glow effects (hover only) */
+.theme-neon-blue #wordmark-logo,
+.theme-neon-pink #wordmark-logo,
+.theme-neon-green #wordmark-logo,
+.theme-neon-purple #wordmark-logo,
+.theme-neon-orange #wordmark-logo,
+.theme-neon-cyan #wordmark-logo {
+  filter: none;
+}
+
+.theme-neon-blue #logo-container:hover #wordmark-logo,
+.theme-neon-blue #logo-container:focus-within #wordmark-logo,
+.theme-neon-blue #wordmark-logo:hover,
+.theme-neon-blue #wordmark-logo:focus-visible {
+  filter: drop-shadow(0 0 5px #00bfff) drop-shadow(0 0 10px #00bfff) drop-shadow(0 0 15px #00bfff);
+}
+
+.theme-neon-pink #logo-container:hover #wordmark-logo,
+.theme-neon-pink #logo-container:focus-within #wordmark-logo,
+.theme-neon-pink #wordmark-logo:hover,
+.theme-neon-pink #wordmark-logo:focus-visible {
+  filter: drop-shadow(0 0 5px #ff1493) drop-shadow(0 0 10px #ff1493) drop-shadow(0 0 15px #ff1493);
+}
+
+.theme-neon-green #logo-container:hover #wordmark-logo,
+.theme-neon-green #logo-container:focus-within #wordmark-logo,
+.theme-neon-green #wordmark-logo:hover,
+.theme-neon-green #wordmark-logo:focus-visible {
+  filter: drop-shadow(0 0 5px #00ff00) drop-shadow(0 0 10px #00ff00) drop-shadow(0 0 15px #00ff00);
+}
+
+.theme-neon-purple #logo-container:hover #wordmark-logo,
+.theme-neon-purple #logo-container:focus-within #wordmark-logo,
+.theme-neon-purple #wordmark-logo:hover,
+.theme-neon-purple #wordmark-logo:focus-visible {
+  filter: drop-shadow(0 0 5px #8a2be2) drop-shadow(0 0 10px #8a2be2) drop-shadow(0 0 15px #8a2be2);
+}
+
+.theme-neon-orange #logo-container:hover #wordmark-logo,
+.theme-neon-orange #logo-container:focus-within #wordmark-logo,
+.theme-neon-orange #wordmark-logo:hover,
+.theme-neon-orange #wordmark-logo:focus-visible {
+  filter: drop-shadow(0 0 5px #ff4500) drop-shadow(0 0 10px #ff4500) drop-shadow(0 0 15px #ff4500);
+}
+
+.theme-neon-cyan #logo-container:hover #wordmark-logo,
+.theme-neon-cyan #logo-container:focus-within #wordmark-logo,
+.theme-neon-cyan #wordmark-logo:hover,
+.theme-neon-cyan #wordmark-logo:focus-visible {
+  filter: drop-shadow(0 0 5px #00ffff) drop-shadow(0 0 10px #00ffff) drop-shadow(0 0 15px #00ffff);
+}
+
+/* Neon button glow effects */
+.theme-neon-blue .copy-btn:hover,
+.theme-neon-blue #settings-button:hover,
+.theme-neon-blue #gallery-button:hover,
+.theme-neon-blue #history-button:hover {
+  box-shadow: 0 0 5px #00bfff, 0 0 10px #00bfff, 0 0 15px #00bfff !important;
+  text-shadow: 0 0 5px #00bfff !important;
+  color: #00bfff !important;
+}
+
+.theme-neon-pink .copy-btn:hover,
+.theme-neon-pink #settings-button:hover,
+.theme-neon-pink #gallery-button:hover,
+.theme-neon-pink #history-button:hover {
+  box-shadow: 0 0 5px #ff1493, 0 0 10px #ff1493, 0 0 15px #ff1493 !important;
+  text-shadow: 0 0 5px #ff1493 !important;
+  color: #ff1493 !important;
+}
+
+.theme-neon-green .copy-btn:hover,
+.theme-neon-green #settings-button:hover,
+.theme-neon-green #gallery-button:hover,
+.theme-neon-green #history-button:hover {
+  box-shadow: 0 0 5px #00ff00, 0 0 10px #00ff00, 0 0 15px #00ff00 !important;
+  text-shadow: 0 0 5px #00ff00 !important;
+  color: #00ff00 !important;
+}
+
+.theme-neon-purple .copy-btn:hover,
+.theme-neon-purple #settings-button:hover,
+.theme-neon-purple #gallery-button:hover,
+.theme-neon-purple #history-button:hover {
+  box-shadow: 0 0 5px #8a2be2, 0 0 10px #8a2be2, 0 0 15px #8a2be2 !important;
+  text-shadow: 0 0 5px #8a2be2 !important;
+  color: #8a2be2 !important;
+}
+
+.theme-neon-orange .copy-btn:hover,
+.theme-neon-orange #settings-button:hover,
+.theme-neon-orange #gallery-button:hover,
+.theme-neon-orange #history-button:hover {
+  box-shadow: 0 0 5px #ff4500, 0 0 10px #ff4500, 0 0 15px #ff4500 !important;
+  text-shadow: 0 0 5px #ff4500 !important;
+  color: #ff4500 !important;
+}
+
+.theme-neon-cyan .copy-btn:hover,
+.theme-neon-cyan #settings-button:hover,
+.theme-neon-cyan #gallery-button:hover,
+.theme-neon-cyan #history-button:hover {
+  box-shadow: 0 0 5px #00ffff, 0 0 10px #00ffff, 0 0 15px #00ffff !important;
+  text-shadow: 0 0 5px #00ffff !important;
+  color: #00ffff !important;
+}

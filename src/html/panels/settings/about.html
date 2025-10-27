@@ -1,0 +1,103 @@
+<div class="settings-group">
+  <h3>About Wordmark</h3>
+  <div class="about-content">
+    <p>Version <span id="app-version"></span></p>
+    <p>Wordmark is an open source AI assistant that uses the Responses API with OpenAI, xAI or LM Studio. It offers advanced features like personality customization, tool calling (weather, OpenAI web search, and custom MCP servers), text-to-speech, theme customization, and secure local storage of conversations and API keys.</p>
+    <p>All of your conversations and generated images are stored locally in your browser. You can easily manage your chat history and view your images in the image gallery. Make sure to download the images you want to keep, as they are not stored on any server and will be lost if you clear your browser data.</p>
+    <p>For more information, visit the <a href="https://github.com/h1ddenpr0cess20/Wordmark" target="_blank" rel="noopener">GitHub Repository</a>.</p>
+
+    <div class="donation-section">
+      <h4>Support This Project</h4>
+      <p>If you find this project helpful, consider supporting its development:</p>
+      <div id="crypto-addresses-container" class="crypto-addresses">
+        <!-- Cryptocurrency addresses will be dynamically populated here -->
+      </div>
+    </div>
+      <div class="footer-info">
+      <p>&copy; 2025 Dustin Whyte<br><span class="license-info">Released under the <a href="https://opensource.org/licenses/MIT" target="_blank" rel="noopener">MIT License</a></span></p>
+      <p class="license-description">This project is free software: you can redistribute it and/or modify it under the terms of the MIT License.</p>
+      <div class="footer-links">
+        <a href="#" onclick="showHelpPopup(); return false;">Help Guide</a>
+        <span class="footer-separator">•</span>
+        <a href="#" onclick="showPrivacyPopup(); return false;">Privacy Policy</a>
+        <span class="footer-separator">•</span>
+        <a href="#" onclick="showTermsPopup(); return false;">Terms of Service</a>
+        <span class="footer-separator">•</span>
+        <a href="#" onclick="showContactPopup(); return false;">Contact</a>
+      </div>
+      <div class="footer-links">
+        <a href="#" onclick="showDownloadPopup(); return false;">Download Mobile App</a>
+      </div>
+    </div>
+  </div>
+
+  <!-- Privacy Policy Popup -->
+  <div id="privacy-popup" class="about-popup" style="display: none;">
+    <div class="popup-header">
+      <button type="button" class="popup-back-btn" onclick="hidePrivacyPopup()">
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><use href="src/assets/icons.svg#arrow-left"></use></svg>
+        Back
+      </button>
+      <h2>Privacy Policy</h2>
+    </div>
+    <div class="popup-content">
+      <div id="privacy-content-container"></div>
+    </div>
+  </div>
+
+  <!-- Contact Popup -->
+  <div id="contact-popup" class="about-popup" style="display: none;">
+    <div class="popup-header">
+      <button type="button" class="popup-back-btn" onclick="hideContactPopup()">
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><use href="src/assets/icons.svg#arrow-left"></use></svg>
+        Back
+      </button>
+      <h2>Contact</h2>
+    </div>
+    <div class="popup-content">
+      <div id="contact-content-container"></div>
+    </div>
+  </div>
+
+  <!-- Terms of Service Popup -->
+  <div id="terms-popup" class="about-popup" style="display: none;">
+    <div class="popup-header">
+      <button type="button" class="popup-back-btn" onclick="hideTermsPopup()">
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><use href="src/assets/icons.svg#arrow-left"></use></svg>
+        Back
+      </button>
+      <h2>Terms of Service</h2>
+    </div>
+    <div class="popup-content">
+      <div id="terms-content-container"></div>
+    </div>
+  </div>
+
+  <!-- Help Guide Popup -->
+  <div id="help-popup" class="about-popup" style="display: none;">
+    <div class="popup-header">
+      <button type="button" class="popup-back-btn" onclick="hideHelpPopup()">
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><use href="src/assets/icons.svg#arrow-left"></use></svg>
+        Back
+      </button>
+      <h2>Help Guide</h2>
+    </div>
+    <div class="popup-content">
+      <div id="help-content-container"></div>
+    </div>
+  </div>
+
+  <!-- Download Popup -->
+  <div id="download-popup" class="about-popup" style="display: none;">
+    <div class="popup-header">
+      <button type="button" class="popup-back-btn" onclick="hideDownloadPopup()">
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><use href="src/assets/icons.svg#arrow-left"></use></svg>
+        Back
+      </button>
+      <h2>Download Mobile App</h2>
+    </div>
+    <div class="popup-content">
+      <div id="download-content-container"></div>
+    </div>
+  </div>
+</div>

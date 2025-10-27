@@ -1,0 +1,822 @@
+/* Country Theme Code Blocks */
+
+/* USA Theme - Red, White, and Blue */
+.theme-usa pre {
+  background-color: #0a1640 !important;
+  border: 1px solid #2c3e71 !important;
+}
+
+.theme-usa pre code {
+  color: #e0e6f5 !important;
+}
+
+.theme-usa {
+  --code-number: #dce4ff;
+}
+
+.theme-usa .hljs-keyword,
+.theme-usa .hljs-meta,
+.theme-usa .hljs-selector-tag,
+.theme-usa .hljs-title {
+  color: #e63946 !important;
+}
+
+.theme-usa .hljs-type,
+.theme-usa .hljs-built_in,
+.theme-usa .hljs-title.function_ {
+  color: #5a85ed !important;
+}
+
+.theme-usa .hljs-string,
+.theme-usa .hljs-doctag,
+.theme-usa .hljs-addition,
+.theme-usa .hljs-regexp,
+.theme-usa .hljs-symbol {
+  color: #f0f0f0 !important;
+}
+
+.theme-usa .hljs-attr {
+  color: #8caeff !important;
+}
+
+.theme-usa .hljs-comment,
+.theme-usa .hljs-quote {
+  color: #9eaee6 !important;
+  font-style: italic;
+}
+
+.theme-usa .hljs-name,
+.theme-usa .hljs-deletion,
+.theme-usa .hljs-tag {
+  color: #f27d85 !important;
+}
+
+/* number/literal colors provided by --code-number */
+
+.theme-usa .hljs-variable,
+.theme-usa .hljs-template-variable {
+  color: #c13042 !important;
+}
+
+.theme-usa .hljs-property,
+.theme-usa .hljs-params {
+  color: #3355b8 !important;
+}
+
+/* Mexico Theme - Green, White, and Red */
+.theme-mexico pre {
+  background-color: #143c25 !important;
+  border: 1px solid #396a39 !important;
+}
+
+.theme-mexico pre code {
+  color: #f0f5f0 !important;
+}
+
+.theme-mexico {
+  --code-number: #e0f0e0;
+}
+
+.theme-mexico .hljs-keyword,
+.theme-mexico .hljs-meta,
+.theme-mexico .hljs-selector-tag,
+.theme-mexico .hljs-title {
+  color: #e63946 !important;
+}
+
+.theme-mexico .hljs-type,
+.theme-mexico .hljs-built_in,
+.theme-mexico .hljs-title.function_ {
+  color: #25a76c !important;
+}
+
+.theme-mexico .hljs-string,
+.theme-mexico .hljs-doctag,
+.theme-mexico .hljs-addition,
+.theme-mexico .hljs-regexp,
+.theme-mexico .hljs-symbol {
+  color: #f0f0f0 !important;
+}
+
+.theme-mexico .hljs-attr {
+  color: #7ad0a1 !important;
+}
+
+.theme-mexico .hljs-comment,
+.theme-mexico .hljs-quote {
+  color: #98c49e !important;
+  font-style: italic;
+}
+
+.theme-mexico .hljs-name,
+.theme-mexico .hljs-deletion,
+.theme-mexico .hljs-tag {
+  color: #f27d85 !important;
+}
+
+/* number/literal colors provided by --code-number */
+
+.theme-mexico .hljs-variable,
+.theme-mexico .hljs-template-variable {
+  color: #c13042 !important;
+}
+
+.theme-mexico .hljs-property,
+.theme-mexico .hljs-params {
+  color: #00874d !important;
+}
+
+/* Brazil Theme - Green, Yellow, and Blue */
+.theme-brazil pre {
+  background-color: #143c25 !important;
+  border: 1px solid #206020 !important;
+}
+
+.theme-brazil pre code {
+  color: #f0f5f0 !important;
+}
+
+.theme-brazil {
+  --code-number: #e5d07e;
+}
+
+.theme-brazil .hljs-keyword,
+.theme-brazil .hljs-meta,
+.theme-brazil .hljs-selector-tag,
+.theme-brazil .hljs-title {
+  color: #fed766 !important;
+}
+
+.theme-brazil .hljs-type,
+.theme-brazil .hljs-built_in,
+.theme-brazil .hljs-title.function_ {
+  color: #25a76c !important;
+}
+
+.theme-brazil .hljs-string,
+.theme-brazil .hljs-doctag,
+.theme-brazil .hljs-addition,
+.theme-brazil .hljs-regexp,
+.theme-brazil .hljs-symbol {
+  color: #f0f0f0 !important;
+}
+
+.theme-brazil .hljs-attr {
+  color: #3d9be9 !important;
+}
+
+.theme-brazil .hljs-comment,
+.theme-brazil .hljs-quote {
+  color: #98c49e !important;
+  font-style: italic;
+}
+
+.theme-brazil .hljs-name,
+.theme-brazil .hljs-deletion,
+.theme-brazil .hljs-tag {
+  color: #5085df !important;
+}
+
+/* number/literal colors provided by --code-number */
+
+.theme-brazil .hljs-variable,
+.theme-brazil .hljs-template-variable {
+  color: #002776 !important;
+}
+
+.theme-brazil .hljs-property,
+.theme-brazil .hljs-params {
+  color: #eac746 !important;
+}
+
+/* UK Theme - Red, White, and Blue */
+.theme-uk pre {
+  background-color: #102050 !important;
+  border: 1px solid #2c3e71 !important;
+}
+
+.theme-uk pre code {
+  color: #f0f0f5 !important;
+}
+
+.theme-uk {
+  --code-number: #dce4ff;
+}
+
+.theme-uk .hljs-keyword,
+.theme-uk .hljs-meta,
+.theme-uk .hljs-selector-tag,
+.theme-uk .hljs-title {
+  color: #e63946 !important;
+}
+
+.theme-uk .hljs-type,
+.theme-uk .hljs-built_in,
+.theme-uk .hljs-title.function_ {
+  color: #4d78d6 !important;
+}
+
+.theme-uk .hljs-string,
+.theme-uk .hljs-doctag,
+.theme-uk .hljs-addition,
+.theme-uk .hljs-regexp,
+.theme-uk .hljs-symbol {
+  color: #f0f0f0 !important;
+}
+
+.theme-uk .hljs-attr {
+  color: #8caeff !important;
+}
+
+.theme-uk .hljs-comment,
+.theme-uk .hljs-quote {
+  color: #a6b3e0 !important;
+  font-style: italic;
+}
+
+.theme-uk .hljs-name,
+.theme-uk .hljs-deletion,
+.theme-uk .hljs-tag {
+  color: #f27d85 !important;
+}
+
+/* number/literal colors provided by --code-number */
+
+.theme-uk .hljs-variable,
+.theme-uk .hljs-template-variable {
+  color: #c13042 !important;
+}
+
+.theme-uk .hljs-property,
+.theme-uk .hljs-params {
+  color: #3355b8 !important;
+}
+
+/* Canada Theme - Red and White */
+.theme-canada pre {
+  background-color: #202020 !important;
+  border: 1px solid #4a2525 !important;
+}
+
+.theme-canada pre code {
+  color: #f5f5f5 !important;
+}
+
+.theme-canada {
+  --code-number: #e6e6e6;
+}
+
+.theme-canada .hljs-keyword,
+.theme-canada .hljs-meta,
+.theme-canada .hljs-selector-tag,
+.theme-canada .hljs-title {
+  color: #e63946 !important;
+}
+
+.theme-canada .hljs-type,
+.theme-canada .hljs-built_in,
+.theme-canada .hljs-title.function_ {
+  color: #e88e95 !important;
+}
+
+.theme-canada .hljs-string,
+.theme-canada .hljs-doctag,
+.theme-canada .hljs-addition,
+.theme-canada .hljs-regexp,
+.theme-canada .hljs-symbol {
+  color: #f0f0f0 !important;
+}
+
+.theme-canada .hljs-attr {
+  color: #f2adb3 !important;
+}
+
+.theme-canada .hljs-comment,
+.theme-canada .hljs-quote {
+  color: #c0c0c0 !important;
+  font-style: italic;
+}
+
+.theme-canada .hljs-name,
+.theme-canada .hljs-deletion,
+.theme-canada .hljs-tag {
+  color: #f27d85 !important;
+}
+
+/* number/literal colors provided by --code-number */
+
+.theme-canada .hljs-variable,
+.theme-canada .hljs-template-variable {
+  color: #c13042 !important;
+}
+
+.theme-canada .hljs-property,
+.theme-canada .hljs-params {
+  color: #f0aaaa !important;
+}
+
+/* Japan Theme - White and Red */
+.theme-japan pre {
+  background-color: #1e1e1e !important;
+  border: 1px solid #333333 !important;
+}
+
+.theme-japan pre code {
+  color: #f5f5f5 !important;
+}
+
+.theme-japan {
+  --code-number: #e6e6e6;
+}
+
+.theme-japan .hljs-keyword,
+.theme-japan .hljs-meta,
+.theme-japan .hljs-selector-tag,
+.theme-japan .hljs-title {
+  color: #e63946 !important;
+}
+
+.theme-japan .hljs-type,
+.theme-japan .hljs-built_in,
+.theme-japan .hljs-title.function_ {
+  color: #c13042 !important;
+}
+
+.theme-japan .hljs-string,
+.theme-japan .hljs-doctag,
+.theme-japan .hljs-addition,
+.theme-japan .hljs-regexp,
+.theme-japan .hljs-symbol {
+  color: #f0f0f0 !important;
+}
+
+.theme-japan .hljs-attr {
+  color: #f2adb3 !important;
+}
+
+.theme-japan .hljs-comment,
+.theme-japan .hljs-quote {
+  color: #c0c0c0 !important;
+  font-style: italic;
+}
+
+.theme-japan .hljs-name,
+.theme-japan .hljs-deletion,
+.theme-japan .hljs-tag {
+  color: #f27d85 !important;
+}
+
+/* number/literal colors provided by --code-number */
+
+.theme-japan .hljs-variable,
+.theme-japan .hljs-template-variable {
+  color: #a52a2a !important;
+}
+
+.theme-japan .hljs-property,
+.theme-japan .hljs-params {
+  color: #d9d9d9 !important;
+}
+
+/* Italy Theme - Green, White, and Red */
+.theme-italy pre {
+  background-color: #143c25 !important;
+  border: 1px solid #396a39 !important;
+}
+
+.theme-italy pre code {
+  color: #f0f5f0 !important;
+}
+
+.theme-italy {
+  --code-number: #e0f0e0;
+}
+
+.theme-italy .hljs-keyword,
+.theme-italy .hljs-meta,
+.theme-italy .hljs-selector-tag,
+.theme-italy .hljs-title {
+  color: #e63946 !important;
+}
+
+.theme-italy .hljs-type,
+.theme-italy .hljs-built_in,
+.theme-italy .hljs-title.function_ {
+  color: #25a76c !important;
+}
+
+.theme-italy .hljs-string,
+.theme-italy .hljs-doctag,
+.theme-italy .hljs-addition,
+.theme-italy .hljs-regexp,
+.theme-italy .hljs-symbol {
+  color: #f0f0f0 !important;
+}
+
+.theme-italy .hljs-attr {
+  color: #7ad0a1 !important;
+}
+
+.theme-italy .hljs-comment,
+.theme-italy .hljs-quote {
+  color: #98c49e !important;
+  font-style: italic;
+}
+
+.theme-italy .hljs-name,
+.theme-italy .hljs-deletion,
+.theme-italy .hljs-tag {
+  color: #f27d85 !important;
+}
+
+/* number/literal colors provided by --code-number */
+
+.theme-italy .hljs-variable,
+.theme-italy .hljs-template-variable {
+  color: #c13042 !important;
+}
+
+.theme-italy .hljs-property,
+.theme-italy .hljs-params {
+  color: #00874d !important;
+}
+
+/* Germany Theme - Softer colors */
+.theme-germany pre {
+  background-color: #222222 !important;
+  border: 1px solid #3c3c3c !important;
+}
+
+.theme-germany pre code {
+  color: #f0f0f0 !important;
+}
+
+.theme-germany {
+  --code-number: #e6cc66;
+}
+
+.theme-germany .hljs-keyword,
+.theme-germany .hljs-meta,
+.theme-germany .hljs-selector-tag,
+.theme-germany .hljs-title {
+  color: #c13030 !important;
+}
+
+.theme-germany .hljs-type,
+.theme-germany .hljs-built_in,
+.theme-germany .hljs-title.function_ {
+  color: #dab800 !important;
+}
+
+.theme-germany .hljs-string,
+.theme-germany .hljs-doctag,
+.theme-germany .hljs-addition,
+.theme-germany .hljs-regexp,
+.theme-germany .hljs-symbol {
+  color: #e8cc4d !important;
+}
+
+.theme-germany .hljs-attr {
+  color: #d95555 !important;
+}
+
+.theme-germany .hljs-comment,
+.theme-germany .hljs-quote {
+  color: #999999 !important;
+  font-style: italic;
+}
+
+.theme-germany .hljs-name,
+.theme-germany .hljs-deletion,
+.theme-germany .hljs-tag {
+  color: #e05555 !important;
+}
+
+/* number/literal colors provided by --code-number */
+
+.theme-germany .hljs-variable,
+.theme-germany .hljs-template-variable {
+  color: #a83030 !important;
+}
+
+.theme-germany .hljs-property,
+.theme-germany .hljs-params {
+  color: #c4b04d !important;
+}
+
+/* Greece Theme - Enhanced Blue and White */
+.theme-greece pre {
+  background-color: #234296 !important;
+  border: 1px solid #3a5ac9 !important;
+}
+
+.theme-greece pre code {
+  color: #ffffff !important;
+}
+
+.theme-greece {
+  --code-number: #ffffff;
+}
+
+.theme-greece .hljs-keyword,
+.theme-greece .hljs-meta,
+.theme-greece .hljs-selector-tag,
+.theme-greece .hljs-title {
+  color: #ffffff !important;
+}
+
+.theme-greece .hljs-type,
+.theme-greece .hljs-built_in,
+.theme-greece .hljs-title.function_ {
+  color: #75aaff !important;
+}
+
+.theme-greece .hljs-string,
+.theme-greece .hljs-doctag,
+.theme-greece .hljs-addition,
+.theme-greece .hljs-regexp,
+.theme-greece .hljs-symbol {
+  color: #c4d8ff !important;
+}
+
+.theme-greece .hljs-attr {
+  color: #e3ecff !important;
+}
+
+.theme-greece .hljs-comment,
+.theme-greece .hljs-quote {
+  color: #c6d4f7 !important;
+  font-style: italic;
+}
+
+.theme-greece .hljs-name,
+.theme-greece .hljs-deletion,
+.theme-greece .hljs-tag {
+  color: #ffffff !important;
+}
+
+/* number/literal colors provided by --code-number */
+
+.theme-greece .hljs-variable,
+.theme-greece .hljs-template-variable {
+  color: #5d8cee !important;
+}
+
+.theme-greece .hljs-property,
+.theme-greece .hljs-params {
+  color: #e9f0ff !important;
+}
+
+/* Australia Theme - Softer colors */
+.theme-australia pre {
+  background-color: #192a73 !important;
+  border: 1px solid #344899 !important;
+}
+
+.theme-australia pre code {
+  color: #f5f5f5 !important;
+}
+
+.theme-australia {
+  --code-number: #dce4ff;
+}
+
+.theme-australia .hljs-keyword,
+.theme-australia .hljs-meta,
+.theme-australia .hljs-selector-tag,
+.theme-australia .hljs-title {
+  color: #e63946 !important;
+}
+
+.theme-australia .hljs-type,
+.theme-australia .hljs-built_in,
+.theme-australia .hljs-title.function_ {
+  color: #3454b4 !important;
+}
+
+.theme-australia .hljs-string,
+.theme-australia .hljs-doctag,
+.theme-australia .hljs-addition,
+.theme-australia .hljs-regexp,
+.theme-australia .hljs-symbol {
+  color: #ffffff !important;
+}
+
+.theme-australia .hljs-attr {
+  color: #99b3ff !important;
+}
+
+.theme-australia .hljs-comment,
+.theme-australia .hljs-quote {
+  color: #a6b3e0 !important;
+  font-style: italic;
+}
+
+.theme-australia .hljs-name,
+.theme-australia .hljs-deletion,
+.theme-australia .hljs-tag {
+  color: #f27d85 !important;
+}
+
+/* number/literal colors provided by --code-number */
+
+.theme-australia .hljs-variable,
+.theme-australia .hljs-template-variable {
+  color: #d13242 !important;
+}
+
+.theme-australia .hljs-property,
+.theme-australia .hljs-params {
+  color: #5b75cc !important;
+}
+
+/* France Theme - Blue, White, and Red */
+.theme-france pre {
+  background-color: #14204d !important;
+  border: 1px solid #262b7f !important;
+}
+
+.theme-france pre code {
+  color: #f5f5f5 !important;
+}
+
+.theme-france {
+  --code-number: #dce4ff;
+}
+
+.theme-france .hljs-keyword,
+.theme-france .hljs-meta,
+.theme-france .hljs-selector-tag,
+.theme-france .hljs-title {
+  color: #e84958 !important;
+}
+
+.theme-france .hljs-type,
+.theme-france .hljs-built_in,
+.theme-france .hljs-title.function_ {
+  color: #5a85ed !important;
+}
+
+.theme-france .hljs-string,
+.theme-france .hljs-doctag,
+.theme-france .hljs-addition,
+.theme-france .hljs-regexp,
+.theme-france .hljs-symbol {
+  color: #f0f0f0 !important;
+}
+
+.theme-france .hljs-attr {
+  color: #99b3ff !important;
+}
+
+.theme-france .hljs-comment,
+.theme-france .hljs-quote {
+  color: #a6b3e0 !important;
+  font-style: italic;
+}
+
+.theme-france .hljs-name,
+.theme-france .hljs-deletion,
+.theme-france .hljs-tag {
+  color: #f27d85 !important;
+}
+
+/* number/literal colors provided by --code-number */
+
+.theme-france .hljs-variable,
+.theme-france .hljs-template-variable {
+  color: #c13042 !important;
+}
+
+.theme-france .hljs-property,
+.theme-france .hljs-params {
+  color: #3355b8 !important;
+}
+
+/* India Theme - Saffron, White, and Green */
+.theme-india pre {
+  background-color: #1c3154 !important;
+  border: 1px solid #2d4374 !important;
+}
+
+.theme-india pre code {
+  color: #f8f8f8 !important;
+}
+
+.theme-india {
+  --code-number: #f5f5f5;
+}
+
+.theme-india .hljs-keyword,
+.theme-india .hljs-meta,
+.theme-india .hljs-selector-tag,
+.theme-india .hljs-title {
+  color: #ffaa44 !important;
+}
+
+.theme-india .hljs-type,
+.theme-india .hljs-built_in,
+.theme-india .hljs-title.function_ {
+  color: #3cb371 !important;
+}
+
+.theme-india .hljs-string,
+.theme-india .hljs-doctag,
+.theme-india .hljs-addition,
+.theme-india .hljs-regexp,
+.theme-india .hljs-symbol {
+  color: #f0f0f0 !important;
+}
+
+.theme-india .hljs-attr {
+  color: #9adf9a !important;
+}
+
+.theme-india .hljs-comment,
+.theme-india .hljs-quote {
+  color: #9fb59a !important;
+  font-style: italic;
+}
+
+.theme-india .hljs-name,
+.theme-india .hljs-deletion,
+.theme-india .hljs-tag {
+  color: #ffc875 !important;
+}
+
+/* number/literal colors provided by --code-number */
+
+.theme-india .hljs-variable,
+.theme-india .hljs-template-variable {
+  color: #ff9933 !important;
+}
+
+.theme-india .hljs-property,
+.theme-india .hljs-params {
+  color: #27a346 !important;
+}
+
+/* South Africa Theme - Black, Red, Blue, Green, White, Yellow */
+.theme-south-africa pre {
+  background-color: #282828 !important;
+  border: 1px solid #444444 !important;
+}
+
+.theme-south-africa pre code {
+  color: #f8f8f8 !important;
+}
+
+.theme-south-africa {
+  --code-number: #f5f5f5;
+}
+
+.theme-south-africa .hljs-keyword,
+.theme-south-africa .hljs-meta,
+.theme-south-africa .hljs-selector-tag,
+.theme-south-africa .hljs-title {
+  color: #e85a4f !important;
+}
+
+.theme-south-africa .hljs-type,
+.theme-south-africa .hljs-built_in,
+.theme-south-africa .hljs-title.function_ {
+  color: #2ca070 !important;
+}
+
+.theme-south-africa .hljs-string,
+.theme-south-africa .hljs-doctag,
+.theme-south-africa .hljs-addition,
+.theme-south-africa .hljs-regexp,
+.theme-south-africa .hljs-symbol {
+  color: #f5f5f5 !important;
+}
+
+.theme-south-africa .hljs-attr {
+  color: #ffd54f !important;
+}
+
+.theme-south-africa .hljs-comment,
+.theme-south-africa .hljs-quote {
+  color: #b3b3b3 !important;
+  font-style: italic;
+}
+
+.theme-south-africa .hljs-name,
+.theme-south-africa .hljs-deletion,
+.theme-south-africa .hljs-tag {
+  color: #4568c4 !important;
+}
+
+/* number/literal colors provided by --code-number */
+
+.theme-south-africa .hljs-variable,
+.theme-south-africa .hljs-template-variable {
+  color: #cc4444 !important;
+}
+
+.theme-south-africa .hljs-property,
+.theme-south-africa .hljs-params {
+  color: #ffd966 !important;
+}
+
+/* Copy button: unified in messages.css and code/base.css */

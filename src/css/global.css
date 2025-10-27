@@ -1,0 +1,123 @@
+/* Base styles */
+body {
+  font-family: 'Roboto', 'Segoe UI', Arial, sans-serif;
+  background: linear-gradient(
+    135deg,
+    var(--body-bg-color-1) 40%,
+    var(--body-bg-color-2) 100%
+  );
+  color: var(--body-text-color);
+  margin: 0;
+  min-height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  /* Add smooth transitions for theme changes */
+  transition: background 0.5s ease, color 0.5s ease;
+  overflow: hidden; /* Prevent body scrolling on mobile */
+}
+
+/* Hide chat interface until JavaScript initializes */
+#chat-container {
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.3s ease, visibility 0.3s ease;
+}
+
+body.loaded #chat-container {
+  opacity: 1;
+  visibility: visible;
+}
+
+/* Apply Roboto to all input elements and UI controls for consistency */
+input, 
+textarea, 
+select, 
+button, 
+.message-content, 
+.tab-button,
+.setting-item,
+#user-input {
+  font-family: 'Roboto', 'Segoe UI', Arial, sans-serif;
+}
+
+/* Apply theme class to body by default */
+body:not([class*="theme-"]) {
+  /* Default to dark gray theme if no theme class is present */
+  background-color: var(--bg-primary);
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+/* Global themed link styling (applies across app, including chat) */
+a {
+  color: var(--accent-color);
+  text-decoration: underline;
+  transition: color 0.2s ease;
+}
+
+a:hover {
+  color: var(--accent-hover);
+}
+
+/* Global scrollbar gutter to prevent layout shifts when scrollbars appear/disappear */
+.tab-content-container,
+#chat-box, 
+#history-panel,
+#gallery-panel,
+.thinking-content,
+.slideshow-container,
+.fullscreen-image-container {
+  scrollbar-gutter: stable;
+}
+
+/* Scrollbar styling */
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--bg-secondary);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--accent-color);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--accent-hover);
+}
+
+/* Utility class for consistent scrollbars */
+.scrollable {
+  scrollbar-gutter: stable;
+  overflow-y: auto;
+}
+
+/* For browsers that don't support scrollbar-gutter */
+@supports not (scrollbar-gutter: stable) {
+  .scrollable {
+    padding-right: 8px; /* Fallback padding to account for scrollbar */
+  }
+}
+
+/* Debug toggle notification styles */
+.debug-toggle-notification {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  background: var(--accent-color);
+  color: var(--button-text-color);
+  padding: 10px 15px;
+  border-radius: 4px;
+  font-size: 0.9rem;
+  z-index: 10000;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  pointer-events: none;
+}

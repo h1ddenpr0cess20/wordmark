@@ -1,0 +1,705 @@
+/* Special theme variables and styles (Terminal, Teletext) */
+
+.theme-terminal {
+  --bg-primary: #000000;
+  --bg-secondary: #0c0c0c;
+  --text-primary: #33ff33;
+  --text-secondary: #33cc33;
+  --accent-color: #55ff55;
+  --accent-hover: #88ff88;
+  --border-color: #224422;
+  --user-bg: #002200;
+  --assistant-bg: #001100;
+  --error-bg: #330000;
+  --error-text: #ff3333;
+  --body-bg-color-1: #000000;
+  --body-bg-color-2: #001100;
+  --button-text-color: #33ff33;
+}
+
+.theme-teletext {
+  --bg-primary: #000000;
+  --bg-secondary: #000000;
+  --text-primary: #ffffff;
+  --text-secondary: #ffff00;
+  --accent-color: #00ffff;
+  --accent-hover: #00cccc;
+  --border-color: #0000ff;
+  --user-bg: #0000ff;
+  --assistant-bg: #000000;
+  --error-bg: #ff0000;
+  --error-text: #ffff00;
+  --body-bg-color-1: #000000;
+  --body-bg-color-2: #000000;
+  --button-text-color: #000000;
+  --code-bg: rgba(0, 0, 0, 0.92);
+  --code-border: #00ffff;
+  --code-inline-bg: rgba(0, 255, 255, 0.18);
+  --bg-hover: rgba(0, 0, 102, 0.7);
+}
+
+/* Terminal theme special styles */
+.theme-terminal #chat-container {
+  font-family: "Courier New", monospace;
+}
+
+.theme-terminal .message {
+  border-radius: 0;
+  position: relative;
+}
+
+.theme-terminal #chat-container::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  pointer-events: none;
+  background-image: linear-gradient(
+    rgba(51, 255, 51, 0.03) 1px,
+    transparent 1px
+  );
+  background-size: 100% 2px;
+  z-index: 10;
+}
+
+.theme-terminal .message::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: linear-gradient(to right, var(--text-primary), transparent);
+  opacity: 0.5;
+}
+
+.theme-terminal button {
+  border-radius: 0 !important;
+  font-family: "Courier New", monospace;
+  text-transform: uppercase;
+}
+
+.theme-terminal #send-button {
+  background: transparent !important;
+  color: #33ff33 !important;
+  border: none !important;
+}
+
+/* Terminal theme send button hover effect removed */
+
+.theme-terminal #settings-panel {
+  border-radius: 0;
+}
+
+.theme-terminal .assistant-message::after {
+  content: "_";
+  display: inline-block;
+  color: var(--text-primary);
+  animation: terminal-blink 1s step-end infinite;
+}
+
+@keyframes terminal-blink {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0; }
+}
+
+.theme-terminal .copy-btn {
+  background: transparent !important;
+  color: #33ff33 !important;
+  border: none !important;
+}
+
+.theme-terminal .copy-btn:hover {
+  background: transparent !important;
+  color: #88ff88 !important;
+  opacity: 1;
+}
+
+.theme-terminal .radio-label {
+  background: transparent !important;
+  border: none !important;
+}
+
+.theme-terminal .radio-label:hover {
+  background: transparent !important;
+}
+
+.theme-terminal .radio-text {
+  color: #33ff33 !important;
+}
+
+.theme-terminal input[type="radio"] {
+  accent-color: #33ff33 !important;
+}
+
+.theme-terminal input[type="radio"]:checked + .radio-text {
+  color: #88ff88 !important;
+}
+
+.theme-terminal .radio-label:has(input[type="radio"]:checked) {
+  background: transparent !important;
+  border: none !important;
+}
+
+.theme-terminal #settings-button,
+.theme-terminal .close-settings,
+.theme-terminal .tab-button,
+.theme-terminal .reset-button,
+.theme-terminal button:not(#send-button):not(.copy-btn):not(.radio-label) {
+  background: transparent !important;
+  color: #33ff33 !important;
+  border: none !important;
+}
+
+.theme-terminal #settings-button:hover,
+.theme-terminal .close-settings:hover,
+.theme-terminal .tab-button:hover,
+.theme-terminal .reset-button:hover,
+.theme-terminal button:not(#send-button):not(.copy-btn):not(.radio-label):hover {
+  background: transparent !important;
+  color: #88ff88 !important;
+}
+
+.theme-terminal .tab-button.active {
+  background: transparent !important;
+  color: #88ff88 !important;
+  border: none !important;
+  border-bottom: 2px solid #33ff33 !important;
+}
+
+.theme-terminal pre code,
+.theme-terminal .code-block {
+  background-color: #000000;
+  color: #33ff33;
+  border: none !important;
+  border-radius: 0;
+  font-family: "Courier New", monospace;
+}
+
+.theme-terminal pre {
+  border: none !important;
+  background-color: #000000;
+}
+
+.theme-terminal .hljs-keyword { color: #88ff88; }
+.theme-terminal .hljs-string { color: #ffff33; }
+.theme-terminal .hljs-comment { color: #33cc33; }
+.theme-terminal .hljs-function { color: #33ff33; }
+.theme-terminal .hljs-number { color: #ff3333; }
+
+.theme-terminal .settings-tabs {
+  gap: 2px;
+}
+.theme-terminal .tab-button {
+  padding: 10px 8px;
+  font-size: 0.85rem;
+}
+.theme-terminal .tab-content-container {
+  scrollbar-gutter: stable;
+  padding-right: 2px;
+}
+
+/* Teletext theme special styles */
+.theme-teletext #chat-container {
+  font-family: "Courier New", monospace;
+  background-color: #000000;
+  color: #ffffff;
+  border: 3px solid #0000ff;
+  box-shadow:
+    0 0 0 2px #ffff00,
+    0 24px 48px rgba(0, 0, 0, 0.55);
+  border-radius: 2px;
+}
+
+.theme-teletext #chat-container::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(
+    to bottom,
+    transparent 0%,
+    rgba(0, 0, 0, 0.1) 50%,
+    transparent 100%
+  );
+  background-size: 100% 2px;
+  pointer-events: none;
+  opacity: 0.2;
+  z-index: 10;
+  animation: scanlines 8s linear infinite;
+}
+
+@keyframes scanlines {
+  0% { background-position: 0 0; }
+  100% { background-position: 0 100%; }
+}
+
+.theme-teletext button {
+  border-radius: 0 !important;
+}
+
+.theme-teletext #settings-panel {
+  border-radius: 0;
+}
+
+.theme-teletext .message {
+  border-radius: 0;
+}
+
+.theme-teletext .input-container,
+.theme-teletext input,
+.theme-teletext textarea,
+.theme-teletext #user-input,
+.theme-teletext select,
+.theme-teletext option,
+.theme-teletext .settings-tabs,
+.theme-teletext .tab-button,
+.theme-teletext .tab-content,
+.theme-teletext .settings-group,
+.theme-teletext .setting-item,
+.theme-teletext .range-container,
+.theme-teletext input[type="range"],
+.theme-teletext input[type="number"],
+.theme-teletext input[type="text"] {
+  border-radius: 0 !important;
+}
+
+.theme-teletext .color-dot {
+  border-radius: 0 !important;
+  width: 20px;
+  height: 20px;
+}
+
+.theme-teletext pre code,
+.theme-teletext .code-block {
+  background-color: #000000;
+  color: #ffffff;
+  border-radius: 0;
+  border: 1px solid #00ffff;
+  box-shadow: inset 0 0 8px rgba(0, 255, 255, 0.25);
+}
+
+.theme-teletext .hljs-keyword { color: #ffff00; }
+.theme-teletext .hljs-string { color: #00ffff; }
+.theme-teletext .hljs-comment { color: #ff0000; }
+.theme-teletext .hljs-function { color: #ffffff; }
+.theme-teletext .hljs-number { color: #00ff00; }
+
+.theme-teletext .settings-tabs {
+  gap: 2px;
+}
+.theme-teletext .tab-button {
+  padding: 10px 8px;
+  font-size: 0.8rem !important;
+}
+.theme-teletext .tab-content-container,
+.theme-teletext #chat-box,
+.theme-teletext #history-panel,
+.theme-teletext #gallery-panel {
+  scrollbar-gutter: stable;
+  scrollbar-width: thin;
+}
+.theme-teletext ::-webkit-scrollbar {
+  width: 8px;
+}
+
+/* Font styling for special themes */
+
+/* Apply Teletext font when Teletext theme is active */
+.theme-teletext body,
+.theme-teletext input,
+.theme-teletext textarea,
+.theme-teletext button,
+.theme-teletext select,
+.theme-teletext .message-content,
+.theme-teletext h1,
+.theme-teletext h2,
+.theme-teletext h3,
+.theme-teletext h4,
+.theme-teletext h5,
+.theme-teletext h6,
+.theme-teletext p,
+.theme-teletext pre,
+.theme-teletext code,
+.theme-teletext label,
+.theme-teletext span,
+.theme-teletext div,
+.theme-teletext option,
+.theme-teletext .tab-button,
+.theme-teletext .radio-text,
+.theme-teletext .settings-group,
+.theme-teletext .setting-item,
+.theme-teletext .personality-header {
+  font-family: 'TeletextFont', monospace !important;
+  letter-spacing: 0.05em;
+  line-height: 1.2;
+}
+
+/* Special styling for Teletext header */
+.theme-teletext #header-title {
+  text-transform: uppercase;
+  position: relative;
+}
+
+/* Create a Teletext-style header row */
+.theme-teletext #header {
+  background: linear-gradient(90deg, #0000cc 0%, #000066 100%) !important;
+  color: #ffff00 !important;
+  padding: 8px 16px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  position: relative;
+  border-bottom: 2px solid #ffff00;
+  box-shadow: inset 0 -4px 0 0 rgba(0, 0, 0, 0.55);
+}
+
+.theme-teletext #header h1 {
+  color: #ffff00 !important;
+}
+
+.theme-teletext #model-info {
+  color: #00ffff !important;
+}
+
+.theme-teletext #logo-container {
+  background-color: #0000c8;
+  border: 2px solid #ffff00;
+  border-radius: 2px;
+  box-shadow:
+    0 0 0 2px #000000,
+    0 10px 26px rgba(0, 0, 0, 0.6);
+  padding: 10px 18px;
+  gap: 12px;
+}
+
+.theme-teletext #wordmark-logo {
+  filter: none;
+  background-color: #000000;
+  border-radius: 2px;
+  box-shadow: inset 0 0 0 2px #ffff00;
+  padding: 4px;
+}
+
+.theme-teletext #wordmark-logo circle {
+  fill: rgba(0, 0, 0, 0.85);
+  stroke: #ffff00;
+}
+
+.theme-teletext #wordmark-logo path {
+  stroke: #00ffff;
+  stroke-linecap: square;
+}
+
+.theme-teletext #logo-wordmark {
+  color: #ffff00;
+  font-family: 'TeletextFont', monospace !important;
+  letter-spacing: 0.32em;
+  text-shadow: 0 0 16px rgba(255, 255, 0, 0.55);
+  filter: drop-shadow(0 0 10px rgba(0, 0, 0, 0.9));
+}
+
+.theme-teletext #logo-container:hover #logo-wordmark,
+.theme-teletext #logo-container:focus-within #logo-wordmark {
+  color: #00ffff;
+  text-shadow: 0 0 18px rgba(0, 255, 255, 0.6);
+}
+
+.theme-teletext #logo-container:hover #wordmark-logo,
+.theme-teletext #logo-container:focus-within #wordmark-logo {
+  box-shadow: inset 0 0 0 2px #00ffff;
+}
+
+.theme-teletext a {
+  color: #00ffff;
+  text-decoration: underline;
+  text-decoration-thickness: 2px;
+  text-decoration-color: #ffff00;
+}
+
+.theme-teletext a:hover,
+.theme-teletext a:focus-visible {
+  color: #ffff00;
+  text-decoration-color: #00ffff;
+}
+
+.theme-teletext .message {
+  position: relative;
+}
+
+.theme-teletext .message .message-content {
+  border-radius: 0;
+  border: 2px solid #0000ff;
+  box-shadow:
+    inset 0 0 12px rgba(0, 0, 0, 0.6),
+    0 0 0 2px #000000,
+    0 16px 24px rgba(0, 0, 0, 0.55);
+  letter-spacing: 0.06em;
+  text-shadow: 0 0 6px rgba(0, 0, 0, 0.4);
+}
+
+.theme-teletext .message.user .message-content {
+  background: linear-gradient(180deg, #0010b5 0%, #000a7c 100%);
+  color: #ffff00;
+  border-color: #ffff00;
+}
+
+.theme-teletext .message.assistant .message-content {
+  background: linear-gradient(180deg, #000000 0%, #001821 100%);
+  color: #00ffff;
+  border-color: #00ffff;
+}
+
+.theme-teletext .message .message-sender {
+  background-color: #000000;
+  border-radius: 2px;
+  padding: 6px;
+  border: 2px solid #ffff00;
+  box-shadow:
+    0 0 0 2px #000000,
+    0 6px 12px rgba(0, 0, 0, 0.55);
+}
+
+.theme-teletext .message.assistant .message-sender {
+  border-color: #00ffff;
+}
+
+.theme-teletext .message .sender-icon {
+  width: 28px;
+  height: 28px;
+  color: currentColor;
+}
+
+.theme-teletext .message.assistant .sender-icon {
+  color: #00ffff;
+}
+
+.theme-teletext .message.user .sender-icon {
+  color: #ffff00;
+}
+
+.theme-teletext .message-content code:not(pre code) {
+  border: 1px solid #00ffff;
+}
+
+.theme-teletext .message-content blockquote {
+  background: rgba(0, 0, 0, 0.65);
+  border-color: #ffff00;
+}
+
+.theme-teletext .message-content table {
+  background: rgba(0, 0, 0, 0.75);
+}
+
+.theme-teletext .message-content thead th {
+  background-color: rgba(0, 0, 80, 0.9);
+  color: #ffff00;
+}
+
+.theme-teletext .message-content tbody tr:nth-child(even) {
+  background-color: rgba(0, 255, 255, 0.08);
+}
+
+.theme-teletext .input-container {
+  border-top: 2px solid #00ffff;
+  background-color: #000000;
+  box-shadow: inset 0 12px 32px rgba(0, 17, 153, 0.3);
+}
+
+.theme-teletext #user-input {
+  background-color: #000000;
+  border: 2px solid #ffff00;
+  color: #ffff00;
+  box-shadow: inset 0 0 0 2px #000000;
+  caret-color: #00ffff;
+}
+
+.theme-teletext #user-input::placeholder {
+  color: rgba(255, 255, 0, 0.65);
+}
+
+.theme-teletext #send-button {
+  background-color: transparent !important;
+  color: #00ffff !important;
+  border: 2px solid transparent !important;
+  box-sizing: border-box;
+  transition: color 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.theme-teletext #send-button:hover,
+.theme-teletext #send-button:focus-visible {
+  color: #ffff00 !important;
+  transform: scale(1.05);
+  box-shadow: 0 0 18px rgba(255, 255, 0, 0.35);
+}
+
+.theme-teletext #settings-button,
+.theme-teletext #history-button,
+.theme-teletext #gallery-button {
+  background-color: #0000cc;
+  color: #ffff00;
+  border: 2px solid #ffff00;
+  box-shadow:
+    0 0 0 2px #000000,
+    0 8px 18px rgba(0, 0, 0, 0.45);
+  border-radius: 2px;
+  width: 48px;
+  height: 48px;
+}
+
+.theme-teletext #settings-button:hover,
+.theme-teletext #history-button:hover,
+.theme-teletext #gallery-button:hover,
+.theme-teletext #settings-button:focus-visible,
+.theme-teletext #history-button:focus-visible,
+.theme-teletext #gallery-button:focus-visible {
+  background-color: #00ffff;
+  color: #000000;
+  border-color: #00ffff;
+}
+
+.theme-teletext .settings-tabs .tab-button {
+  border: 2px solid #00ffff;
+  background-color: #000000;
+  color: #00ffff;
+  letter-spacing: 0.08em;
+}
+
+.theme-teletext .settings-tabs .tab-button.active {
+  background-color: #0000ff;
+  color: #ffff00;
+  border-color: #ffff00;
+}
+
+.theme-teletext .settings-group {
+  border: 2px solid rgba(0, 255, 255, 0.35);
+  padding: 14px;
+  background-color: rgba(0, 0, 0, 0.7);
+  box-shadow: inset 0 0 20px rgba(0, 0, 0, 0.45);
+}
+
+.theme-teletext .settings-group h3 {
+  color: #ffff00 !important;
+  letter-spacing: 0.12em;
+}
+
+.theme-teletext .setting-item label {
+  color: #00ffff;
+  letter-spacing: 0.08em;
+}
+
+.theme-teletext .range-container input[type="range"] {
+  accent-color: #00ffff;
+}
+
+.theme-teletext #feature-status {
+  background-color: rgba(0, 0, 0, 0.75);
+  border-top: 2px solid #00ffff;
+  padding: 4px 8px;
+  letter-spacing: 0.12em;
+}
+
+.theme-teletext .feature-status .feature-badge {
+  border: 2px solid #ffff00;
+  background: #000000;
+  color: #ffff00;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.theme-teletext textarea,
+.theme-teletext input[type="text"],
+.theme-teletext input[type="number"] {
+  background-color: #000000;
+  border: 2px solid #00ffff;
+  color: #00ffff;
+  box-shadow: inset 0 0 0 2px #000000;
+}
+
+.theme-teletext select {
+  background-color: #000000;
+  border: 2px solid #ffff00;
+  color: #ffff00;
+}
+
+.theme-teletext option {
+  background-color: #000000;
+  color: #00ffff;
+}
+
+.theme-teletext ::-webkit-scrollbar-thumb {
+  background-color: #00ffff;
+}
+
+.theme-teletext ::-webkit-scrollbar-track {
+  background-color: #000000;
+}
+
+/* Additional style for input container to look like Teletext */
+.theme-teletext .input-container {
+  border-top: 2px solid #00ffff;
+}
+
+/* Improve contrast for text on cyan backgrounds */
+.theme-teletext button[style*="var(--accent-color)"] {
+  color: #000000 !important;
+}
+
+.theme-teletext .radio-text,
+.theme-teletext .setting-item label {
+  color: #ffff00 !important;
+}
+
+/* Ensure tabs and settings have proper Teletext styling */
+.theme-teletext .settings-tabs .tab-button {
+  border-radius: 0;
+}
+
+.theme-teletext .settings-tabs .tab-button.active {
+  background-color: #0000ff;
+  color: #ffff00;
+}
+
+/* Fix any contrast issues in the settings panel */
+.theme-teletext p[style*="var(--text-secondary)"] {
+  color: #00ffff !important;
+}
+
+/* Make sure settings titles stand out */
+.theme-teletext .settings-group h3 {
+  color: #ffff00 !important;
+}
+
+/* Terminal theme font styles */
+.theme-terminal body,
+.theme-terminal input,
+.theme-terminal textarea,
+.theme-terminal button,
+.theme-terminal select,
+.theme-terminal .message-content,
+.theme-terminal h1,
+.theme-terminal h2,
+.theme-terminal h3,
+.theme-terminal h4,
+.theme-terminal h5,
+.theme-terminal h6,
+.theme-terminal p,
+.theme-terminal pre,
+.theme-terminal code,
+.theme-terminal label,
+.theme-terminal span,
+.theme-terminal div,
+.theme-terminal option,
+.theme-terminal .tab-button,
+.theme-terminal .radio-text,
+.theme-terminal .settings-group,
+.theme-terminal .setting-item,
+.theme-terminal .personality-header {
+  font-family: 'Courier New', monospace !important;
+  letter-spacing: 0.05em;
+  line-height: 1.2;
+}

@@ -1,0 +1,17 @@
+User-agent: *
+Allow: /
+
+# Allow resources needed for rendering
+Allow: /src/js/
+Allow: /src/css/
+Allow: /src/assets/
+
+# Optional: disallow internal fragment pages from indexing
+# Disallow: /src/html/
+
+# Block sensitive files
+Disallow: /cert.pem
+Disallow: /key.pem
+
+# Sitemap location
+Sitemap: /sitemap.xml

@@ -1,0 +1,596 @@
+/* Dark theme code syntax highlighting */
+
+/* Dark Gray Theme Code Blocks */
+.theme-dark-gray {
+  --code-bg: #1a1a1a;
+  --code-border: #404040;
+  --code-text: #e6e6e6;
+  --code-string: #98c379; /* strings/regExp/additions */
+  --code-accent: #61afef; /* keywords/types/titles */
+  --code-number: #d19a66; /* numbers/literals/bullets */
+  --code-comment: #707070; /* comments/quotes */
+  --code-accent-2: #56b6c2; /* attributes/built_in/title */
+}
+
+.theme-dark-gray .hljs-keyword,
+.theme-dark-gray .hljs-meta,
+.theme-dark-gray .hljs-selector-tag,
+.theme-dark-gray .hljs-type {
+  color: #61afef !important;
+}
+
+.theme-dark-gray .hljs-attribute, 
+.theme-dark-gray .hljs-built_in, 
+.theme-dark-gray .hljs-title, 
+.theme-dark-gray .hljs-title.function_ {
+  color: #56b6c2 !important;
+}
+
+.theme-dark-gray .hljs-string,
+.theme-dark-gray .hljs-doctag,
+.theme-dark-gray .hljs-attr,
+.theme-dark-gray .hljs-addition,
+.theme-dark-gray .hljs-regexp,
+.theme-dark-gray .hljs-symbol {
+  color: #98c379 !important;
+}
+
+.theme-dark-gray .hljs-comment,
+.theme-dark-gray .hljs-quote {
+  color: #707070 !important;
+  font-style: italic;
+}
+
+/* number/literal/bullet colors provided by --code-number */
+
+.theme-dark-gray .hljs-variable,
+.theme-dark-gray .hljs-tag,
+.theme-dark-gray .hljs-name,
+.theme-dark-gray .hljs-template-variable,
+.theme-dark-gray .hljs-deletion {
+  color: #e06c75 !important;
+}
+
+.theme-dark-gray .hljs-property,
+.theme-dark-gray .hljs-subst,
+.theme-dark-gray .hljs-params,
+.theme-dark-gray .hljs-meta-string {
+  color: #e6c07b !important;
+}
+
+/* Dark Red Theme Code Blocks */
+.theme-dark-red {
+  --code-bg: #251212;
+  --code-border: #5e2c2c;
+  --code-text: #f0e0e0;
+  --code-number: #ff6b6b;
+  --code-accent: #ff8f8f;
+  --code-accent-2: #ff7070;
+  --code-string: #ffc1c1;
+  --code-comment: #8a4d4d;
+}
+
+.theme-dark-red .hljs-keyword,
+.theme-dark-red .hljs-meta,
+.theme-dark-red .hljs-selector-tag,
+.theme-dark-red .hljs-title,
+.theme-dark-red .hljs-title.function_,
+.theme-dark-red .hljs-type {
+  color: #ff8f8f !important;
+}
+
+.theme-dark-red .hljs-attribute, 
+.theme-dark-red .hljs-built_in {
+  color: #ff7070 !important;
+}
+
+.theme-dark-red .hljs-string,
+.theme-dark-red .hljs-attr,
+.theme-dark-red .hljs-addition,
+.theme-dark-red .hljs-doctag,
+.theme-dark-red .hljs-regexp,
+.theme-dark-red .hljs-symbol {
+  color: #ffc1c1 !important;
+}
+
+.theme-dark-red .hljs-comment,
+.theme-dark-red .hljs-quote {
+  color: #8a4d4d !important;
+  font-style: italic;
+}
+
+/* number/literal/bullet colors provided by --code-number */
+
+.theme-dark-red .hljs-variable,
+.theme-dark-red .hljs-tag,
+.theme-dark-red .hljs-name,
+.theme-dark-red .hljs-template-variable,
+.theme-dark-red .hljs-deletion {
+  color: #ffa0a0 !important;
+}
+
+.theme-dark-red .hljs-property,
+.theme-dark-red .hljs-subst,
+.theme-dark-red .hljs-params,
+.theme-dark-red .hljs-meta-string {
+  color: #ffb3b3 !important;
+}
+
+/* Dark Orange Theme Code Blocks */
+.theme-dark-orange {
+  --code-bg: #221810;
+  --code-border: #5e4626;
+  --code-text: #f5e5d5;
+  --code-number: #ff9f6b;
+  --code-accent: #ffb86c;
+  --code-accent-2: #ffa54f;
+  --code-string: #ffd59e;
+  --code-comment: #8a6a4d;
+}
+
+.theme-dark-orange .hljs-keyword,
+.theme-dark-orange .hljs-meta,
+.theme-dark-orange .hljs-selector-tag,
+.theme-dark-orange .hljs-title,
+.theme-dark-orange .hljs-title.function_,
+.theme-dark-orange .hljs-type {
+  color: #ffb86c !important;
+}
+
+.theme-dark-orange .hljs-attribute, 
+.theme-dark-orange .hljs-built_in {
+  color: #ffa54f !important;
+}
+
+.theme-dark-orange .hljs-string,
+.theme-dark-orange .hljs-attr,
+.theme-dark-orange .hljs-addition,
+.theme-dark-orange .hljs-doctag,
+.theme-dark-orange .hljs-regexp,
+.theme-dark-orange .hljs-symbol {
+  color: #ffd59e !important;
+}
+
+.theme-dark-orange .hljs-comment,
+.theme-dark-orange .hljs-quote {
+  color: #8a6a4d !important;
+  font-style: italic;
+}
+
+/* number/literal/bullet colors provided by --code-number */
+
+.theme-dark-orange .hljs-variable,
+.theme-dark-orange .hljs-tag,
+.theme-dark-orange .hljs-name,
+.theme-dark-orange .hljs-template-variable,
+.theme-dark-orange .hljs-deletion {
+  color: #ffc080 !important;
+}
+
+.theme-dark-orange .hljs-property,
+.theme-dark-orange .hljs-subst,
+.theme-dark-orange .hljs-params,
+.theme-dark-orange .hljs-meta-string {
+  color: #ffce94 !important;
+}
+
+/* Dark Yellow Theme Code Blocks */
+.theme-dark-yellow {
+  --code-bg: #22200f;
+  --code-border: #5e5826;
+  --code-text: #f5f2d5;
+  --code-number: #ffe76b;
+  --code-accent: #fff06b;
+  --code-accent-2: #ffdc4f;
+  --code-string: #fffdbb;
+  --code-comment: #8a864d;
+}
+
+.theme-dark-yellow .hljs-keyword,
+.theme-dark-yellow .hljs-meta,
+.theme-dark-yellow .hljs-selector-tag,
+.theme-dark-yellow .hljs-title,
+.theme-dark-yellow .hljs-title.function_,
+.theme-dark-yellow .hljs-type {
+  color: #fff06b !important;
+}
+
+.theme-dark-yellow .hljs-attribute, 
+.theme-dark-yellow .hljs-built_in {
+  color: #ffdc4f !important;
+}
+
+.theme-dark-yellow .hljs-string,
+.theme-dark-yellow .hljs-attr,
+.theme-dark-yellow .hljs-addition,
+.theme-dark-yellow .hljs-doctag,
+.theme-dark-yellow .hljs-regexp,
+.theme-dark-yellow .hljs-symbol {
+  color: #fffdbb !important;
+}
+
+.theme-dark-yellow .hljs-comment,
+.theme-dark-yellow .hljs-quote {
+  color: #8a864d !important;
+  font-style: italic;
+}
+
+/* number/literal/bullet colors provided by --code-number */
+
+.theme-dark-yellow .hljs-variable,
+.theme-dark-yellow .hljs-tag,
+.theme-dark-yellow .hljs-name,
+.theme-dark-yellow .hljs-template-variable,
+.theme-dark-yellow .hljs-deletion {
+  color: #fff799 !important;
+}
+
+.theme-dark-yellow .hljs-property,
+.theme-dark-yellow .hljs-subst,
+.theme-dark-yellow .hljs-params,
+.theme-dark-yellow .hljs-meta-string {
+  color: #fff9a8 !important;
+}
+
+/* Dark Green Theme Code Blocks */
+.theme-dark-green {
+  --code-bg: #0f1f15;
+  --code-border: #265e46;
+  --code-text: #d5f5e5;
+  --code-number: #6bffa0;
+  --code-accent: #6bffa0;
+  --code-accent-2: #4fffb2;
+  --code-string: #a0ffbb;
+  --code-comment: #4d8a5e;
+}
+
+.theme-dark-green .hljs-keyword,
+.theme-dark-green .hljs-meta,
+.theme-dark-green .hljs-selector-tag,
+.theme-dark-green .hljs-title,
+.theme-dark-green .hljs-title.function_,
+.theme-dark-green .hljs-type {
+  color: #6bffa0 !important;
+}
+
+.theme-dark-green .hljs-attribute, 
+.theme-dark-green .hljs-built_in {
+  color: #4fffb2 !important;
+}
+
+.theme-dark-green .hljs-string,
+.theme-dark-green .hljs-attr,
+.theme-dark-green .hljs-addition,
+.theme-dark-green .hljs-doctag,
+.theme-dark-green .hljs-regexp,
+.theme-dark-green .hljs-symbol {
+  color: #a0ffbb !important;
+}
+
+.theme-dark-green .hljs-comment,
+.theme-dark-green .hljs-quote {
+  color: #4d8a5e !important;
+  font-style: italic;
+}
+
+/* number/literal/bullet colors provided by --code-number */
+
+.theme-dark-green .hljs-variable,
+.theme-dark-green .hljs-tag,
+.theme-dark-green .hljs-name,
+.theme-dark-green .hljs-template-variable,
+.theme-dark-green .hljs-deletion {
+  color: #80ffc0 !important;
+}
+
+.theme-dark-green .hljs-property,
+.theme-dark-green .hljs-subst,
+.theme-dark-green .hljs-params,
+.theme-dark-green .hljs-meta-string {
+  color: #a8fff9 !important;
+}
+
+/* Dark Blue Theme Code Blocks */
+.theme-dark-blue {
+  --code-bg: #0f1820;
+  --code-border: #26425e;
+  --code-text: #d5e5f5;
+  --code-number: #6ba5ff;
+  --code-accent: #6ba5ff;
+  --code-accent-2: #4f9fff;
+  --code-string: #a0caff;
+  --code-comment: #4d6a8a;
+}
+
+.theme-dark-blue .hljs-keyword,
+.theme-dark-blue .hljs-meta,
+.theme-dark-blue .hljs-selector-tag,
+.theme-dark-blue .hljs-title,
+.theme-dark-blue .hljs-title.function_,
+.theme-dark-blue .hljs-type {
+  color: #6ba5ff !important;
+}
+
+.theme-dark-blue .hljs-attribute, 
+.theme-dark-blue .hljs-built_in {
+  color: #4f9fff !important;
+}
+
+.theme-dark-blue .hljs-string,
+.theme-dark-blue .hljs-attr,
+.theme-dark-blue .hljs-addition,
+.theme-dark-blue .hljs-doctag,
+.theme-dark-blue .hljs-regexp,
+.theme-dark-blue .hljs-symbol {
+  color: #a0caff !important;
+}
+
+.theme-dark-blue .hljs-comment,
+.theme-dark-blue .hljs-quote {
+  color: #4d6a8a !important;
+  font-style: italic;
+}
+
+/* number/literal/bullet colors provided by --code-number */
+
+.theme-dark-blue .hljs-variable,
+.theme-dark-blue .hljs-tag,
+.theme-dark-blue .hljs-name,
+.theme-dark-blue .hljs-template-variable,
+.theme-dark-blue .hljs-deletion {
+  color: #80b5ff !important;
+}
+
+.theme-dark-blue .hljs-property,
+.theme-dark-blue .hljs-subst,
+.theme-dark-blue .hljs-params,
+.theme-dark-blue .hljs-meta-string {
+  color: #a8c4ff !important;
+}
+
+/* Dark Purple Theme Code Blocks */
+.theme-dark-purple {
+  --code-bg: #15101f;
+  --code-border: #46265e;
+  --code-text: #e5d5f5;
+  --code-number: #c36bff;
+  --code-accent: #c36bff;
+  --code-accent-2: #b54fff;
+  --code-string: #dfb0ff;
+  --code-comment: #745a8a;
+}
+
+.theme-dark-purple .hljs-keyword,
+.theme-dark-purple .hljs-meta,
+.theme-dark-purple .hljs-selector-tag,
+.theme-dark-purple .hljs-title,
+.theme-dark-purple .hljs-title.function_,
+.theme-dark-purple .hljs-type {
+  color: #c36bff !important;
+}
+
+.theme-dark-purple .hljs-attribute, 
+.theme-dark-purple .hljs-built_in {
+  color: #b54fff !important;
+}
+
+.theme-dark-purple .hljs-string,
+.theme-dark-purple .hljs-attr,
+.theme-dark-purple .hljs-addition,
+.theme-dark-purple .hljs-doctag,
+.theme-dark-purple .hljs-regexp,
+.theme-dark-purple .hljs-symbol {
+  color: #dfb0ff !important;
+}
+
+.theme-dark-purple .hljs-comment,
+.theme-dark-purple .hljs-quote {
+  color: #745a8a !important;
+  font-style: italic;
+}
+
+/* number/literal/bullet colors provided by --code-number */
+
+.theme-dark-purple .hljs-variable,
+.theme-dark-purple .hljs-tag,
+.theme-dark-purple .hljs-name,
+.theme-dark-purple .hljs-template-variable,
+.theme-dark-purple .hljs-deletion {
+  color: #d580ff !important;
+}
+
+.theme-dark-purple .hljs-property,
+.theme-dark-purple .hljs-subst,
+.theme-dark-purple .hljs-params,
+.theme-dark-purple .hljs-meta-string {
+  color: #e2a8ff !important;
+}
+
+/* Dark Pink Theme Code Blocks */
+.theme-dark-pink {
+  --code-bg: #1f0f18;
+  --code-border: #5e2646;
+  --code-text: #f5d5e5;
+  --code-number: #ff6bc3;
+  --code-accent: #ff6bc3;
+  --code-accent-2: #ff4fb5;
+  --code-string: #ffb0df;
+  --code-comment: #8a5a74;
+}
+
+.theme-dark-pink .hljs-keyword,
+.theme-dark-pink .hljs-meta,
+.theme-dark-pink .hljs-selector-tag,
+.theme-dark-pink .hljs-title,
+.theme-dark-pink .hljs-title.function_,
+.theme-dark-pink .hljs-type {
+  color: #ff6bc3 !important;
+}
+
+.theme-dark-pink .hljs-attribute, 
+.theme-dark-pink .hljs-built_in {
+  color: #ff4fb5 !important;
+}
+
+.theme-dark-pink .hljs-string,
+.theme-dark-pink .hljs-attr,
+.theme-dark-pink .hljs-addition,
+.theme-dark-pink .hljs-doctag,
+.theme-dark-pink .hljs-regexp,
+.theme-dark-pink .hljs-symbol {
+  color: #ffb0df !important;
+}
+
+.theme-dark-pink .hljs-comment,
+.theme-dark-pink .hljs-quote {
+  color: #8a5a74 !important;
+  font-style: italic;
+}
+
+/* number/literal/bullet colors provided by --code-number */
+
+.theme-dark-pink .hljs-variable,
+.theme-dark-pink .hljs-tag,
+.theme-dark-pink .hljs-name,
+.theme-dark-pink .hljs-template-variable,
+.theme-dark-pink .hljs-deletion {
+  color: #ff80d5 !important;
+}
+
+.theme-dark-pink .hljs-property,
+.theme-dark-pink .hljs-subst,
+.theme-dark-pink .hljs-params,
+.theme-dark-pink .hljs-meta-string {
+  color: #ffa8e2 !important;
+}
+
+/* Super Dark Theme Code Blocks with Red Accents */
+.theme-super-dark {
+  --code-bg: #0a0a0a;
+  --code-border: #330000;
+  --code-text: #ff3333;
+  --code-number: #ff2222;
+  --code-accent: #ff6666;
+  --code-accent-2: #ff4444;
+  --code-string: #ff8888;
+  --code-comment: #661111;
+}
+
+.theme-super-dark .hljs-keyword,
+.theme-super-dark .hljs-meta,
+.theme-super-dark .hljs-selector-tag,
+.theme-super-dark .hljs-title,
+.theme-super-dark .hljs-title.function_,
+.theme-super-dark .hljs-type {
+  color: #ff6666 !important;
+}
+
+.theme-super-dark .hljs-attribute, 
+.theme-super-dark .hljs-built_in {
+  color: #ff4444 !important;
+}
+
+.theme-super-dark .hljs-string,
+.theme-super-dark .hljs-attr,
+.theme-super-dark .hljs-addition,
+.theme-super-dark .hljs-doctag,
+.theme-super-dark .hljs-regexp,
+.theme-super-dark .hljs-symbol {
+  color: #ff8888 !important;
+}
+
+.theme-super-dark .hljs-comment,
+.theme-super-dark .hljs-quote {
+  color: #661111 !important;
+  font-style: italic;
+}
+
+/* number/literal/bullet colors provided by --code-number */
+
+.theme-super-dark .hljs-variable,
+.theme-super-dark .hljs-tag,
+.theme-super-dark .hljs-name,
+.theme-super-dark .hljs-template-variable,
+.theme-super-dark .hljs-deletion {
+  color: #ff5555 !important;
+}
+
+.theme-super-dark .hljs-property,
+.theme-super-dark .hljs-subst,
+.theme-super-dark .hljs-params,
+.theme-super-dark .hljs-meta-string {
+  color: #ff7777 !important;
+}
+
+/* Minimal Dark Theme Code Blocks */
+.theme-minimal-dark {
+  --code-bg: #181818;
+  --code-border: #333333;
+  --code-text: #cccccc;
+  --code-number: #eeeeee;
+  --code-accent: #ffffff;
+  --code-accent-2: #dddddd;
+  --code-string: #bbbbbb;
+  --code-comment: #777777;
+}
+
+.theme-minimal-dark .hljs-keyword,
+.theme-minimal-dark .hljs-meta,
+.theme-minimal-dark .hljs-name,
+.theme-minimal-dark .hljs-selector-tag,
+.theme-minimal-dark .hljs-subst,
+.theme-minimal-dark .hljs-tag,
+.theme-minimal-dark .hljs-title {
+  color: #ffffff !important;
+}
+
+.theme-minimal-dark .hljs-attribute, 
+.theme-minimal-dark .hljs-type,
+.theme-minimal-dark .hljs-built_in,
+.theme-minimal-dark .hljs-title.function_ {
+  color: #dddddd !important;
+}
+
+.theme-minimal-dark .hljs-string,
+.theme-minimal-dark .hljs-char.escape_,
+.theme-minimal-dark .hljs-regexp,
+.theme-minimal-dark .hljs-link,
+.theme-minimal-dark .hljs-symbol,
+.theme-minimal-dark .hljs-bullet,
+.theme-minimal-dark .hljs-addition,
+.theme-minimal-dark .hljs-template-tag {
+  color: #bbbbbb !important;
+}
+
+.theme-minimal-dark .hljs-comment,
+.theme-minimal-dark .hljs-quote {
+  color: #777777 !important;
+  font-style: italic;
+}
+
+.theme-minimal-dark .hljs-literal,
+.theme-minimal-dark .hljs-number,
+.theme-minimal-dark .hljs-template-variable {
+  color: #eeeeee !important;
+}
+
+.theme-minimal-dark .hljs-variable,
+.theme-minimal-dark .hljs-params,
+.theme-minimal-dark .hljs-class,
+.theme-minimal-dark .hljs-title.class_,
+.theme-minimal-dark .hljs-attr,
+.theme-minimal-dark .hljs-doctag {
+  color: #dddddd !important;
+}
+
+.theme-minimal-dark .hljs-property,
+.theme-minimal-dark .hljs-section,
+.theme-minimal-dark .hljs-deletion,
+.theme-minimal-dark .hljs-selector-id,
+.theme-minimal-dark .hljs-selector-class,
+.theme-minimal-dark .hljs-selector-attr,
+.theme-minimal-dark .hljs-selector-pseudo {
+  color: #aaaaaa !important;
+}
+
+/* Copy button: unified in messages.css and code/base.css */

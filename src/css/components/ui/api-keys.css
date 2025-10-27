@@ -1,0 +1,129 @@
+/* API Keys tab styles */
+
+.api-key-input-container {
+  position: relative;
+  display: flex;
+  align-items: center;
+  isolation: isolate;
+}
+
+.api-key-input-container input {
+  flex: 1;
+  padding-right: 42px;
+  position: relative;
+  z-index: 1;
+}
+
+/* Visually mask API key fields without using password type */
+.secret-input.masked {
+  -webkit-text-security: disc;
+  text-security: disc;
+}
+
+.toggle-password {
+  position: absolute;
+  right: 8px;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  color: var(--text-secondary);
+  padding: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 4px;
+  z-index: 2;
+}
+
+.toggle-password:hover {
+  background-color: var(--bg-hover);
+  color: var(--text-primary);
+}
+
+.api-keys-action-buttons {
+  display: flex;
+  justify-content: center;
+  margin-top: 24px;
+  position: relative;
+  z-index: 1;
+}
+
+#content-apikeys .setting-item {
+  position: relative;
+  z-index: 1;
+}
+
+.primary-button {
+  background-color: var(--accent-color);
+  color: var(--button-text-color);
+  padding: 8px 16px;
+  border: none;
+  border-radius: 4px;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.primary-button:hover {
+  background-color: var(--accent-hover);
+}
+
+.api-keys-status {
+  margin-top: 16px;
+  padding: 10px;
+  border-radius: 4px;
+  text-align: center;
+}
+
+.api-keys-status.success {
+  background-color: rgba(46, 204, 113, 0.1);
+  border: 1px solid rgba(46, 204, 113, 0.5);
+  color: #2ecc71;
+}
+
+.api-keys-status.error {
+  background-color: rgba(231, 76, 60, 0.1);
+  border: 1px solid rgba(231, 76, 60, 0.5);
+  color: #e74c3c;
+}
+
+/* LM Studio server URL settings */
+.lmstudio-server-url {
+  margin-top: 20px;
+  padding-top: 15px;
+  border-top: 1px solid var(--border-color);
+}
+
+.lmstudio-server-url .info-text {
+  margin-bottom: 10px;
+}
+
+.lmstudio-action-buttons {
+  display: flex;
+  justify-content: center;
+  margin: 10px 0;
+  position: relative;
+  z-index: 1;
+}
+
+/* LM Studio status messages */
+.lmstudio-status {
+  text-align: center;
+  padding: 8px 12px;
+  border-radius: 6px;
+  margin-top: 12px;
+  font-weight: 500;
+  animation: fadeIn 0.3s ease-in-out;
+}
+
+.lmstudio-status.success {
+  background-color: var(--success-bg, rgba(0, 128, 0, 0.1));
+  color: var(--success-color, #1e8e3e);
+  border: 1px solid var(--success-border, rgba(0, 128, 0, 0.2));
+}
+
+.lmstudio-status.error {
+  background-color: var(--error-bg, rgba(255, 0, 0, 0.1));
+  color: var(--error-color, #d93025);
+  border: 1px solid var(--error-border, rgba(255, 0, 0, 0.2));
+}

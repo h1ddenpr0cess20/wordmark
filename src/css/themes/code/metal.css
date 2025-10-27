@@ -1,0 +1,133 @@
+/* Metal theme code syntax highlighting */
+
+/* Golden Theme Code Blocks */
+.theme-golden pre {
+  background-color: #1a1308 !important;
+  border: 1px solid #9c7a3c !important;
+  box-shadow: 0 0 10px rgba(255, 215, 0, 0.1);
+}
+
+.theme-golden pre code {
+  color: #ffdc73 !important;
+}
+
+.theme-golden {
+  --code-number: #ffea80; /* numbers/literals/bullets */
+  --code-accent: #ffd700; /* keywords/types */
+  --code-accent-2: #ffdc73; /* attributes/built_in/title */
+  --code-string: #ffb347; /* strings/regex */
+  --code-comment: #9c7a3c; /* comments/quotes */
+}
+
+.theme-golden .hljs-keyword,
+.theme-golden .hljs-meta,
+.theme-golden .hljs-selector-tag,
+.theme-golden .hljs-title,
+.theme-golden .hljs-title.function_,
+.theme-golden .hljs-type {
+  color: #ffd700 !important;
+}
+
+.theme-golden .hljs-attribute, 
+.theme-golden .hljs-built_in {
+  color: #ffdc73 !important;
+}
+
+.theme-golden .hljs-string,
+.theme-golden .hljs-attr,
+.theme-golden .hljs-addition,
+.theme-golden .hljs-doctag,
+.theme-golden .hljs-regexp,
+.theme-golden .hljs-symbol {
+  color: #ffb347 !important;
+}
+
+.theme-golden .hljs-comment,
+.theme-golden .hljs-quote {
+  color: #9c7a3c !important;
+  font-style: italic;
+}
+
+/* number/literal/bullet colors provided by --code-number */
+
+.theme-golden .hljs-variable,
+.theme-golden .hljs-tag,
+.theme-golden .hljs-name,
+.theme-golden .hljs-template-variable,
+.theme-golden .hljs-deletion {
+  color: #daa520 !important;
+}
+
+.theme-golden .hljs-property,
+.theme-golden .hljs-subst,
+.theme-golden .hljs-params,
+.theme-golden .hljs-meta-string {
+  color: #e6c35c !important;
+}
+
+/* Silver Theme Code Blocks */
+.theme-silver pre {
+  background-color: #1a1c1e !important;
+  border: 1px solid #7d8085 !important;
+  box-shadow: 0 0 10px rgba(192, 192, 192, 0.1);
+}
+
+.theme-silver pre code {
+  color: #e6e8ed !important;
+}
+
+.theme-silver {
+  --code-number: #b0c4de; /* numbers/literals/bullets */
+  --code-accent: #c0c0c0; /* keywords/types */
+  --code-accent-2: #d8d8d8; /* attributes/built_in/title */
+  --code-string: #a9b7c6; /* strings/regex */
+  --code-comment: #7d8085; /* comments/quotes */
+}
+
+.theme-silver .hljs-keyword,
+.theme-silver .hljs-meta,
+.theme-silver .hljs-selector-tag,
+.theme-silver .hljs-title,
+.theme-silver .hljs-title.function_,
+.theme-silver .hljs-type {
+  color: #c0c0c0 !important;
+}
+
+.theme-silver .hljs-attribute, 
+.theme-silver .hljs-built_in {
+  color: #d8d8d8 !important;
+}
+
+.theme-silver .hljs-string,
+.theme-silver .hljs-attr,
+.theme-silver .hljs-addition,
+.theme-silver .hljs-doctag,
+.theme-silver .hljs-regexp,
+.theme-silver .hljs-symbol {
+  color: #a9b7c6 !important;
+}
+
+.theme-silver .hljs-comment,
+.theme-silver .hljs-quote {
+  color: #7d8085 !important;
+  font-style: italic;
+}
+
+/* number/literal/bullet colors provided by --code-number */
+
+.theme-silver .hljs-variable,
+.theme-silver .hljs-tag,
+.theme-silver .hljs-name,
+.theme-silver .hljs-template-variable,
+.theme-silver .hljs-deletion {
+  color: #a0a0a0 !important;
+}
+
+.theme-silver .hljs-property,
+.theme-silver .hljs-subst,
+.theme-silver .hljs-params,
+.theme-silver .hljs-meta-string {
+  color: #b8bac5 !important;
+}
+
+/* Copy button: unified in messages.css and code/base.css */

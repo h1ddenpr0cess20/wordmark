@@ -1,0 +1,32 @@
+version: '3.8'
+
+services:
+  web:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: wordmark:latest
+    container_name: wordmark-web
+    ports:
+      - "8080:80"
+    restart: unless-stopped
+
+  web-ssl:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: wordmark:latest
+    container_name: wordmark-web-ssl
+    ports:
+      - "8443:443"
+    # Map host port 80 -> container 80 only when this is the sole web service to avoid collisions.
+    expose:
+      - "80"  # keep HTTP port exposed to the compose network for redirects
+    # Mount SSL config and keys at runtime
+    # NOTE: Requires cert.pem and key.pem files in project root before starting
+    volumes:
+      - ./docker/nginx-ssl.conf:/etc/nginx/conf.d/default.conf:ro
+      - ./cert.pem:/etc/nginx/certs/cert.pem:ro
+      - ./key.pem:/etc/nginx/certs/key.pem:ro
+    restart: unless-stopped
+    profiles: ["ssl"]

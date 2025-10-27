@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, maximum-scale=1.0, user-scalable=no">
+  <title>Help Guide - Wordmark</title>
+  <meta name="description" content="Help Guide for Wordmark AI Assistant Platform">
+
+  <!-- Additional Meta Tags -->
+  <meta name="author" content="Dustin Whyte">
+  <meta name="theme-color" content="#1a1a1a" media="(prefers-color-scheme: dark)">
+  <meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)">
+
+  <link rel="icon" type="image/x-icon" href="/src/assets/img/favicon.ico">
+
+  <!-- Link to modular CSS -->
+  <link rel="stylesheet" href="../css/main.css">
+</head>
+<body>
+  <div class="help-container">
+    <header class="help-header">
+      <a href="../../index.html" class="back-link" title="Back to Wordmark">
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><use href="../assets/icons.svg#arrow-left"></use></svg>
+        Back to Wordmark
+      </a>
+      <h1>Help Guide</h1>
+    </header>
+
+    <main class="help-content">
+      <section class="help-section">
+        <h2>Getting Started with Wordmark</h2>
+        <p>Wordmark is an open source AI assistant for the OpenAI and xAI Responses APIs and local LM Studio servers, all while keeping your data private and stored locally on your device.</p>
+
+        <h2>Use Philosophy: Not a Companion</h2>
+        <p>
+          Wordmark is a creative and technical tool — not a buddy, therapist, or romantic partner. If you’re looking for a “companion,” you’re in the wrong place and the maintainer frowns on that usage. Please use Wordmark to build, learn, and make things — not to simulate intimacy.
+          Read the short policy here: <a href="../../docs/not-a-companion.md" target="_blank" rel="noopener">Not a Companion</a>.
+        </p>
+
+        <h2>Connecting Providers</h2>
+        <p>To get the most out of Wordmark, connect it to OpenAI's or xAI's API, or point it at a local LM Studio deployment. Hosted providers require an API key, while LM Studio runs on your machine and only needs its base URL.</p>
+
+        <h3>Why You Need Credentials</h3>
+        <p>API keys are digital passwords that authorize requests you send to a hosted service. Wordmark stores the OpenAI and xAI keys securely in your browser's local storage and never sends them anywhere except to the endpoints you target. LM Studio does not use API keys—the app simply needs to know where your local server is listening.</p>
+
+        <h3>How to Connect</h3>
+        <div class="api-key-guides">
+          <div class="api-key-guide">
+            <h4>OpenAI API Key</h4>
+            <ol>
+              <li>Visit the <a href="https://platform.openai.com/api-keys" target="_blank" rel="noopener">OpenAI API Keys page</a></li>
+              <li>Create an account or sign in if you don't already have one</li>
+              <li>Click on "Create new secret key"</li>
+              <li>Give your key a name (e.g., "Wordmark")</li>
+              <li>Copy the API key and paste it into Wordmark's settings</li>
+            </ol>
+          </div>
+
+          <div class="api-key-guide">
+            <h4>xAI API Key</h4>
+            <ol>
+              <li>Visit the <a href="https://console.x.ai/" target="_blank" rel="noopener">xAI Console</a></li>
+              <li>Create an account or sign in with your existing credentials</li>
+              <li>Open the API Keys section and click "Create new key"</li>
+              <li>Copy the generated key (it will only be shown once)</li>
+              <li>Paste the key into Wordmark's Settings → API Keys → xAI field</li>
+            </ol>
+          </div>
+
+          <div class="api-key-guide">
+            <h4>LM Studio Base URL</h4>
+            <ol>
+              <li><a href="https://lmstudio.ai/download" target="_blank" rel="noopener">Download LM Studio</a> for your platform and install it</li>
+              <li>Launch LM Studio and start the local server (default is <code>http://localhost:1234</code>)</li>
+              <li>Load or download a chat-capable model in LM Studio so it is exposed via the <code>/models</code> endpoint</li>
+              <li>In Wordmark, open Settings → API Keys → LM Studio</li>
+              <li>Enter the base URL (without the trailing <code>/v1</code>) and click “Save LM Studio URL”</li>
+            </ol>
+          </div>
+        </div>
+
+        <h3>Managing Your API Keys in Wordmark</h3>
+        <ol>
+          <li>Click the Settings icon in the top right corner</li>
+          <li>Navigate to the "API Keys" section</li>
+          <li>Enter your API keys in the appropriate fields</li>
+          <li>Click "Save API Keys" to store them securely in your browser</li>
+        </ol>
+        <p><strong>Security Note:</strong> Your API keys are stored only in your browser's local storage and are only sent to their respective services when making API calls. Wordmark does not store your keys on any servers.</p>
+
+        <h2>Choosing and Using AI Models</h2>
+        <p>Wordmark gives you access to hosted OpenAI and xAI models as well as local models served through LM Studio.</p>
+            <h3>Available AI Providers</h3>
+        <ul>
+          <li><strong>OpenAI:</strong> GPT-series models for hosted, general-purpose conversation and coding tasks</li>
+          <li><strong>xAI:</strong> Grok models accessed via the xAI Responses-compatible API</li>
+          <li><strong>LM Studio:</strong> Local, open-source models you run on your own hardware</li>
+        </ul>
+
+        <h2>Using Advanced Features</h2>
+
+        <h3>Tools and Extensions</h3>
+        <p>Wordmark supports a small set of tools that extend the AI's capabilities:</p>
+        <ul>
+          <li><strong>Web Search:</strong> Let the AI use OpenAI-managed web search for fresh information when the OpenAI service is active.</li>
+          <li><strong>Weather Information:</strong> Get short forecasts via the built-in Open-Meteo helper.</li>
+          <li><strong>Custom MCP Servers:</strong> Register your own MCP endpoints to unlock additional domain-specific tools.</li>
+        </ul>
+        <p><strong>Note:</strong> The built-in helpers do not require extra keys. MCP servers manage their own authentication and may need credentials on their side.</p>
+
+        <h3>Memory</h3>
+        <p>Use the Memory feature to let the assistant remember or forget brief details you provide.</p>
+        <ul>
+          <li><strong>Enable Memory:</strong> Open Settings → Memory tab and switch on “Enable Memory”.</li>
+          <li><strong>Limit:</strong> Choose how many items to retain (default 25). Oldest items are removed first when the limit is exceeded.</li>
+          <li><strong>Remember:</strong> When you say “remember …”, the assistant may call a special function to store a short summary of that detail.</li>
+          <li><strong>Forget:</strong> Ask to “forget …” to remove a matching memory. The assistant uses a case-insensitive keyword match.</li>
+          <li><strong>Context:</strong> When enabled, your saved memories are appended to the system prompt as a bullet list for better personalization.</li>
+          <li><strong>Local Only:</strong> All memories are stored in your browser (no server). You can clear or delete individual items at any time.</li>
+        </ul>
+
+        <h3>Text-to-Speech</h3>
+        <p>Wordmark can read responses aloud using text-to-speech technology. Click the speaker icon next to a message to hear it spoken.  Requires an OpenAI API key.</p>
+
+        <h3>Theme Customization</h3>
+        <p>Personalize your experience by choosing from various themes in the settings panel, including Dark, Light, Metal, Neon, and more.</p>
+
+        <h2>Data Privacy and Storage</h2>
+        <p>Wordmark is designed with privacy in mind:</p>
+        <ul>
+          <li>All your conversations and settings are stored locally in your browser</li>
+          <li>No data is sent to any servers except the AI provider you choose to use</li>
+          <li>You can export your conversation history or clear it at any time</li>
+          <li>When using local LM Studio models, no data leaves your device at all</li>
+        </ul>
+
+        <h2>Troubleshooting</h2>
+        <h3>Common Issues</h3>
+        <ul>
+          <li><strong>API Key Errors:</strong> Double-check that your API key is entered correctly and hasn't expired</li>
+          <li><strong>Model Not Available:</strong> Ensure you have the appropriate API key for the model you're trying to use</li>
+          <li><strong>LM Studio Not Connecting:</strong> Verify that LM Studio is running locally and that the server URL in settings matches the port showing inside LM Studio</li>
+          <li><strong>Missing Tool Results:</strong> Check that you've provided any necessary API keys for specific tools</li>
+        </ul>
+
+        <h2>Getting Help</h2>
+        <p>If you need further assistance:</p>
+        <ul>
+          <li>Visit the <a href="https://github.com/h1ddenpr0cess20/Wordmark" target="_blank" rel="noopener">GitHub Repository</a> for documentation and updates</li>
+          <li>Report issues on the <a href="https://github.com/h1ddenpr0cess20/Wordmark/issues" target="_blank" rel="noopener">Issues page</a></li>
+          <li>Join discussions with other users on the <a href="https://github.com/h1ddenpr0cess20/Wordmark/discussions" target="_blank" rel="noopener">Discussions forum</a></li>
+        </ul>
+      </section>
+    </main>
+
+    <footer class="help-footer">
+      <p>&copy; 2025 Dustin Whyte | <a href="../../index.html">Back to Wordmark</a></p>
+    </footer>
+  </div>
+</body>
+</html>

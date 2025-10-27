@@ -1,0 +1,56 @@
+:root {
+  /* Default variables (will be overridden by theme classes) */
+  --bg-primary: #1a1a1a;
+  --bg-secondary: #2d2d2d;
+  --text-primary: #ffffff;
+  --text-secondary: #b3b3b3;
+  --accent-color: #666666;
+  --accent-hover: #888888;
+  --border-color: #404040;
+  
+  /* RGB equivalents for transparency effects */
+  --bg-primary-rgb: 26, 26, 26;
+  --bg-secondary-rgb: 45, 45, 45;
+  --text-primary-rgb: 255, 255, 255;
+  --text-secondary-rgb: 179, 179, 179;
+  --accent-color-rgb: 102, 102, 102;
+  --accent-hover-rgb: 136, 136, 136;
+  --border-color-rgb: 64, 64, 64;
+  
+  --user-bg: #4d4d4d;
+  --assistant-bg: #3b3b3b;
+  --error-bg: #4a2d2d;
+  --error-text: #ff6b6b;
+  --button-text-color: #ffffff;
+  /* Additional text tone */
+  --text-tertiary: rgba(var(--text-primary-rgb), 0.6);
+  
+  /* Body background colors */
+  --body-bg-color-1: var(--bg-primary);
+  --body-bg-color-2: var(--bg-secondary);
+  --body-text-color: var(--text-primary);
+  --error-text-contrast: var(--error-text);
+  
+  /* Other variables that don't change with themes */
+  --message-spacing: 16px;
+  --border-radius: 8px;
+  --transition-speed: 0.3s;
+  --box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+
+  /* UI surface helpers */
+  --input-background: var(--bg-secondary);
+  --hover-background: rgba(var(--text-primary-rgb), 0.06);
+  --bg-hover: rgba(var(--text-primary-rgb), 0.06);
+
+  /* Code theming (used by all code themes) */
+  --code-bg: var(--bg-secondary);
+  --code-border: var(--border-color);
+  --code-text: var(--text-primary);
+  --code-comment: var(--text-secondary);
+  --code-accent: var(--accent-color);
+  --code-accent-2: var(--code-accent);
+  --code-string: var(--accent-hover);
+  --code-number: var(--code-string);
+  --code-inline-bg: rgba(var(--text-primary-rgb), 0.08);
+  --code-inline-border: var(--border-color);
+} 

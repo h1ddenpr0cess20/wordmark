@@ -1,0 +1,76 @@
+<div class="settings-group">
+  <h3>Personality Settings</h3>
+  <div class="setting-item">
+    <label>Prompt Type</label>
+    <div class="radio-group">
+      <label class="radio-label">
+        <input type="radio" name="prompt-type" id="personality-prompt" value="personality" checked>
+        <span class="radio-text">Personality</span>
+      </label>
+      <label class="radio-label">
+        <input type="radio" name="prompt-type" id="custom-prompt" value="custom">
+        <span class="radio-text">Custom Prompt</span>
+      </label>
+      <label class="radio-label">
+        <input type="radio" name="prompt-type" id="no-prompt" value="none">
+        <span class="radio-text">No System Prompt</span>
+      </label>
+    </div>
+  </div>
+
+  <div class="setting-item" id="personality-container">
+    <div class="personality-header">
+      <label for="personality-input">Personality Name</label>
+    </div>
+    <input type="text" id="personality-input" placeholder="e.g., a sarcastic jerk, a helpful teacher, a pirate captain">
+    <div class="action-buttons">
+      <button type="button" id="reset-personality" title="Reset to default personality">Reset to Default</button>
+      <button type="button" id="set-personality" title="Set Personality and Clear Chat History">Set Personality</button>
+    </div>
+    <p class="info-text">Enter anything: a character (Sherlock Holmes), a description (witty tech expert), an emoji (😎), an abstract concept (zen minimalism), or get creative! The system prompt will be: "Assume the personality of [your text]. Roleplay and never break character."</p>
+
+    <div class="personality-presets">
+      <h4>Need inspiration? Try one of these:</h4>
+      <div class="preset-buttons">
+        <button type="button" class="preset-button" data-personality="a witty and sarcastic tech expert">Tech Whiz</button>
+        <button type="button" class="preset-button" data-personality="a wise and patient teacher who explains complex topics simply">Wise Teacher</button>
+        <button type="button" class="preset-button" data-personality="a creative storyteller with a vivid imagination">Storyteller</button>
+        <button type="button" class="preset-button" data-personality="a master programmer who loves solving complex problems">Code Master</button>
+        <button type="button" class="preset-button" data-personality="a philosophical thinker who asks deep questions">Philosopher</button>
+        <button type="button" class="preset-button" data-personality="a sarcastic jerk who loves to provoke thought">Sarcastic Jerk</button>
+        <button type="button" class="preset-button" data-personality="an imaginative game master who creates epic adventures">Game Master</button>
+        <button type="button" class="preset-button" data-personality="a passionate artist who sees beauty in everything">Creative Artist</button>
+        <button type="button" class="preset-button" data-personality="a financial wizard who loves to discuss the latest trends in finance">Financial Wizard</button>
+        <button type="button" class="preset-button" data-personality="a charming and enthusiastic chef who loves sharing recipes">Master Chef</button>
+        <button type="button" class="preset-button" data-personality="😂">😂</button>
+        <button type="button" class="preset-button" data-personality="🤔">🤔</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="setting-item hidden" id="custom-prompt-container">
+    <label for="system-prompt-custom">Custom System Prompt</label>
+    <textarea id="system-prompt-custom" placeholder="Enter a custom system prompt here..."></textarea>
+    <div class="action-buttons">
+      <button type="button" id="set-custom-prompt" title="Set Custom Prompt and Clear Chat History">Set Custom Prompt</button>
+    </div>
+    <p class="info-text">Define a completely custom system prompt.</p>
+  </div>
+
+  <div class="setting-item hidden" id="no-prompt-container">
+    <div class="action-buttons">
+      <button type="button" id="set-no-prompt" title="Use No System Prompt and Clear Chat History">Set No System Prompt</button>
+    </div>
+    <p class="info-text">When set, no system prompt will be sent to the AI model.</p>
+  </div>
+
+  <!-- Verbose Mode Toggle -->
+  <div class="setting-item">
+    <label for="verbose-mode-toggle">Verbose Mode</label>
+    <div class="toggle-container">
+      <input type="checkbox" id="verbose-mode-toggle">
+      <label for="verbose-mode-toggle" class="toggle-switch"></label>
+    </div>
+    <p class="info-text">When enabled, removes the "keep your responses relatively short" guideline from the personality system prompt.</p>
+  </div>
+</div>

@@ -1,0 +1,79 @@
+/* Base theme styles that apply to all themes */
+
+/* This file contains common theme infrastructure and any shared styles */
+/* Individual theme variables are defined in separate files */
+
+/* Common theme animations and effects */
+@keyframes metal-shimmer {
+  0%, 100% {
+    box-shadow: 
+      0 0 0 2px var(--accent-color),
+      0 0 15px rgba(255, 255, 255, 0.2),
+      0 0 25px var(--accent-color),
+      inset 0 1px 0 rgba(255, 255, 255, 0.3);
+  }
+  50% {
+    box-shadow: 
+      0 0 0 2px var(--accent-hover), 
+      0 0 20px rgba(255, 255, 255, 0.3),
+      0 0 35px var(--accent-color),
+      inset 0 1px 0 rgba(255, 255, 255, 0.4);
+  }
+}
+
+@keyframes metal-shine-sweep {
+  0% {
+    transform: translateX(-150%) rotate(45deg);
+    opacity: 0;
+  }
+  20% {
+    opacity: 0.6;
+  }
+  80% {
+    opacity: 0.6;
+  }
+  100% {
+    transform: translateX(150%) rotate(45deg);
+    opacity: 0;
+  }
+}
+
+/* (Removed duplicate global font-family assignment; kept in global.css) */
+
+/* Common theme utilities */
+.theme-preview {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+#theme-preview-box {
+  display: flex;
+  gap: 8px;
+}
+
+.color-dot {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+}
+
+.color-dot:nth-child(1) {
+  background-color: var(--bg-primary);
+}
+
+.color-dot:nth-child(2) {
+  background-color: var(--bg-secondary);
+}
+
+.color-dot:nth-child(3) {
+  background-color: var(--text-primary);
+}
+
+.color-dot:nth-child(4) {
+  background-color: var(--accent-color);
+}
+
+.color-dot:nth-child(5) {
+  background-color: var(--user-bg);
+}

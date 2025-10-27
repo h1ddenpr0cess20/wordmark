@@ -1,0 +1,21 @@
+# VCS and editor
+.git
+.gitignore
+.vscode
+
+# Node
+node_modules
+npm-debug.log*
+
+# Tests and docs (not needed in runtime image)
+tests
+docs
+
+# Local certificates (mount at runtime if needed)
+cert.pem
+key.pem
+
+# Misc
+*.md
+eslint.config.js
+

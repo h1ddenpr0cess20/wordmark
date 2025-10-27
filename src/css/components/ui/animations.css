@@ -1,0 +1,98 @@
+/* Animations */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes fadeInContainer {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  50% {
+    opacity: 0.8;
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes loadingDot {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-10px);
+  }
+}
+
+/* Subtle metal border twinkle effect */
+@keyframes metalBorderTwinkle {
+  0% {
+    box-shadow: 0 0 5px rgba(255, 255, 255, 0.2), 
+                0 0 10px var(--accent-color, gold),
+                0 0 20px rgba(255, 255, 255, 0.1);
+  }
+  25% {
+    box-shadow: 0 0 8px rgba(255, 255, 255, 0.3), 
+                0 0 15px var(--accent-color, gold),
+                0 0 25px rgba(255, 255, 255, 0.15);
+  }
+  50% {
+    box-shadow: 0 0 5px rgba(255, 255, 255, 0.2), 
+                0 0 12px var(--accent-color, gold),
+                0 0 20px rgba(255, 255, 255, 0.1);
+  }
+  75% {
+    box-shadow: 0 0 7px rgba(255, 255, 255, 0.25), 
+                0 0 15px var(--accent-color, gold),
+                0 0 22px rgba(255, 255, 255, 0.12);
+  }
+  100% {
+    box-shadow: 0 0 5px rgba(255, 255, 255, 0.2), 
+                0 0 10px var(--accent-color, gold),
+                0 0 20px rgba(255, 255, 255, 0.1);
+  }
+}
+
+/* Apply faster animations by default */
+.message {
+  animation: fadeIn 0.2s ease-out;
+}
+
+#chat-container {
+  animation: fadeInContainer 0.3s ease-out;
+}
+
+.loading-animation {
+  display: flex;
+  gap: 6px;
+  justify-content: left;
+  padding: 10px;
+}
+
+.loading-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background-color: var(--text-primary);
+}
+
+.loading-dot:nth-child(1) {
+  animation: loadingDot 0.8s infinite 0s;
+}
+
+.loading-dot:nth-child(2) {
+  animation: loadingDot 0.8s infinite 0.2s;
+}
+
+.loading-dot:nth-child(3) {
+  animation: loadingDot 0.8s infinite 0.4s;
+}

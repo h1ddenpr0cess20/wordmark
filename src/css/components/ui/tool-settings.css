@@ -1,0 +1,443 @@
+#content-tools .settings-group {
+  margin-bottom: 20px;
+}
+.tool-category {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.tool-category-header {
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  padding: 8px 12px;
+  margin-bottom: 8px;
+  text-align: center;
+  cursor: pointer;
+  user-select: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+.tool-category-header .category-name {
+  transition: color 0.2s ease;
+}
+
+.tool-category-header:hover .category-name {
+  color: var(--accent-color);
+}
+
+.tool-category-header:focus {
+  outline: 2px solid var(--accent-color);
+  outline-offset: 2px;
+}
+
+.tool-category-header:active {
+  transform: scale(0.98);
+}
+
+.category-toggle-icon {
+  font-size: 0.8rem;
+  transition: transform 0.2s ease;
+}
+
+.category-name {
+  font-weight: 600;
+}
+
+.tool-category.collapsed .tool-category-grid {
+  display: none;
+  max-height: 0;
+  opacity: 0;
+}
+
+.tool-category.collapsed .category-toggle-icon {
+  transform: rotate(0deg);
+}
+
+.tool-category-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 8px;
+  transition: all 0.3s ease;
+  overflow: hidden;
+}
+
+.tool-toggle-item {
+  margin-bottom: 0;
+  padding: 8px 12px;
+  border: 1px solid var(--border-color);
+  border-radius: 6px;
+  background-color: var(--bg-secondary);
+  transition: border-color 0.2s, box-shadow 0.2s;
+  cursor: pointer;
+  min-height: auto;
+  position: relative;
+}
+
+.tool-toggle-item:hover {
+  border-color: var(--accent-color);
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.1);
+}
+
+.tool-toggle-item label {
+  font-weight: 600;
+  color: var(--text-primary);
+  cursor: pointer;
+  font-size: 0.9rem;
+  margin-bottom: 0;
+}
+
+.tool-help-icon {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  width: 14px;
+  height: 14px;
+  font-size: 9px;
+  background-color: var(--accent-color);
+  color: var(--button-text-color);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0.7;
+  transition: opacity 0.2s ease;
+  cursor: help;
+  z-index: 2;
+  user-select: none;
+}
+
+.tool-help-icon:hover,
+.tool-help-icon:focus {
+  opacity: 1;
+  outline: 2px solid var(--accent-color);
+  outline-offset: 2px;
+}
+
+#individual-tools-container {
+  margin-top: 15px;
+  max-height: 600px;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+#individual-tools-container::-webkit-scrollbar {
+  width: 8px;
+}
+
+#individual-tools-container::-webkit-scrollbar-track {
+  background: var(--bg-secondary);
+  border-radius: 4px;
+}
+
+#individual-tools-container::-webkit-scrollbar-thumb {
+  background-color: var(--accent-color);
+  border-radius: 4px;
+  transition: background-color 0.2s ease;
+}
+
+#individual-tools-container::-webkit-scrollbar-thumb:hover {
+  background-color: var(--accent-hover);
+}
+
+.tool-toggle-item input[type="checkbox"]:disabled + .toggle-switch {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.tool-toggle-content {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 16px;
+}
+
+.tool-info {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  flex: 1;
+}
+
+.tool-title-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.tool-name {
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.tool-description {
+  margin: 0;
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+  line-height: 1.4;
+}
+
+.tool-note {
+  font-size: 0.75rem;
+  color: var(--text-tertiary);
+}
+
+.tool-toggle-control {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.tool-toggle-control .toggle-container {
+  margin-left: 0;
+}
+
+.tool-badge {
+  font-size: 0.7rem;
+  padding: 2px 6px;
+  border-radius: 999px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  background-color: var(--badge-bg, rgba(128, 128, 128, 0.2));
+  color: var(--badge-text, var(--text-secondary));
+}
+
+.tool-badge-mcp {
+  --badge-bg: rgba(63, 94, 251, 0.15);
+  --badge-text: var(--accent-color);
+}
+
+.tool-badge-function {
+  --badge-bg: rgba(0, 200, 150, 0.15);
+  --badge-text: var(--success-color, #00a896);
+}
+
+.tool-badge-builtin {
+  --badge-bg: rgba(255, 165, 0, 0.15);
+  --badge-text: var(--warning-color, #e59f23);
+}
+
+.tool-mcp-endpoint {
+  font-size: 0.8rem;
+  color: var(--text-tertiary);
+}
+
+.tool-mcp-endpoint code {
+  background-color: var(--bg-tertiary, rgba(0, 0, 0, 0.1));
+  padding: 2px 6px;
+  border-radius: 4px;
+  display: inline-block;
+  font-size: 0.75rem;
+  word-break: break-all;
+}
+
+.tool-action-delete {
+  border: none;
+  background: transparent;
+  color: var(--error-color, #dc3545);
+  cursor: pointer;
+  width: 32px;
+  height: 24px;
+  padding: 0;
+  border-radius: 4px;
+  line-height: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: background-color 0.2s ease, transform 0.1s ease;
+}
+
+.tool-action-delete:hover {
+  background-color: rgba(220, 53, 69, 0.12);
+  transform: scale(1.05);
+}
+
+.tool-action-delete:focus-visible {
+  outline: 2px solid var(--error-color, #dc3545);
+  outline-offset: 2px;
+}
+
+.tool-action-delete:active {
+  transform: scale(0.95);
+}
+
+.tool-unavailable {
+  opacity: 0.65;
+}
+
+.tool-offline {
+  border-style: dashed;
+  opacity: 0.65;
+}
+
+.tool-offline .tool-note {
+  color: var(--warning-color, #e59f23);
+}
+
+.tools-disabled .tool-master-disabled {
+  border-style: dashed;
+}
+
+.tools-bulk-actions {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 10px;
+  margin-bottom: 15px;
+}
+
+.tool-template-placeholder {
+  padding: 16px;
+  border: 1px dashed var(--border-color);
+  border-radius: 8px;
+  background: var(--bg-secondary);
+  text-align: center;
+  color: var(--text-secondary);
+  line-height: 1.4;
+}
+
+.tool-template-placeholder strong {
+  color: var(--text-primary);
+}
+
+.tool-template-subcopy {
+  margin-top: 8px;
+  font-size: 0.9rem;
+  color: var(--text-secondary);
+}
+
+.tools-bulk-actions button {
+  margin-left: 10px;
+  font-size: 0.9rem;
+  padding: 8px 16px;
+  border-radius: 4px;
+  border: none;
+  background-color: var(--accent-color);
+  color: var(--button-text-color);
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.tools-bulk-actions button:hover {
+  background-color: var(--accent-hover);
+}
+
+/* Generic action button for small inline actions */
+.tool-action-button {
+  margin-left: 10px;
+  font-size: 0.85rem;
+  padding: 6px 12px;
+  border-radius: 4px;
+  border: none;
+  background-color: var(--accent-color);
+  color: var(--button-text-color);
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.tool-action-button:hover {
+  background-color: var(--accent-hover);
+}
+
+/* Memory list layout */
+.memory-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.memory-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 12px;
+  border: 1px solid var(--border-color);
+  border-radius: 6px;
+  background-color: var(--bg-secondary);
+}
+
+.memory-text {
+  color: var(--text-primary);
+  font-size: 0.9rem;
+  margin-right: 12px;
+  word-break: break-word;
+}
+
+@media screen and (max-width: 768px) {
+  .tool-category-grid {
+    grid-template-columns: 1fr;
+    gap: 6px;
+  }
+  
+  .tool-toggle-item {
+    padding: 6px 10px;
+  }
+  
+  .tool-toggle-item label {
+    font-size: 0.85rem;
+  }
+}
+
+@media screen and (max-width: 600px) {
+  .tool-category-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.settings-action-row {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 16px;
+  gap: 12px;
+}
+
+/* MCP Add Form Styling */
+
+.mcp-add-form {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.mcp-add-form .form-row {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.mcp-add-form .form-row label {
+  font-weight: 600;
+  color: var(--text-primary);
+  font-size: 0.9rem;
+}
+
+.mcp-add-form .form-row input,
+.mcp-add-form .form-row textarea {
+  padding: 8px 12px;
+  border: 1px solid var(--border-color);
+  border-radius: 4px;
+  background-color: var(--bg-secondary);
+  color: var(--text-primary);
+  font-size: 0.9rem;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.mcp-add-form .form-row input:focus,
+.mcp-add-form .form-row textarea:focus {
+  outline: none;
+  border-color: var(--accent-color);
+  box-shadow: 0 0 0 2px rgba(var(--accent-color-rgb, 63, 94, 251), 0.1);
+}
+
+.mcp-add-form .form-row textarea {
+  font-family: monospace;
+  resize: vertical;
+  min-height: 60px;
+}
