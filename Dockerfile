@@ -1,5 +1,5 @@
 # Use a small Nginx image to serve static files
-FROM nginx:1.27-alpine
+FROM nginx:1.28-alpine-slim
 
 # Install curl for health checks and ensure cert directory exists for SSL mounts
 RUN apk add --no-cache curl && \
