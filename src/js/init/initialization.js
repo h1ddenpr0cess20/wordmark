@@ -331,11 +331,6 @@ async function initialize() {
     // Mark body as loaded to show the interface
     document.body.classList.add("loaded");
 
-    // Initialize vector store system after main app is loaded
-    if (typeof window.loadVectorStoreModule === "function") {
-      window.loadVectorStoreModule().catch(e => console.error("Vector store loading failed:", e));
-    }
-
   } catch (error) {
     console.error("Initialization error:", error);
     // Still show the interface even if there's an error

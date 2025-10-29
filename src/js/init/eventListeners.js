@@ -74,7 +74,71 @@ function setupEventListeners() {
       });
     }
   }
+
+  if (typeof window.loadVectorStoreModule === "function") {
+    let vectorStoreModuleLoadingPromise = null;
+
+    async function ensureVectorStoreModuleLoaded() {
+      if (window.lazyModulesLoaded && window.lazyModulesLoaded.vectorStore) {
+        return true;
+      }
+
+      if (!vectorStoreModuleLoadingPromise) {
+        vectorStoreModuleLoadingPromise = window.loadVectorStoreModule().finally(() => {
+          vectorStoreModuleLoadingPromise = null;
+        });
+      }
+
+      try {
+        await vectorStoreModuleLoadingPromise;
+        return true;
+      } catch (error) {
+        console.error("Vector store module failed to load:", error);
+        if (window.showError) {
+          window.showError(`Failed to load vector store manager: ${error.message}`);
+        }
+        return false;
+      }
+    }
+
+    const manualLoadSelectors = [
+      "#refresh-vector-stores",
+      "#clear-active-vector-store",
+      "#refresh-assistant-files",
+      "#upload-assistant-files",
+      "#delete-all-assistant-files",
+    ];
+
+    manualLoadSelectors.forEach(selector => {
+      const el = document.querySelector(selector);
+      if (!el) return;
+
+      el.addEventListener("click", async(event) => {
+        if (window.lazyModulesLoaded && window.lazyModulesLoaded.vectorStore) {
+          return;
+        }
+
+        event.preventDefault();
+
+        const triggerId = event.currentTarget && event.currentTarget.id ? event.currentTarget.id : "";
+        const loaded = await ensureVectorStoreModuleLoaded();
+
+        if (!loaded) {
+          return;
+        }
+
+        if (triggerId === "refresh-vector-stores" || triggerId === "refresh-assistant-files") {
+          return;
+        }
+
+        requestAnimationFrame(() => {
+          if (event.currentTarget && typeof event.currentTarget.click === "function") {
+            event.currentTarget.click();
+          }
+        });
+      }, true);
+    });
+  }
 }
 
 window.setupEventListeners = setupEventListeners;
-
