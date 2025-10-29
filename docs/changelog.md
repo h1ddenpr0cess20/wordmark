@@ -12,3 +12,4 @@
 - Added a response verbosity dropdown to the Model settings tab with persistence across sessions.
 - Limited vector store activation to two stores at a time and updated settings messaging to match the new cap.
 - Load assistant files/vector stores on demand via the Refresh controls, throttle vector store API calls with a three-second cooldown, and present friendlier names with a tighter list of 10 items.
+- Hardened API Keys initialization so controls wait for their fragments before binding, fixing the first-load save failure without a manual refresh.

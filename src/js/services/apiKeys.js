@@ -9,6 +9,8 @@
 // Storage keys for local storage
 const API_KEYS_STORAGE_PREFIX = "wordmark_api_key_";
 const LMSTUDIO_SERVER_URL_KEY = "wordmark_lmstudio_server_url";
+const API_KEYS_INIT_MAX_RETRIES = 40;
+const API_KEYS_INIT_RETRY_DELAY = 150;
 
 // DOM element references
 window.apiKeyInputs = {
@@ -20,74 +22,100 @@ window.apiKeyInputs = {
 window.saveApiKeysButton = null;
 window.lmStudioServerUrlInput = null;
 window.saveLmStudioUrlButton = null;
+window.__apiKeysEventHandlersApplied = window.__apiKeysEventHandlersApplied || false;
 
 /**
  * Initialize API key management functionality
  */
-window.initApiKeys = function() {
+window.initApiKeys = function(retryCount = 0) {
   // Get DOM references for main API keys
-  window.apiKeyInputs.openai = document.getElementById("openai-api-key");
-  window.apiKeyInputs.xai = document.getElementById("xai-api-key");
-  // window.apiKeyInputs.huggingface = document.getElementById("huggingface-api-key");
-  window.saveApiKeysButton = document.getElementById("save-api-keys");
-  window.lmStudioServerUrlInput = document.getElementById("lmstudio-server-url");
-  window.saveLmStudioUrlButton = document.getElementById("save-lmstudio-url");
+  const openaiInput = document.getElementById("openai-api-key");
+  const xaiInput = document.getElementById("xai-api-key");
+  // const huggingfaceInput = document.getElementById("huggingface-api-key");
+  const saveKeysButton = document.getElementById("save-api-keys");
+  const lmStudioUrlInput = document.getElementById("lmstudio-server-url");
+  const saveLmStudioButton = document.getElementById("save-lmstudio-url");
 
-  // Add click handlers to prevent propagation on all input fields
-  Object.values(window.apiKeyInputs).forEach(input => {
-    if (input) {
-      input.addEventListener("click", (event) => {
+  const essentialReady = Boolean(saveKeysButton && (openaiInput || xaiInput || lmStudioUrlInput));
+
+  if (!essentialReady) {
+    if (retryCount < API_KEYS_INIT_MAX_RETRIES) {
+      setTimeout(() => window.initApiKeys(retryCount + 1), API_KEYS_INIT_RETRY_DELAY);
+    } else if (window.VERBOSE_LOGGING) {
+      console.warn("API Keys UI not ready after maximum retries; will retry on next init call.");
+    }
+    return;
+  }
+
+  window.apiKeyInputs.openai = openaiInput;
+  window.apiKeyInputs.xai = xaiInput;
+  // window.apiKeyInputs.huggingface = huggingfaceInput;
+  window.saveApiKeysButton = saveKeysButton;
+  window.lmStudioServerUrlInput = lmStudioUrlInput;
+  window.saveLmStudioUrlButton = saveLmStudioButton;
+
+  if (!window.__apiKeysEventHandlersApplied) {
+    // Add click handlers to prevent propagation on all input fields
+    Object.values(window.apiKeyInputs).forEach(input => {
+      if (input) {
+        input.addEventListener("click", (event) => {
+          event.stopPropagation();
+        });
+      }
+    });
+
+    // Also add click handler for LM Studio server URL input
+    if (window.lmStudioServerUrlInput) {
+      window.lmStudioServerUrlInput.addEventListener("click", (event) => {
         event.stopPropagation();
       });
     }
-  });
 
-  // Also add click handler for LM Studio server URL input
-  if (window.lmStudioServerUrlInput) {
-    window.lmStudioServerUrlInput.addEventListener("click", (event) => {
-      event.stopPropagation();
-    });
-  }
+    // Get password toggle buttons
+    const toggleButtons = document.querySelectorAll(".toggle-password");
+    // Add event listeners to toggle password visibility
+    toggleButtons.forEach(button => {
+      button.addEventListener("click", function(event) {
+        // Prevent the event from propagating up to parent elements
+        event.preventDefault();
+        event.stopPropagation();
 
-  // Get password toggle buttons
-  const toggleButtons = document.querySelectorAll(".toggle-password");
-  // Add event listeners to toggle password visibility
-  toggleButtons.forEach(button => {
-    button.addEventListener("click", function(event) {
-      // Prevent the event from propagating up to parent elements
-      event.preventDefault();
-      event.stopPropagation();
+        const inputId = this.getAttribute("data-for");
+        const input = document.getElementById(inputId);
 
-      const inputId = this.getAttribute("data-for");
-      const input = document.getElementById(inputId);
-
-      // Masking is handled via CSS on .secret-input.masked
-      if (input && input.classList) {
-        if (input.classList.contains("masked")) {
-          input.classList.remove("masked");
-          this.innerHTML = window.icon("eye-off", { width: 16, height: 16 });
-        } else {
-          input.classList.add("masked");
-          this.innerHTML = window.icon("eye", { width: 16, height: 16 });
+        // Masking is handled via CSS on .secret-input.masked
+        if (input && input.classList) {
+          if (input.classList.contains("masked")) {
+            input.classList.remove("masked");
+            this.innerHTML = window.icon("eye-off", { width: 16, height: 16 });
+          } else {
+            input.classList.add("masked");
+            this.innerHTML = window.icon("eye", { width: 16, height: 16 });
+          }
         }
-      }
+      });
     });
-  }); // Add event listener to save button
-  if (window.saveApiKeysButton) {
-    window.saveApiKeysButton.addEventListener("click", (event) => {
-      // Prevent event propagation
-      event.preventDefault();
-      event.stopPropagation();
-      window.saveApiKeys();
-    });
-  }
-  // Add event listener to save LM Studio URL button
-  if (window.saveLmStudioUrlButton) {
-    window.saveLmStudioUrlButton.addEventListener("click", (event) => {
-      event.preventDefault();
-      event.stopPropagation();
-      window.saveLmStudioServerUrl();
-    });
+
+    // Add event listener to save button
+    if (window.saveApiKeysButton) {
+      window.saveApiKeysButton.addEventListener("click", (event) => {
+        // Prevent event propagation
+        event.preventDefault();
+        event.stopPropagation();
+        window.saveApiKeys();
+      });
+    }
+
+    // Add event listener to save LM Studio URL button
+    if (window.saveLmStudioUrlButton) {
+      window.saveLmStudioUrlButton.addEventListener("click", (event) => {
+        event.preventDefault();
+        event.stopPropagation();
+        window.saveLmStudioServerUrl();
+      });
+    }
+
+    window.__apiKeysEventHandlersApplied = true;
   }
 
   // Load API keys from storage
