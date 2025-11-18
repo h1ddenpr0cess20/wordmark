@@ -16,7 +16,9 @@ Defined in `src/config/config.js` under `window.config.services` with a `default
 - **xAI** (`xai`) - Grok models via Responses-compatible API
   - Uses `system` role instead of `developer` for system prompts
   - Supports specialized tools: `web_search`, `x_search` (Twitter/X search)
-  - Requires `text.format` removal when using server-side tools
+  - Supports MCP connectors; local-network servers remain blocked for security when using xAI
+  - Requires `text.format` removal when using server-side tools (web/X search, Code Interpreter, MCP connectors)
+  - Provider-managed Code Interpreter ignores OpenAI-specific container options
 - **LM Studio** (`lmstudio`) - Local OpenAI-compatible server
   - Models fetched dynamically via `<baseUrl>/models`
   - No API key required
@@ -63,7 +65,7 @@ Tools are managed by `src/js/services/api/toolManager.js`:
 - **Weather** (`function:open_meteo_forecast`) - Open-Meteo 1-7 day forecasts
 - **Web Search** (`builtin:web_search`) - Provider-managed web search; xAI also surfaces `x_search` for Twitter/X
 - **Code Interpreter** (`builtin:code_interpreter`) - Python sandbox execution
-- **Image Generation** (`builtin:image_generation`) - OpenAI DALL-E integration
+- **Image Generation** (`builtin:image_generation`) - OpenAI DALL-E integration (automatically disabled when Codex models are selected)
 - **File Search** (`builtin:file_search`) - Vector store lookup for uploaded documents
 
 ### MCP Servers
@@ -73,7 +75,8 @@ Tools are managed by `src/js/services/api/toolManager.js`:
 - Tool preferences stored per-server in localStorage
 
 ### Service-Specific Behavior
-- xAI excludes MCP tools and automatically adds provider search tools (`web_search`, `x_search`)
+- OpenAI disables the image generation tool whenever a Codex model is active.
+- xAI supports MCP tools (non-local endpoints) and automatically adds provider search tools (`web_search`, `x_search`)
 - Local services (LM Studio) can access local MCP servers
 - Cloud services skip local network MCP servers for security
 

@@ -109,6 +109,22 @@ test('buildRequestBody handles xAI service quirks', () => {
   globalThis.window.config.defaultService = originalService;
 });
 
+test('buildRequestBody removes xAI text format when MCP tools are enabled', () => {
+  const originalService = globalThis.window.config.defaultService;
+  globalThis.window.config.defaultService = 'xai';
+
+  const tools = [{ type: 'mcp', server_label: 'demo', server_url: 'https://example.com' }];
+  const body = buildRequestBody({
+    inputMessages: [{ role: 'user', content: 'Hello' }],
+    model: 'grok-beta',
+    tools,
+  });
+
+  assert.equal(body.text, undefined, 'xAI should remove text.format when MCP tools are present');
+
+  globalThis.window.config.defaultService = originalService;
+});
+
 test('buildHeaders includes Authorization header', () => {
   const headers = buildHeaders();
 

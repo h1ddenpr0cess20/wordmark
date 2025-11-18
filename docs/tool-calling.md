@@ -8,7 +8,7 @@ Overview
 
 Execution Flow (Responses API)
 
-1. `requestClient.runTurn()` (see `src/js/services/api/requestClient.js`) collects the conversation, enabled tools from `toolManager.getEnabledToolDefinitions()`, and the active service/model.
+1. `requestClient.runTurn()` (see `src/js/services/api/requestClient.js`) collects the conversation, enabled tools from `toolManager.getEnabledToolDefinitions(serviceKey, modelName)`, and the active service/model.
 2. The client issues a streaming or non-streaming `POST {baseUrl}/responses` request with `tools` array populated from the enabled subset.
 3. As the response arrives, `collectFunctionCalls()` (in `messageUtils.js`) extracts any tool calls from the output.
 4. For tools with local handlers (like weather), the handler executes and the result is appended to the conversation as `function_call_output` or `tool_result` (format depends on service).
