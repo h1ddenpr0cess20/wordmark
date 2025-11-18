@@ -2,7 +2,7 @@
  * Tool catalog, preference management, and MCP availability helpers.
  */
 
-import { getActiveServiceKey } from './clientConfig.js';
+import { getActiveServiceKey, getActiveModel } from './clientConfig.js';
 
 const TOOL_STORAGE_KEY = 'wordmark_tool_preferences';
 
@@ -183,6 +183,10 @@ let mcpRefreshPromise = null;
 
 let toolPreferences = loadToolPreferences();
 
+function isCodexModel(modelName) {
+  return typeof modelName === 'string' && modelName.toLowerCase().includes('codex');
+}
+
 export function getToolCatalog() {
   return TOOL_CATALOG.map(tool => ({
     key: tool.key,
@@ -282,13 +286,14 @@ export function unregisterMcpServer(serverLabel, options = {}) {
   return true;
 }
 
-export function getEnabledToolDefinitions(serviceKey = getActiveServiceKey()) {
+export function getEnabledToolDefinitions(serviceKey = getActiveServiceKey(), modelName = getActiveModel()) {
   const masterEnabled = !(window.config && window.config.enableFunctionCalling === false);
   if (!masterEnabled) {
     return [];
   }
 
   const isLocalService = serviceKey === 'lmstudio' || serviceKey === 'ollama';
+  const modelIsCodex = isCodexModel(modelName);
   const defs = [];
 
   TOOL_CATALOG.forEach(tool => {
@@ -300,9 +305,6 @@ export function getEnabledToolDefinitions(serviceKey = getActiveServiceKey()) {
     }
 
     if (tool.type === 'mcp') {
-      if (serviceKey === 'xai') {
-        return;
-      }
       if (!isLocalService) {
         const serverUrl = tool.definition?.server_url;
         if (serverUrl && isLocalNetworkUrl(serverUrl)) {
@@ -324,6 +326,24 @@ export function getEnabledToolDefinitions(serviceKey = getActiveServiceKey()) {
     }
 
     if (!getToolPreference(tool.key, tool.defaultEnabled !== false)) {
+      return;
+    }
+
+    if (tool.key === 'builtin:image_generation' && serviceKey === 'openai' && modelIsCodex) {
+      if (window.VERBOSE_LOGGING) {
+        console.info(`Skipping image generation tool for Codex model '${modelName}'.`);
+      }
+      return;
+    }
+
+    if (tool.key === 'builtin:code_interpreter') {
+      if (serviceKey === 'xai') {
+        defs.push({
+          type: 'code_interpreter',
+        });
+      } else {
+        defs.push(JSON.parse(JSON.stringify(tool.definition)));
+      }
       return;
     }
 

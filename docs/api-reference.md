@@ -294,12 +294,13 @@ Removes an MCP server from the catalog.
 
 **Returns:** boolean - True if removed
 
-### getEnabledToolDefinitions(serviceKey)
+### getEnabledToolDefinitions(serviceKey, modelName)
 
 Returns tool definitions for enabled tools compatible with the specified service.
 
 **Parameters:**
 - `serviceKey` (string) - Service identifier (default: active service)
+- `modelName` (string) - Model identifier used to apply provider-specific restrictions (default: active model)
 
 **Returns:** Array - Tool definitions for API request
 
@@ -307,7 +308,8 @@ Returns tool definitions for enabled tools compatible with the specified service
 - Filters by service compatibility (onlyServices)
 - Excludes offline MCP servers
 - Excludes local MCP servers when using cloud services
-- Handles xAI special cases (web_search + x_search, no MCP)
+- Handles xAI special cases (web_search + x_search inclusion)
+- Disables OpenAI image generation when Codex models are active
 
 ### refreshMcpAvailability(force)
 
@@ -373,12 +375,14 @@ try {
 - Supports all tool types (function, builtin, mcp)
 - Includes default fields in request payload
 - Uses 'developer' role for system messages
+- Disables image generation tool when Codex models are active
 
 ### xAI (Grok)
 - Uses 'system' role instead of 'developer'
 - Provides both web_search and x_search tools
-- Excludes MCP tools
-- Removes text.format when using server-side tools
+- Supports MCP tools (remote endpoints, same local-network restrictions as other cloud services)
+- Removes text.format when using server-side tools (web/X search, Code Interpreter, MCP)
+- Omits Code Interpreter container metadata (xAI manages runtime automatically)
 - Excludes default include fields
 
 ### LM Studio

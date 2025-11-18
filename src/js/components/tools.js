@@ -28,6 +28,28 @@
     return !(window.config && window.config.enableFunctionCalling === false);
   }
 
+  function getActiveModelName() {
+    if (window.modelSelector && window.modelSelector.value) {
+      return window.modelSelector.value;
+    }
+    if (window.config && typeof window.config.getDefaultModel === "function") {
+      try {
+        return window.config.getDefaultModel();
+      } catch {
+        /* ignore */
+      }
+    }
+    const activeKey = window.config && window.config.defaultService;
+    if (activeKey && window.config?.services?.[activeKey]?.defaultModel) {
+      return window.config.services[activeKey].defaultModel;
+    }
+    return "";
+  }
+
+  function isCodexModel(modelName) {
+    return typeof modelName === "string" && modelName.toLowerCase().includes("codex");
+  }
+
   function createBadge(tool) {
     const badge = document.createElement("span");
     badge.className = `tool-badge tool-badge-${tool.type}`;
@@ -44,12 +66,12 @@
     return badge;
   }
 
-  function availabilityNote(tool, isAvailable, isOnline, masterEnabled, serviceKey) {
+  function availabilityNote(tool, isAvailable, isOnline, masterEnabled, serviceKey, codexModelActive) {
     if (!isAvailable) {
       const note = document.createElement("div");
       note.className = "tool-note";
-      if (serviceKey === "xai" && tool.type === "mcp") {
-        note.textContent = "MCP connections are temporarily unavailable for xAI models.";
+      if (tool.key === "builtin:image_generation" && serviceKey === "openai" && codexModelActive) {
+        note.textContent = "Image generation is unavailable for Codex models.";
         return note;
       }
       if (tool.onlyServices && tool.onlyServices.length) {
@@ -128,6 +150,8 @@
     const catalog = window.responsesClient.getToolCatalog();
     const serviceKey = getActiveServiceKey();
     const masterEnabled = isMasterEnabled();
+    const activeModelName = getActiveModelName();
+    const codexModelActive = isCodexModel(activeModelName);
 
     toolsContainer.classList.toggle("tools-disabled", !masterEnabled);
     toolsContainer.innerHTML = "";
@@ -147,7 +171,7 @@
         return;
       }
       let isAvailable = !tool.onlyServices || tool.onlyServices.includes(serviceKey);
-      if (tool.type === "mcp" && serviceKey === "xai") {
+      if (tool.key === "builtin:image_generation" && serviceKey === "openai" && codexModelActive) {
         isAvailable = false;
       }
       const isOnline = tool.type !== "mcp" ? true : tool.isOnline !== false;
@@ -188,7 +212,7 @@
         info.appendChild(description);
       }
 
-      const note = availabilityNote(tool, isAvailable, isOnline, masterEnabled, serviceKey);
+      const note = availabilityNote(tool, isAvailable, isOnline, masterEnabled, serviceKey, codexModelActive);
       if (note) {
         info.appendChild(note);
       }
@@ -384,6 +408,8 @@
     const serviceKey = typeof window.responsesClient.getActiveServiceKey === "function"
       ? window.responsesClient.getActiveServiceKey()
       : (window.config.defaultService || "openai");
+    const activeModelName = getActiveModelName();
+    const codexModelActive = isCodexModel(activeModelName);
 
     // Check if this is a local AI service
     const isLocalService = serviceKey === "lmstudio";
@@ -402,10 +428,6 @@
         return;
       }
 
-      if (serviceKey === "xai" && tool.type === "mcp") {
-        return;
-      }
-
       // Skip MCP servers on local network when using cloud AI services
       if (tool.type === "mcp" && !isLocalService) {
         // Get server URL from the tool definition
@@ -419,6 +441,9 @@
       }
 
       if (tool.type === "mcp" && tool.isOnline === false) {
+        return;
+      }
+      if (tool.key === "builtin:image_generation" && serviceKey === "openai" && codexModelActive) {
         return;
       }
       if (typeof window.responsesClient.isToolEnabled === "function" && !window.responsesClient.isToolEnabled(tool.key)) {

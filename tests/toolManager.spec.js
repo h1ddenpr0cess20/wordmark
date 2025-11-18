@@ -201,3 +201,29 @@ test('getEnabledToolDefinitions handles xAI service specially', () => {
   const hasMcp = xaiTools.some(tool => tool.type === 'mcp');
   assert.equal(hasMcp, false, 'xAI should not have MCP tools');
 });
+
+test('getEnabledToolDefinitions omits image tool for Codex models', () => {
+  setToolEnabled('builtin:image_generation', true);
+
+  const codexTools = getEnabledToolDefinitions('openai', 'gpt-5.1-codex');
+  const hasImageForCodex = codexTools.some(tool => tool.type === 'image_generation');
+  assert.equal(hasImageForCodex, false, 'Codex models should not include the image generation tool');
+
+  const standardTools = getEnabledToolDefinitions('openai', 'gpt-5.1');
+  const hasImageForStandard = standardTools.some(tool => tool.type === 'image_generation');
+  assert.equal(hasImageForStandard, true, 'Non-Codex models should keep image generation enabled');
+});
+
+test('code interpreter container is omitted for xAI', () => {
+  setToolEnabled('builtin:code_interpreter', true);
+
+  const openaiTools = getEnabledToolDefinitions('openai', 'gpt-5.1');
+  const openaiCodeTool = openaiTools.find(tool => tool.type === 'code_interpreter');
+  assert.ok(openaiCodeTool, 'OpenAI should include code interpreter');
+  assert.ok(openaiCodeTool.container, 'OpenAI code interpreter should include container metadata');
+
+  const xaiTools = getEnabledToolDefinitions('xai', 'grok-4-fast');
+  const xaiCodeTool = xaiTools.find(tool => tool.type === 'code_interpreter');
+  assert.ok(xaiCodeTool, 'xAI should include code interpreter');
+  assert.equal(xaiCodeTool.container, undefined, 'xAI code interpreter should omit container metadata');
+});

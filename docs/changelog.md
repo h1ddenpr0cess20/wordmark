@@ -2,6 +2,10 @@
 
 ## 2025-02-??
 
+- Enabled xAI MCP tooling support and refreshed the default model lists (OpenAI gpt-5.1/codex variants plus Grok 4.1).
+- Fixed xAI MCP usage by stripping the unsupported `text.format` field when server-managed tools are active.
+- Made the xAI Code Interpreter definition omit OpenAI-only container arguments to avoid 400 errors.
+- Automatically disable the OpenAI image generation tool when Codex models are selected to prevent unsupported calls.
 - Added streaming runtime + event processor modules with dedicated reasoning timelines, tool status updates, and automatic image capture.
 - Introduced xAI Grok provider support alongside OpenAI and LM Studio, including provider-managed web/X search tooling.
 - Enabled provider built-ins for Code Interpreter, image generation, and file search with refreshed tool catalog defaults.

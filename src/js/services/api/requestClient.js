@@ -77,7 +77,7 @@ export function buildRequestBody({
         return false;
       }
       const type = typeof tool.type === 'string' ? tool.type.toLowerCase() : '';
-      return type === 'web_search' || type === 'x_search' || type === 'code_interpreter';
+      return type === 'web_search' || type === 'x_search' || type === 'code_interpreter' || type === 'mcp';
     });
     if (usesServerSideTools) {
       delete payload.text;
@@ -155,8 +155,9 @@ export async function runTurn({
     }
   }
   const serviceKey = getActiveServiceKey();
+  const resolvedModel = model || getActiveModel();
   const workingMessages = serializeMessagesForRequest(baseMessages);
-  const developerContent = buildDeveloperMessage(model);
+  const developerContent = buildDeveloperMessage(resolvedModel);
   if (developerContent) {
     // xAI (Grok) requires 'system' role instead of 'developer'
     const systemRole = serviceKey === 'xai' ? 'system' : 'developer';
@@ -166,45 +167,39 @@ export async function runTurn({
       id: 'developer-message',
     });
   }
-    if (serviceKey !== 'xai') {
-      await refreshMcpAvailability(true);
+  await refreshMcpAvailability(true);
+  let enabledTools = getEnabledToolDefinitions(serviceKey, resolvedModel);
+
+  // Handle file_search tool: attach ALL active vector stores (persisted + explicitly active)
+  if (enabledTools) {
+    const idsSet = new Set();
+    try {
+      const activeIds = getActiveVectorStoreIds ? getActiveVectorStoreIds() : [];
+      if (Array.isArray(activeIds)) {
+        activeIds.forEach(id => { if (id) idsSet.add(id); });
+      }
+    } catch (e) {
+      // non-fatal
     }
-    let enabledTools = getEnabledToolDefinitions(serviceKey);
-    // Safety filter: ensure MCP tools are never included when using xAI
-    if (serviceKey === 'xai' && Array.isArray(enabledTools)) {
-      enabledTools = enabledTools.filter(tool => tool.type !== 'mcp');
+    if (vectorStoreId) {
+      idsSet.add(vectorStoreId);
     }
-    
-    // Handle file_search tool: attach ALL active vector stores (persisted + explicitly active)
-    if (enabledTools) {
-      const idsSet = new Set();
-      try {
-        const activeIds = getActiveVectorStoreIds ? getActiveVectorStoreIds() : [];
-        if (Array.isArray(activeIds)) {
-          activeIds.forEach(id => { if (id) idsSet.add(id); });
+    const vectorStoreIds = Array.from(idsSet);
+    if (vectorStoreIds.length > 0) {
+      enabledTools = enabledTools.map(tool => {
+        if (tool && tool.type === 'file_search') {
+          return {
+            ...tool,
+            vector_store_ids: vectorStoreIds,
+          };
         }
-      } catch (e) {
-        // non-fatal
-      }
-      if (vectorStoreId) {
-        idsSet.add(vectorStoreId);
-      }
-      const vectorStoreIds = Array.from(idsSet);
-      if (vectorStoreIds.length > 0) {
-        enabledTools = enabledTools.map(tool => {
-          if (tool && tool.type === 'file_search') {
-            return {
-              ...tool,
-              vector_store_ids: vectorStoreIds,
-            };
-          }
-          return tool;
-        });
-      } else {
-        // Remove file_search tool if no vector stores are available
-        enabledTools = enabledTools.filter(tool => tool.type !== 'file_search');
-      }
+        return tool;
+      });
+    } else {
+      // Remove file_search tool if no vector stores are available
+      enabledTools = enabledTools.filter(tool => tool.type !== 'file_search');
     }
+  }
   // Aggregate across multiple Responses API cycles (e.g., when tools are called)
   let aggregateText = '';
   let aggregateReasoning = '';
@@ -214,7 +209,7 @@ export async function runTurn({
       inputMessages: workingMessages,
       instructions: typeof instructions === 'string' && instructions.trim() ? instructions : undefined,
       tools: enabledTools,
-      model,
+      model: resolvedModel,
       verbosity,
       reasoningEffort,
       stream,

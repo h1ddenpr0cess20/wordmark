@@ -189,6 +189,10 @@ window.config = {
             baseUrl: 'https://api.openai.com/v1',
             apiKey: '',
             models: [
+                'gpt-5.1',
+                'gpt-5.1-codex',
+                'gpt-5.1-codex-mini',
+                'gpt-5-codex',
                 'gpt-5',
                 'gpt-5-mini',
                 'gpt-5-nano',
