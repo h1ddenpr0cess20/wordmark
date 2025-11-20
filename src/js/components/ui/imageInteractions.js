@@ -195,6 +195,17 @@ window.createImageSlideshow = function(images, startIndex, isGalleryMode = false
 
   window.isSlideshowOpen = true;
 
+  const closeSlideshow = () => {
+    document.removeEventListener('keydown', handleKeydown);
+    if (slideshow.parentNode) {
+      document.body.removeChild(slideshow);
+    }
+
+    setTimeout(() => {
+      window.isSlideshowOpen = false;
+    }, 50);
+  };
+
   const showSlide = (index) => {
     if (index < 0) {
       index = images.length - 1;
@@ -317,16 +328,6 @@ window.createImageSlideshow = function(images, startIndex, isGalleryMode = false
     }
   });
 
-  const closeSlideshow = () => {
-    document.removeEventListener('keydown', handleKeydown);
-    if (slideshow.parentNode) {
-      document.body.removeChild(slideshow);
-    }
-
-    setTimeout(() => {
-      window.isSlideshowOpen = false;
-    }, 50);
-  };
 };
 
 window.gatherAllConversationImages = function(clickedImg) {
@@ -349,4 +350,3 @@ window.gatherAllConversationImages = function(clickedImg) {
     clickedIndex: clickedImageIndex >= 0 ? clickedImageIndex : 0,
   };
 };
-
