@@ -189,6 +189,7 @@ window.config = {
             baseUrl: 'https://api.openai.com/v1',
             apiKey: '',
             models: [
+                'gpt-5.2',
                 'gpt-5.1',
                 'gpt-5.1-codex',
                 'gpt-5.1-codex-mini',
@@ -298,13 +299,14 @@ window.config = {
             baseUrl: 'https://api.x.ai/v1',
             apiKey: '',
             models: [
-                'grok-4-1-fast',
+                'grok-4-1-fast-reasoning',
+                'grok-4-1-fast-non-reasoning',
                 'grok-4',
                 'grok-4-fast',
                 'grok-4-fast-non-reasoning',
                 'grok-code-fast-1'
             ],
-            defaultModel: 'grok-4-1-fast'
+            defaultModel: 'grok-4-1-fast-non-reasoning'
         },
     },
 
