@@ -1,6 +1,6 @@
 {
   "name": "wordmark",
-  "version": "1.0.1",
+  "version": "1.1.0",
   "description": "Client-side AI assistant for the OpenAI Responses API and local LM Studio servers.",
   "main": "index.html",
   "type": "module",

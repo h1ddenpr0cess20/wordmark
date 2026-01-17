@@ -6,7 +6,7 @@
 
   **An open source AI assistant platform**
 
-  [![Version](https://img.shields.io/badge/version-v1.0.1-blue.svg)](https://github.com/h1ddenpr0cess20/Wordmark)
+  [![Version](https://img.shields.io/badge/version-v1.1.0-blue.svg)](https://github.com/h1ddenpr0cess20/Wordmark)
   [![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
   [![JavaScript](https://img.shields.io/badge/javascript-ES6+-yellow.svg)](https://developer.mozilla.org/en-US/docs/Web/JavaScript)
 
