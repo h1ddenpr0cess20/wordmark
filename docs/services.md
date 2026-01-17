@@ -4,7 +4,7 @@
 
 Defined in `src/config/config.js` under `window.config.services` with a `defaultService` and configuration helpers accessed via `src/js/services/api/clientConfig.js`:
 
-- `getActiveServiceKey()` - Returns current service (openai, xai, lmstudio)
+- `getActiveServiceKey()` - Returns current service (openai, xai, lmstudio, ollama)
 - `getActiveModel()` - Returns selected model for active service
 - `getBaseUrl()` - Returns API base URL for active service
 - `ensureApiKey()` - Returns API key and throws if missing
@@ -23,14 +23,19 @@ Defined in `src/config/config.js` under `window.config.services` with a `default
   - Models fetched dynamically via `<baseUrl>/models`
   - No API key required
   - Base URL configurable in Settings
+- **Ollama** (`ollama`) - Local OpenAI-compatible Responses server
+  - Models fetched dynamically via `<baseUrl>/models` (falls back to `/api/tags`)
+  - No API key required
+  - Base URL set in `config.js` (default `http://localhost:11434/v1`)
 
 ## Dynamic Model Fetching
 
-LM Studio queries available models at runtime:
+Local providers query available models at runtime:
 ```javascript
 services.lmstudio.fetchAndUpdateModels()
+services.ollama.fetchAndUpdateModels()
 ```
-This hits `<baseUrl>/models` and updates the dropdown via `window.uiHooks.updateLmStudioModelsDropdown`.
+LM Studio hits `<baseUrl>/models`. Ollama prefers `<baseUrl>/models` and falls back to `/api/tags` if needed. Both update the dropdown via `window.uiHooks.updateLmStudioModelsDropdown`.
 
 ## Request Handling
 
@@ -55,7 +60,7 @@ The `src/js/services/api/requestClient.js` module handles all API communication:
 - Managed in Settings → API Keys
 - Stored in localStorage with service prefix: `wordmark_api_key_<service>`
 - Retrieved via `clientConfig.ensureApiKey()`
-- LM Studio doesn't require keys; only base URL configuration
+- LM Studio and Ollama don't require keys; only local base URLs
 
 ## Tool Integration
 
@@ -77,7 +82,7 @@ Tools are managed by `src/js/services/api/toolManager.js`:
 ### Service-Specific Behavior
 - OpenAI disables the image generation tool whenever a Codex model is active.
 - xAI supports MCP tools (non-local endpoints) and automatically adds provider search tools (`web_search`, `x_search`)
-- Local services (LM Studio) can access local MCP servers
+- Local services (LM Studio, Ollama) can access local MCP servers
 - Cloud services skip local network MCP servers for security
 
 ## Images

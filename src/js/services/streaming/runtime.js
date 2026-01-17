@@ -3,7 +3,7 @@ import {
   collectImageCandidates,
   imageDebugLog,
 } from './imageGeneration.js';
-import { processMainContentMarkdown } from './thinkingUtils.js';
+import { processMainContentMarkdown, separateThinkingSegments } from './thinkingUtils.js';
 
 /**
  * Builds the runtime helpers responsible for tracking streaming state and
@@ -70,8 +70,15 @@ export function createStreamingRuntime({
   }
 
   function render() {
-    const processedText = accumulatedContent;
-    const thinkingContent = accumulatedReasoning;
+    const parsedThinking = separateThinkingSegments(accumulatedContent);
+    const processedText = parsedThinking.content;
+    let thinkingContent = accumulatedReasoning;
+
+    if (parsedThinking.reasoning) {
+      thinkingContent = thinkingContent
+        ? `${thinkingContent}${thinkingContent.endsWith('\n') ? '' : '\n'}${parsedThinking.reasoning}`
+        : parsedThinking.reasoning;
+    }
     const hasThinking = Boolean(thinkingContent);
 
     if (hasThinking) {
@@ -254,4 +261,3 @@ export function createStreamingRuntime({
     render,
   };
 }
-

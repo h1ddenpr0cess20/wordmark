@@ -2,12 +2,12 @@
 
 What It Is
 
-- Wordmark is a client-side AI assistant with OpenAI, xAI Grok, and LM Studio support, optional tool calling, TTS, themes, and local-first persistence.
+- Wordmark is a client-side AI assistant with OpenAI, xAI Grok, LM Studio, and Ollama support, optional tool calling, TTS, themes, and local-first persistence.
 - Everything runs in the browser. All data persists locally (IndexedDB/localStorage). Requests are sent only to the providers you configure.
 
 Key Features
 
-- Provider flexibility: hosted OpenAI or xAI Responses APIs, plus local LM Studio servers
+- Provider flexibility: hosted OpenAI or xAI Responses APIs, plus local LM Studio or Ollama servers
 - Tool calling framework with built-in weather, provider web + X search, Code Interpreter, optional image generation/file search, plus your own MCP servers
 - Streaming responses with per-turn reasoning timelines and tool progress
 - Image upload and gallery management
@@ -16,7 +16,7 @@ Key Features
  - Header shortcuts and indicators:
    - Click the logo (About), model name (Model), or personality line (Personality) to open those Settings tabs.
    - Feature badges beneath the prompt show Location/Memory/Tools status; tap the dot to toggle, click the label to open settings.
-   - Hover the model name to see a provider tooltip.
+   - Hover the model name to see a provider tooltip (OpenAI, xAI, LM Studio, or Ollama).
 
 How It Starts
 

@@ -412,7 +412,7 @@
     const codexModelActive = isCodexModel(activeModelName);
 
     // Check if this is a local AI service
-    const isLocalService = serviceKey === "lmstudio";
+    const isLocalService = serviceKey === "lmstudio" || serviceKey === "ollama";
 
     let catalog = [];
     if (typeof window.responsesClient.getToolCatalog === "function") {

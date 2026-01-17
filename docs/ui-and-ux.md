@@ -8,7 +8,7 @@ Panels & Controls
     - Click the model name to open Settings → Model.
     - Click the personality/prompt line to open Settings → Personality.
   - Provider tooltip:
-    - Hover the model name to see whether you're using OpenAI or LM Studio.
+    - Hover the model name to see whether you're using OpenAI, xAI, LM Studio, or Ollama.
   - Feature badges (under the prompt line):
     - Shows status for Location, Memory, and Tools.
     - Click the dot to quickly toggle a feature on/off.

@@ -1,6 +1,6 @@
 # Docker & Containers
 
-This guide covers running Wordmark in a container. The app is a pure client‑side SPA (static files) — the container only serves the site with Nginx. All API calls happen from your browser directly to the OpenAI endpoint you configure or a local LM Studio server, not from inside the container.
+This guide covers running Wordmark in a container. The app is a pure client‑side SPA (static files) — the container only serves the site with Nginx. All API calls happen from your browser directly to the OpenAI endpoint you configure or a local LM Studio/Ollama server, not from inside the container.
 
 ## Images and Files
 - Base image: `nginx:alpine`
@@ -65,7 +65,7 @@ docker compose --profile ssl up --build web-ssl
 ## Networking Notes
 - Requests to AI providers originate from your browser, not from the container. The container is only a static file server.
 - CSP in `index.html` already allows `connect-src` to `https:` and `http://localhost:*` plus `ws(s)://localhost:*` for local services.
-- Local backends like LM Studio (default `http://localhost:1234`) work when accessed by the browser on the same machine.
+- Local backends like LM Studio (default `http://localhost:1234`) or Ollama (default `http://localhost:11434`) work when accessed by the browser on the same machine.
 
 ## Production Tips
 - Prefer a real reverse proxy (Caddy, Traefik, Nginx) to terminate TLS and serve static assets.
@@ -79,4 +79,3 @@ docker compose --profile ssl up --build web-ssl
 - 404 on deep links: ensure the Nginx config contains the SPA fallback `try_files ... /index.html`.
 - HTTPS not working: verify cert/key mounts and file permissions; with Compose, ensure `--profile ssl` is enabled.
 - Port already in use: change host ports (`-p 8081:80`, `-p 8444:443`) or stop the conflicting service.
-

@@ -29,7 +29,7 @@
     <main class="help-content">
       <section class="help-section">
         <h2>Getting Started with Wordmark</h2>
-        <p>Wordmark is an open source AI assistant for the OpenAI and xAI Responses APIs and local LM Studio servers, all while keeping your data private and stored locally on your device.</p>
+        <p>Wordmark is an open source AI assistant for the OpenAI and xAI Responses APIs and local LM Studio or Ollama servers, all while keeping your data private and stored locally on your device.</p>
 
         <h2>Use Philosophy: Not a Companion</h2>
         <p>
@@ -38,10 +38,10 @@
         </p>
 
         <h2>Connecting Providers</h2>
-        <p>To get the most out of Wordmark, connect it to OpenAI's or xAI's API, or point it at a local LM Studio deployment. Hosted providers require an API key, while LM Studio runs on your machine and only needs its base URL.</p>
+        <p>To get the most out of Wordmark, connect it to OpenAI's or xAI's API, or point it at a local LM Studio or Ollama server. Hosted providers require an API key, while LM Studio and Ollama run on your machine and only need their base URLs.</p>
 
         <h3>Why You Need Credentials</h3>
-        <p>API keys are digital passwords that authorize requests you send to a hosted service. Wordmark stores the OpenAI and xAI keys securely in your browser's local storage and never sends them anywhere except to the endpoints you target. LM Studio does not use API keys—the app simply needs to know where your local server is listening.</p>
+        <p>API keys are digital passwords that authorize requests you send to a hosted service. Wordmark stores the OpenAI and xAI keys securely in your browser's local storage and never sends them anywhere except to the endpoints you target. LM Studio and Ollama do not use API keys—the app simply needs to know where your local server is listening.</p>
 
         <h3>How to Connect</h3>
         <div class="api-key-guides">
@@ -77,6 +77,16 @@
               <li>Enter the base URL (without the trailing <code>/v1</code>) and click “Save LM Studio URL”</li>
             </ol>
           </div>
+
+          <div class="api-key-guide">
+            <h4>Ollama Server</h4>
+            <ol>
+              <li><a href="https://ollama.com" target="_blank" rel="noopener">Install Ollama</a> for your platform</li>
+              <li>Start the Ollama server (default is <code>http://localhost:11434</code>)</li>
+              <li>Pull at least one model so it appears in the model list (for example, <code>ollama pull qwen3</code>)</li>
+              <li>In Wordmark, open Settings → Model and choose the Ollama provider</li>
+            </ol>
+          </div>
         </div>
 
         <h3>Managing Your API Keys in Wordmark</h3>
@@ -89,12 +99,13 @@
         <p><strong>Security Note:</strong> Your API keys are stored only in your browser's local storage and are only sent to their respective services when making API calls. Wordmark does not store your keys on any servers.</p>
 
         <h2>Choosing and Using AI Models</h2>
-        <p>Wordmark gives you access to hosted OpenAI and xAI models as well as local models served through LM Studio.</p>
+        <p>Wordmark gives you access to hosted OpenAI and xAI models as well as local models served through LM Studio or Ollama.</p>
             <h3>Available AI Providers</h3>
         <ul>
           <li><strong>OpenAI:</strong> GPT-series models for hosted, general-purpose conversation and coding tasks</li>
           <li><strong>xAI:</strong> Grok models accessed via the xAI Responses-compatible API</li>
           <li><strong>LM Studio:</strong> Local, open-source models you run on your own hardware</li>
+          <li><strong>Ollama:</strong> Local models served from your Ollama runtime</li>
         </ul>
 
         <h2>Using Advanced Features</h2>
@@ -131,7 +142,7 @@
           <li>All your conversations and settings are stored locally in your browser</li>
           <li>No data is sent to any servers except the AI provider you choose to use</li>
           <li>You can export your conversation history or clear it at any time</li>
-          <li>When using local LM Studio models, no data leaves your device at all</li>
+          <li>When using local LM Studio or Ollama models, no data leaves your device at all</li>
         </ul>
 
         <h2>Troubleshooting</h2>
@@ -140,6 +151,7 @@
           <li><strong>API Key Errors:</strong> Double-check that your API key is entered correctly and hasn't expired</li>
           <li><strong>Model Not Available:</strong> Ensure you have the appropriate API key for the model you're trying to use</li>
           <li><strong>LM Studio Not Connecting:</strong> Verify that LM Studio is running locally and that the server URL in settings matches the port showing inside LM Studio</li>
+          <li><strong>Ollama Not Connecting:</strong> Verify that Ollama is running locally and listening on <code>http://localhost:11434</code></li>
           <li><strong>Missing Tool Results:</strong> Check that you've provided any necessary API keys for specific tools</li>
         </ul>
 
