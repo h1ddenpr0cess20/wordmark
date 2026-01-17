@@ -10,11 +10,15 @@
 window.uiHooks = window.uiHooks || {};
 
 /**
- * Updates the LM Studio models dropdown when models are refreshed
+ * Updates the local models dropdown when models are refreshed
  * @param {boolean} fetchError - Whether there was an error fetching models
  */
 window.uiHooks.updateLmStudioModelsDropdown = function(fetchError) {
-  if (window.serviceSelector && window.serviceSelector.value === "lmstudio") {
+  const serviceKey = window.serviceSelector ? window.serviceSelector.value : "";
+  const isLocalService = serviceKey === "lmstudio" || serviceKey === "ollama";
+  const serviceLabel = serviceKey === "lmstudio" ? "LM Studio" : serviceKey === "ollama" ? "Ollama" : "Local";
+
+  if (isLocalService) {
     window.updateModelSelector();
 
     // Show status message if there was an error
@@ -28,12 +32,12 @@ window.uiHooks.updateLmStudioModelsDropdown = function(fetchError) {
       // Create a new status message
       const statusElement = document.createElement("div");
       statusElement.className = "lmstudio-status error";
-      statusElement.textContent = "Failed to fetch LM Studio models. Check server connection.";
+      statusElement.textContent = `Failed to fetch ${serviceLabel} models. Check server connection.`;
 
       // Add status message to the DOM
-      const lmstudioActionButtons = document.querySelector(".lmstudio-action-buttons");
-      if (lmstudioActionButtons) {
-        lmstudioActionButtons.insertAdjacentElement("afterend", statusElement);
+      const statusAnchor = document.querySelector(".model-selector-container") || document.querySelector(".lmstudio-action-buttons");
+      if (statusAnchor) {
+        statusAnchor.insertAdjacentElement("afterend", statusElement);
 
         // Auto-remove after 5 seconds
         setTimeout(() => {
@@ -78,6 +82,7 @@ window.updateHeaderInfo = function() {
       case "xai": displayName = "xAI (Grok)"; break;
       // case "huggingface": displayName = "Hugging Face"; break;
       case "lmstudio": displayName = "LM Studio (Local)"; break;
+      case "ollama": displayName = "Ollama (Local)"; break;
       default: displayName = serviceKey ? (serviceKey.charAt(0).toUpperCase() + serviceKey.slice(1)) : "";
       }
       if (displayName) {
@@ -374,11 +379,11 @@ window.updateModelSelector = function() {
   window.modelSelector.innerHTML = "";
 
   try {
-    // Check if we're using LM Studio and models are currently being fetched
-    const isLmStudioLoading = window.config.defaultService === "lmstudio" &&
-                           window.config.services.lmstudio && window.config.services.lmstudio.modelsFetching === true;
+    const activeServiceKey = window.config?.defaultService;
+    const activeService = activeServiceKey ? window.config?.services?.[activeServiceKey] : null;
+    const isLocalLoading = Boolean(activeService && activeService.modelsFetching === true);
 
-    if (isLmStudioLoading) {
+    if (isLocalLoading) {
       const option = document.createElement("option");
       option.value = "loading";
       option.textContent = "Loading models...";
@@ -484,6 +489,9 @@ window.populateServiceSelector = function() {
     //   break;
     case "lmstudio":
       displayName = "LM Studio (Local)";
+      break;
+    case "ollama":
+      displayName = "Ollama (Local)";
       break;
     default:
       displayName = serviceKey.charAt(0).toUpperCase() + serviceKey.slice(1);

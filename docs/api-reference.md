@@ -113,7 +113,7 @@ Service and model configuration helpers.
 
 Returns the currently active service identifier.
 
-**Returns:** string - Service key ('openai', 'xai', 'lmstudio')
+**Returns:** string - Service key ('openai', 'xai', 'lmstudio', 'ollama')
 
 ### getActiveModel()
 
@@ -387,6 +387,12 @@ try {
 
 ### LM Studio
 - Local server at configurable URL
+- No API key required
+- Supports function tools and MCP servers
+- No builtin tool support
+
+### Ollama
+- Local server at `http://localhost:11434/v1` by default
 - No API key required
 - Supports function tools and MCP servers
 - No builtin tool support

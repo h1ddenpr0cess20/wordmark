@@ -22,12 +22,13 @@ API Keys (where to put them)
 
 - Open Settings (gear button), then the API Keys tab.
 - Main AI providers wired into Wordmark:
-  - OpenAI (hosted) and LM Studio (local OpenAI-compatible server).
+  - OpenAI and xAI (hosted) plus LM Studio and Ollama (local OpenAI-compatible servers).
 - Tool toggles live under Settings → Tools. The built-in weather helper relies on Open-Meteo (no key); OpenAI web search uses your primary provider key. MCP servers manage credentials on their side.
 
 Local Models
 
 - LM Studio: configure the base URL in Settings → API Keys (LM Studio). Models are fetched dynamically; the UI updates the model dropdown when the fetch completes.
+- Ollama: ensure the server is running (default `http://localhost:11434`). Models are fetched dynamically from the Ollama API; the UI updates after the fetch completes.
 
 Notes
 

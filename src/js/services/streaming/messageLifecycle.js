@@ -12,6 +12,7 @@ import {
 } from './codeInterpreter.js';
 import {
   processMainContentMarkdown,
+  separateThinkingSegments,
 } from './thinkingUtils.js';
 
 export function finalizeStreamedResponse(loadingMessage, contentObj) {
@@ -90,6 +91,16 @@ export function finalizeStreamedResponse(loadingMessage, contentObj) {
   }
   if (!reasoning) {
     reasoning = extractReasoningText(responsePayload);
+  }
+
+  if (content) {
+    const parsedThinking = separateThinkingSegments(content);
+    content = parsedThinking.content;
+    if (parsedThinking.reasoning) {
+      reasoning = reasoning
+        ? `${reasoning}${reasoning.endsWith('\n') ? '' : '\n'}${parsedThinking.reasoning}`
+        : parsedThinking.reasoning;
+    }
   }
 
   let codeInterpreterOutputs = { attachments: [], logs: [] };
@@ -256,7 +267,7 @@ export function finalizeStreamedResponse(loadingMessage, contentObj) {
 
   updateFinalMessage(loadingMessage);
 
-  // TTS uses content directly - responses API provides clean text without thinking tags
+  // TTS uses the cleaned content (think tags stripped when present)
   if (window.ttsConfig && window.ttsConfig.enabled && typeof window.generateTtsForMessage === 'function') {
     window.generateTtsForMessage(content, loadingMessage.id);
   }
@@ -388,8 +399,14 @@ export function updateMessageContent(loadingMessage, assistantMessageObj) {
   const codeOutputs = typeof assistantMessageObj === 'string'
     ? null
     : (assistantMessageObj.codeInterpreterOutputs || null);
-  let processedText = content;
+  const parsedThinking = separateThinkingSegments(content);
+  let processedText = parsedThinking.content;
   let thinkingContent = reasoning;
+  if (parsedThinking.reasoning) {
+    thinkingContent = thinkingContent
+      ? `${thinkingContent}${thinkingContent.endsWith('\n') ? '' : '\n'}${parsedThinking.reasoning}`
+      : parsedThinking.reasoning;
+  }
   let hasThinking = Boolean(thinkingContent);
   const thinkingId = `thinking-${loadingMessage.id}`;
 

@@ -27,7 +27,7 @@ Adding a Service
 - Update `src/config/config.js`:
   - Add a service entry with `baseUrl`, `apiKey`, `models` (array or fetcher), and `defaultModel`.
   - If the model list is dynamic, add a `fetchAndUpdateModels()` method and a `uiHooks.updateXxxModelsDropdown()` callback.
-- Ensure `getBaseUrl()` and `getApiKey()` pick up your service (the default configuration includes OpenAI and LM Studio out of the box).
+- Ensure `getBaseUrl()` and `getApiKey()` pick up your service (the default configuration includes OpenAI, LM Studio, and Ollama out of the box).
 
 Adding a Tool
 

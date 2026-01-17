@@ -15,7 +15,7 @@ JS Modules
   - `globals.js`: declares global state/refs
   - `dom.js`: assigns DOM refs (selectors) to globals
   - `initialization.js`: coordinates startup (DOMPurify config, services/models, events, TTS, location, header info)
-  - `services.js`: populates service/model selectors; triggers LM Studio model fetches; sets initial conversation name; tool-calling toggle init
+  - `services.js`: populates service/model selectors; triggers local model fetches (LM Studio/Ollama); sets initial conversation name; tool-calling toggle init
   - `eventListeners.js`: keyboard, buttons, settings/history/gallery panels, textarea auto-size, etc.
   - `modelSettings.js`: model control helpers (loaded; kept minimal here)
   - `marked.js`: markdown loader (helpers around `marked.min.js` when needed)

@@ -3,7 +3,7 @@
 No Models in Dropdown
 
 - Ensure the selected service in Settings has models configured or fetched.
-- For LM Studio, wait for the model fetch to complete; the UI will update automatically via `uiHooks`.
+- For LM Studio or Ollama, wait for the model fetch to complete; the UI will update automatically via `uiHooks`.
 - If a fetch fails, a status message appears below the relevant section. Verify the base URL and that the service is running.
 
 Streaming Stalls or Stops
@@ -30,4 +30,3 @@ Location Not Available
 Missing API Keys
 
 - The app does not ship with keys. Add your own in Settings → API Keys (and Tools where applicable).
-

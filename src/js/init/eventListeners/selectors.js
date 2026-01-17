@@ -23,13 +23,17 @@ export function setupSelectorEventListeners() {
         window.ensureApiKeysLoaded();
       }
 
-      if (selectedService === 'lmstudio' &&
-          window.config.services.lmstudio &&
-          typeof window.config.services.lmstudio.fetchAndUpdateModels === 'function') {
+      const serviceConfig = window.config?.services?.[selectedService];
+      if (serviceConfig && typeof serviceConfig.fetchAndUpdateModels === 'function') {
+        const serviceLabel = selectedService === 'lmstudio'
+          ? 'LM Studio'
+          : selectedService === 'ollama'
+            ? 'Ollama'
+            : selectedService;
         try {
-          await window.config.services.lmstudio.fetchAndUpdateModels();
+          await serviceConfig.fetchAndUpdateModels();
         } catch (error) {
-          console.error('Failed to refresh LM Studio models:', error);
+          console.error(`Failed to refresh ${serviceLabel} models:`, error);
         }
       }
 
@@ -76,4 +80,3 @@ export function setupSelectorEventListeners() {
     });
   }
 }
-

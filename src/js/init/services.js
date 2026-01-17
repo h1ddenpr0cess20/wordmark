@@ -14,35 +14,38 @@ function initializeServicesAndModels() {
       console.info("Service selector initialized.");
     }
 
-    // Only update model selector immediately if LM Studio is not the default service
-    if (window.config.defaultService !== "lmstudio") {
+    const isLocalService = window.config.defaultService === "lmstudio" || window.config.defaultService === "ollama";
+
+    // Only update model selector immediately if a local service is not the default
+    if (!isLocalService) {
       window.updateModelSelector();
     }
 
-    // Load LM Studio models if default service is LM Studio
-    initializeLmStudioModels();
+    // Load local models if default service is local
+    initializeLocalModels();
   }
 }
 
 /**
- * Initialize LM Studio models if using LM Studio service
+ * Initialize local models if using a local service
  */
-function initializeLmStudioModels() {
-  if (window.config.defaultService === "lmstudio" &&
-      window.config.services.lmstudio &&
-      typeof window.config.services.lmstudio.fetchAndUpdateModels === "function") {
-    window.config.services.lmstudio.fetchAndUpdateModels()
+function initializeLocalModels() {
+  const serviceKey = window.config?.defaultService;
+  const serviceConfig = serviceKey ? window.config?.services?.[serviceKey] : null;
+
+  if (serviceConfig && typeof serviceConfig.fetchAndUpdateModels === "function") {
+    serviceConfig.fetchAndUpdateModels()
       .then(() => {
         if (window.VERBOSE_LOGGING) {
-          console.info("LM Studio models fetched on initialization");
+          console.info("Local models fetched on initialization");
         }
         // Update model selector after fetching models
-        if (window.config.defaultService === "lmstudio") {
+        if (window.config.defaultService === serviceKey) {
           window.updateModelSelector();
         }
       })
       .catch(err => {
-        console.error("Failed to fetch LM Studio models on initialization:", err);
+        console.error("Failed to fetch local models on initialization:", err);
         // Still update model selector to show error state
         window.updateModelSelector();
       });

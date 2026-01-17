@@ -404,7 +404,7 @@ window.ensureApiKeysLoaded = function() {
   const service = window.config.defaultService;
 
   // Skip warning for services that don't require a key (LM Studio)
-  if (service === "lmstudio") {
+  if (service === "lmstudio" || service === "ollama") {
     return;
   }
 

@@ -276,24 +276,102 @@ window.config = {
             },
         },
 
-        // // Hugging Face - OpenAI-compatible Responses API (beta)
-        // huggingface: {
-        //     baseUrl: 'https://router.huggingface.co/v1',
-        //     apiKey: '',
-        //     models: [
-        //         'openai/gpt-oss-20b',
-        //         'openai/gpt-oss-120b',
-        //         'Qwen/Qwen3-VL-8B-Instruct',
-        //         'zai-org/GLM-4.6',
-        //         'Qwen/Qwen3-VL-30B-A3B-Instruct',
-        //         'Qwen/Qwen3-Coder-30B-A3B-Instruct',
-        //         'moonshotai/Kimi-K2-Instruct-0905',
-        //         'deepseek-ai/DeepSeek-V3.2-Exp'
+        // Ollama - Local server with OpenAI-compatible Responses API
+        ollama: {
+            baseUrl: 'http://localhost:11434/v1',
+            apiKey: '', // Typically not required for Ollama
+            models: [], // Initialize as empty, will be populated dynamically
+            defaultModel: 'qwen3',
+            modelsFetching: false,
 
-        //     ],
-        //     defaultModel: 'openai/gpt-oss-20b',
-        // },
-        
+            // Fetch and update Ollama models (OpenAI-compatible /v1/models, fallback to /api/tags)
+            async fetchAndUpdateModels() {
+                this.modelsFetching = true;
+                let apiRoot = this.baseUrl.replace(/\/+$/, ''); // normalize trailing slash
+                const endpoint = `${apiRoot}/models`;
+                console.info(`Fetching Ollama models from: ${endpoint}`);
+                let fetchError = false;
+
+                const parseModels = (data) => {
+                    if (data && Array.isArray(data.data)) {
+                        return data.data.map(item => item.id).filter(Boolean).sort();
+                    }
+                    if (Array.isArray(data)) {
+                        return data.slice().sort();
+                    }
+                    if (data && Array.isArray(data.models)) {
+                        return data.models
+                            .map(item => {
+                                if (typeof item === 'string') return item;
+                                if (item && typeof item === 'object') return item.id || item.name || item.model;
+                                return null;
+                            })
+                            .filter(Boolean)
+                            .sort();
+                    }
+                    return null;
+                };
+
+                let models = null;
+                try {
+                    const response = await fetch(endpoint);
+                    if (!response.ok) {
+                        console.error(`Error fetching Ollama models: ${response.status} ${response.statusText}. Response:`, await response.text());
+                    } else {
+                        const data = await response.json();
+                        models = parseModels(data);
+                        if (!models) {
+                            console.error('Unexpected Ollama /models response format:', data);
+                        }
+                    }
+                } catch (error) {
+                    console.error('Failed to fetch or parse Ollama models:', error);
+                }
+
+                if (!models) {
+                    const tagsRoot = apiRoot.replace(/\/v1$/, '');
+                    const tagsEndpoint = `${tagsRoot}/api/tags`;
+                    console.info(`Falling back to Ollama tags endpoint: ${tagsEndpoint}`);
+                    try {
+                        const response = await fetch(tagsEndpoint);
+                        if (!response.ok) {
+                            console.error(`Error fetching Ollama tags: ${response.status} ${response.statusText}. Response:`, await response.text());
+                        } else {
+                            const data = await response.json();
+                            models = parseModels(data);
+                            if (!models) {
+                                console.error('Unexpected Ollama /api/tags response format:', data);
+                            }
+                        }
+                    } catch (error) {
+                        console.error('Failed to fetch or parse Ollama tags:', error);
+                    }
+                }
+
+                if (!Array.isArray(models)) {
+                    this.models = ['Error: Could not fetch models'];
+                    fetchError = true;
+                } else if (models.length === 0) {
+                    this.models = ['No models found on server'];
+                } else {
+                    this.models = models;
+                    const validModels = this.models.filter(m => !m.startsWith('Error:') && !m.startsWith('No models'));
+                    if (validModels.length > 0 && !this.models.includes(this.defaultModel)) {
+                        console.info(`Default model '${this.defaultModel}' not found in fetched Ollama models. Available models:`, validModels);
+                    }
+                }
+
+                this.modelsFetching = false;
+
+                // Attempt to update UI
+                if (typeof window.uiHooks !== 'undefined' && typeof window.uiHooks.updateLmStudioModelsDropdown === 'function') {
+                    window.uiHooks.updateLmStudioModelsDropdown(fetchError);
+                } else {
+                    console.warn('window.uiHooks.updateLmStudioModelsDropdown function not found. UI will not be updated with new Ollama models.');
+                }
+            },
+        },
+
         // xAI (Grok) service
         xai: {
             baseUrl: 'https://api.x.ai/v1',

@@ -165,12 +165,19 @@ export function setupButtonEventListeners({ closeSettingsPanel } = {}) {
       event.stopPropagation();
       event.stopImmediatePropagation();
 
-      if (window.config && window.config.services.lmstudio && typeof window.config.services.lmstudio.fetchAndUpdateModels === 'function') {
+      const serviceKey = window.config?.defaultService;
+      const serviceConfig = serviceKey ? window.config?.services?.[serviceKey] : null;
+      if (serviceConfig && typeof serviceConfig.fetchAndUpdateModels === 'function') {
+        const serviceLabel = serviceKey === 'lmstudio'
+          ? 'LM Studio'
+          : serviceKey === 'ollama'
+            ? 'Ollama'
+            : 'Local';
         refreshLmStudioModelsButton.disabled = true;
         refreshLmStudioModelsButton.innerHTML = window.icon('refresh-cw', { width: 16, height: 16, className: 'rotating-svg' });
 
         try {
-          await window.config.services.lmstudio.fetchAndUpdateModels();
+          await serviceConfig.fetchAndUpdateModels();
           window.updateModelSelector();
 
           const existingStatus = document.querySelector('.lmstudio-status');
@@ -180,15 +187,15 @@ export function setupButtonEventListeners({ closeSettingsPanel } = {}) {
 
           const statusElement = document.createElement('div');
           statusElement.className = 'lmstudio-status success';
-          statusElement.textContent = 'LM Studio models updated successfully!';
+          statusElement.textContent = `${serviceLabel} models updated successfully!`;
 
-          const lmstudioActionButtons = document.querySelector('.lmstudio-action-buttons');
-          if (lmstudioActionButtons) {
-            lmstudioActionButtons.insertAdjacentElement('afterend', statusElement);
+          const statusAnchor = document.querySelector('.model-selector-container') || document.querySelector('.lmstudio-action-buttons');
+          if (statusAnchor) {
+            statusAnchor.insertAdjacentElement('afterend', statusElement);
             setTimeout(() => statusElement.remove(), 5000);
           }
         } catch (error) {
-          console.error('Error refreshing LM Studio models:', error);
+          console.error(`Error refreshing ${serviceLabel} models:`, error);
 
           const existingStatus = document.querySelector('.lmstudio-status');
           if (existingStatus) {
@@ -197,11 +204,11 @@ export function setupButtonEventListeners({ closeSettingsPanel } = {}) {
 
           const statusElement = document.createElement('div');
           statusElement.className = 'lmstudio-status error';
-          statusElement.textContent = 'Failed to refresh LM Studio models';
+          statusElement.textContent = `Failed to refresh ${serviceLabel} models`;
 
-          const lmstudioActionButtons = document.querySelector('.lmstudio-action-buttons');
-          if (lmstudioActionButtons) {
-            lmstudioActionButtons.insertAdjacentElement('afterend', statusElement);
+          const statusAnchor = document.querySelector('.model-selector-container') || document.querySelector('.lmstudio-action-buttons');
+          if (statusAnchor) {
+            statusAnchor.insertAdjacentElement('afterend', statusElement);
             setTimeout(() => statusElement.remove(), 5000);
           }
         } finally {
@@ -212,4 +219,3 @@ export function setupButtonEventListeners({ closeSettingsPanel } = {}) {
     });
   }
 }
-

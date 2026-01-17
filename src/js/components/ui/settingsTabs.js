@@ -60,7 +60,7 @@ window.checkApiKeysMissing = function() {
   }
 
   const currentService = window.config.defaultService;
-  if (currentService === 'lmstudio') {
+  if (currentService === 'lmstudio' || currentService === 'ollama') {
     return false;
   }
 
@@ -108,4 +108,3 @@ window.openApiKeysTabIfNeeded = function() {
     console.info('Automatically opened API keys tab due to missing API key');
   }
 };
-

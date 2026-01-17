@@ -38,17 +38,16 @@ window.updatePromptVisibility = function() {
 
 window.updateParameterControls = function() {
   const currentService = window.config?.defaultService;
-  const isLmStudio = currentService === 'lmstudio';
+  const isLocalService = currentService === 'lmstudio' || currentService === 'ollama';
 
   const refreshButton = document.getElementById('refresh-lmstudio-models');
   const refreshInfo = document.querySelector('.lmstudio-refresh-info');
 
   if (refreshButton) {
-    refreshButton.style.display = isLmStudio ? 'flex' : 'none';
+    refreshButton.style.display = isLocalService ? 'flex' : 'none';
   }
 
   if (refreshInfo) {
-    refreshInfo.style.display = isLmStudio ? 'block' : 'none';
+    refreshInfo.style.display = isLocalService ? 'block' : 'none';
   }
 };
-

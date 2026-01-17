@@ -69,14 +69,14 @@ Purpose: quick orientation to the current project layout, key entry points, and 
 
 ## Features & Flows
 - Chat/Streaming: `services/api.js` + `services/streaming.js`; messages rendered in `components/messages.js`.
-- Services & Models: `config/config.js` defines the OpenAI defaults and the LM Studio connector (dynamic model fetching described in `docs/services.md`).
+- Services & Models: `config/config.js` defines OpenAI defaults plus local connectors for LM Studio and Ollama (dynamic model fetching described in `docs/services.md`).
 - Images: upload support remains; generation/edit helpers were removed in the current Responses build.
 - Tool Calling: toggled in Settings; catalogue/handlers live in `services/api/toolManager.js` (see `docs/tool-calling.md`).
 - Memory: optional, local‑only storage; UI + prompt injection (see `docs/memory.md`).
 - Security: DOMPurify config and sanitizers in `init/initialization.js`.
 
 ## Manual Smoke Test
-- Load over HTTPS, set an OpenAI key or LM Studio URL, send a prompt, confirm streaming.
+- Load over HTTPS, set an OpenAI key or LM Studio URL (or start Ollama), send a prompt, confirm streaming.
 - Toggle a theme, enable Tool Calling, run the weather tool (and optional web search if OpenAI is active).
 - Enable Memory, add/remove an item, confirm it appears in system prompt.
 - Upload an image to ensure attachments save and appear in the gallery/history views.

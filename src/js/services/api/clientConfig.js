@@ -37,7 +37,7 @@ export function ensureApiKey() {
   if (trimmed) {
     return trimmed;
   }
-  if (activeServiceKey === 'lmstudio') {
+  if (activeServiceKey === 'lmstudio' || activeServiceKey === 'ollama') {
     return null;
   }
   const friendlyName = (() => {

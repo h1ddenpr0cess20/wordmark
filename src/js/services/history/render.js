@@ -211,8 +211,14 @@ window.renderConversationMessages = function(convo, imageCache) {
       window.config.defaultService = convo.service;
       window.serviceSelector.value = convo.service;
 
-      if (convo.service === 'lmstudio' && window.config.services?.lmstudio?.fetchAndUpdateModels) {
-        window.config.services.lmstudio.fetchAndUpdateModels()
+      const serviceConfig = window.config.services?.[convo.service];
+      if (serviceConfig && typeof serviceConfig.fetchAndUpdateModels === 'function') {
+        const serviceLabel = convo.service === 'lmstudio'
+          ? 'LM Studio'
+          : convo.service === 'ollama'
+            ? 'Ollama'
+            : convo.service;
+        serviceConfig.fetchAndUpdateModels()
           .then(() => {
             window.updateModelSelector?.();
             if (convo.model && window.modelSelector) {
@@ -224,7 +230,7 @@ window.renderConversationMessages = function(convo, imageCache) {
             }
           })
           .catch((err) => {
-            console.error('Failed to refresh LM Studio models:', err);
+            console.error(`Failed to refresh ${serviceLabel} models:`, err);
             window.updateModelSelector?.();
             if (convo.model && window.modelSelector) {
               const modelOption = Array.from(window.modelSelector.options || []).find(opt => opt.value === convo.model);
@@ -261,4 +267,3 @@ window.renderConversationMessages = function(convo, imageCache) {
     window.loadedSystemPrompt = null;
   }
 };
-

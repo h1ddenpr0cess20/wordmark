@@ -20,13 +20,13 @@
 
   ## Overview
 
-  Wordmark is a client‑side AI chat for OpenAI’s Responses API and local LM Studio servers. It supports tool/function calling, TTS, themes, and fully local storage — no backend required.
+  Wordmark is a client‑side AI chat for OpenAI/xAI Responses APIs and local LM Studio or Ollama servers. It supports tool/function calling, TTS, themes, and fully local storage — no backend required.
 
   Start with the guides: [Getting Started](docs/getting-started.md) · [Overview](docs/overview.md) · [Services & Models](docs/services.md) · [Tool Calling](docs/tool-calling.md) · [Memory](docs/memory.md) · [Security](docs/security.md) · [Storage](docs/storage.md) · [UI & UX](docs/ui-and-ux.md) · [Docker](docs/docker.md) · [Troubleshooting](docs/troubleshooting.md) · [Changelog](docs/changelog.md)
 
   ## Features
 
-  - Providers: OpenAI Responses (hosted), xAI Grok (Responses-compatible), and LM Studio (local OpenAI-compatible server) — setup details in [Services & Models](docs/services.md)
+  - Providers: OpenAI Responses (hosted), xAI Grok (Responses-compatible), and local LM Studio or Ollama servers — setup details in [Services & Models](docs/services.md)
   - Tool calling: built-in Open-Meteo weather helper, provider web + X search, Code Interpreter, optional image generation and file search, plus your own MCP servers — see [Tool Calling](docs/tool-calling.md)
   - Streaming & reasoning: dedicated reasoning panel, rich tool timelines, inline code previews, and automatic image capture — more in [Streaming](docs/streaming.md)
   - UX: themes, responsive layout, syntax highlighting, markdown, image gallery — design notes in [UI & UX](docs/ui-and-ux.md)
@@ -42,11 +42,12 @@
     cd Wordmark
     ```
     - Open `index.html` directly, or serve over HTTPS for APIs, TTS, and geolocation (see the [Getting Started guide](docs/getting-started.md)).
-  - In Settings → API Keys, add your OpenAI, xAI, and/or LM Studio credentials. Keys and URLs are stored locally.
+  - In Settings → API Keys, add your OpenAI/xAI keys and/or LM Studio URL (Ollama uses the local server default). Keys and URLs are stored locally.
   - Optional Android build: `src/assets/apk/wordmark.apk`
 
   Local models:
   - LM Studio: run the OpenAI‑compatible server and set the base URL in Settings — see the [LM Studio guide](docs/lm-studio.md)
+  - Ollama: run the local server (default `http://localhost:11434`) and select Ollama in Settings → Model
 
   ## HTTPS and Docker
 
@@ -72,7 +73,7 @@
 
   Common tasks:
   - Add tools: extend the catalog in `src/js/services/api/toolManager.js` and implement handlers (see `src/js/services/weather.js`) — details in [Tool Calling](docs/tool-calling.md)
-  - Adjust models/providers: edit `src/config/config.js` (OpenAI defaults, LM Studio connector) — see [Services & Models](docs/services.md)
+  - Adjust models/providers: edit `src/config/config.js` (OpenAI defaults, LM Studio/Ollama connectors) — see [Services & Models](docs/services.md)
   - Themes and styling: `src/css/themes/**`, `src/css/components/**`
 
   ## Usage
