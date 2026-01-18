@@ -39,15 +39,31 @@
     <button type="button" id="save-api-keys" class="primary-button" title="Save API Keys">Save API Keys</button>
   </div>
 
-  <div class="setting-item lmstudio-server-url">
-    <h3>LM Studio Configuration</h3>
-    <label for="lmstudio-server-url">LM Studio Base URL</label>
-    <div class="api-key-input-container">
-      <input type="text" id="lmstudio-server-url" placeholder="http://localhost:1234">
-    </div>
-    <p class="info-text">The base URL of your LM Studio server. Default is http://localhost:1234 for local instances.</p>
-    <div class="lmstudio-action-buttons">
-      <button type="button" id="save-lmstudio-url" class="primary-button" title="Save LM Studio Base URL">Save LM Studio URL</button>
+  <div class="setting-item local-server-settings">
+    <h3>Local Server Configuration</h3>
+    <p class="info-text">Set the base URL for local providers.</p>
+    <div class="local-server-grid">
+      <div class="local-server-block">
+        <label for="lmstudio-server-url">LM Studio Base URL</label>
+        <div class="api-key-input-container">
+          <input type="text" id="lmstudio-server-url" placeholder="http://localhost:1234">
+        </div>
+        <p class="info-text">Default is http://localhost:1234 for local instances.</p>
+        <div class="lmstudio-action-buttons">
+          <button type="button" id="save-lmstudio-url" class="primary-button" title="Save LM Studio Base URL">Save LM Studio URL</button>
+        </div>
+      </div>
+
+      <div class="local-server-block">
+        <label for="ollama-server-url">Ollama Base URL</label>
+        <div class="api-key-input-container">
+          <input type="text" id="ollama-server-url" placeholder="http://localhost:11434">
+        </div>
+        <p class="info-text">Default is http://localhost:11434 for local instances.</p>
+        <div class="ollama-action-buttons">
+          <button type="button" id="save-ollama-url" class="primary-button" title="Save Ollama Base URL">Save Ollama URL</button>
+        </div>
+      </div>
     </div>
   </div>
 

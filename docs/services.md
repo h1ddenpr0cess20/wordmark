@@ -26,7 +26,7 @@ Defined in `src/config/config.js` under `window.config.services` with a `default
 - **Ollama** (`ollama`) - Local OpenAI-compatible Responses server
   - Models fetched dynamically via `<baseUrl>/models` (falls back to `/api/tags`)
   - No API key required
-  - Base URL set in `config.js` (default `http://localhost:11434/v1`)
+  - Base URL configurable in Settings → API Keys (default `http://localhost:11434/v1`)
 
 ## Dynamic Model Fetching
 

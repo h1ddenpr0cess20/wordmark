@@ -22,7 +22,7 @@
 
   Wordmark is a client‑side AI chat for OpenAI/xAI Responses APIs and local LM Studio or Ollama servers. It supports tool/function calling, TTS, themes, and fully local storage — no backend required.
 
-  Start with the guides: [Getting Started](docs/getting-started.md) · [Overview](docs/overview.md) · [Services & Models](docs/services.md) · [Tool Calling](docs/tool-calling.md) · [Memory](docs/memory.md) · [Security](docs/security.md) · [Storage](docs/storage.md) · [UI & UX](docs/ui-and-ux.md) · [Docker](docs/docker.md) · [Troubleshooting](docs/troubleshooting.md) · [Changelog](docs/changelog.md)
+  Start with the guides: [Getting Started](docs/getting-started.md) · [Overview](docs/overview.md) · [Services & Models](docs/services.md) · [Tool Calling](docs/tool-calling.md) · [Memory](docs/memory.md) · [Security](docs/security.md) · [Storage](docs/storage.md) · [UI & UX](docs/ui-and-ux.md) · [Docker](docs/docker.md) · [Troubleshooting](docs/troubleshooting.md)
 
   ## Features
 
@@ -42,12 +42,12 @@
     cd Wordmark
     ```
     - Open `index.html` directly, or serve over HTTPS for APIs, TTS, and geolocation (see the [Getting Started guide](docs/getting-started.md)).
-  - In Settings → API Keys, add your OpenAI/xAI keys and/or LM Studio URL (Ollama uses the local server default). Keys and URLs are stored locally.
+  - In Settings → API Keys, add your OpenAI/xAI keys and set base URLs for LM Studio or Ollama (defaults are local). Keys and URLs are stored locally.
   - Optional Android build: `src/assets/apk/wordmark.apk`
 
   Local models:
-  - LM Studio: run the OpenAI‑compatible server and set the base URL in Settings — see the [LM Studio guide](docs/lm-studio.md)
-  - Ollama: run the local server (default `http://localhost:11434`) and select Ollama in Settings → Model
+  - LM Studio: run the server (default `http://localhost:1234`), set the base URL in Settings → API Keys, then select LM Studio in Settings → Model — see the [LM Studio guide](docs/lm-studio.md)
+  - Ollama: run the server (default `http://localhost:11434`), set the base URL in Settings → API Keys, then select Ollama in Settings → Model
 
   ## HTTPS and Docker
 
@@ -86,7 +86,6 @@
 
   - Privacy/Security: client‑side only; no tracking — see [Security](docs/security.md)
   - Troubleshooting: common issues and tips — see [Troubleshooting](docs/troubleshooting.md)
-  - Changelog: user‑facing changes — see [Changelog](docs/changelog.md)
   - Not a Companion: philosophy and boundaries — read [Not a Companion](docs/not-a-companion.md)
 
   ## License

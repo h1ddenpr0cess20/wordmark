@@ -405,6 +405,10 @@ window.config = {
         if (this.defaultService === 'lmstudio' && typeof window.getLmStudioServerUrl === 'function') {
             return window.getLmStudioServerUrl();
         }
+        // Special case for Ollama - use the stored URL if available
+        if (this.defaultService === 'ollama' && typeof window.getOllamaServerUrl === 'function') {
+            return window.getOllamaServerUrl();
+        }
         return this.getActiveService().baseUrl;
     },
     

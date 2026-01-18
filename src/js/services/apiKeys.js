@@ -9,6 +9,7 @@
 // Storage keys for local storage
 const API_KEYS_STORAGE_PREFIX = "wordmark_api_key_";
 const LMSTUDIO_SERVER_URL_KEY = "wordmark_lmstudio_server_url";
+const OLLAMA_SERVER_URL_KEY = "wordmark_ollama_server_url";
 const API_KEYS_INIT_MAX_RETRIES = 40;
 const API_KEYS_INIT_RETRY_DELAY = 150;
 
@@ -22,6 +23,8 @@ window.apiKeyInputs = {
 window.saveApiKeysButton = null;
 window.lmStudioServerUrlInput = null;
 window.saveLmStudioUrlButton = null;
+window.ollamaServerUrlInput = null;
+window.saveOllamaUrlButton = null;
 window.__apiKeysEventHandlersApplied = window.__apiKeysEventHandlersApplied || false;
 
 /**
@@ -35,8 +38,10 @@ window.initApiKeys = function(retryCount = 0) {
   const saveKeysButton = document.getElementById("save-api-keys");
   const lmStudioUrlInput = document.getElementById("lmstudio-server-url");
   const saveLmStudioButton = document.getElementById("save-lmstudio-url");
+  const ollamaUrlInput = document.getElementById("ollama-server-url");
+  const saveOllamaButton = document.getElementById("save-ollama-url");
 
-  const essentialReady = Boolean(saveKeysButton && (openaiInput || xaiInput || lmStudioUrlInput));
+  const essentialReady = Boolean(saveKeysButton && (openaiInput || xaiInput || lmStudioUrlInput || ollamaUrlInput));
 
   if (!essentialReady) {
     if (retryCount < API_KEYS_INIT_MAX_RETRIES) {
@@ -53,6 +58,8 @@ window.initApiKeys = function(retryCount = 0) {
   window.saveApiKeysButton = saveKeysButton;
   window.lmStudioServerUrlInput = lmStudioUrlInput;
   window.saveLmStudioUrlButton = saveLmStudioButton;
+  window.ollamaServerUrlInput = ollamaUrlInput;
+  window.saveOllamaUrlButton = saveOllamaButton;
 
   if (!window.__apiKeysEventHandlersApplied) {
     // Add click handlers to prevent propagation on all input fields
@@ -67,6 +74,11 @@ window.initApiKeys = function(retryCount = 0) {
     // Also add click handler for LM Studio server URL input
     if (window.lmStudioServerUrlInput) {
       window.lmStudioServerUrlInput.addEventListener("click", (event) => {
+        event.stopPropagation();
+      });
+    }
+    if (window.ollamaServerUrlInput) {
+      window.ollamaServerUrlInput.addEventListener("click", (event) => {
         event.stopPropagation();
       });
     }
@@ -112,6 +124,13 @@ window.initApiKeys = function(retryCount = 0) {
         event.preventDefault();
         event.stopPropagation();
         window.saveLmStudioServerUrl();
+      });
+    }
+    if (window.saveOllamaUrlButton) {
+      window.saveOllamaUrlButton.addEventListener("click", (event) => {
+        event.preventDefault();
+        event.stopPropagation();
+        window.saveOllamaServerUrl();
       });
     }
 
@@ -224,6 +243,107 @@ window.saveLmStudioServerUrl = function() {
 };
 
 /**
+ * Save Ollama server URL to localStorage
+ */
+window.saveOllamaServerUrl = function() {
+  try {
+    if (window.ollamaServerUrlInput && window.ollamaServerUrlInput.value) {
+      let serverUrl = window.ollamaServerUrlInput.value.trim();
+
+      // Remove trailing slash if present
+      if (serverUrl.endsWith("/")) {
+        serverUrl = serverUrl.slice(0, -1);
+      }
+
+      // Remove /v1 suffix if present (we'll add it back when getting the URL)
+      if (serverUrl.endsWith("/v1")) {
+        serverUrl = serverUrl.slice(0, -3);
+      }
+
+      localStorage.setItem(OLLAMA_SERVER_URL_KEY, serverUrl);
+
+      // Update the config object with the full URL including /v1
+      if (window.config && window.config.services && window.config.services.ollama) {
+        window.config.services.ollama.baseUrl = `${serverUrl}/v1`;
+
+        // Fetch models from the new URL so the dropdown refreshes
+        if (typeof window.config.services.ollama.fetchAndUpdateModels === "function") {
+          window.config.services.ollama.fetchAndUpdateModels().catch(error => {
+            console.error("Error fetching Ollama models after URL update:", error);
+          });
+        }
+      }
+
+      // Show success message in the Ollama section
+      const existingStatus = document.querySelector(".ollama-status");
+      if (existingStatus) {
+        existingStatus.remove();
+      }
+
+      const statusElement = document.createElement("div");
+      statusElement.className = "ollama-status success";
+      statusElement.textContent = "Ollama Base URL saved successfully!";
+
+      const ollamaActionButtons = document.querySelector(".ollama-action-buttons");
+      if (ollamaActionButtons) {
+        ollamaActionButtons.insertAdjacentElement("afterend", statusElement);
+
+        // Auto-remove after 5 seconds
+        setTimeout(() => {
+          statusElement.remove();
+        }, 5000);
+      }
+
+      if (window.VERBOSE_LOGGING) {
+        console.info("Ollama Base URL saved to localStorage:", serverUrl);
+      }
+    } else {
+      // Show error message in the Ollama section
+      const existingStatus = document.querySelector(".ollama-status");
+      if (existingStatus) {
+        existingStatus.remove();
+      }
+
+      const statusElement = document.createElement("div");
+      statusElement.className = "ollama-status error";
+      statusElement.textContent = "Please enter a valid Ollama Base URL";
+
+      const ollamaActionButtons = document.querySelector(".ollama-action-buttons");
+      if (ollamaActionButtons) {
+        ollamaActionButtons.insertAdjacentElement("afterend", statusElement);
+
+        // Auto-remove after 5 seconds
+        setTimeout(() => {
+          statusElement.remove();
+        }, 5000);
+      }
+    }
+  } catch (error) {
+    console.error("Error saving Ollama Base URL:", error);
+
+    // Show error message in the Ollama section
+    const existingStatus = document.querySelector(".ollama-status");
+    if (existingStatus) {
+      existingStatus.remove();
+    }
+
+    const statusElement = document.createElement("div");
+    statusElement.className = "ollama-status error";
+    statusElement.textContent = "Error saving Ollama Base URL";
+
+    const ollamaActionButtons = document.querySelector(".ollama-action-buttons");
+    if (ollamaActionButtons) {
+      ollamaActionButtons.insertAdjacentElement("afterend", statusElement);
+
+      // Auto-remove after 5 seconds
+      setTimeout(() => {
+        statusElement.remove();
+      }, 5000);
+    }
+  }
+};
+
+/**
  * Save API keys to localStorage
  */
 window.saveApiKeys = function() {
@@ -307,6 +427,33 @@ window.loadApiKeys = function() {
         window.lmStudioServerUrlInput.value = configLmUrl;
       }
     }
+    // Load Ollama base URL
+    if (window.ollamaServerUrlInput) {
+      const storedOllamaUrl = localStorage.getItem(OLLAMA_SERVER_URL_KEY);
+
+      if (storedOllamaUrl) {
+        window.ollamaServerUrlInput.value = storedOllamaUrl;
+
+        // Update the config object (ensuring it has the /v1 ending)
+        if (window.config && window.config.services && window.config.services.ollama) {
+          window.config.services.ollama.baseUrl = `${storedOllamaUrl}/v1`;
+
+          // Proactively fetch models on load if function exists
+          if (typeof window.config.services.ollama.fetchAndUpdateModels === "function") {
+            window.config.services.ollama.fetchAndUpdateModels().catch(error => {
+              console.error("Error fetching Ollama models on load:", error);
+            });
+          }
+        }
+      } else if (window.config && window.config.services && window.config.services.ollama && window.config.services.ollama.baseUrl) {
+        // If nothing in localStorage but URL exists in config, show it in the input without the /v1 part
+        let configOllamaUrl = window.config.services.ollama.baseUrl;
+        if (configOllamaUrl.endsWith("/v1")) {
+          configOllamaUrl = configOllamaUrl.slice(0, -3);
+        }
+        window.ollamaServerUrlInput.value = configOllamaUrl;
+      }
+    }
     if (window.VERBOSE_LOGGING) {
       console.info("API keys loaded from localStorage");
     }
@@ -385,6 +532,35 @@ window.getLmStudioServerUrl = function() {
   } catch (error) {
     console.error("Error getting LM Studio server URL:", error);
     return "http://localhost:1234/v1";
+  }
+};
+
+/**
+ * Gets the Ollama server URL from localStorage
+ * @returns {string} - The Ollama Base URL including /v1
+ */
+window.getOllamaServerUrl = function() {
+  try {
+    // Try localStorage first
+    let storedUrl = localStorage.getItem(OLLAMA_SERVER_URL_KEY);
+    if (storedUrl) {
+      // Ensure the URL ends with /v1
+      if (!storedUrl.endsWith("/v1")) {
+        storedUrl = `${storedUrl}/v1`;
+      }
+      return storedUrl;
+    }
+
+    // Fall back to config if exists
+    if (window.config?.services?.ollama?.baseUrl) {
+      return window.config.services.ollama.baseUrl;
+    }
+
+    // Default fallback
+    return "http://localhost:11434/v1";
+  } catch (error) {
+    console.error("Error getting Ollama server URL:", error);
+    return "http://localhost:11434/v1";
   }
 };
 
