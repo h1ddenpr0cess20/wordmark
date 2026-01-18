@@ -87,18 +87,28 @@
   color: #e74c3c;
 }
 
-/* LM Studio server URL settings */
-.lmstudio-server-url {
+/* Local server URL settings */
+.local-server-settings {
   margin-top: 20px;
   padding-top: 15px;
   border-top: 1px solid var(--border-color);
 }
 
-.lmstudio-server-url .info-text {
+.local-server-settings .info-text {
   margin-bottom: 10px;
 }
 
-.lmstudio-action-buttons {
+.local-server-grid {
+  display: grid;
+  gap: 18px;
+}
+
+.local-server-block .info-text {
+  margin-bottom: 10px;
+}
+
+.lmstudio-action-buttons,
+.ollama-action-buttons {
   display: flex;
   justify-content: center;
   margin: 10px 0;
@@ -106,8 +116,9 @@
   z-index: 1;
 }
 
-/* LM Studio status messages */
-.lmstudio-status {
+/* Local server status messages */
+.lmstudio-status,
+.ollama-status {
   text-align: center;
   padding: 8px 12px;
   border-radius: 6px;
@@ -116,13 +127,15 @@
   animation: fadeIn 0.3s ease-in-out;
 }
 
-.lmstudio-status.success {
+.lmstudio-status.success,
+.ollama-status.success {
   background-color: var(--success-bg, rgba(0, 128, 0, 0.1));
   color: var(--success-color, #1e8e3e);
   border: 1px solid var(--success-border, rgba(0, 128, 0, 0.2));
 }
 
-.lmstudio-status.error {
+.lmstudio-status.error,
+.ollama-status.error {
   background-color: var(--error-bg, rgba(255, 0, 0, 0.1));
   color: var(--error-color, #d93025);
   border: 1px solid var(--error-border, rgba(255, 0, 0, 0.2));

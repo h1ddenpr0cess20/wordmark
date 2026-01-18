@@ -9,7 +9,7 @@ Contents
 - Architecture: docs/architecture.md
 - Services & Models: docs/services.md
 - LM Studio (Local Models): docs/lm-studio.md
-- Ollama (Local Models): docs/services.md
+- Ollama (Local Models): docs/ollama.md
 - Tool Calling: docs/tool-calling.md
 - Testing & Coverage: docs/testing.md
 - Storage: docs/storage.md
