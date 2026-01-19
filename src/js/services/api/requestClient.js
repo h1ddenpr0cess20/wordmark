@@ -41,6 +41,7 @@ export function buildRequestBody({
   const targetModel = model || getActiveModel();
   const allowReasoning = supportsReasoningEffort(targetModel);
   const serviceKey = getActiveServiceKey();
+  const isLocalService = serviceKey === 'lmstudio' || serviceKey === 'ollama';
   const payload = {
     model: targetModel,
     text: {
@@ -50,7 +51,7 @@ export function buildRequestBody({
     input: serializeMessagesForRequest(inputMessages),
     store: true,
   };
-  if (serviceKey !== 'xai') {
+  if (serviceKey !== 'xai' && !isLocalService) {
     payload.include = [...DEFAULT_INCLUDE_FIELDS];
   }
   if (allowReasoning && serviceKey !== 'xai') {
