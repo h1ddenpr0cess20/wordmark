@@ -55,8 +55,7 @@
 - Commits: short, imperative subject (e.g., "add lm studio support").
 - PRs: include repro steps, screenshots/GIFs for UI changes, note service/config impacts (keys, HTTPS), and any migration steps.
 
-## Changelog & Versioning Policy
-- Update `docs/changelog.md` as changes are made, not only during releases. Keep entries concise with user‑facing highlights and any migration notes.
+## Versioning Policy
 - After landing a large or user‑visible change, proactively ask the human if they want to bump the version. Only proceed with a version bump when explicitly approved.
 
 ## Release/Versioning Checklist (only when explicitly requested)
@@ -66,7 +65,6 @@
   - `package.json` → `version`
   - `package-lock.json` → top-level `version` fields
   - README version badge (search for `img.shields.io/badge/version-...`)
-  - Update `docs/changelog.md` with a new section and highlights
   - Optional: adjust `src/html/download.html` “Latest Version” if a mobile build is being published
 - After bump, run a quick grep to catch stragglers (informational; do not change without request):
   - `rg -n "APP_VERSION|img.shields.io.*version|Latest Version|version-v"`
