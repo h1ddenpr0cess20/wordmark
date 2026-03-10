@@ -14,22 +14,15 @@ function initializeServicesAndModels() {
       console.info("Service selector initialized.");
     }
 
-    const isLocalService = window.config.defaultService === "lmstudio" || window.config.defaultService === "ollama";
-
-    // Only update model selector immediately if a local service is not the default
-    if (!isLocalService) {
-      window.updateModelSelector();
-    }
-
-    // Load local models if default service is local
-    initializeLocalModels();
+    // Model fetching happens after API keys are loaded (see initialization.js)
+    window.updateModelSelector();
   }
 }
 
 /**
- * Initialize local models if using a local service
+ * Initialize models for services that fetch dynamically
  */
-function initializeLocalModels() {
+function initializeServiceModels() {
   const serviceKey = window.config?.defaultService;
   const serviceConfig = serviceKey ? window.config?.services?.[serviceKey] : null;
 
@@ -37,7 +30,7 @@ function initializeLocalModels() {
     serviceConfig.fetchAndUpdateModels()
       .then(() => {
         if (window.VERBOSE_LOGGING) {
-          console.info("Local models fetched on initialization");
+          console.info("Models fetched on initialization for:", serviceKey);
         }
         // Update model selector after fetching models
         if (window.config.defaultService === serviceKey) {
@@ -45,7 +38,7 @@ function initializeLocalModels() {
         }
       })
       .catch(err => {
-        console.error("Failed to fetch local models on initialization:", err);
+        console.error("Failed to fetch models on initialization:", err);
         // Still update model selector to show error state
         window.updateModelSelector();
       });
@@ -150,4 +143,5 @@ window.initializeConversationName = initializeConversationName;
 window.initializeDefaultValues = initializeDefaultValues;
 window.initializeToolCalling = initializeToolCalling;
 window.initializeVerboseMode = initializeVerboseMode;
+window.initializeServiceModels = initializeServiceModels;
 // Note: initializeLocationService is defined in location.js, not here

@@ -6,7 +6,7 @@
 
   **An open source AI assistant platform**
 
-  [![Version](https://img.shields.io/badge/version-v1.1.0-blue.svg)](https://github.com/h1ddenpr0cess20/Wordmark)
+  [![Version](https://img.shields.io/badge/version-v1.2.0-blue.svg)](https://github.com/h1ddenpr0cess20/Wordmark)
   [![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
   [![JavaScript](https://img.shields.io/badge/javascript-ES6+-yellow.svg)](https://developer.mozilla.org/en-US/docs/Web/JavaScript)
 
@@ -48,6 +48,7 @@
   Local models:
   - LM Studio: run the server (default `http://localhost:1234`), set the base URL in Settings → API Keys, then select LM Studio in Settings → Model — see the [LM Studio guide](docs/lm-studio.md)
   - Ollama: run the server (default `http://localhost:11434`), set the base URL in Settings → API Keys, then select Ollama in Settings → Model
+  - **Note:** Chrome may prompt you to allow access to your local network. This is only used to connect to local LM Studio/Ollama servers and nothing else.
 
   ## HTTPS and Docker
 
