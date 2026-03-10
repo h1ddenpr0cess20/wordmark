@@ -168,11 +168,8 @@ export function setupButtonEventListeners({ closeSettingsPanel } = {}) {
       const serviceKey = window.config?.defaultService;
       const serviceConfig = serviceKey ? window.config?.services?.[serviceKey] : null;
       if (serviceConfig && typeof serviceConfig.fetchAndUpdateModels === 'function') {
-        const serviceLabel = serviceKey === 'lmstudio'
-          ? 'LM Studio'
-          : serviceKey === 'ollama'
-            ? 'Ollama'
-            : 'Local';
+        const serviceLabelMap = { lmstudio: 'LM Studio', ollama: 'Ollama', openai: 'OpenAI', xai: 'xAI' };
+        const serviceLabel = serviceLabelMap[serviceKey] || serviceKey;
         refreshLmStudioModelsButton.disabled = true;
         refreshLmStudioModelsButton.innerHTML = window.icon('refresh-cw', { width: 16, height: 16, className: 'rotating-svg' });
 

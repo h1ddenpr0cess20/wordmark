@@ -362,9 +362,23 @@ window.saveApiKeys = function() {
 
     // Show success message
     window.showApiKeyStatus("API Keys saved successfully!", "success");
-    // Update the UI to reflect the new keys
-    if (typeof window.updateModelSelector === "function") {
-      window.updateModelSelector(false); // Don't commit the model selection
+
+    // Fetch models for the active service now that keys are available
+    const activeKey = window.config?.defaultService;
+    const activeService = activeKey ? window.config?.services?.[activeKey] : null;
+    if (activeService && typeof activeService.fetchAndUpdateModels === 'function') {
+      activeService.fetchAndUpdateModels().then(() => {
+        if (typeof window.updateModelSelector === "function") {
+          window.updateModelSelector();
+        }
+      }).catch(err => {
+        console.error("Failed to fetch models after saving API keys:", err);
+        if (typeof window.updateModelSelector === "function") {
+          window.updateModelSelector();
+        }
+      });
+    } else if (typeof window.updateModelSelector === "function") {
+      window.updateModelSelector();
     }
 
     if (window.VERBOSE_LOGGING) {

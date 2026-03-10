@@ -188,28 +188,70 @@ window.config = {
         openai: {
             baseUrl: 'https://api.openai.com/v1',
             apiKey: '',
-            models: [
-                'gpt-5.2',
-                'gpt-5.1',
-                'gpt-5.1-codex',
-                'gpt-5.1-codex-mini',
-                'gpt-5-codex',
-                'gpt-5',
-                'gpt-5-mini',
-                'gpt-5-nano',
-                'gpt-5-chat',
-                'gpt-4o',
-                'gpt-4o-mini',
-                'gpt-4.1',
-                'gpt-4.1-mini',
-                'gpt-4.1-nano',
-                'o3-mini',
-                'o4-mini',
-                'o3-pro',
-                'o3'
-            ],
-            defaultModel: 'gpt-5-mini',
-            organization: null // OpenAI organization ID (if applicable)
+            models: [],
+            defaultModel: 'gpt-5.4',
+            organization: null, // OpenAI organization ID (if applicable)
+            modelsFetching: false,
+
+            _isChatModel(modelId) {
+                const lowered = modelId.toLowerCase();
+                const prefixes = ['gpt-', 'o1', 'o3', 'o4'];
+                if (!prefixes.some(p => modelId.startsWith(p))) return false;
+
+                const blocked = ['preview', 'audio', 'computer-use', 'transcribe', 'tts', 'image', 'search', 'realtime'];
+                if (blocked.some(f => lowered.includes(f))) return false;
+
+                // Exclude dated versions (e.g. gpt-4o-2024-08-06)
+                if (/-\d{4}-\d{2}-\d{2}$/.test(lowered)) return false;
+
+                return true;
+            },
+
+            async fetchAndUpdateModels() {
+                // Ensure key is loaded from localStorage if not yet on config
+                if (!this.apiKey) {
+                    const stored = localStorage.getItem('wordmark_api_key_openai');
+                    if (stored) this.apiKey = stored;
+                }
+                if (!this.apiKey) {
+                    this.models = ['Set API key to load models'];
+                    return;
+                }
+                this.modelsFetching = true;
+                const endpoint = `${this.baseUrl.replace(/\/+$/, '')}/models`;
+                console.info(`Fetching OpenAI models from: ${endpoint}`);
+                try {
+                    const response = await fetch(endpoint, {
+                        headers: { 'Authorization': `Bearer ${this.apiKey}` }
+                    });
+                    if (!response.ok) {
+                        console.error(`Error fetching OpenAI models: ${response.status}`);
+                        this.models = ['Error: Could not fetch models'];
+                    } else {
+                        const data = await response.json();
+                        if (data && Array.isArray(data.data)) {
+                            this.models = data.data
+                                .map(item => item.id)
+                                .filter(id => id && this._isChatModel(id))
+                                .sort();
+                        } else {
+                            this.models = ['Error: Invalid response'];
+                        }
+                        if (this.models.length === 0) {
+                            this.models = ['No models found'];
+                        }
+                    }
+                } catch (error) {
+                    console.error('Failed to fetch OpenAI models:', error);
+                    this.models = ['Error: Failed to connect'];
+                } finally {
+                    this.modelsFetching = false;
+                }
+
+                if (typeof window.uiHooks !== 'undefined' && typeof window.uiHooks.updateLmStudioModelsDropdown === 'function') {
+                    window.uiHooks.updateLmStudioModelsDropdown(this.models[0]?.startsWith('Error'));
+                }
+            },
         },
 
         // LM Studio - Local server with OpenAI-compatible API
@@ -376,15 +418,62 @@ window.config = {
         xai: {
             baseUrl: 'https://api.x.ai/v1',
             apiKey: '',
-            models: [
-                'grok-4-1-fast-reasoning',
-                'grok-4-1-fast-non-reasoning',
-                'grok-4',
-                'grok-4-fast',
-                'grok-4-fast-non-reasoning',
-                'grok-code-fast-1'
-            ],
-            defaultModel: 'grok-4-1-fast-non-reasoning'
+            models: [],
+            defaultModel: 'grok-4-1-fast-non-reasoning',
+            modelsFetching: false,
+
+            _isChatModel(modelId) {
+                const lowered = modelId.toLowerCase();
+                if (!lowered.startsWith('grok-')) return false;
+                const blocked = ['imagine', 'image', 'video', 'voice', 'vision'];
+                return !blocked.some(f => lowered.includes(f));
+            },
+
+            async fetchAndUpdateModels() {
+                // Ensure key is loaded from localStorage if not yet on config
+                if (!this.apiKey) {
+                    const stored = localStorage.getItem('wordmark_api_key_xai');
+                    if (stored) this.apiKey = stored;
+                }
+                if (!this.apiKey) {
+                    this.models = ['Set API key to load models'];
+                    return;
+                }
+                this.modelsFetching = true;
+                const endpoint = `${this.baseUrl.replace(/\/+$/, '')}/models`;
+                console.info(`Fetching xAI models from: ${endpoint}`);
+                try {
+                    const response = await fetch(endpoint, {
+                        headers: { 'Authorization': `Bearer ${this.apiKey}` }
+                    });
+                    if (!response.ok) {
+                        console.error(`Error fetching xAI models: ${response.status}`);
+                        this.models = ['Error: Could not fetch models'];
+                    } else {
+                        const data = await response.json();
+                        if (data && Array.isArray(data.data)) {
+                            this.models = data.data
+                                .map(item => item.id)
+                                .filter(id => id && this._isChatModel(id))
+                                .sort();
+                        } else {
+                            this.models = ['Error: Invalid response'];
+                        }
+                        if (this.models.length === 0) {
+                            this.models = ['No models found'];
+                        }
+                    }
+                } catch (error) {
+                    console.error('Failed to fetch xAI models:', error);
+                    this.models = ['Error: Failed to connect'];
+                } finally {
+                    this.modelsFetching = false;
+                }
+
+                if (typeof window.uiHooks !== 'undefined' && typeof window.uiHooks.updateLmStudioModelsDropdown === 'function') {
+                    window.uiHooks.updateLmStudioModelsDropdown(this.models[0]?.startsWith('Error'));
+                }
+            },
         },
     },
 
