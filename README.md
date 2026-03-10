@@ -48,6 +48,7 @@
   Local models:
   - LM Studio: run the server (default `http://localhost:1234`), set the base URL in Settings → API Keys, then select LM Studio in Settings → Model — see the [LM Studio guide](docs/lm-studio.md)
   - Ollama: run the server (default `http://localhost:11434`), set the base URL in Settings → API Keys, then select Ollama in Settings → Model
+  - **Note:** Chrome may prompt you to allow access to your local network. This is only used to connect to local LM Studio/Ollama servers and nothing else.
 
   ## HTTPS and Docker
 
