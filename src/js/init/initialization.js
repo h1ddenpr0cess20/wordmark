@@ -249,7 +249,7 @@ async function initialize() {
     // Call these functions to initialize the UI
     window.updateParameterControls();
 
-    // Ensure API keys are loaded before fetching models
+    // Ensure API keys are loaded into config
     if (typeof window.ensureApiKeysLoaded === "function") {
       window.ensureApiKeysLoaded();
       if (window.VERBOSE_LOGGING) {
@@ -257,10 +257,7 @@ async function initialize() {
       }
     }
 
-    // Fetch models dynamically now that API keys are available
-    if (typeof window.initializeServiceModels === "function") {
-      window.initializeServiceModels();
-    }
+    // Model fetching is handled by initializeServicesAndModels after service resolution
 
     // Explicitly initialize personality input
     if (typeof window.initializePersonalityInput === "function") {

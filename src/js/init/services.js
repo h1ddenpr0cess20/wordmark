@@ -3,19 +3,86 @@
  */
 
 /**
+ * Check if a cloud service has a stored API key
+ */
+function hasStoredApiKey(service) {
+  try {
+    const key = localStorage.getItem(`wordmark_api_key_${service}`);
+    return Boolean(key && key.trim());
+  } catch {
+    return false;
+  }
+}
+
+/**
+ * Probe a local server to see if it's running
+ */
+async function isLocalServerAvailable(baseUrl) {
+  try {
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 2000);
+    const response = await fetch(`${baseUrl.replace(/\/+$/, '')}/models`, { signal: controller.signal });
+    clearTimeout(timeout);
+    return response.ok;
+  } catch {
+    return false;
+  }
+}
+
+/**
+ * Resolve the best default service based on available API keys and local servers
+ */
+async function resolveDefaultService() {
+  const configured = window.config.defaultService;
+  const isCloudService = configured === 'openai' || configured === 'xai';
+
+  // If the configured default is a cloud service with a stored key, use it
+  if (!isCloudService || hasStoredApiKey(configured)) {
+    return configured;
+  }
+
+  // No API key for the configured cloud service — try local servers
+  const lmstudioUrl = window.config.services.lmstudio?.baseUrl;
+  if (lmstudioUrl && await isLocalServerAvailable(lmstudioUrl)) {
+    return 'lmstudio';
+  }
+
+  const ollamaUrl = window.config.services.ollama?.baseUrl;
+  if (ollamaUrl && await isLocalServerAvailable(ollamaUrl)) {
+    return 'ollama';
+  }
+
+  // No local servers available either — fall back to configured default
+  return configured;
+}
+
+/**
  * Initialize services and models
  */
 function initializeServicesAndModels() {
   // Initialize the service selector
   if (window.serviceSelector && window.config) {
     window.populateServiceSelector();
-    window.serviceSelector.value = window.config.defaultService;
-    if (window.VERBOSE_LOGGING) {
-      console.info("Service selector initialized.");
-    }
 
-    // Model fetching happens after API keys are loaded (see initialization.js)
-    window.updateModelSelector();
+    // Resolve the best service (may probe local servers)
+    resolveDefaultService().then(service => {
+      window.config.defaultService = service;
+      window.serviceSelector.value = service;
+      if (window.VERBOSE_LOGGING) {
+        console.info("Service selector initialized with:", service);
+      }
+
+      // Update UI controls for the resolved service
+      if (typeof window.updateParameterControls === 'function') {
+        window.updateParameterControls();
+      }
+      window.updateModelSelector();
+
+      // Fetch models now that service is resolved and keys may be loaded
+      if (typeof window.initializeServiceModels === 'function') {
+        window.initializeServiceModels();
+      }
+    });
   }
 }
 
