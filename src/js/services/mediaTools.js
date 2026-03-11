@@ -461,8 +461,60 @@ function notifyStatus(message) {
   if (window.VERBOSE_LOGGING) {
     console.info('[media-tools]', message);
   }
-  if (typeof window.showInfo === 'function') {
-    window.showInfo(message);
+  showMediaSpinner(message);
+}
+
+function showMediaSpinner(statusText) {
+  const loadingId = window.activeLoadingMessageId;
+  const loadingMessage = loadingId ? document.getElementById(loadingId) : null;
+  if (!loadingMessage) {
+    return;
+  }
+  const contentWrapper = loadingMessage.querySelector('.message-content');
+  if (!contentWrapper) {
+    return;
+  }
+
+  let spinner = contentWrapper.querySelector('.media-generation-spinner');
+  if (!spinner) {
+    // Hide the default loading dots while the spinner is shown
+    const loadingDots = contentWrapper.querySelector('.loading-animation');
+    if (loadingDots) {
+      loadingDots.style.display = 'none';
+    }
+
+    spinner = document.createElement('div');
+    spinner.className = 'media-generation-spinner';
+    spinner.innerHTML = `
+      <div class="media-spinner-ring"></div>
+      <span class="media-spinner-text"></span>
+    `;
+    contentWrapper.appendChild(spinner);
+  }
+
+  const textEl = spinner.querySelector('.media-spinner-text');
+  if (textEl) {
+    textEl.textContent = statusText;
+  }
+}
+
+function hideMediaSpinner() {
+  const loadingId = window.activeLoadingMessageId;
+  const loadingMessage = loadingId ? document.getElementById(loadingId) : null;
+  if (!loadingMessage) {
+    return;
+  }
+  const contentWrapper = loadingMessage.querySelector('.message-content');
+  if (!contentWrapper) {
+    return;
+  }
+  const spinner = contentWrapper.querySelector('.media-generation-spinner');
+  if (spinner) {
+    spinner.remove();
+  }
+  const loadingDots = contentWrapper.querySelector('.loading-animation');
+  if (loadingDots) {
+    loadingDots.style.display = '';
   }
 }
 
@@ -880,5 +932,12 @@ window.toolImplementations = window.toolImplementations || {};
 //   return generateGrokVideo(args || {});
 // };
 window.toolImplementations.sora_generate_video = async function(args) {
-  return generateSoraVideo(args || {});
+  try {
+    const result = await generateSoraVideo(args || {});
+    hideMediaSpinner();
+    return result;
+  } catch (error) {
+    hideMediaSpinner();
+    throw error;
+  }
 };
