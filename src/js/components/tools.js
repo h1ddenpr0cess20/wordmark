@@ -67,6 +67,13 @@
   }
 
   function availabilityNote(tool, isAvailable, isOnline, masterEnabled, serviceKey, codexModelActive) {
+    if (tool.requiresApiKeyService && tool.hasRequiredApiKey === false) {
+      const note = document.createElement("div");
+      note.className = "tool-note";
+      note.textContent = `Add your ${tool.requiresApiKeyService === "xai" ? "xAI" : "OpenAI"} API key in Settings → API Keys to enable this tool.`;
+      return note;
+    }
+
     if (!isAvailable) {
       const note = document.createElement("div");
       note.className = "tool-note";
@@ -171,6 +178,9 @@
         return;
       }
       let isAvailable = !tool.onlyServices || tool.onlyServices.includes(serviceKey);
+      if (tool.requiresApiKeyService && tool.hasRequiredApiKey === false) {
+        isAvailable = false;
+      }
       if (tool.key === "builtin:image_generation" && serviceKey === "openai" && codexModelActive) {
         isAvailable = false;
       }

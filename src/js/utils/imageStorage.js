@@ -91,6 +91,29 @@ window.saveImageToDb = function(base64Data, filename, metadata = {}) {
   });
 };
 
+window.getStoredMediaDisplayUrl = async function(filename) {
+  if (!filename) {
+    throw new Error('A filename is required.');
+  }
+
+  if (window.imageDataCache?.has(filename)) {
+    const cached = window.imageDataCache.get(filename);
+    if (cached) {
+      return cached;
+    }
+  }
+
+  const record = await window.loadImageFromDb(filename);
+  const displayUrl = window.getMediaDisplayUrl?.(record?.data, filename) || '';
+  if (!displayUrl) {
+    throw new Error(`No display URL could be created for ${filename}`);
+  }
+  if (window.imageDataCache?.set) {
+    window.imageDataCache.set(filename, displayUrl);
+  }
+  return displayUrl;
+};
+
 /**
  * Load an image from IndexedDB
  * @param {string} filename - The filename key to retrieve
@@ -381,4 +404,43 @@ window.getImageDataForUpload = async function(imageId) {
     console.error("Error getting image data URL for upload:", error);
     throw error;
   }
+};
+
+window.getStoredMediaBlob = async function(filename) {
+  const record = await window.loadImageFromDb(filename);
+  if (!record || !record.data) {
+    throw new Error(`Media not found: ${filename}`);
+  }
+
+  if (record.data instanceof Blob) {
+    return record.data;
+  }
+
+  if (typeof record.data === 'string') {
+    if (record.data.startsWith('data:')) {
+      const [header, encoded] = record.data.split(',', 2);
+      const mimeMatch = /^data:([^;]+)/i.exec(header || '');
+      const mimeType = mimeMatch ? mimeMatch[1] : (record.mimeType || 'application/octet-stream');
+      const byteCharacters = atob(encoded || '');
+      const byteNumbers = new Array(byteCharacters.length);
+      for (let index = 0; index < byteCharacters.length; index += 1) {
+        byteNumbers[index] = byteCharacters.charCodeAt(index);
+      }
+      return new Blob([new Uint8Array(byteNumbers)], { type: mimeType });
+    }
+
+    const mimeType = record.mimeType || 'application/octet-stream';
+    try {
+      const byteCharacters = atob(record.data);
+      const byteNumbers = new Array(byteCharacters.length);
+      for (let index = 0; index < byteCharacters.length; index += 1) {
+        byteNumbers[index] = byteCharacters.charCodeAt(index);
+      }
+      return new Blob([new Uint8Array(byteNumbers)], { type: mimeType });
+    } catch (error) {
+      throw new Error(`Failed to convert stored media to Blob: ${error.message}`);
+    }
+  }
+
+  throw new Error(`Unsupported media data format for ${filename}`);
 };

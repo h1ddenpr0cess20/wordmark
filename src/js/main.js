@@ -30,6 +30,7 @@ import './components/aboutPopups.js';
 import './services/memory.js';
 import './services/mcpServers.js';
 import './services/apiKeys.js';
+import './services/mediaTools.js';
 import './services/api.js';
 import './services/streaming.js';
 import './services/history.js';

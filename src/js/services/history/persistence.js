@@ -1,17 +1,59 @@
 function processImageForStorage(img, savePromises) {
   const processedImg = { ...img };
+  const mediaType = typeof window.detectMediaType === 'function'
+    ? window.detectMediaType(processedImg)
+    : ((processedImg.mimeType || '').startsWith('video/') ? 'video' : 'image');
+  const mimeType = processedImg.mimeType
+    || (typeof processedImg.url === 'string' && processedImg.url.startsWith('data:')
+      ? processedImg.url.slice(5).split(';', 1)[0]
+      : (mediaType === 'video' ? 'video/mp4' : 'image/png'));
 
-  if (processedImg.url && processedImg.url.startsWith('data:image')) {
+  if (processedImg.isStoredInDb && processedImg.filename) {
+    return {
+      filename: processedImg.filename,
+      prompt: processedImg.prompt || '',
+      tool: processedImg.tool || '',
+      timestamp: processedImg.timestamp || new Date().toISOString(),
+      associatedMessageId: processedImg.associatedMessageId || '',
+      isStoredInDb: true,
+      mediaType,
+      mimeType,
+      uploaded: Boolean(processedImg.uploaded),
+      callId: processedImg.callId || '',
+      model: processedImg.model || '',
+    };
+  }
+
+  if ((processedImg.url && processedImg.url.startsWith('data:')) || processedImg.pendingStorageData instanceof Blob) {
     try {
       if (!processedImg.filename) {
-        const extension = processedImg.url.startsWith('data:image/jpeg') ? 'jpg' : 'png';
-        processedImg.filename = `image-${Date.now()}-${Math.random().toString(36).substring(2, 10)}.${extension}`;
+        const extension = mimeType === 'image/jpeg'
+          ? 'jpg'
+          : mimeType === 'image/webp'
+            ? 'webp'
+            : mimeType === 'video/webm'
+              ? 'webm'
+              : mimeType === 'video/quicktime'
+                ? 'mov'
+                : mediaType === 'video'
+                  ? 'mp4'
+                  : 'png';
+        const prefix = mediaType === 'video' ? 'video' : 'image';
+        processedImg.filename = `${prefix}-${Date.now()}-${Math.random().toString(36).substring(2, 10)}.${extension}`;
       }
 
-      const savePromise = window.saveImageToDb?.(processedImg.url, processedImg.filename, {
+      const savePayload = processedImg.pendingStorageData instanceof Blob
+        ? processedImg.pendingStorageData
+        : processedImg.url;
+      const savePromise = window.saveImageToDb?.(savePayload, processedImg.filename, {
         prompt: processedImg.prompt || '',
         tool: processedImg.tool || '',
         associatedMessageId: processedImg.associatedMessageId || '',
+        mediaType,
+        mimeType,
+        uploaded: Boolean(processedImg.uploaded),
+        callId: processedImg.callId || '',
+        model: processedImg.model || '',
       }).catch((err) => {
         console.error('Failed to save image to IndexedDB:', err);
         return null;
@@ -28,15 +70,22 @@ function processImageForStorage(img, savePromises) {
         timestamp: processedImg.timestamp || new Date().toISOString(),
         associatedMessageId: processedImg.associatedMessageId || '',
         isStoredInDb: true,
+        mediaType,
+        mimeType,
+        uploaded: Boolean(processedImg.uploaded),
+        callId: processedImg.callId || '',
+        model: processedImg.model || '',
       };
     } catch (error) {
       console.error('Error processing image for storage:', error);
       return {
-        filename: processedImg.filename || `fallback-${Date.now()}.png`,
+        filename: processedImg.filename || `fallback-${Date.now()}.${mediaType === 'video' ? 'mp4' : 'png'}`,
         prompt: processedImg.prompt || '',
         timestamp: new Date().toISOString(),
         imageUnavailable: true,
         error: error.message,
+        mediaType,
+        mimeType,
       };
     }
   }
@@ -281,4 +330,3 @@ function loadConversationIntoUI(convo, imageCache) {
 
   window.renderConversationMessages?.(convo, imageCache);
 }
-

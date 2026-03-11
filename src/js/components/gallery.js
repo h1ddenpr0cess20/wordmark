@@ -1,6 +1,6 @@
 /**
- * Image Gallery functionality for the chatbot application
- * Provides functions for displaying and managing stored images from IndexedDB
+ * Media Gallery functionality for the chatbot application.
+ * Displays and manages generated or uploaded images and videos from IndexedDB.
  */
 
 // -----------------------------------------------------
@@ -89,7 +89,7 @@ window.initGallery = function() {
 };
 
 /**
- * Show placeholder grid while images are loading
+ * Show placeholder grid while media items are loading
  */
 window.showGalleryPlaceholders = function() {
   const galleryGrid = document.getElementById("gallery-grid");
@@ -128,7 +128,7 @@ window.showGalleryPlaceholders = function() {
 };
 
 /**
- * Load images from IndexedDB and display them in the gallery
+ * Load media from IndexedDB and display them in the gallery
  */
 window.loadGalleryImages = async function() {
   const galleryGrid = document.getElementById("gallery-grid");
@@ -137,7 +137,7 @@ window.loadGalleryImages = async function() {
   }
 
   try {
-    // Get all image keys from IndexedDB
+    // Get all media records from IndexedDB
     const images = await window.getAllImagesFromDb();
 
     // Filter images based on current tab
@@ -173,9 +173,9 @@ window.loadGalleryImages = async function() {
     if (!visibleImages || visibleImages.length === 0) {
       let emptyMessage;
       if (currentTab === "uploaded") {
-        emptyMessage = "No uploaded images found.<br><small>Upload images using the 📎 button in the chat.</small>";
+        emptyMessage = "No uploaded media found.<br><small>Upload images using the attach button in the chat.</small>";
       } else {
-        emptyMessage = "No generated images found.<br><small>Generate images by asking the AI to create images for you.</small>";
+        emptyMessage = "No generated media found.<br><small>Generate images or videos by asking the AI to create them for you.</small>";
       }
       galleryGrid.innerHTML = `<div class="gallery-empty">${emptyMessage}</div>`;
       return;
@@ -203,12 +203,16 @@ window.loadGalleryImages = async function() {
 
       for (let i = startIndex; i < endIndex; i++) {
         const image = visibleImages[i];
+        const mediaType = typeof window.detectMediaType === "function"
+          ? window.detectMediaType(image)
+          : ((image.mimeType || "").startsWith("video/") ? "video" : "image");
 
         // Create gallery item
         const galleryItem = document.createElement("div");
         galleryItem.className = "gallery-item";
         galleryItem.dataset.filename = image.filename;
         galleryItem.dataset.index = i;
+        galleryItem.dataset.mediaType = mediaType;
 
         // Create selection bar at the top
         const selectionBar = document.createElement("div");
@@ -218,13 +222,27 @@ window.loadGalleryImages = async function() {
         const imageContainer = document.createElement("div");
         imageContainer.className = "gallery-item-image-container";
 
-        // Create image element with lazy loading
-        const img = document.createElement("img");
-        img.loading = "lazy";
-        img.src = image.data;
-        img.alt = image.prompt || "Generated image";
-        img.title = image.prompt || "";
-        imageContainer.appendChild(img);
+        if (mediaType === "video") {
+          const video = document.createElement("video");
+          video.src = image.data;
+          video.preload = "metadata";
+          video.muted = true;
+          video.playsInline = true;
+          video.title = image.prompt || "";
+          imageContainer.appendChild(video);
+
+          const badge = document.createElement("div");
+          badge.className = "gallery-video-badge";
+          badge.innerHTML = window.icon("play", { width: 18, height: 18 });
+          imageContainer.appendChild(badge);
+        } else {
+          const img = document.createElement("img");
+          img.loading = "lazy";
+          img.src = image.data;
+          img.alt = image.prompt || "Generated image";
+          img.title = image.prompt || "";
+          imageContainer.appendChild(img);
+        }
 
         // Create checkbox for selection
         const selectContainer = document.createElement("label");
@@ -243,15 +261,15 @@ window.loadGalleryImages = async function() {
         const actions = document.createElement("div");
         actions.className = "gallery-actions";
         actions.innerHTML = `
-                    <button class="gallery-download-btn" title="Download image">${window.icon("download", { width: 16, height: 16 })}</button>
-                    <button class="gallery-delete-btn" title="Delete image">${window.icon("trash", { width: 16, height: 16 })}</button>
+                    <button class="gallery-download-btn" title="Download ${mediaType}">${window.icon("download", { width: 16, height: 16 })}</button>
+                    <button class="gallery-delete-btn" title="Delete ${mediaType}">${window.icon("trash", { width: 16, height: 16 })}</button>
                 `;
 
         // Add event listeners to buttons
         const deleteBtn = actions.querySelector(".gallery-delete-btn");
         deleteBtn.addEventListener("click", (e) => {
           e.stopPropagation();
-          if (confirm("Delete this image?")) {
+          if (confirm(`Delete this ${mediaType}?`)) {
             window.deleteImageAndUpdateGallery(image.filename);
           }
         });
@@ -266,18 +284,18 @@ window.loadGalleryImages = async function() {
         const truncatedPrompt = document.createElement("div");
         truncatedPrompt.className = "truncated-prompt";
 
-        // Check if this is an uploaded image
+        // Check if this is uploaded media
         const isUploaded = image.filename && image.filename.startsWith("upload-");
 
         if (isUploaded) {
-          truncatedPrompt.textContent = "Uploaded Image";
-          truncatedPrompt.title = "User uploaded image";
+          truncatedPrompt.textContent = mediaType === "video" ? "Uploaded Video" : "Uploaded Image";
+          truncatedPrompt.title = mediaType === "video" ? "User uploaded video" : "User uploaded image";
           truncatedPrompt.classList.add("uploaded-label");
         } else {
           truncatedPrompt.title = image.prompt || "No prompt data";
           truncatedPrompt.textContent = image.prompt ?
             (image.prompt.length > 50 ? `${image.prompt.substring(0, 50)}...` : image.prompt) :
-            "No prompt";
+            (mediaType === "video" ? "Generated video" : "No prompt");
         }
 
         itemFooter.appendChild(truncatedPrompt);
@@ -296,7 +314,7 @@ window.loadGalleryImages = async function() {
           });
         }
 
-        // Add click event to show slideshow starting with this image
+        // Add click event to show the viewer starting with this media item
         galleryItem.addEventListener("click", () => {
           window.startGallerySlideshow(i);
         });
@@ -321,13 +339,13 @@ window.loadGalleryImages = async function() {
 
   } catch (error) {
     console.error("Error loading gallery images:", error);
-    galleryGrid.innerHTML = "<div class=\"gallery-error\">Error loading images from storage</div>";
+    galleryGrid.innerHTML = "<div class=\"gallery-error\">Error loading media from storage</div>";
   }
 };
 
 /**
- * Get all images from IndexedDB
- * @returns {Promise<Array>} Promise resolving to an array of image objects
+ * Get all media records from IndexedDB
+ * @returns {Promise<Array>} Promise resolving to an array of media objects
  */
 window.getAllImagesFromDb = function() {
   return new Promise((resolve, reject) => {
@@ -337,7 +355,8 @@ window.getAllImagesFromDb = function() {
         .then(resolve)
         .catch(reject);
       return;
-    } const images = [];
+    }
+    const images = [];
     const storeName = (typeof window !== "undefined" && window.IMAGE_STORE_NAME) ? window.IMAGE_STORE_NAME : "images";
     const transaction = window.imageDb.transaction([storeName], "readonly");
     const store = transaction.objectStore(storeName);
@@ -351,7 +370,14 @@ window.getAllImagesFromDb = function() {
     request.onsuccess = (event) => {
       const cursor = event.target.result;
       if (cursor) {
-        images.push(cursor.value);
+        const value = cursor.value;
+        images.push({
+          ...value,
+          data: window.getMediaDisplayUrl?.(value.data, value.filename) || value.data,
+          mediaType: typeof window.detectMediaType === "function"
+            ? window.detectMediaType(value)
+            : ((value.mimeType || "").startsWith("video/") ? "video" : "image"),
+        });
         cursor.continue();
       } else {
         resolve(images);
@@ -361,14 +387,14 @@ window.getAllImagesFromDb = function() {
 };
 
 /**
- * Delete an image from IndexedDB and remove it from the gallery
- * @param {string} filename - The filename of the image to delete
+ * Delete a media item from IndexedDB and remove it from the gallery
+ * @param {string} filename - The filename of the media item to delete
  */
 window.deleteImageAndUpdateGallery = async function(filename) {
   try {
     await window.deleteImageFromDb(filename);
 
-    // Remove the image element from the gallery
+    // Remove the media element from the gallery
     const galleryItem = document.querySelector(`.gallery-item[data-filename="${filename}"]`);
     if (galleryItem) {
       galleryItem.remove();
@@ -380,31 +406,29 @@ window.deleteImageAndUpdateGallery = async function(filename) {
         galleryCount.textContent = currentCount - 1;
       }
 
-      // Show empty message if no more images
+      // Show empty message if no more media
       const galleryGrid = document.getElementById("gallery-grid");
       if (galleryGrid && galleryGrid.children.length === 0) {
-        galleryGrid.innerHTML = "<div class=\"gallery-empty\">No images found in gallery</div>";
+        galleryGrid.innerHTML = "<div class=\"gallery-empty\">No media found in gallery</div>";
       }
     }
   } catch (error) {
-    console.error("Error deleting image:", error);
-    alert("Failed to delete the image. Please try again.");
+    console.error("Error deleting media:", error);
+    alert("Failed to delete the media item. Please try again.");
   }
 };
 
 /**
- * Download a gallery image
- * @param {string} imageData - Base64 image data
+ * Download a gallery media item
+ * @param {string|Blob} imageData - Media data or display URL
  * @param {string} filename - The filename to save as
  */
 window.downloadGalleryImage = function(imageData, filename) {
-  const a = document.createElement("a");
-  a.href = imageData;
-  a.download = filename || "image.png";
-  a.style.display = "none";
-  document.body.appendChild(a);
-  a.click();
-  document.body.removeChild(a);
+  window.downloadMediaSource?.(imageData, filename)
+    .catch(error => {
+      console.error("Failed to download gallery media:", error);
+      alert("Failed to download the selected media item.");
+    });
 };
 
 /**
@@ -413,7 +437,7 @@ window.downloadGalleryImage = function(imageData, filename) {
  */
 window.startGallerySlideshow = function(startIndex) {
   if (!window.galleryImages || window.galleryImages.length === 0) {
-    console.error("No images available for slideshow");
+    console.error("No media available for viewer");
     return;
   }
 
@@ -422,22 +446,26 @@ window.startGallerySlideshow = function(startIndex) {
 };
 
 /**
- * Show a full-size view of an image
- * @param {string} imageUrl - The image URL or base64 data
- * @param {Object} imageData - The image metadata
+ * Show a full-size view of a media item
+ * @param {string} imageUrl - The media display URL
+ * @param {Object} imageData - The media metadata
  */
 window.showFullSizeImage = function(imageUrl, imageData) {
-  // Find the image index in gallery images
+  // Find the media index in gallery items
   const index = window.galleryImages.findIndex(img => img.filename === imageData.filename);
   if (index !== -1) {
     window.startGallerySlideshow(index);
   } else {
-    // If image not found in gallery, add it temporarily and show
+    // If media is not found in gallery, add it temporarily and show it.
     const tempImage = {
       data: imageUrl,
       filename: imageData.filename,
       prompt: imageData.prompt,
       timestamp: imageData.timestamp,
+      mediaType: imageData.mediaType || (typeof window.detectMediaType === "function"
+        ? window.detectMediaType(imageData)
+        : "image"),
+      mimeType: imageData.mimeType || "",
     };
 
     if (!window.galleryImages) {
@@ -450,17 +478,17 @@ window.showFullSizeImage = function(imageUrl, imageData) {
 };
 
 /**
- * Bulk delete selected images
+ * Bulk delete selected media items
  */
 window.bulkDeleteSelectedImages = async function() {
   const selectedCheckboxes = document.querySelectorAll(".gallery-select-checkbox:checked");
 
   if (selectedCheckboxes.length === 0) {
-    alert("No images selected");
+    alert("No media selected");
     return;
   }
 
-  if (!confirm(`Delete ${selectedCheckboxes.length} selected images?`)) {
+  if (!confirm(`Delete ${selectedCheckboxes.length} selected media item(s)?`)) {
     return;
   }
 
@@ -468,7 +496,7 @@ window.bulkDeleteSelectedImages = async function() {
   const galleryGrid = document.getElementById("gallery-grid");
   const loadingIndicator = document.createElement("div");
   loadingIndicator.className = "bulk-delete-indicator";
-  loadingIndicator.textContent = `Deleting ${selectedCheckboxes.length} images...`;
+  loadingIndicator.textContent = `Deleting ${selectedCheckboxes.length} media item(s)...`;
 
   if (galleryGrid) {
     galleryGrid.classList.add("deleting-images");
@@ -493,8 +521,8 @@ window.bulkDeleteSelectedImages = async function() {
     // Reload the gallery
     window.loadGalleryImages();
   } catch (error) {
-    console.error("Error bulk deleting images:", error);
-    alert("Some images could not be deleted. Please try again.");
+    console.error("Error bulk deleting media:", error);
+    alert("Some media items could not be deleted. Please try again.");
 
     // Reload the gallery
     window.loadGalleryImages();
