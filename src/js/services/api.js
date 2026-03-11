@@ -17,12 +17,14 @@ import {
   TOOL_HANDLERS,
   getToolCatalog,
   isToolEnabled,
+  isClientSideToolType,
   setToolEnabled,
   setAllToolsEnabled,
   registerMcpServer,
   unregisterMcpServer,
   getEnabledToolDefinitions,
   refreshMcpAvailability,
+  supportsClientSideTools,
 } from "./api/toolManager.js";
 
 window.responsesClient = {
@@ -34,6 +36,7 @@ window.responsesClient = {
   toolHandlers: TOOL_HANDLERS,
   getToolCatalog,
   isToolEnabled,
+  isClientSideToolType,
   setToolEnabled,
   setAllToolsEnabled,
   registerMcpServer,
@@ -41,6 +44,7 @@ window.responsesClient = {
   getEnabledToolDefinitions,
   getActiveServiceKey,
   refreshMcpAvailability,
+  supportsClientSideTools,
 };
 
 if (typeof window.initApiReferences !== "function") {

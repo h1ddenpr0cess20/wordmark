@@ -11,6 +11,9 @@ export function setupSelectorEventListeners() {
       if (typeof window.updateBrowserHistory === 'function') {
         window.updateBrowserHistory();
       }
+      if (typeof window.refreshToolSettingsUI === 'function') {
+        window.refreshToolSettingsUI();
+      }
     });
   }
 

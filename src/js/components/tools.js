@@ -50,6 +50,23 @@
     return typeof modelName === "string" && modelName.toLowerCase().includes("codex");
   }
 
+  function supportsClientSideToolsForCurrentModel(serviceKey, modelName) {
+    if (!window.responsesClient || typeof window.responsesClient.supportsClientSideTools !== "function") {
+      return true;
+    }
+    return window.responsesClient.supportsClientSideTools(serviceKey, modelName);
+  }
+
+  function isClientSideTool(tool) {
+    if (!tool) {
+      return false;
+    }
+    if (window.responsesClient && typeof window.responsesClient.isClientSideToolType === "function") {
+      return window.responsesClient.isClientSideToolType(tool.type);
+    }
+    return tool.type === "function" || tool.type === "mcp";
+  }
+
   function createBadge(tool) {
     const badge = document.createElement("span");
     badge.className = `tool-badge tool-badge-${tool.type}`;
@@ -66,7 +83,7 @@
     return badge;
   }
 
-  function availabilityNote(tool, isAvailable, isOnline, masterEnabled, serviceKey, codexModelActive) {
+  function availabilityNote(tool, isAvailable, isOnline, masterEnabled, serviceKey, codexModelActive, clientSideToolsSupported) {
     if (tool.requiresApiKeyService && tool.hasRequiredApiKey === false) {
       const note = document.createElement("div");
       note.className = "tool-note";
@@ -79,6 +96,10 @@
       note.className = "tool-note";
       if (tool.key === "builtin:image_generation" && serviceKey === "openai" && codexModelActive) {
         note.textContent = "Image generation is unavailable for Codex models.";
+        return note;
+      }
+      if (!clientSideToolsSupported && isClientSideTool(tool)) {
+        note.textContent = "This xAI multi-agent model does not support client-side tools.";
         return note;
       }
       if (tool.onlyServices && tool.onlyServices.length) {
@@ -159,6 +180,7 @@
     const masterEnabled = isMasterEnabled();
     const activeModelName = getActiveModelName();
     const codexModelActive = isCodexModel(activeModelName);
+    const clientSideToolsSupported = supportsClientSideToolsForCurrentModel(serviceKey, activeModelName);
 
     toolsContainer.classList.toggle("tools-disabled", !masterEnabled);
     toolsContainer.innerHTML = "";
@@ -182,6 +204,9 @@
         isAvailable = false;
       }
       if (tool.key === "builtin:image_generation" && serviceKey === "openai" && codexModelActive) {
+        isAvailable = false;
+      }
+      if (!clientSideToolsSupported && isClientSideTool(tool)) {
         isAvailable = false;
       }
       const isOnline = tool.type !== "mcp" ? true : tool.isOnline !== false;
@@ -222,7 +247,7 @@
         info.appendChild(description);
       }
 
-      const note = availabilityNote(tool, isAvailable, isOnline, masterEnabled, serviceKey, codexModelActive);
+      const note = availabilityNote(tool, isAvailable, isOnline, masterEnabled, serviceKey, codexModelActive, clientSideToolsSupported);
       if (note) {
         info.appendChild(note);
       }
@@ -420,6 +445,7 @@
       : (window.config.defaultService || "openai");
     const activeModelName = getActiveModelName();
     const codexModelActive = isCodexModel(activeModelName);
+    const clientSideToolsSupported = supportsClientSideToolsForCurrentModel(serviceKey, activeModelName);
 
     // Check if this is a local AI service
     const isLocalService = serviceKey === "lmstudio" || serviceKey === "ollama";
@@ -456,6 +482,9 @@
       if (tool.key === "builtin:image_generation" && serviceKey === "openai" && codexModelActive) {
         return;
       }
+      if (!clientSideToolsSupported && isClientSideTool(tool)) {
+        return;
+      }
       if (typeof window.responsesClient.isToolEnabled === "function" && !window.responsesClient.isToolEnabled(tool.key)) {
         return;
       }
@@ -464,7 +493,11 @@
     });
 
     try {
-      if (typeof window.getMemoryConfig === "function" && window.getMemoryConfig().enabled) {
+      if (
+        clientSideToolsSupported
+        && typeof window.getMemoryConfig === "function"
+        && window.getMemoryConfig().enabled
+      ) {
         items.push("- Memory: The assistant can remember or forget short details when you ask it to.");
       }
     } catch (error) {
