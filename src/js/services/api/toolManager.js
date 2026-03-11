@@ -76,7 +76,7 @@ const STATIC_TOOLS = [
     type: 'builtin',
     displayName: 'Web Search',
     description: 'Allow the assistant to use provider-managed web searches for fresh information on OpenAI or xAI.',
-    defaultEnabled: false,
+    defaultEnabled: true,
     onlyServices: ['openai', 'xai'],
     definition: {
       type: 'web_search',
