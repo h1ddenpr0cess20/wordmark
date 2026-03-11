@@ -56,6 +56,7 @@ window.sendMessage = async function() {
       type: "image",
       filename,
       mimeType,
+      mediaType: "image",
       dataUrl: up.dataUrl,
       source: "upload",
       uploaded: true,
@@ -160,6 +161,9 @@ window.sendMessage = async function() {
         filename: up.filename,
         associatedMessageId: userId,
         uploaded: true,
+        mediaType: "image",
+        mimeType: (up.file && up.file.type) || "image/png",
+        isStoredInDb: true,
       });
       if (window.saveImageToDb) {
         window.saveImageToDb(up.dataUrl, up.filename, {
@@ -168,6 +172,8 @@ window.sendMessage = async function() {
           timestamp: up.timestamp,
           associatedMessageId: userId,
           uploaded: true,
+          mediaType: "image",
+          mimeType: (up.file && up.file.type) || "image/png",
         }).catch(err => console.error("Failed to save upload image:", err));
       }
     }

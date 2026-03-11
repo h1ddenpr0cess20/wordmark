@@ -191,8 +191,34 @@
   backface-visibility: hidden;
 }
 
+.gallery-item video {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  background: #000;
+}
+
 .gallery-item:hover img {
   filter: brightness(0.9);
+}
+
+.gallery-item:hover video {
+  filter: brightness(0.9);
+}
+
+.gallery-video-badge {
+  position: absolute;
+  right: 10px;
+  bottom: 10px;
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0.65);
+  color: #fff;
+  pointer-events: none;
 }
 
 /* Gallery item selection bar */
@@ -406,8 +432,18 @@
   align-items: center;
 }
 
+.gallery-slideshow-media-host {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
 /* Slideshow image styling */
-.gallery-slideshow-image {
+.gallery-slideshow-media,
+.gallery-slideshow-image,
+.gallery-slideshow-video {
   max-width: 100%;
   max-height: 100%;
   width: auto;
@@ -418,6 +454,10 @@
   image-rendering: optimizeQuality;
   backface-visibility: hidden;
   will-change: transform;
+}
+
+.gallery-slideshow-video {
+  background: #000;
 }
 
 /* Position the icon buttons in the absolute upper right corner of the screen */

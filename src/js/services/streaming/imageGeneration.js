@@ -28,7 +28,7 @@ export function ensureImagesHaveMessageIds() {
     let associatedMessage = null;
 
     for (const msg of assistantMessages) {
-      if (msg.content && msg.content.includes(`[[IMAGE: ${img.filename}]]`)) {
+      if (msg.content && (msg.content.includes(`[[IMAGE: ${img.filename}]]`) || msg.content.includes(`[[MEDIA: ${img.filename}]]`))) {
         associatedMessage = msg;
         break;
       }
@@ -403,7 +403,6 @@ export function processImageGenerationOutputs(responsePayload) {
       }
       globalSeen.add(image.dataUrl);
 
-      const timestamp = new Date().toISOString();
       const mimeType = normaliseMimeType(image.mimeType);
       const extension = mimeType === 'image/jpeg' || mimeType === 'image/jpg'
         ? 'jpg'
@@ -411,46 +410,37 @@ export function processImageGenerationOutputs(responsePayload) {
       const randomChunk = Math.random().toString(36).substring(2, 10);
       const filenameBase = sourceLabel === 'image_edit' ? 'edited' : 'generated';
       const filename = `${filenameBase}-${Date.now()}-${randomChunk}-${index + 1}.${extension}`;
-      const altText = prompt || (sourceLabel === 'image_edit' ? 'Edited image' : 'Generated image');
-      const safeAlt = escapeHtmlAttribute(altText);
-      const safePromptAttr = escapeHtmlAttribute(prompt);
-      const html = `<img src="${image.dataUrl}" alt="${safeAlt}" class="generated-image-thumbnail" data-filename="${filename}" data-prompt="${safePromptAttr}" data-timestamp="${timestamp}" />`;
+      if (typeof window.registerGeneratedMedia === 'function') {
+        window.registerGeneratedMedia({
+          mediaType: 'image',
+          sourceData: image.dataUrl,
+          prompt: prompt || '',
+          tool: sourceLabel,
+          filename,
+          mimeType,
+          callId,
+          model: responsePayload.model || undefined,
+        });
+      } else {
+        const timestamp = new Date().toISOString();
+        const altText = prompt || (sourceLabel === 'image_edit' ? 'Edited image' : 'Generated image');
+        const safeAlt = escapeHtmlAttribute(altText);
+        const safePromptAttr = escapeHtmlAttribute(prompt);
+        const html = `<img src="${image.dataUrl}" alt="${safeAlt}" class="generated-image-thumbnail" data-media-type="image" data-filename="${filename}" data-prompt="${safePromptAttr}" data-timestamp="${timestamp}" />`;
 
-      window.currentGeneratedImageHtml.push(html);
-
-      const record = {
-        url: image.dataUrl,
-        prompt: prompt || '',
-        tool: sourceLabel,
-        timestamp,
-        filename,
-        associatedMessageId: null,
-        callId,
-        mimeType,
-        model: responsePayload.model || undefined,
-        isStoredInDb: false,
-      };
-
-      window.generatedImages.push(record);
-
-      if (window.imageDataCache && typeof window.imageDataCache.set === 'function') {
-        window.imageDataCache.set(filename, image.dataUrl);
-      }
-
-      if (typeof window.saveImageToDb === 'function') {
-        window.saveImageToDb(image.dataUrl, filename, {
-          prompt: record.prompt,
-          tool: record.tool,
-          timestamp: record.timestamp,
-          associatedMessageId: '',
-          callId: record.callId || '',
-          model: record.model || '',
-          mimeType: record.mimeType,
-        }).then(() => {
-          record.isStoredInDb = true;
-          imageDebugLog('Persisted generated image to IndexedDB', { filename });
-        }).catch(error => {
-          console.error('Failed to save generated image to storage:', error);
+        window.currentGeneratedImageHtml.push(html);
+        window.generatedImages.push({
+          url: image.dataUrl,
+          prompt: prompt || '',
+          tool: sourceLabel,
+          timestamp,
+          filename,
+          associatedMessageId: null,
+          callId,
+          mimeType,
+          mediaType: 'image',
+          model: responsePayload.model || undefined,
+          isStoredInDb: false,
         });
       }
     });

@@ -377,6 +377,12 @@ export function buildDeveloperMessage(model) {
       developerBlock += `\n${toolsDescription.trim()}`;
     }
   }
+  if (window.config?.enableFunctionCalling && typeof window.getMediaToolInstructions === 'function') {
+    const mediaToolInstructions = window.getMediaToolInstructions();
+    if (mediaToolInstructions) {
+      developerBlock += `\n${mediaToolInstructions.trim()}`;
+    }
+  }
   if (typeof window.getMemoriesForPrompt === 'function') {
     const memories = window.getMemoriesForPrompt();
     if (memories) {

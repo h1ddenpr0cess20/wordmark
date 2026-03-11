@@ -275,7 +275,7 @@ export function createStreamingEventProcessor(runtime) {
       const itype = item?.type ? String(item.type).toLowerCase() : '';
       const itemId = item?.id || '';
 
-      if (itype.includes('tool') || itype.includes('function')) {
+      if ((itype.includes('tool') || itype.includes('function')) && !itype.includes('output')) {
         const name = item?.name || item?.tool_name || item?.function?.name || 'tool';
         toolExecutions.set(itemId, {
           name,
@@ -291,7 +291,7 @@ export function createStreamingEventProcessor(runtime) {
       const itype = item?.type ? String(item.type).toLowerCase() : '';
       const itemId = item?.id || '';
 
-      if (itype.includes('tool') || itype.includes('function')) {
+      if ((itype.includes('tool') || itype.includes('function')) && !itype.includes('output')) {
         const exec = toolExecutions.get(itemId);
         if (exec) {
           const duration = Date.now() - exec.startTime;
@@ -306,11 +306,6 @@ export function createStreamingEventProcessor(runtime) {
       break;
     }
     case 'response.tool_call.completed': {
-      const name = payload?.name || payload?.tool_name || payload?.function?.name || '';
-      if (name) {
-        runtime.appendReasoningLine('  ✔️ _completed_');
-        runtime.appendReasoningLine('');
-      }
       break;
     }
     case 'response.tool_call.failed': {

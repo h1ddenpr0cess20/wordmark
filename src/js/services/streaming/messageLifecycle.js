@@ -118,11 +118,11 @@ export function finalizeStreamedResponse(loadingMessage, contentObj) {
     }
   }
 
-  const hasPendingImages = Array.isArray(window.currentGeneratedImageHtml)
+  const hasPendingMedia = Array.isArray(window.currentGeneratedImageHtml)
     ? window.currentGeneratedImageHtml.length > 0
     : false;
 
-  if (!hasPendingImages && !content.trim() && !reasoning.trim()) {
+  if (!hasPendingMedia && !content.trim() && !reasoning.trim()) {
     return;
   }
 
@@ -150,7 +150,7 @@ export function finalizeStreamedResponse(loadingMessage, contentObj) {
   }
 
   let fullContent = content;
-  const hasExistingImagePlaceholders = /\[\[IMAGE: [^\]]+\]\]/.test(fullContent);
+  const hasExistingImagePlaceholders = /\[\[(?:IMAGE|MEDIA): [^\]]+\]\]/.test(fullContent);
   const willHaveImages = !hasExistingImagePlaceholders &&
                          window.currentGeneratedImageHtml &&
                          window.currentGeneratedImageHtml.length > 0;
@@ -159,7 +159,7 @@ export function finalizeStreamedResponse(loadingMessage, contentObj) {
     const imageList = window.currentGeneratedImageHtml
       .map(html => {
         const match = html.match(/data-filename="([^"]+)"/);
-        return match ? `[[IMAGE: ${match[1]}]]` : null;
+        return match ? `[[MEDIA: ${match[1]}]]` : null;
       })
       .filter(Boolean)
       .join('\n');

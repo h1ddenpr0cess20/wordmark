@@ -1,3 +1,60 @@
+function createMissingMediaPlaceholder(filename, mediaType = 'image') {
+  const label = mediaType === 'video' ? 'Video' : 'Image';
+  return `<div class='image-placeholder' style='padding:40px;background:#f1f1f1;border-radius:8px;margin:8px 0;text-align:center;font-style:italic;color:#666;'>${label} could not be loaded: ${filename}</div>`;
+}
+
+function findMediaRecord(convo, filename) {
+  return (convo.images || []).find(imageRef => imageRef.filename === filename) || null;
+}
+
+function resolveMediaSource(mediaRecord, filename, imageCache) {
+  if (!mediaRecord) {
+    return '';
+  }
+
+  if (typeof mediaRecord.url === 'string' && mediaRecord.url.trim()) {
+    return mediaRecord.url;
+  }
+
+  if (mediaRecord.isStoredInDb && imageCache?.has(filename)) {
+    return window.getMediaDisplayUrl?.(imageCache.get(filename), filename) || imageCache.get(filename);
+  }
+
+  return '';
+}
+
+function createMediaElement(mediaRecord, src, messageId = '') {
+  const mediaType = typeof window.detectMediaType === 'function'
+    ? window.detectMediaType(mediaRecord)
+    : ((mediaRecord?.mimeType || '').startsWith('video/') ? 'video' : 'image');
+
+  if (mediaType === 'video') {
+    const videoEl = document.createElement('video');
+    videoEl.src = src;
+    videoEl.className = 'generated-video-thumbnail';
+    videoEl.controls = true;
+    videoEl.playsInline = true;
+    videoEl.preload = 'metadata';
+    videoEl.dataset.mediaType = 'video';
+    videoEl.dataset.filename = mediaRecord.filename || '';
+    videoEl.dataset.messageId = messageId;
+    videoEl.dataset.prompt = mediaRecord.prompt || '';
+    videoEl.dataset.timestamp = mediaRecord.timestamp || '';
+    return videoEl;
+  }
+
+  const imgEl = document.createElement('img');
+  imgEl.src = src;
+  imgEl.alt = mediaRecord.prompt || 'Generated Image';
+  imgEl.className = 'generated-image-thumbnail';
+  imgEl.dataset.mediaType = 'image';
+  imgEl.dataset.filename = mediaRecord.filename || '';
+  imgEl.dataset.messageId = messageId;
+  imgEl.dataset.prompt = mediaRecord.prompt || '';
+  imgEl.dataset.timestamp = mediaRecord.timestamp || '';
+  return imgEl;
+}
+
 function replaceImagePlaceholders(content, convo, imageCache) {
   if (!content) {
     return '';
@@ -5,20 +62,15 @@ function replaceImagePlaceholders(content, convo, imageCache) {
 
   return content.replace(/\[\[IMAGE: ([^\]]+)\]\]/g, (match, filename) => {
     const trimmed = filename.trim();
-    const img = (convo.images || []).find(imageRef => imageRef.filename === trimmed);
+    const img = findMediaRecord(convo, trimmed);
     if (!img) {
-      return `<div class='image-placeholder' style='padding:40px;background:#f1f1f1;border-radius:8px;margin:8px 0;text-align:center;font-style:italic;color:#666;'>Image could not be loaded: ${trimmed}</div>`;
+      return createMissingMediaPlaceholder(trimmed, 'image');
     }
 
-    let src = '';
-    if (img.url && img.url.startsWith('data:image')) {
-      src = img.url;
-    } else if (img.isStoredInDb && imageCache?.has(trimmed)) {
-      src = imageCache.get(trimmed);
-    }
+    const src = resolveMediaSource(img, trimmed, imageCache);
 
     if (!src) {
-      return `<div class='image-placeholder' style='padding:40px;background:#f1f1f1;border-radius:8px;margin:8px 0;text-align:center;font-style:italic;color:#666;'>Image could not be loaded: ${trimmed}</div>`;
+      return createMissingMediaPlaceholder(trimmed, 'image');
     }
 
     if (!img.url) {
@@ -28,7 +80,7 @@ function replaceImagePlaceholders(content, convo, imageCache) {
       window.imageDataCache.set(trimmed, src);
     }
 
-    return `<img src="${src}" alt="${img.prompt || 'Generated Image'}" class="generated-image-thumbnail" data-filename="${trimmed}" data-prompt="${img.prompt || ''}" data-timestamp="${img.timestamp || ''}" style="max-width:160px;max-height:160px;border-radius:8px;margin:8px 0;cursor:pointer;" />`;
+    return `<img src="${src}" alt="${img.prompt || 'Generated Image'}" class="generated-image-thumbnail" data-media-type="image" data-filename="${trimmed}" data-prompt="${img.prompt || ''}" data-timestamp="${img.timestamp || ''}" style="max-width:160px;max-height:160px;border-radius:8px;margin:8px 0;cursor:pointer;" />`;
   });
 }
 
@@ -93,7 +145,7 @@ window.renderConversationMessages = function(convo, imageCache) {
     let displayContent = msg.content || '';
     const imageFilenames = [];
     const seenFilenames = new Set();
-    const extractRegex = new RegExp('\\[\\[IMAGE: ([^\\]]+)\\]\\]', 'g');
+    const extractRegex = new RegExp('\\[\\[(?:MEDIA|IMAGE): ([^\\]]+)\\]\\]', 'g');
     let match;
 
     while ((match = extractRegex.exec(displayContent)) !== null) {
@@ -104,7 +156,7 @@ window.renderConversationMessages = function(convo, imageCache) {
       }
     }
 
-    displayContent = displayContent.replace(new RegExp('\\[\\[IMAGE: ([^\\]]+)\\]\\]', 'g'), (placeholder) => `
+    displayContent = displayContent.replace(new RegExp('\\[\\[(?:MEDIA|IMAGE): ([^\\]]+)\\]\\]', 'g'), (placeholder) => `
       <span class="hidden-image-placeholder">${placeholder}</span>
     `);
 
@@ -114,38 +166,26 @@ window.renderConversationMessages = function(convo, imageCache) {
       const imgHtmlArray = [];
 
       imageFilenames.forEach((filename) => {
-        const img = (convo.images || []).find(imageRef => imageRef.filename === filename);
+        const img = findMediaRecord(convo, filename);
         if (!img) {
           const placeholder = document.createElement('div');
           placeholder.className = 'image-placeholder';
-          placeholder.textContent = `Image could not be loaded: ${filename}`;
+          placeholder.textContent = `Media could not be loaded: ${filename}`;
           imagesContainer.appendChild(placeholder);
           return;
         }
 
-        let src = '';
-        if (img.url && img.url.startsWith('data:image')) {
-          src = img.url;
-        } else if (img.isStoredInDb && imageCache?.has(filename)) {
-          src = imageCache.get(filename);
-        }
+        const src = resolveMediaSource(img, filename, imageCache);
 
         if (!src) {
           const placeholder = document.createElement('div');
           placeholder.className = 'image-placeholder';
-          placeholder.textContent = `Image could not be loaded: ${filename}`;
+          placeholder.textContent = `Media could not be loaded: ${filename}`;
           imagesContainer.appendChild(placeholder);
           return;
         }
 
-        const imgEl = document.createElement('img');
-        imgEl.src = src;
-        imgEl.alt = img.prompt || 'Generated Image';
-        imgEl.className = 'generated-image-thumbnail';
-        imgEl.dataset.filename = filename;
-        imgEl.dataset.messageId = messageElement.id;
-        imgEl.dataset.prompt = img.prompt || '';
-        imgEl.dataset.timestamp = img.timestamp || '';
+        const imgEl = createMediaElement(img, src, messageElement.id);
 
         if (!img.url) {
           img.url = src;

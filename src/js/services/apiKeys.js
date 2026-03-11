@@ -27,6 +27,24 @@ window.ollamaServerUrlInput = null;
 window.saveOllamaUrlButton = null;
 window.__apiKeysEventHandlersApplied = window.__apiKeysEventHandlersApplied || false;
 
+function refreshApiDependentUi() {
+  if (typeof window.refreshToolSettingsUI === "function") {
+    try {
+      window.refreshToolSettingsUI();
+    } catch (error) {
+      console.error("Failed to refresh tool settings UI:", error);
+    }
+  }
+
+  if (typeof window.updateFeatureStatus === "function") {
+    try {
+      window.updateFeatureStatus();
+    } catch (error) {
+      console.error("Failed to update feature status after API key change:", error);
+    }
+  }
+}
+
 /**
  * Initialize API key management functionality
  */
@@ -350,15 +368,25 @@ window.saveApiKeys = function() {
   try {
     // Save each API key to localStorage
     for (const [service, input] of Object.entries(window.apiKeyInputs)) {
-      if (input && input.value) {
-        localStorage.setItem(`${API_KEYS_STORAGE_PREFIX}${service}`, input.value);
+      if (!input) {
+        continue;
+      }
 
-        // Update the config object
-        if (window.config && window.config.services && window.config.services[service]) {
-          window.config.services[service].apiKey = input.value;
-        }
+      const value = input.value ? input.value.trim() : "";
+
+      if (value) {
+        localStorage.setItem(`${API_KEYS_STORAGE_PREFIX}${service}`, value);
+      } else {
+        localStorage.removeItem(`${API_KEYS_STORAGE_PREFIX}${service}`);
+      }
+
+      // Update the config object immediately so dependent UI can react without refresh
+      if (window.config && window.config.services && window.config.services[service]) {
+        window.config.services[service].apiKey = value;
       }
     }
+
+    refreshApiDependentUi();
 
     // Show success message
     window.showApiKeyStatus("API Keys saved successfully!", "success");
@@ -376,10 +404,13 @@ window.saveApiKeys = function() {
         if (typeof window.updateModelSelector === "function") {
           window.updateModelSelector();
         }
+        refreshApiDependentUi();
       });
     } else if (typeof window.updateModelSelector === "function") {
       window.updateModelSelector();
     }
+
+    refreshApiDependentUi();
 
     if (window.VERBOSE_LOGGING) {
       console.info("API keys saved to localStorage");
@@ -471,6 +502,8 @@ window.loadApiKeys = function() {
     if (window.VERBOSE_LOGGING) {
       console.info("API keys loaded from localStorage");
     }
+
+    refreshApiDependentUi();
   } catch (error) {
     console.error("Error loading API keys:", error);
   }

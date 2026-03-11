@@ -1,80 +1,153 @@
-function downloadImageFromUrl(url, filename) {
-  fetch(url)
-    .then(response => response.blob())
-    .then((blob) => {
-      const blobUrl = URL.createObjectURL(blob);
-      const anchor = document.createElement('a');
-      anchor.href = blobUrl;
-      anchor.download = filename;
-      anchor.style.display = 'none';
-      document.body.appendChild(anchor);
-      anchor.click();
-      document.body.removeChild(anchor);
-      URL.revokeObjectURL(blobUrl);
-    })
-    .catch((error) => console.error('Error downloading image:', error));
+window.downloadImage = function(url, filename) {
+  return window.downloadMediaSource?.(url, filename);
+};
+
+function elementMediaType(element) {
+  const explicit = element?.dataset?.mediaType;
+  if (explicit === 'video' || explicit === 'image') {
+    return explicit;
+  }
+  return element?.tagName?.toLowerCase() === 'video' ? 'video' : 'image';
 }
 
-window.downloadImage = function(url, filename) {
-  if (url.startsWith('data:')) {
-    const anchor = document.createElement('a');
-    anchor.href = url;
-    anchor.download = filename;
-    anchor.style.display = 'none';
-    document.body.appendChild(anchor);
-    anchor.click();
-    document.body.removeChild(anchor);
-    return;
+function buildViewerMediaElement(item) {
+  const mediaType = item.mediaType;
+  if (mediaType === 'video') {
+    const video = document.createElement('video');
+    video.className = 'gallery-slideshow-media gallery-slideshow-video';
+    video.src = item.url;
+    video.controls = true;
+    video.playsInline = true;
+    video.preload = 'metadata';
+    return video;
   }
 
-  downloadImageFromUrl(url, filename);
-};
+  const img = document.createElement('img');
+  img.className = 'gallery-slideshow-media gallery-slideshow-image';
+  img.src = item.url;
+  img.alt = item.prompt || 'Image';
+  return img;
+}
+
+function normalizeViewerItem(source, isGalleryMode) {
+  if (isGalleryMode) {
+    const mediaType = typeof window.detectMediaType === 'function'
+      ? window.detectMediaType(source)
+      : ((source?.mimeType || '').startsWith('video/') ? 'video' : 'image');
+    return {
+      mediaType,
+      url: source.data,
+      prompt: source.prompt || (mediaType === 'video' ? 'Generated video' : 'No prompt available'),
+      timestamp: source.timestamp || null,
+      filename: source.filename || null,
+      uploaded: Boolean(source.filename && source.filename.startsWith('upload-')),
+    };
+  }
+
+  const mediaType = elementMediaType(source);
+  return {
+    mediaType,
+    url: mediaType === 'video' ? source.currentSrc || source.src : source.src,
+    prompt: source.dataset.prompt || source.alt || (mediaType === 'video' ? 'Generated video' : 'No prompt available'),
+    timestamp: source.dataset.timestamp || null,
+    filename: source.dataset.filename || null,
+    uploaded: Boolean(source.dataset.filename && source.dataset.filename.startsWith('upload-')),
+  };
+}
 
 window.setupImageInteractions = function(messageElement) {
   if (!messageElement) {
     return;
   }
 
-  const images = messageElement.querySelectorAll('.message-content img');
-  if (!images.length) {
+  const mediaElements = messageElement.querySelectorAll('.message-content img, .message-content video');
+  if (!mediaElements.length) {
     return;
   }
 
   const downloadIconSvg = window.icon('download', { width: 16, height: 16 });
 
-  images.forEach((img, index) => {
-    if (img.parentNode.classList.contains('image-container')) {
+  mediaElements.forEach((media, index) => {
+    if (media.parentNode?.classList?.contains('image-container')) {
       return;
     }
 
+    const mediaType = elementMediaType(media);
     const container = document.createElement('div');
     container.className = 'image-container';
-    img.parentNode.insertBefore(container, img);
-    container.appendChild(img);
+    media.parentNode.insertBefore(container, media);
+    container.appendChild(media);
+
+    if (mediaType === 'video') {
+      media.controls = true;
+      media.playsInline = true;
+      media.preload = media.preload || 'metadata';
+    }
 
     const downloadBtn = document.createElement('button');
     downloadBtn.className = 'image-download-btn';
     downloadBtn.innerHTML = downloadIconSvg;
-    downloadBtn.setAttribute('aria-label', 'Download image');
-    downloadBtn.title = 'Download image';
+    downloadBtn.setAttribute('aria-label', `Download ${mediaType}`);
+    downloadBtn.title = `Download ${mediaType}`;
     container.appendChild(downloadBtn);
 
     downloadBtn.addEventListener('click', (event) => {
       event.stopPropagation();
-      const filename = img.dataset.filename || `image-${Date.now()}-${index + 1}.png`;
-      window.downloadImage(img.src, filename);
+      const fallbackName = mediaType === 'video'
+        ? `video-${Date.now()}-${index + 1}.mp4`
+        : `image-${Date.now()}-${index + 1}.png`;
+      const filename = media.dataset.filename || fallbackName;
+      const source = mediaType === 'video' ? (media.currentSrc || media.src) : media.src;
+      window.downloadMediaSource?.(source, filename)
+        .catch(error => console.error(`Error downloading ${mediaType}:`, error));
     });
   });
 
+  const images = messageElement.querySelectorAll('.message-content img');
   images.forEach((img) => {
+    if (img.dataset.viewerBound === 'true') {
+      return;
+    }
+    img.dataset.viewerBound = 'true';
     img.addEventListener('click', () => {
       if (window.isSlideshowOpen) {
         return;
       }
 
       window.isSlideshowOpen = true;
-      const allImagesData = window.gatherAllConversationImages(img);
-      window.createImageSlideshow(allImagesData.images, allImagesData.clickedIndex);
+      const allMediaData = window.gatherAllConversationMedia(img);
+      window.createImageSlideshow(allMediaData.images, allMediaData.clickedIndex);
+    });
+  });
+
+  const videos = messageElement.querySelectorAll('.message-content video');
+  videos.forEach((video) => {
+    if (video.dataset.viewerBound === 'true') {
+      return;
+    }
+    video.dataset.viewerBound = 'true';
+
+    const container = video.closest('.image-container');
+    if (!container) {
+      return;
+    }
+
+    const expandBtn = document.createElement('button');
+    expandBtn.className = 'video-expand-btn';
+    expandBtn.innerHTML = window.icon('maximize', { width: 16, height: 16 });
+    expandBtn.setAttribute('aria-label', 'Open in viewer');
+    expandBtn.title = 'Open in viewer';
+    container.appendChild(expandBtn);
+
+    expandBtn.addEventListener('click', (event) => {
+      event.stopPropagation();
+      if (window.isSlideshowOpen) {
+        return;
+      }
+
+      window.isSlideshowOpen = true;
+      const allMediaData = window.gatherAllConversationMedia(video);
+      window.createImageSlideshow(allMediaData.images, allMediaData.clickedIndex);
     });
   });
 };
@@ -101,19 +174,19 @@ window.createImageSlideshow = function(images, startIndex, isGalleryMode = false
   const slideshowContainer = document.createElement('div');
   slideshowContainer.className = 'gallery-slideshow-container';
 
-  const img = document.createElement('img');
-  img.className = 'gallery-slideshow-image';
-  slideshowContainer.appendChild(img);
+  const mediaHost = document.createElement('div');
+  mediaHost.className = 'gallery-slideshow-media-host';
+  slideshowContainer.appendChild(mediaHost);
 
   const prevBtn = document.createElement('button');
   prevBtn.className = 'gallery-slideshow-nav gallery-slideshow-prev';
   prevBtn.innerHTML = '&#10094;';
-  prevBtn.title = 'Previous image';
+  prevBtn.title = 'Previous media';
 
   const nextBtn = document.createElement('button');
   nextBtn.className = 'gallery-slideshow-nav gallery-slideshow-next';
   nextBtn.innerHTML = '&#10095;';
-  nextBtn.title = 'Next image';
+  nextBtn.title = 'Next media';
 
   slideshowContainer.appendChild(prevBtn);
   slideshowContainer.appendChild(nextBtn);
@@ -124,29 +197,30 @@ window.createImageSlideshow = function(images, startIndex, isGalleryMode = false
   const downloadBtn = document.createElement('button');
   downloadBtn.className = 'slideshow-icon-btn';
   downloadBtn.id = 'slideshow-download';
-  downloadBtn.title = 'Download this image';
-  downloadBtn.setAttribute('aria-label', 'Download this image');
+  downloadBtn.title = 'Download this media';
+  downloadBtn.setAttribute('aria-label', 'Download this media');
   downloadBtn.innerHTML = window.icon('download', { width: 24, height: 24 });
 
   const closeBtn = document.createElement('button');
   closeBtn.className = 'slideshow-icon-btn';
   closeBtn.id = 'slideshow-close';
-  closeBtn.title = 'Close image viewer';
-  closeBtn.setAttribute('aria-label', 'Close image viewer');
+  closeBtn.title = 'Close media viewer';
+  closeBtn.setAttribute('aria-label', 'Close media viewer');
   closeBtn.innerHTML = window.icon('x', { width: 24, height: 24 });
 
   if (isGalleryMode) {
     const deleteBtn = document.createElement('button');
     deleteBtn.className = 'slideshow-icon-btn';
     deleteBtn.id = 'slideshow-delete';
-    deleteBtn.title = 'Delete this image permanently';
-    deleteBtn.setAttribute('aria-label', 'Delete this image permanently');
+    deleteBtn.title = 'Delete this media permanently';
+    deleteBtn.setAttribute('aria-label', 'Delete this media permanently');
     deleteBtn.innerHTML = window.icon('trash', { width: 24, height: 24 });
     controlsBar.appendChild(deleteBtn);
 
     deleteBtn.addEventListener('click', () => {
       const image = window.galleryImages[currentIndex];
-      if (!confirm('Delete this image?')) {
+      const mediaType = typeof window.detectMediaType === 'function' ? window.detectMediaType(image) : 'media';
+      if (!confirm(`Delete this ${mediaType}?`)) {
         return;
       }
 
@@ -162,22 +236,22 @@ window.createImageSlideshow = function(images, startIndex, isGalleryMode = false
           const galleryCount = document.getElementById('gallery-count');
           if (galleryCount) {
             const currentCount = parseInt(galleryCount.textContent, 10);
-            galleryCount.textContent = currentCount - 1;
+            galleryCount.textContent = Math.max(0, currentCount - 1);
           }
 
           if (!window.galleryImages.length) {
             closeSlideshow();
             const galleryGrid = document.getElementById('gallery-grid');
             if (galleryGrid) {
-              galleryGrid.innerHTML = '<div class="gallery-empty">No images found in gallery</div>';
+              galleryGrid.innerHTML = '<div class="gallery-empty">No media found in gallery</div>';
             }
           } else {
             showSlide(Math.min(currentIndex, window.galleryImages.length - 1));
           }
         })
         .catch((error) => {
-          console.error('Error deleting image:', error);
-          alert('Failed to delete the image. Please try again.');
+          console.error('Error deleting media:', error);
+          alert('Failed to delete the media item. Please try again.');
         });
     });
   }
@@ -216,35 +290,19 @@ window.createImageSlideshow = function(images, startIndex, isGalleryMode = false
 
     currentIndex = index;
 
-    let imageUrl;
-    let prompt;
-    let timestamp;
-    let filename;
+    const item = normalizeViewerItem(images[currentIndex], isGalleryMode);
+    mediaHost.innerHTML = '';
+    mediaHost.appendChild(buildViewerMediaElement(item));
 
-    if (isGalleryMode) {
-      const image = images[currentIndex];
-      imageUrl = image.data;
-      prompt = image.prompt || 'No prompt data';
-      timestamp = image.timestamp;
-      filename = image.filename;
-    } else {
-      const imgElement = images[currentIndex];
-      imageUrl = imgElement.src;
-      prompt = imgElement.dataset.prompt || imgElement.alt || 'No prompt available';
-      timestamp = imgElement.dataset.timestamp || null;
-      filename = imgElement.dataset.filename || null;
-    }
-
-    img.src = imageUrl;
-
-    const date = timestamp
-      ? `${new Date(timestamp).toLocaleDateString()} ${new Date(timestamp).toLocaleTimeString()}`
+    const date = item.timestamp
+      ? `${new Date(item.timestamp).toLocaleDateString()} ${new Date(item.timestamp).toLocaleTimeString()}`
       : 'Unknown date';
 
-    const isUploaded = Boolean(filename && filename.startsWith('upload-'));
-    const displayPrompt = isUploaded ? 'User uploaded image - no prompt available' : prompt;
+    const displayPrompt = item.uploaded
+      ? `User uploaded ${item.mediaType} - no prompt available`
+      : item.prompt;
 
-    const formattedPrompt = displayPrompt
+    const formattedPrompt = String(displayPrompt || '')
       .replace(/&/g, '&amp;')
       .replace(/</g, '&lt;')
       .replace(/>/g, '&gt;')
@@ -252,10 +310,11 @@ window.createImageSlideshow = function(images, startIndex, isGalleryMode = false
       .replace(/'/g, '&#x27;');
 
     infoPanel.innerHTML = `
-      <h3>Image Details <span class="gallery-slideshow-counter">${currentIndex + 1} / ${images.length}</span></h3>
-      <p><strong>${isUploaded ? 'Type:' : 'Prompt:'}</strong><br><span class="prompt-text ${isUploaded ? 'uploaded-info' : ''}">${formattedPrompt}</span></p>
+      <h3>Media Details <span class="gallery-slideshow-counter">${currentIndex + 1} / ${images.length}</span></h3>
+      <p><strong>${item.uploaded ? 'Type:' : 'Prompt:'}</strong><br><span class="prompt-text ${item.uploaded ? 'uploaded-info' : ''}">${formattedPrompt || 'No prompt available'}</span></p>
+      <p><strong>Media Type:</strong> ${item.mediaType}</p>
       <p><strong>Date:</strong> ${date}</p>
-      <p><strong>Filename:</strong> ${filename}</p>
+      <p><strong>Filename:</strong> ${item.filename || 'Unknown'}</p>
     `;
   };
 
@@ -294,10 +353,6 @@ window.createImageSlideshow = function(images, startIndex, isGalleryMode = false
 
     slideshowContainer.addEventListener('touchend', (event) => {
       touchEndX = event.changedTouches[0].screenX;
-      handleSwipe();
-    }, { passive: true });
-
-    const handleSwipe = () => {
       const swipeDistance = touchEndX - touchStartX;
       const minSwipeDistance = window.innerWidth * 0.2;
 
@@ -306,47 +361,36 @@ window.createImageSlideshow = function(images, startIndex, isGalleryMode = false
       } else if (swipeDistance < -minSwipeDistance) {
         showSlide(currentIndex + 1);
       }
-    };
-
-    img.addEventListener('click', (event) => {
-      event.stopPropagation();
-      controlsBar.style.opacity = controlsBar.style.opacity === '0' ? '1' : '0';
-      prevBtn.style.opacity = prevBtn.style.opacity === '0' ? '1' : '0';
-      nextBtn.style.opacity = nextBtn.style.opacity === '0' ? '1' : '0';
-      infoPanel.style.opacity = infoPanel.style.opacity === '0' ? '1' : '0';
-    });
+    }, { passive: true });
   }
 
   downloadBtn.addEventListener('click', () => {
-    if (isGalleryMode) {
-      const image = images[currentIndex];
-      window.downloadGalleryImage?.(image.data, image.filename);
-    } else {
-      const imgElement = images[currentIndex];
-      const filename = imgElement.dataset.filename || `image-${Date.now()}.png`;
-      window.downloadImage(imgElement.src, filename);
-    }
+    const item = normalizeViewerItem(images[currentIndex], isGalleryMode);
+    window.downloadMediaSource?.(item.url, item.filename || `${item.mediaType}-${Date.now()}`)
+      .catch(error => console.error(`Failed to download ${item.mediaType}:`, error));
   });
-
 };
 
-window.gatherAllConversationImages = function(clickedImg) {
+window.gatherAllConversationMedia = function(clickedElement) {
   const allMessages = Array.from(document.querySelectorAll('.message'));
-  const allImages = [];
-  let clickedImageIndex = -1;
+  const allMedia = [];
+  let clickedIndex = -1;
 
   allMessages.forEach((message) => {
-    const messageImages = Array.from(message.querySelectorAll('.message-content img'));
-    messageImages.forEach((img) => {
-      allImages.push(img);
-      if (img === clickedImg) {
-        clickedImageIndex = allImages.length - 1;
+    const mediaElements = Array.from(message.querySelectorAll('.message-content img, .message-content video'));
+    mediaElements.forEach((el) => {
+      allMedia.push(el);
+      if (el === clickedElement) {
+        clickedIndex = allMedia.length - 1;
       }
     });
   });
 
   return {
-    images: allImages,
-    clickedIndex: clickedImageIndex >= 0 ? clickedImageIndex : 0,
+    images: allMedia,
+    clickedIndex: clickedIndex >= 0 ? clickedIndex : 0,
   };
 };
+
+// Backwards compatibility alias
+window.gatherAllConversationImages = window.gatherAllConversationMedia;

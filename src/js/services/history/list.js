@@ -274,7 +274,7 @@ window.renderChatHistoryList = function() {
           <td class="col-stats">
             <div class="stats-info">
               <span class="message-count">${messageCount} msg</span>
-              ${imageCount > 0 ? `<span class="image-count">${imageCount} img</span>` : ''}
+              ${imageCount > 0 ? `<span class="image-count">${imageCount} media</span>` : ''}
             </div>
           </td>
           <td class="col-date">
@@ -325,4 +325,3 @@ window.renderChatHistoryList = function() {
       window.historyList.innerHTML = '<div class="history-error">Error loading conversation history.</div>';
     });
 };
-
