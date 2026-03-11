@@ -18,7 +18,9 @@ import {
 } from './messageUtils.js';
 import {
   getEnabledToolDefinitions,
+  isClientSideToolType,
   refreshMcpAvailability,
+  supportsClientSideTools,
 } from './toolManager.js';
 import { getActiveVectorStoreIds } from '../vectorStore.js';
 
@@ -170,6 +172,7 @@ export async function runTurn({
   }
   await refreshMcpAvailability(true);
   let enabledTools = getEnabledToolDefinitions(serviceKey, resolvedModel);
+  const clientSideToolsSupported = supportsClientSideTools(serviceKey, resolvedModel);
 
   // Handle file_search tool: attach ALL active vector stores (persisted + explicitly active)
   if (enabledTools) {
@@ -221,44 +224,60 @@ export async function runTurn({
     let streamedText = '';
     let streamedReasoning = '';
 
-    if (stream) {
-      const streamResponse = await executeStreamingRequest(body, abortController);
-      const result = await window.handleStreamedResponse(streamResponse, loadingId);
-      responsePayload = result.response;
-      streamedText = result.outputText || '';
-      streamedReasoning = result.reasoningText || '';
-    } else {
-      responsePayload = await executeNonStreamingRequest(body, abortController);
-      streamedText = responsePayload.output_text || '';
-      const flattenContent = (items) => items
-        .map(item => {
-          if (typeof item === 'string') {
-            return item;
-          }
-          if (item && typeof item === 'object') {
-            if (typeof item.content === 'string') {
-              return item.content;
+    try {
+      if (stream) {
+        const streamResponse = await executeStreamingRequest(body, abortController);
+        const result = await window.handleStreamedResponse(streamResponse, loadingId);
+        responsePayload = result.response;
+        streamedText = result.outputText || '';
+        streamedReasoning = result.reasoningText || '';
+      } else {
+        responsePayload = await executeNonStreamingRequest(body, abortController);
+        streamedText = responsePayload.output_text || '';
+        const flattenContent = (items) => items
+          .map(item => {
+            if (typeof item === 'string') {
+              return item;
             }
-            if (typeof item.text === 'string') {
-              return item.text;
+            if (item && typeof item === 'object') {
+              if (typeof item.content === 'string') {
+                return item.content;
+              }
+              if (typeof item.text === 'string') {
+                return item.text;
+              }
             }
-          }
-          return '';
-        })
-        .join('');
-      if (responsePayload.reasoning && typeof responsePayload.reasoning === 'string') {
-        streamedReasoning = responsePayload.reasoning;
-      } else if (responsePayload.reasoning && Array.isArray(responsePayload.reasoning)) {
-        streamedReasoning = flattenContent(responsePayload.reasoning);
-      } else if (responsePayload.reasoning && Array.isArray(responsePayload.reasoning.output)) {
-        streamedReasoning = responsePayload.reasoning.output.map(item => item?.content || '').join('');
-      } else if (typeof responsePayload.reasoning_content === 'string') {
-        streamedReasoning = responsePayload.reasoning_content;
-      } else if (Array.isArray(responsePayload.reasoning_content)) {
-        streamedReasoning = flattenContent(responsePayload.reasoning_content);
-      } else if (responsePayload.reasoning && typeof responsePayload.reasoning === 'object' && typeof responsePayload.reasoning.content === 'string') {
-        streamedReasoning = responsePayload.reasoning.content;
+            return '';
+          })
+          .join('');
+        if (responsePayload.reasoning && typeof responsePayload.reasoning === 'string') {
+          streamedReasoning = responsePayload.reasoning;
+        } else if (responsePayload.reasoning && Array.isArray(responsePayload.reasoning)) {
+          streamedReasoning = flattenContent(responsePayload.reasoning);
+        } else if (responsePayload.reasoning && Array.isArray(responsePayload.reasoning.output)) {
+          streamedReasoning = responsePayload.reasoning.output.map(item => item?.content || '').join('');
+        } else if (typeof responsePayload.reasoning_content === 'string') {
+          streamedReasoning = responsePayload.reasoning_content;
+        } else if (Array.isArray(responsePayload.reasoning_content)) {
+          streamedReasoning = flattenContent(responsePayload.reasoning_content);
+        } else if (responsePayload.reasoning && typeof responsePayload.reasoning === 'object' && typeof responsePayload.reasoning.content === 'string') {
+          streamedReasoning = responsePayload.reasoning.content;
+        }
       }
+    } catch (error) {
+      const message = error && typeof error.message === 'string' ? error.message : '';
+      const shouldRetryWithoutClientSideTools = clientSideToolsSupported === false
+        && Array.isArray(enabledTools)
+        && enabledTools.some(tool => isClientSideToolType(tool?.type))
+        && message.includes('Client side tool is not supported for multi-agent models');
+      if (shouldRetryWithoutClientSideTools) {
+        enabledTools = enabledTools.filter(tool => !isClientSideToolType(tool?.type));
+        if (window.VERBOSE_LOGGING) {
+          console.warn(`Retrying xAI request for '${resolvedModel}' without client-side tools.`);
+        }
+        continue;
+      }
+      throw error;
     }
 
     // Accumulate text and reasoning across multiple response cycles

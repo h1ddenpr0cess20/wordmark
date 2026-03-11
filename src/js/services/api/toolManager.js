@@ -323,6 +323,11 @@ const SERVER_MANAGED_TOOL_TYPES = new Set([
   'file_search',
 ]);
 
+const CLIENT_SIDE_TOOL_TYPES = new Set([
+  'function',
+  'mcp',
+]);
+
 function insertMcpTool(toolEntry) {
   TOOL_CATALOG.splice(userMcpToolCount, 0, toolEntry);
   TOOL_DEFINITIONS.splice(userMcpToolCount, 0, cloneDefinition(toolEntry.definition));
@@ -373,6 +378,25 @@ let toolPreferences = loadToolPreferences();
 
 function isCodexModel(modelName) {
   return typeof modelName === 'string' && modelName.toLowerCase().includes('codex');
+}
+
+export function xaiModelDisallowsClientSideTools(modelName = getActiveModel()) {
+  return typeof modelName === 'string'
+    && modelName.toLowerCase().includes('multi-agent');
+}
+
+export function supportsClientSideTools(
+  serviceKey = getActiveServiceKey(),
+  modelName = getActiveModel(),
+) {
+  if (serviceKey !== 'xai') {
+    return true;
+  }
+  return !xaiModelDisallowsClientSideTools(modelName);
+}
+
+export function isClientSideToolType(type) {
+  return CLIENT_SIDE_TOOL_TYPES.has(type);
 }
 
 export function getToolCatalog() {
@@ -489,6 +513,7 @@ export function getEnabledToolDefinitions(serviceKey = getActiveServiceKey(), mo
 
   const isLocalService = serviceKey === 'lmstudio' || serviceKey === 'ollama';
   const modelIsCodex = isCodexModel(modelName);
+  const clientSideToolsSupported = supportsClientSideTools(serviceKey, modelName);
   const defs = [];
 
   TOOL_CATALOG.forEach(tool => {
@@ -496,6 +521,13 @@ export function getEnabledToolDefinitions(serviceKey = getActiveServiceKey(), mo
       return;
     }
     if (tool.hidden) {
+      return;
+    }
+
+    if (!clientSideToolsSupported && isClientSideToolType(tool.type)) {
+      if (window.VERBOSE_LOGGING) {
+        console.info(`Skipping client-side tool '${tool.displayName}' for xAI model '${modelName}'.`);
+      }
       return;
     }
 
@@ -570,7 +602,7 @@ export function getEnabledToolDefinitions(serviceKey = getActiveServiceKey(), mo
     defs.push(JSON.parse(JSON.stringify(tool.definition)));
   });
 
-  appendMemoryTools(defs, serviceKey);
+  appendMemoryTools(defs, serviceKey, modelName);
   return defs;
 }
 
@@ -666,12 +698,19 @@ function isLocalNetworkUrl(url) {
   }
 }
 
-function appendMemoryTools(defs, serviceKey = getActiveServiceKey()) {
+function appendMemoryTools(defs, serviceKey = getActiveServiceKey(), modelName = getActiveModel()) {
   try {
     const cfg = typeof window.getMemoryConfig === 'function'
       ? window.getMemoryConfig()
       : { enabled: false };
     if (!cfg || !cfg.enabled) {
+      return;
+    }
+
+    if (!supportsClientSideTools(serviceKey, modelName)) {
+      if (window.VERBOSE_LOGGING) {
+        console.info(`Skipping memory tools for xAI model '${modelName}' because it disallows client-side tools.`);
+      }
       return;
     }
 
