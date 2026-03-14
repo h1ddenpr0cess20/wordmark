@@ -65,7 +65,6 @@
   - `package.json` → `version`
   - `package-lock.json` → top-level `version` fields
   - README version badge (search for `img.shields.io/badge/version-...`)
-  - Optional: adjust `src/html/download.html` “Latest Version” if a mobile build is being published
 - After bump, run a quick grep to catch stragglers (informational; do not change without request):
   - `rg -n "APP_VERSION|img.shields.io.*version|Latest Version|version-v"`
 - Verify About panel shows the new version and README badge renders correctly on GitHub.

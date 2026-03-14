@@ -717,20 +717,6 @@
     padding: 15px 10px 0;
   }
   
-  .crypto-item {
-    gap: 4px;
-  }
-  
-  .input-copy-wrapper {
-    position: relative;
-  }
-  
-  .crypto-address {
-    font-size: 0.8em;
-    padding: 6px 35px 6px 8px;
-    height: 32px;
-  }
-  
   .footer-info {
     max-width: 100%;
     padding: 15px 10px 0;

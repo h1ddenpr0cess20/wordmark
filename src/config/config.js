@@ -23,26 +23,6 @@ window.APP_VERSION = '1.2.0';
 // GitHub repository URL
 window.GITHUB_URL = 'https://github.com/h1ddenpr0cess20/Wordmark';
 
-// Cryptocurrency donation addresses
-window.CRYPTO_DONATIONS = [
-  {
-    name: 'Bitcoin (BTC)',
-    address: '34rgxUdtg3aM5Fm6Q3aMwT1qEuFYQmSzLd',
-    symbol: 'BTC'
-  },
-  {
-    name: 'Bitcoin Cash (BCH)',
-    address: '13JUmyzZ3vnddCqiqwAvzHJaCmMcjVpJD1',
-    symbol: 'BCH'
-  },
-  {
-    name: 'Ethereum (ETH)',
-    address: '0xE8ac85A7331F66e7795A64Ab51C8c5A5A85Ed761',
-    symbol: 'ETH'
-
-  }
-    
-];
 
 // Default system prompts
 window.DEFAULT_SYSTEM_PROMPT = "You are a helpful AI assistant. Provide clear, accurate, and concise information. Respond in a friendly, professional, and engaging manner. Adapt your tone to the user’s needs and always prioritize usefulness and clarity.";

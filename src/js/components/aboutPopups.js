@@ -35,16 +35,6 @@ const ABOUT_FALLBACKS = {
       <p>Check the project README on GitHub for detailed walkthroughs.</p>
     </div>
   `,
-  "download-content-container": `
-    <div class="popup-default">
-      <h3>Download Options</h3>
-      <p>You can package Wordmark as a mobile WebView app or install it as a PWA when serving over HTTPS.</p>
-      <ul>
-        <li>Android APK wrapper available in <code>src/assets/apk/wordmark.apk</code>.</li>
-        <li>Serve with <code>http-server</code> or another HTTPS-capable static server for PWA installation.</li>
-      </ul>
-    </div>
-  `,
 };
 
 function applyFallbackContent(containerId) {
@@ -83,7 +73,6 @@ async function loadContentIntoContainer(url, containerId) {
       || tempDiv.querySelector(".terms-content")
       || tempDiv.querySelector(".help-content")
       || tempDiv.querySelector(".contact-content")
-      || tempDiv.querySelector(".download-content")
       || tempDiv.body;
 
     if (mainContent) {
@@ -222,36 +211,6 @@ function hideHelpPopup() {
   }
 }
 
-async function showDownloadPopup() {
-  const aboutContent = document.querySelector("#content-about .about-content");
-  const downloadPopup = document.getElementById("download-popup");
-
-  if (aboutContent && downloadPopup) {
-    aboutContent.style.display = "none";
-    downloadPopup.style.display = "flex";
-
-    // Load download content
-    await loadContentIntoContainer("src/html/download.html", "download-content-container");
-
-    // Trigger reflow and add active class for animation
-    downloadPopup.offsetHeight;
-    downloadPopup.classList.add("active");
-  }
-}
-
-function hideDownloadPopup() {
-  const aboutContent = document.querySelector("#content-about .about-content");
-  const downloadPopup = document.getElementById("download-popup");
-
-  if (aboutContent && downloadPopup) {
-    downloadPopup.classList.remove("active");
-    setTimeout(() => {
-      downloadPopup.style.display = "none";
-      aboutContent.style.display = "";
-    }, 250); // Match CSS transition duration
-  }
-}
-
 // Expose popup functions to global window scope
 window.showPrivacyPopup = showPrivacyPopup;
 window.hidePrivacyPopup = hidePrivacyPopup;
@@ -261,5 +220,3 @@ window.showTermsPopup = showTermsPopup;
 window.hideTermsPopup = hideTermsPopup;
 window.showHelpPopup = showHelpPopup;
 window.hideHelpPopup = hideHelpPopup;
-window.showDownloadPopup = showDownloadPopup;
-window.hideDownloadPopup = hideDownloadPopup;

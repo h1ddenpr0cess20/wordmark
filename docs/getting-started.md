@@ -14,10 +14,6 @@ Serve Over HTTPS
 - Python (3.10+ with SSL args): `python -m http.server 8000 --bind 127.0.0.1 --directory . --ssl-certfile cert.pem --ssl-keyfile key.pem`
 - Access at `https://localhost:8000` (accept the self-signed cert warning).
 
-Android APK
-
-- `src/assets/apk/wordmark.apk` is a WebView wrapper that runs the web application. It is provided for convenience if you want a native-like install.
-
 API Keys (where to put them)
 
 - Open Settings (gear button), then the API Keys tab.
