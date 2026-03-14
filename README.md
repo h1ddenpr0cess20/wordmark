@@ -91,14 +91,6 @@
 
   MIT — see LICENSE
 
-  ## Support
-
-  If you find this project helpful, consider supporting its development.
-
-  - Bitcoin (BTC): `34rgxUdtg3aM5Fm6Q3aMwT1qEuFYQmSzLd`
-  - Bitcoin Cash (BCH): `13JUmyzZ3vnddCqiqwAvzHJaCmMcjVpJD1`
-  - Ethereum (ETH): `0xE8ac85A7331F66e7795A64Ab51C8c5A5A85Ed761`
-
   ---
 
   <div align="center">
