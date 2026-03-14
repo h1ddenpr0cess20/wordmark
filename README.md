@@ -43,8 +43,6 @@
     ```
     - Open `index.html` directly, or serve over HTTPS for APIs, TTS, and geolocation (see the [Getting Started guide](docs/getting-started.md)).
   - In Settings → API Keys, add your OpenAI/xAI keys and set base URLs for LM Studio or Ollama (defaults are local). Keys and URLs are stored locally.
-  - Optional Android build: `src/assets/apk/wordmark.apk`
-
   Local models:
   - LM Studio: run the server (default `http://localhost:1234`), set the base URL in Settings → API Keys, then select LM Studio in Settings → Model — see the [LM Studio guide](docs/lm-studio.md)
   - Ollama: run the server (default `http://localhost:11434`), set the base URL in Settings → API Keys, then select Ollama in Settings → Model

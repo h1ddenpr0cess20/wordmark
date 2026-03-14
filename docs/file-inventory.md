@@ -65,7 +65,6 @@ Purpose: quick orientation to the current project layout, key entry points, and 
 
 - `assets/`
   - `img/`: Icons and images.
-  - `apk/`: Packaged assets for distribution (if any).
 
 ## Features & Flows
 - Chat/Streaming: `services/api.js` + `services/streaming.js`; messages rendered in `components/messages.js`.

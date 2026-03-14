@@ -269,67 +269,6 @@
   color: var(--text-primary);
 }
 
-.crypto-addresses {
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
-  margin-top: 16px;
-  width: 100%;
-}
-
-.crypto-item {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  gap: 6px;
-  width: 100%;
-}
-
-.crypto-label {
-  font-weight: 500;
-  font-size: 0.9em;
-  color: var(--text-primary);
-}
-
-.input-copy-wrapper {
-  position: relative;
-  width: 100%;
-  display: flex;
-  align-items: center;
-}
-
-.crypto-address {
-  width: 100%;
-  padding: 8px 40px 8px 10px;
-  background-color: var(--input-background);
-  border: 1px solid var(--border-color);
-  border-radius: 4px;
-  color: var(--text-secondary);
-  font-family: monospace;
-  font-size: 0.9em;
-  height: 36px;
-  box-sizing: border-box;
-}
-
-.copy-address {
-  position: absolute;
-  right: 8px;
-  background: transparent;
-  border: none;
-  color: var(--text-secondary);
-  padding: 4px;
-  cursor: pointer;
-  border-radius: 3px;
-  transition: all 0.2s;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.copy-address:hover {
-  color: var(--accent-color);
-  background-color: var(--hover-background);
-}
 
 .setting-item {
   margin-bottom: 16px;

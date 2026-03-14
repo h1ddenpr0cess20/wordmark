@@ -158,7 +158,7 @@ async function initialize() {
     // Configure DOMPurify to allow YouTube iframes
     configureDOMPurify();
 
-    // Initialize About tab and crypto donations
+    // Initialize About tab
     initializeAboutTab();
 
     // Initialize model parameter controls with values from config

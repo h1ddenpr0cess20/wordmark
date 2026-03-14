@@ -59,8 +59,7 @@
 #privacy-content-container,
 #contact-content-container,
 #terms-content-container,
-#help-content-container,
-#download-content-container {
+#help-content-container {
   color: var(--text-primary);
   line-height: 1.6;
 }
