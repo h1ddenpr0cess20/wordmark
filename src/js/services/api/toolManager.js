@@ -109,6 +109,20 @@ const STATIC_TOOLS = [
     },
   },
   {
+    key: 'builtin:shell',
+    type: 'builtin',
+    displayName: 'Shell',
+    description: 'Allow the assistant to run shell commands in a sandboxed container environment.',
+    defaultEnabled: false,
+    onlyServices: ['openai'],
+    definition: {
+      type: 'shell',
+      environment: {
+        type: 'container_auto',
+      },
+    },
+  },
+  {
     key: 'builtin:file_search',
     type: 'builtin',
     displayName: 'File Search',
@@ -319,6 +333,7 @@ const SERVER_MANAGED_TOOL_TYPES = new Set([
   'web_search',
   'x_search',
   'code_interpreter',
+  'shell',
   'image_generation',
   'file_search',
 ]);
@@ -570,7 +585,15 @@ export function getEnabledToolDefinitions(serviceKey = getActiveServiceKey(), mo
       return;
     }
 
+    // Shell and code_interpreter cannot be used together; shell wins if both enabled
     if (tool.key === 'builtin:code_interpreter') {
+      const shellEnabled = getToolPreference('builtin:shell', false);
+      if (shellEnabled && serviceKey === 'openai') {
+        if (window.VERBOSE_LOGGING) {
+          console.info('Skipping code_interpreter because shell tool is enabled.');
+        }
+        return;
+      }
       if (serviceKey === 'xai') {
         defs.push({
           type: 'code_interpreter',
