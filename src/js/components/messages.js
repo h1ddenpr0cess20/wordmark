@@ -134,12 +134,13 @@ window.appendMessage = function(sender, message, role, skipHistory = false) {
       return originalSelector.call(document, selector);
     };
 
-    if (typeof window.renderWordmarkLogo === "function") {
-      window.renderWordmarkLogo();
+    try {
+      if (typeof window.renderWordmarkLogo === "function") {
+        window.renderWordmarkLogo();
+      }
+    } finally {
+      document.querySelector = originalSelector;
     }
-
-    // Restore original querySelector
-    document.querySelector = originalSelector;
   } else {
     // Fallback for other sender types
     senderElement.textContent = sender;

@@ -13,11 +13,13 @@ function renderAssistantIcon(senderElement) {
     return originalSelector.call(document, selector);
   };
 
-  if (typeof window.renderWordmarkLogo === 'function') {
-    window.renderWordmarkLogo();
+  try {
+    if (typeof window.renderWordmarkLogo === 'function') {
+      window.renderWordmarkLogo();
+    }
+  } finally {
+    document.querySelector = originalSelector;
   }
-
-  document.querySelector = originalSelector;
 }
 
 window.appendMessage = function(sender, content, type, skipHistory = false) {

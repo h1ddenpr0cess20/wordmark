@@ -208,7 +208,13 @@ export async function runTurn({
   let aggregateText = '';
   let aggregateReasoning = '';
 
+  const MAX_TOOL_CALL_ITERATIONS = 20;
+  let toolCallIteration = 0;
+
   while (true) {
+    if (++toolCallIteration > MAX_TOOL_CALL_ITERATIONS) {
+      throw new Error(`Tool call loop exceeded maximum of ${MAX_TOOL_CALL_ITERATIONS} iterations`);
+    }
     const body = buildRequestBody({
       inputMessages: workingMessages,
       instructions: typeof instructions === 'string' && instructions.trim() ? instructions : undefined,

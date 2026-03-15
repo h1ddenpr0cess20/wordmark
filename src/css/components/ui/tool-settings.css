@@ -398,6 +398,11 @@
   gap: 12px;
 }
 
+.mcp-server-description {
+  font-size: 0.8rem;
+  margin-top: 4px;
+}
+
 /* MCP Add Form Styling */
 
 .mcp-add-form {
