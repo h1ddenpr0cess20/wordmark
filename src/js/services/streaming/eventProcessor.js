@@ -275,7 +275,24 @@ export function createStreamingEventProcessor(runtime) {
       const itype = item?.type ? String(item.type).toLowerCase() : '';
       const itemId = item?.id || '';
 
-      if ((itype.includes('tool') || itype.includes('function')) && !itype.includes('output')) {
+      if (itype === 'shell_call') {
+        toolExecutions.set(itemId, {
+          name: 'shell',
+          status: 'started',
+          startTime: Date.now(),
+        });
+        const cmds = item?.action?.commands;
+        if (Array.isArray(cmds) && cmds.length > 0) {
+          runtime.appendReasoningLine('**🖥️ shell**:');
+          cmds.forEach(c => {
+            runtime.appendReasoningLine(`  \`$ ${c.length > 120 ? c.slice(0, 120) + '…' : c}\``);
+          });
+          runtime.appendReasoningLine('  ⏳ _executing…_');
+        } else {
+          runtime.appendReasoningLine('**🖥️ shell**:');
+          runtime.appendReasoningLine('  ⏳ _executing…_');
+        }
+      } else if ((itype.includes('tool') || itype.includes('function')) && !itype.includes('output')) {
         const name = item?.name || item?.tool_name || item?.function?.name || 'tool';
         toolExecutions.set(itemId, {
           name,
@@ -291,7 +308,87 @@ export function createStreamingEventProcessor(runtime) {
       const itype = item?.type ? String(item.type).toLowerCase() : '';
       const itemId = item?.id || '';
 
-      if ((itype.includes('tool') || itype.includes('function')) && !itype.includes('output')) {
+      if (itype === 'shell_call') {
+        const exec = toolExecutions.get(itemId);
+        if (exec) {
+          const duration = Date.now() - exec.startTime;
+          runtime.appendReasoningLine(`  ✔️ _completed in ${duration}ms_`);
+          runtime.appendReasoningLine('');
+          toolExecutions.delete(itemId);
+        }
+      } else if (itype === 'shell_call_output') {
+        const outputList = Array.isArray(item?.output) ? item.output : [];
+        for (const out of outputList) {
+          if (!out || typeof out !== 'object') continue;
+          const stdout = typeof out.stdout === 'string' ? out.stdout.trim() : '';
+          const stderr = typeof out.stderr === 'string' ? out.stderr.trim() : '';
+          const outcome = out.outcome || {};
+          if (stdout) {
+            const lines = stdout.split('\n');
+            const preview = lines.length > 15
+              ? [...lines.slice(0, 15), `… (${lines.length - 15} more lines)`]
+              : lines;
+            runtime.appendReasoningLine('  ```');
+            preview.forEach(line => runtime.appendReasoningLine(`  ${line}`));
+            runtime.appendReasoningLine('  ```');
+          }
+          if (stderr) {
+            const lines = stderr.split('\n');
+            const preview = lines.length > 10
+              ? [...lines.slice(0, 10), `… (${lines.length - 10} more lines)`]
+              : lines;
+            runtime.appendReasoningLine('  ⚠️ stderr:');
+            runtime.appendReasoningLine('  ```');
+            preview.forEach(line => runtime.appendReasoningLine(`  ${line}`));
+            runtime.appendReasoningLine('  ```');
+          }
+          if (outcome.type === 'exit' && typeof outcome.exit_code === 'number' && outcome.exit_code !== 0) {
+            runtime.appendReasoningLine(`  ❌ _exit code: ${outcome.exit_code}_`);
+          }
+          if (outcome.type === 'timeout') {
+            runtime.appendReasoningLine('  ⏳ _timed out_');
+          }
+        }
+        runtime.appendReasoningLine('');
+      } else if (itype.includes('code_interpreter')) {
+        const ciRoot = item?.code_interpreter_call || item;
+        const ciOutputs = ciRoot?.results || ciRoot?.outputs || ciRoot?.output || [];
+        const outputArr = Array.isArray(ciOutputs) ? ciOutputs : [];
+        const topLogs = typeof ciRoot?.logs === 'string' ? ciRoot.logs.trim() : '';
+        if (topLogs) {
+          const lines = topLogs.split('\n');
+          const preview = lines.length > 20
+            ? [...lines.slice(0, 20), `… (${lines.length - 20} more lines)`]
+            : lines;
+          runtime.appendReasoningLine('  📄 output:');
+          runtime.appendReasoningLine('  ```');
+          preview.forEach(line => runtime.appendReasoningLine(`  ${line}`));
+          runtime.appendReasoningLine('  ```');
+        }
+        for (const out of outputArr) {
+          if (!out || typeof out !== 'object') continue;
+          const outType = typeof out.type === 'string' ? out.type.toLowerCase() : '';
+          if (outType.includes('log') || outType === 'stderr') {
+            const raw = out.logs ?? out.text ?? out.content ?? '';
+            const text = Array.isArray(raw) ? raw.join('\n') : (raw ? String(raw) : '');
+            if (text && text.trim()) {
+              const lines = text.trim().split('\n');
+              const preview = lines.length > 20
+                ? [...lines.slice(0, 20), `… (${lines.length - 20} more lines)`]
+                : lines;
+              runtime.appendReasoningLine('  📄 output:');
+              runtime.appendReasoningLine('  ```');
+              preview.forEach(line => runtime.appendReasoningLine(`  ${line}`));
+              runtime.appendReasoningLine('  ```');
+            }
+          } else if (outType.includes('image') || outType.includes('file')) {
+            const filename = out.filename || out.name || out.file_id || out.fileId || '';
+            if (filename) {
+              runtime.appendReasoningLine(`  📄 _${filename}_`);
+            }
+          }
+        }
+      } else if ((itype.includes('tool') || itype.includes('function')) && !itype.includes('output')) {
         const exec = toolExecutions.get(itemId);
         if (exec) {
           const duration = Date.now() - exec.startTime;
@@ -479,11 +576,10 @@ export function createStreamingEventProcessor(runtime) {
     }
     case 'response.code_interpreter_call.in_progress': {
       runtime.appendReasoningLine('**💻 code_interpreter**:');
-      runtime.appendReasoningLine('  ⏳ _preparing…_');
       break;
     }
     case 'response.code_interpreter_call.interpreting': {
-      runtime.updateLastReasoningLine('  ▶️ _executing…_');
+      runtime.appendReasoningLine('  ▶️ _executing…_');
       break;
     }
     case 'response.code_interpreter_call.completed': {
@@ -513,19 +609,10 @@ export function createStreamingEventProcessor(runtime) {
         ? payload.code
         : (payload.code ? JSON.stringify(payload.code) : bufferGet(codeBuffers, itemId));
       if (code && code.length > 0) {
-        const preview = code.length > 200 ? `${code.slice(0, 200)}…` : code;
-        const lines = preview.split('\n');
-        if (lines.length > 5) {
-          runtime.appendReasoningLine(`  code: (${lines.length} lines)`);
-          lines.slice(0, 5).forEach(line => {
-            runtime.appendReasoningLine(`    ${line}`);
-          });
-          if (lines.length > 5) {
-            runtime.appendReasoningLine(`    ... (${lines.length - 5} more lines)`);
-          }
-        } else {
-          runtime.appendReasoningLine(`  code: ${preview}`);
-        }
+        const lines = code.split('\n');
+        runtime.appendReasoningLine('  ```python');
+        lines.forEach(line => runtime.appendReasoningLine(`  ${line}`));
+        runtime.appendReasoningLine('  ```');
       }
       activeCodeStreams.delete(itemId);
       break;

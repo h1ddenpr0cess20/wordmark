@@ -132,8 +132,11 @@ window.renderConversationMessages = function(convo, imageCache) {
       return originalSelector.call(document, selector);
     };
 
-    window.renderWordmarkLogo?.();
-    document.querySelector = originalSelector;
+    try {
+      window.renderWordmarkLogo?.();
+    } finally {
+      document.querySelector = originalSelector;
+    }
 
     messageElement.appendChild(sender);
 

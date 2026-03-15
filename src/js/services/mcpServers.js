@@ -87,26 +87,47 @@ function renderMCPServersList() {
     return;
   }
 
-  container.innerHTML = servers.map(server => `
-    <div class="mcp-server-item" data-server-label="${server.server_label}">
-      <div class="mcp-server-info">
-        <strong>${server.displayName}</strong>
-        <div class="mcp-server-details">
-          <code>${server.server_url}</code>
-          ${server.description ? `<div style="font-size: 0.8rem; margin-top: 4px;">${server.description}</div>` : ""}
-        </div>
-      </div>
-      <button type="button" class="mcp-server-remove" data-server-label="${server.server_label}" title="Remove Server">
-        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <use href="src/assets/icons.svg#trash"></use>
-        </svg>
-      </button>
-    </div>
-  `).join("");
+  container.innerHTML = "";
 
-  // Add event listeners for remove buttons
-  container.querySelectorAll(".mcp-server-remove").forEach(button => {
-    button.addEventListener("click", handleRemoveServer);
+  servers.forEach(server => {
+    const item = document.createElement("div");
+    item.className = "mcp-server-item";
+    item.dataset.serverLabel = server.server_label;
+
+    const info = document.createElement("div");
+    info.className = "mcp-server-info";
+
+    const name = document.createElement("strong");
+    name.textContent = server.displayName;
+    info.appendChild(name);
+
+    const details = document.createElement("div");
+    details.className = "mcp-server-details";
+
+    const url = document.createElement("code");
+    url.textContent = server.server_url;
+    details.appendChild(url);
+
+    if (server.description) {
+      const desc = document.createElement("div");
+      desc.className = "mcp-server-description";
+      desc.textContent = server.description;
+      details.appendChild(desc);
+    }
+
+    info.appendChild(details);
+    item.appendChild(info);
+
+    const removeBtn = document.createElement("button");
+    removeBtn.type = "button";
+    removeBtn.className = "mcp-server-remove";
+    removeBtn.dataset.serverLabel = server.server_label;
+    removeBtn.title = "Remove Server";
+    removeBtn.innerHTML = window.icon("trash", { width: 16, height: 16 });
+    removeBtn.addEventListener("click", handleRemoveServer);
+    item.appendChild(removeBtn);
+
+    container.appendChild(item);
   });
 }
 
