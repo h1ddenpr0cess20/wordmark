@@ -51,7 +51,7 @@ export function buildRequestBody({
       verbosity: verbosity || DEFAULT_VERBOSITY,
     },
     input: serializeMessagesForRequest(inputMessages),
-    store: true,
+    store: false,
   };
   if (serviceKey !== 'xai' && !isLocalService) {
     payload.include = [...DEFAULT_INCLUDE_FIELDS];
