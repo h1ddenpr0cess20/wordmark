@@ -19,6 +19,7 @@ Defined in `src/config/config.js` under `window.config.services` with a `default
   - Supports MCP connectors; local-network servers remain blocked for security when using xAI
   - Requires `text.format` removal when using server-side tools (web/X search, Code Interpreter, MCP connectors)
   - Provider-managed Code Interpreter ignores OpenAI-specific container options
+  - File attachments use direct `input_file` references (uploaded via `/v1/files`, referenced by `file_id` in message content) instead of vector stores
 - **LM Studio** (`lmstudio`) - Local OpenAI-compatible server
   - Models fetched dynamically via `<baseUrl>/models`
   - No API key required
@@ -71,7 +72,7 @@ Tools are managed by `src/js/services/api/toolManager.js`:
 - **Web Search** (`builtin:web_search`) - Provider-managed web search; xAI also surfaces `x_search` for Twitter/X
 - **Code Interpreter** (`builtin:code_interpreter`) - Python sandbox execution
 - **Image Generation** (`builtin:image_generation`) - OpenAI DALL-E integration (automatically disabled when Codex models are selected)
-- **File Search** (`builtin:file_search`) - Vector store lookup for uploaded documents
+- **File Search** (`builtin:file_search`) - Vector store lookup for uploaded documents (OpenAI only)
 
 ### MCP Servers
 - User-configured servers registered via `registerMcpServer()`
@@ -114,13 +115,20 @@ See [Streaming](./streaming.md) for details on reasoning display formatting.
 
 ## File & Vector Store Services
 
-- `src/js/services/files.js` exposes helpers to list, delete, and bulk-delete assistants files. All requests are authorised via `ensureApiKey()` and point at `getBaseUrl()`.
-  - `listAssistantFiles()` filters by `purpose=assistants`
-  - `deleteAllAssistantFiles()` aggregates successes/errors so the UI can surface partial failures
-- `src/js/services/vectorStore.js` covers upload + attachment workflows, creation/deletion, polling, and local metadata storage.
+Document attachments are handled differently per provider:
+
+- **OpenAI**: Files are uploaded to `/v1/files`, attached to a vector store, and searched via the `file_search` tool. Requires the File Search tool to be enabled in Settings.
+- **xAI**: Files are uploaded to `/v1/files` and referenced directly in message content as `input_file` parts with the returned `file_id`. No vector stores or file_search tool needed.
+
+Shared infrastructure in `src/js/services/vectorStore.js`:
+  - `uploadFile()` uploads a file to the active provider's `/files` endpoint (used by both OpenAI and xAI)
   - `filterSupportedFiles()` blocks unsupported extensions before upload
-  - `uploadAndAttachFiles()` batches uploads, attaches them to a newly created store, and reports skipped items
+  - `uploadAndAttachFiles()` batches uploads and attaches them to a newly created vector store (OpenAI path)
   - `saveVectorStoreMetadata()` / `getVectorStoreMetadata()` persist IDs + names so the UI can pre-populate selectors
   - `waitForFileProcessing()` polls `vector_stores/{id}/files/{fileId}` until `completed`, raising on `failed`/timeout
 
-These flows are covered by `tests/filesService.spec.js` and `tests/vectorStoreService.spec.js`, which stub `fetch` to ensure we make the correct REST calls and handle error paths gracefully.
+`src/js/services/files.js` exposes helpers to list, delete, and bulk-delete assistants files. All requests are authorised via `ensureApiKey()` and point at `getBaseUrl()`.
+  - `listAssistantFiles()` filters by `purpose=assistants`
+  - `deleteAllAssistantFiles()` aggregates successes/errors so the UI can surface partial failures
+
+These flows are covered by `tests/filesService.spec.js`, `tests/vectorStoreService.spec.js`, and `tests/messageUtils.spec.js`.

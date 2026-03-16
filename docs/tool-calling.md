@@ -22,7 +22,7 @@ Built-in Tools
 - `web_search` (type: `builtin`) — Provider-managed web search (OpenAI, xAI). For xAI, also includes `x_search` for Twitter/X search.
 - `code_interpreter` (type: `builtin`) — Python code execution in provider sandbox (OpenAI, xAI). Outputs handled by `src/js/services/streaming/codeInterpreter.js`.
 - `image_generation` (type: `builtin`) — OpenAI image generation. Outputs processed by `src/js/services/streaming/imageGeneration.js`.
-- `file_search` (type: `builtin`) — Vector store search across uploaded documents. Rendered in reasoning timeline.
+- `file_search` (type: `builtin`) — Vector store search across uploaded documents (OpenAI only). Rendered in reasoning timeline. xAI uses direct `input_file` references instead.
 - MCP connectors (type: `mcp`) — User-supplied servers registered in Settings → Tools. Availability depends on the external MCP server responding to ping checks.
 
 Credentials
