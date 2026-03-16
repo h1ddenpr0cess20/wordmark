@@ -1,6 +1,7 @@
 window.initTtsReferences = function(refs) {
   this.ttsToggle = refs.ttsToggle;
   this.ttsAutoplayToggle = refs.ttsAutoplayToggle;
+  this.ttsProviderSelector = refs.ttsProviderSelector;
   this.ttsVoiceSelector = refs.ttsVoiceSelector;
   this.ttsInstructionsInput = refs.ttsInstructionsInput;
   this.personalityInput = refs.personalityInput;

@@ -38,6 +38,7 @@ function initializeDOMReferences() {
   // TTS elements
   window.ttsToggle = document.getElementById("tts-toggle");
   window.ttsAutoplayToggle = document.getElementById("tts-autoplay-toggle");
+  window.ttsProviderSelector = document.getElementById("tts-provider-selector");
   window.ttsVoiceSelector = document.getElementById("tts-voice-selector");
   window.ttsInstructionsInput = document.getElementById("tts-instructions");
   window.testTtsButton = document.getElementById("test-tts");

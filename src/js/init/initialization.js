@@ -241,6 +241,11 @@ async function initialize() {
     // Initialize services and models
     initializeServicesAndModels();
 
+    // Initialize TTS voice selector and provider state
+    if (typeof window.initializeTts === "function") {
+      window.initializeTts();
+    }
+
     // Initialize mobile keyboard handling
     window.initializeMobileKeyboardHandling();
     if (window.VERBOSE_LOGGING) {
