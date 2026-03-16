@@ -1,98 +1,117 @@
-  # Wordmark
+# Wordmark
 
-  <div align="center">
+<div align="center">
 
-  ![Wordmark Logo](src/assets/img/logo.svg)
+![Wordmark Logo](src/assets/img/logo.svg)
 
-  **An open source AI assistant platform**
+**An open source AI assistant platform**
 
-  [![Version](https://img.shields.io/badge/version-v1.3.0-blue.svg)](https://github.com/h1ddenpr0cess20/Wordmark)
-  [![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
-  [![JavaScript](https://img.shields.io/badge/javascript-ES6+-yellow.svg)](https://developer.mozilla.org/en-US/docs/Web/JavaScript)
+[![Version](https://img.shields.io/badge/version-v1.5.0-blue.svg)](https://github.com/h1ddenpr0cess20/Wordmark)
+[![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
+[![JavaScript](https://img.shields.io/badge/javascript-ES6+-yellow.svg)](https://developer.mozilla.org/en-US/docs/Web/JavaScript)
 
-  <!-- Project and repository status badges -->
-  [![Stars](https://img.shields.io/github/stars/h1ddenpr0cess20/Wordmark.svg?logo=github)](https://github.com/h1ddenpr0cess20/Wordmark/stargazers)
-  [![Issues](https://img.shields.io/github/issues/h1ddenpr0cess20/Wordmark.svg)](https://github.com/h1ddenpr0cess20/Wordmark/issues)
-  [![PRs](https://img.shields.io/github/issues-pr/h1ddenpr0cess20/Wordmark.svg)](https://github.com/h1ddenpr0cess20/Wordmark/pulls)
-  [![Last Commit](https://img.shields.io/github/last-commit/h1ddenpr0cess20/Wordmark.svg)](https://github.com/h1ddenpr0cess20/Wordmark/commits)
+<!-- Project and repository status badges -->
+[![Stars](https://img.shields.io/github/stars/h1ddenpr0cess20/Wordmark.svg?logo=github)](https://github.com/h1ddenpr0cess20/Wordmark/stargazers)
+[![Issues](https://img.shields.io/github/issues/h1ddenpr0cess20/Wordmark.svg)](https://github.com/h1ddenpr0cess20/Wordmark/issues)
+[![PRs](https://img.shields.io/github/issues-pr/h1ddenpr0cess20/Wordmark.svg)](https://github.com/h1ddenpr0cess20/Wordmark/pulls)
+[![Last Commit](https://img.shields.io/github/last-commit/h1ddenpr0cess20/Wordmark.svg)](https://github.com/h1ddenpr0cess20/Wordmark/commits)
 
-  </div>
+</div>
 
-  ## Overview
+## Overview
 
-  Wordmark is a client‑side AI chat for OpenAI/xAI Responses APIs and local LM Studio or Ollama servers. It supports tool/function calling, TTS, themes, and fully local storage — no backend required.
+Wordmark is a client-side AI chat for OpenAI/xAI Responses APIs and local LM Studio or Ollama servers. It supports tool/function calling, TTS, themes, and fully local storage — no backend required.
 
-  Start with the guides: [Getting Started](docs/getting-started.md) · [Overview](docs/overview.md) · [Services & Models](docs/services.md) · [Tool Calling](docs/tool-calling.md) · [Memory](docs/memory.md) · [Security](docs/security.md) · [Storage](docs/storage.md) · [UI & UX](docs/ui-and-ux.md) · [Docker](docs/docker.md) · [Troubleshooting](docs/troubleshooting.md)
+**Docs:**
+- [Getting Started](docs/getting-started.md)
+- [Overview](docs/overview.md)
+- [Services & Models](docs/services.md)
+- [Tool Calling](docs/tool-calling.md)
+- [Streaming](docs/streaming.md)
+- [Memory](docs/memory.md)
+- [Security](docs/security.md)
+- [Storage](docs/storage.md)
+- [UI & UX](docs/ui-and-ux.md)
+- [Docker](docs/docker.md)
+- [Troubleshooting](docs/troubleshooting.md)
 
-  ## Features
+## Features
 
-  - Providers: OpenAI Responses (hosted), xAI Grok (Responses-compatible), and local LM Studio or Ollama servers — setup details in [Services & Models](docs/services.md)
-  - Tool calling: built-in Open-Meteo weather helper, provider web + X search, Code Interpreter, optional image generation and file search, plus your own MCP servers — see [Tool Calling](docs/tool-calling.md)
-  - Streaming & reasoning: dedicated reasoning panel, rich tool timelines, inline code previews, and automatic image capture — more in [Streaming](docs/streaming.md)
-  - UX: themes, responsive layout, syntax highlighting, markdown, image gallery — design notes in [UI & UX](docs/ui-and-ux.md)
-  - TTS: 13 voices (including cedar and marin), optional autoplay, per-message controls, audio cached locally
-  - Local‑only storage: conversations, images, audio via IndexedDB; keys kept in the browser — details in [Storage](docs/storage.md)
-  - Optional memory: local, FIFO‑limited memories appended to the system prompt — behavior and API in [Memory](docs/memory.md)
+- **Providers** — OpenAI Responses (hosted), xAI Grok (Responses-compatible), and local LM Studio or Ollama servers ([Services & Models](docs/services.md))
+- **Tool calling** — built-in weather, provider web + X search, Code Interpreter, image generation, file search (OpenAI), direct file attachments (xAI), and custom MCP servers ([Tool Calling](docs/tool-calling.md))
+- **Streaming & reasoning** — dedicated reasoning panel, rich tool timelines, inline code previews, automatic image capture ([Streaming](docs/streaming.md))
+- **TTS** — OpenAI (13 voices) and xAI (5 voices) providers, optional autoplay, per-message controls, audio cached locally
+- **UX** — themes, responsive layout, syntax highlighting, markdown, image gallery ([UI & UX](docs/ui-and-ux.md))
+- **Local-only storage** — conversations, images, and audio via IndexedDB; keys stay in the browser ([Storage](docs/storage.md))
+- **Memory** — local, FIFO-limited memories appended to the system prompt ([Memory](docs/memory.md))
 
-  ## Quick Start
+## Quick Start
 
-  - Clone and open:
-    ```bash
-    git clone https://github.com/h1ddenpr0cess20/Wordmark.git
-    cd Wordmark
-    ```
-    - Open `index.html` directly, or serve over HTTPS for APIs, TTS, and geolocation (see the [Getting Started guide](docs/getting-started.md)).
-  - In Settings → API Keys, add your OpenAI/xAI keys and set base URLs for LM Studio or Ollama (defaults are local). Keys and URLs are stored locally.
-  Local models:
-  - LM Studio: run the server (default `http://localhost:1234`), set the base URL in Settings → API Keys, then select LM Studio in Settings → Model — see the [LM Studio guide](docs/lm-studio.md)
-  - Ollama: run the server (default `http://localhost:11434`), set the base URL in Settings → API Keys, then select Ollama in Settings → Model
-  - **Note:** Chrome may prompt you to allow access to your local network. This is only used to connect to local LM Studio/Ollama servers and nothing else.
+```bash
+git clone https://github.com/h1ddenpr0cess20/Wordmark.git
+cd Wordmark
+```
 
-  ## HTTPS and Docker
+Open `index.html` directly, or serve over HTTPS for APIs, TTS, and geolocation (see [Getting Started](docs/getting-started.md)).
 
-  - HTTPS: recommended for full functionality — quick steps in [Getting Started](docs/getting-started.md)
-  - Docker/Compose: full instructions and SSL options in the [Docker guide](docs/docker.md)
+1. In **Settings → API Keys**, add your OpenAI/xAI keys. Keys and URLs are stored locally.
+2. Choose a provider and model in **Settings → Model**.
+3. Type a message and send.
 
-  Common Docker commands:
-  - Build image:
-    ```bash
-    docker build -t wordmark:latest .
-    ```
-  - Run (HTTP on port 8080 → 80 in container):
-    ```bash
-    docker run --rm -p 8080:80 wordmark:latest
-    ```
+### Local Models
 
-  ## Architecture & Development
+- **LM Studio** — run the server (default `http://localhost:1234`), set the base URL in Settings → API Keys, then select LM Studio in Settings → Model ([LM Studio guide](docs/lm-studio.md))
+- **Ollama** — run the server (default `http://localhost:11434`), set the base URL in Settings → API Keys, then select Ollama in Settings → Model
 
-  - High‑level architecture: [Architecture](docs/architecture.md)
-  - Storage, security, and data handling: [Security](docs/security.md) and [Storage](docs/storage.md)
-  - UI/UX notes and layout: [UI & UX](docs/ui-and-ux.md)
-  - Developer guide and contribution notes: [Development](docs/development.md) and [CONTRIBUTING](CONTRIBUTING.md)
+> **Note:** Chrome may prompt you to allow local network access. This is only used to connect to local LM Studio/Ollama servers.
 
-  Common tasks:
-  - Add tools: extend the catalog in `src/js/services/api/toolManager.js` and implement handlers (see `src/js/services/weather.js`) — details in [Tool Calling](docs/tool-calling.md)
-  - Adjust models/providers: edit `src/config/config.js` (OpenAI defaults, LM Studio/Ollama connectors) — see [Services & Models](docs/services.md)
-  - Themes and styling: `src/css/themes/**`, `src/css/components/**`
+## HTTPS & Docker
 
-  ## Usage
+HTTPS is recommended for full functionality — quick steps in [Getting Started](docs/getting-started.md). Full Docker/Compose instructions and SSL options in the [Docker guide](docs/docker.md).
 
-  - Choose provider/model in Settings, type a message, send, and stream results.
-  - Enable Tools in Settings to allow function calls for weather, OpenAI-managed web search, and any MCP servers you connect — details in [Tool Calling](docs/tool-calling.md)
-  - Manage conversations, images, and audio locally via History and Gallery.
+```bash
+# Pull from Docker Hub and run
+docker run --rm -p 8080:80 h1ddenpr0cess20/wordmark:latest
+```
 
-  ## Policies & Notes
+Or build from source:
 
-  - Privacy/Security: client‑side only; no tracking — see [Security](docs/security.md)
-  - Troubleshooting: common issues and tips — see [Troubleshooting](docs/troubleshooting.md)
-  - Not a Companion: philosophy and boundaries — read [Not a Companion](docs/not-a-companion.md)
+```bash
+docker build -t wordmark:latest .
+docker run --rm -p 8080:80 wordmark:latest
+```
 
-  ## License
+## Architecture & Development
 
-  MIT — see LICENSE
+- [Architecture](docs/architecture.md) — high-level structure
+- [Security](docs/security.md) & [Storage](docs/storage.md) — data handling
+- [UI & UX](docs/ui-and-ux.md) — layout and design
+- [Development](docs/development.md) & [CONTRIBUTING](CONTRIBUTING.md) — developer guide
 
-  ---
+**Common tasks:**
 
-  <div align="center">
-  <strong>© 2025 Dustin Whyte | Released under the MIT License</strong>
-  </div>
+- **Add tools** — extend the catalog in `src/js/services/api/toolManager.js` and implement handlers (see `src/js/services/weather.js`) — [Tool Calling](docs/tool-calling.md)
+- **Adjust models/providers** — edit `src/config/config.js` — [Services & Models](docs/services.md)
+- **Themes and styling** — `src/css/themes/**`, `src/css/components/**`
+
+## Usage
+
+- Enable **Tools** in Settings to allow function calls for weather, web search, file attachments, and any MCP servers you connect ([Tool Calling](docs/tool-calling.md))
+- Manage conversations, images, and audio locally via **History** and **Gallery**
+- Use **TTS** for spoken responses — configure provider and voice in Settings → TTS
+
+## Policies & Notes
+
+- **Privacy/Security** — client-side only; no tracking ([Security](docs/security.md))
+- **Troubleshooting** — common issues and tips ([Troubleshooting](docs/troubleshooting.md))
+- **Not a Companion** — philosophy and boundaries ([Not a Companion](docs/not-a-companion.md))
+
+## License
+
+MIT — see LICENSE
+
+---
+
+<div align="center">
+<strong>&copy; 2025 Dustin Whyte | Released under the MIT License</strong>
+</div>
