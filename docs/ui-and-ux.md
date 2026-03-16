@@ -37,8 +37,10 @@ Uploads
 
 TTS
 
-- Toggle + settings in the Settings panel. Voices are categorized (neutral/male/female per current `tts.js`).
-- When enabled, the app can autoplay newly generated assistant messages. Audio is cached in IndexedDB.
+- Toggle via the header TTS badge or in Settings → TTS. 13 voices organized by gender (neutral: fable; male: ash, ballad, cedar, echo, onyx, verse; female: alloy, coral, marin, nova, sage, shimmer). Cedar and marin are recommended by OpenAI for best quality.
+- Optional voice instructions let you customize speech style (e.g. "Speak cheerfully"). Falls back to the active personality prompt if set.
+- Autoplay mode queues and plays new assistant messages sequentially. Per-message controls provide play/pause, stop, and download (WAV).
+- Audio is cached in IndexedDB (last 15 files kept). Uses the `gpt-4o-mini-tts` model via the OpenAI API.
 
 Mobile
 

@@ -29,6 +29,7 @@ window.availableTtsVoices = {
   male: [
     { id: 'ash', name: 'Ash', gender: 'Male' },
     { id: 'ballad', name: 'Ballad', gender: 'Male' },
+    { id: 'cedar', name: 'Cedar', gender: 'Male' },
     { id: 'echo', name: 'Echo', gender: 'Male' },
     { id: 'onyx', name: 'Onyx', gender: 'Male' },
     { id: 'verse', name: 'Verse', gender: 'Male' },
@@ -36,6 +37,7 @@ window.availableTtsVoices = {
   female: [
     { id: 'alloy', name: 'Alloy', gender: 'Female' },
     { id: 'coral', name: 'Coral', gender: 'Female' },
+    { id: 'marin', name: 'Marin', gender: 'Female' },
     { id: 'nova', name: 'Nova', gender: 'Female' },
     { id: 'sage', name: 'Sage', gender: 'Female' },
     { id: 'shimmer', name: 'Shimmer', gender: 'Female' },

@@ -15,7 +15,7 @@ Key Features
 - Themes and responsive UI
  - Header shortcuts and indicators:
    - Click the logo (About), model name (Model), or personality line (Personality) to open those Settings tabs.
-   - Feature badges beneath the prompt show Location/Memory/Tools status; tap the dot to toggle, click the label to open settings.
+   - Feature badges beneath the prompt show Location/Memory/Tools/TTS status; tap the dot to toggle, click the label to open settings.
    - Hover the model name to see a provider tooltip (OpenAI, xAI, LM Studio, or Ollama).
 
 How It Starts

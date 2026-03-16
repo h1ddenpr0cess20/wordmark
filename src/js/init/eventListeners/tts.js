@@ -18,6 +18,9 @@ export function setupTtsEventListeners() {
           window.stopTtsAudio();
         }
       }
+      if (typeof window.updateFeatureStatus === 'function') {
+        window.updateFeatureStatus();
+      }
     });
   }
 
