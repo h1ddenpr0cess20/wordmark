@@ -260,6 +260,7 @@ window.updateFeatureStatus = function() {
     memory: (() => { try { return Boolean(window.getMemoryConfig && window.getMemoryConfig().enabled); } catch { return false; } })(),
     tools: Boolean(window.config && window.config.enableFunctionCalling !== false),
     data: Boolean(typeof window.getDataSettingsEnabled === "function" ? window.getDataSettingsEnabled() : (localStorage.getItem("dataSettingsEnabled") !== "false")),
+    tts: Boolean(window.ttsConfig?.enabled),
   };
 
   // Rebuild to bind handlers
@@ -336,6 +337,14 @@ window.updateFeatureStatus = function() {
         }
         break;
       }
+      case "tts": {
+        const toggle = document.getElementById("tts-toggle");
+        if (toggle) {
+          toggle.checked = !isOn;
+          toggle.dispatchEvent(new Event("change", { bubbles: true }));
+        }
+        break;
+      }
       }
       setTimeout(() => window.updateFeatureStatus(), 50);
     };
@@ -361,6 +370,7 @@ window.updateFeatureStatus = function() {
   el.appendChild(makeBadge("Memory", "memory", state.memory, "tab-memory"));
   el.appendChild(makeBadge("Tools", "tools", state.tools, "tab-tools"));
   el.appendChild(makeBadge("Data", "data", state.data, "tab-data"));
+  el.appendChild(makeBadge("TTS", "tts", state.tts, "tab-tts"));
 };
 
 /**

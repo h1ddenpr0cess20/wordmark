@@ -30,7 +30,7 @@
   - Tool calling: built-in Open-Meteo weather helper, provider web + X search, Code Interpreter, optional image generation and file search, plus your own MCP servers — see [Tool Calling](docs/tool-calling.md)
   - Streaming & reasoning: dedicated reasoning panel, rich tool timelines, inline code previews, and automatic image capture — more in [Streaming](docs/streaming.md)
   - UX: themes, responsive layout, syntax highlighting, markdown, image gallery — design notes in [UI & UX](docs/ui-and-ux.md)
-  - TTS: multiple voices, optional autoplay, simple controls
+  - TTS: 13 voices (including cedar and marin), optional autoplay, per-message controls, audio cached locally
   - Local‑only storage: conversations, images, audio via IndexedDB; keys kept in the browser — details in [Storage](docs/storage.md)
   - Optional memory: local, FIFO‑limited memories appended to the system prompt — behavior and API in [Memory](docs/memory.md)
 
