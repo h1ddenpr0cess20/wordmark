@@ -19,6 +19,15 @@
   </div>
 
   <div class="setting-item">
+    <label for="tts-provider-selector">TTS Provider</label>
+    <select id="tts-provider-selector">
+      <option value="openai">OpenAI</option>
+      <option value="xai">xAI (Grok)</option>
+    </select>
+    <p class="info-text">Select which service to use for speech generation</p>
+  </div>
+
+  <div class="setting-item">
     <label for="tts-voice-selector">TTS Voice</label>
     <select id="tts-voice-selector">
       <!-- Voice options will be populated dynamically -->

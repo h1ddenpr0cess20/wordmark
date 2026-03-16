@@ -6,6 +6,13 @@
  * Initialize TTS functionality
  */
 function initializeTts() {
+  if (!window.ttsConfig) return;
+
+  // Initialize TTS provider selector
+  if (window.ttsProviderSelector) {
+    window.ttsProviderSelector.value = window.ttsConfig.provider || 'openai';
+  }
+
   // Populate TTS voice selector
   populateTtsVoiceSelector();
 
@@ -22,6 +29,11 @@ function initializeTts() {
   // Initialize TTS instructions
   if (window.ttsInstructionsInput) {
     window.ttsInstructionsInput.value = window.ttsConfig.instructions || "";
+    // xAI TTS doesn't support voice instructions
+    const instructionsItem = window.ttsInstructionsInput.closest('.setting-item');
+    if (instructionsItem) {
+      instructionsItem.style.display = (window.ttsConfig.provider || 'openai') === 'xai' ? 'none' : '';
+    }
   }
 
   // Share references with TTS service
@@ -29,6 +41,7 @@ function initializeTts() {
     window.initTtsReferences({
       ttsToggle: window.ttsToggle,
       ttsAutoplayToggle: window.ttsAutoplayToggle,
+      ttsProviderSelector: window.ttsProviderSelector,
       ttsVoiceSelector: window.ttsVoiceSelector,
       ttsInstructionsInput: window.ttsInstructionsInput,
       personalityInput: window.personalityInput,
@@ -43,53 +56,35 @@ function initializeTts() {
  * Populate the TTS voice selector with available voices
  */
 function populateTtsVoiceSelector() {
-  if (window.ttsVoiceSelector && window.availableTtsVoices) {
-    // Clear existing options
+  if (window.ttsVoiceSelector && window.availableTtsVoices && window.ttsConfig) {
     window.ttsVoiceSelector.innerHTML = "";
 
-    // Add categorized voices with optgroups
-    const voices = window.availableTtsVoices;
+    const provider = window.ttsConfig.provider || 'openai';
+    const voices = window.availableTtsVoices[provider];
+    if (!voices) return;
 
-    // Add Neutral voices
-    if (voices.neutral && voices.neutral.length > 0) {
-      const neutralGroup = document.createElement("optgroup");
-      neutralGroup.label = "Neutral";
-      voices.neutral.forEach(voice => {
-        const option = document.createElement("option");
-        option.value = voice.id;
-        option.textContent = voice.name;
-        neutralGroup.appendChild(option);
-      });
-      window.ttsVoiceSelector.appendChild(neutralGroup);
+    const categories = ['neutral', 'male', 'female'];
+    const labels = { neutral: 'Neutral', male: 'Male', female: 'Female' };
+
+    for (const category of categories) {
+      if (voices[category] && voices[category].length > 0) {
+        const group = document.createElement("optgroup");
+        group.label = labels[category];
+        voices[category].forEach(voice => {
+          const option = document.createElement("option");
+          option.value = voice.id;
+          option.textContent = voice.name;
+          group.appendChild(option);
+        });
+        window.ttsVoiceSelector.appendChild(group);
+      }
     }
 
-    // Add Male voices
-    if (voices.male && voices.male.length > 0) {
-      const maleGroup = document.createElement("optgroup");
-      maleGroup.label = "Male";
-      voices.male.forEach(voice => {
-        const option = document.createElement("option");
-        option.value = voice.id;
-        option.textContent = voice.name;
-        maleGroup.appendChild(option);
-      });
-      window.ttsVoiceSelector.appendChild(maleGroup);
+    // If current voice isn't in the new provider's list, select the first available
+    const allVoiceIds = categories.flatMap(c => (voices[c] || []).map(v => v.id));
+    if (!allVoiceIds.includes(window.ttsConfig.voice)) {
+      window.ttsConfig.voice = allVoiceIds[0] || '';
     }
-
-    // Add Female voices
-    if (voices.female && voices.female.length > 0) {
-      const femaleGroup = document.createElement("optgroup");
-      femaleGroup.label = "Female";
-      voices.female.forEach(voice => {
-        const option = document.createElement("option");
-        option.value = voice.id;
-        option.textContent = voice.name;
-        femaleGroup.appendChild(option);
-      });
-      window.ttsVoiceSelector.appendChild(femaleGroup);
-    }
-
-    // Set default voice
     window.ttsVoiceSelector.value = window.ttsConfig.voice;
   }
 }

@@ -62,6 +62,7 @@ window.setNoPromptButton = null;
 // TTS-related references
 window.ttsToggle = null;
 window.ttsAutoplayToggle = null;
+window.ttsProviderSelector = null;
 window.ttsVoiceSelector = null;
 window.ttsInstructionsInput = null;
 window.testTtsButton = null;

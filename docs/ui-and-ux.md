@@ -37,10 +37,11 @@ Uploads
 
 TTS
 
-- Toggle via the header TTS badge or in Settings → TTS. 13 voices organized by gender (neutral: fable; male: ash, ballad, cedar, echo, onyx, verse; female: alloy, coral, marin, nova, sage, shimmer). Cedar and marin are recommended by OpenAI for best quality.
-- Optional voice instructions let you customize speech style (e.g. "Speak cheerfully"). Falls back to the active personality prompt if set.
+- Toggle via the header TTS badge or in Settings → TTS. A provider selector lets you choose between OpenAI and xAI (Grok) for speech generation.
+- **OpenAI**: 13 voices organized by gender (neutral: fable; male: ash, ballad, cedar, echo, onyx, verse; female: alloy, coral, marin, nova, sage, shimmer). Uses the `gpt-4o-mini-tts` model. Optional voice instructions let you customize speech style (e.g. "Speak cheerfully"); falls back to the active personality prompt if set.
+- **xAI**: 5 voices (male: leo, rex, sal; female: ara, eve). Uses the xAI TTS API at `api.x.ai/v1/tts` with automatic language detection. Voice instructions are not supported.
 - Autoplay mode queues and plays new assistant messages sequentially. Per-message controls provide play/pause, stop, and download (WAV).
-- Audio is cached in IndexedDB (last 15 files kept). Uses the `gpt-4o-mini-tts` model via the OpenAI API.
+- Audio is cached in IndexedDB (last 15 files kept). The voice selector updates dynamically when switching providers.
 
 Mobile
 
