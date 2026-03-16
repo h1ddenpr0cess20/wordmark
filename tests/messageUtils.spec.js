@@ -32,6 +32,32 @@ test('serializeMessagesForRequest includes input_image parts for inline attachme
   assert.equal(textPart.text, 'Please describe this upload.');
 });
 
+test('serializeMessagesForRequest passes through input_file parts for xAI file attachments', () => {
+  window.imageDataCache = new Map();
+  window.generatedImages = [];
+
+  const [serialized] = serializeMessagesForRequest([{
+    role: 'user',
+    content: [
+      { type: 'input_text', text: 'Summarize this document.' },
+      { type: 'input_file', file_id: 'file-abc123' },
+      { type: 'input_file', file_id: 'file-def456' },
+    ],
+  }]);
+
+  assert.ok(Array.isArray(serialized.content), 'content should be an array');
+  assert.equal(serialized.content.length, 3, 'should have three content parts');
+
+  const textPart = serialized.content.find(part => part.type === 'input_text');
+  assert.ok(textPart, 'expected an input_text part');
+  assert.equal(textPart.text, 'Summarize this document.');
+
+  const fileParts = serialized.content.filter(part => part.type === 'input_file');
+  assert.equal(fileParts.length, 2, 'expected two input_file parts');
+  assert.equal(fileParts[0].file_id, 'file-abc123');
+  assert.equal(fileParts[1].file_id, 'file-def456');
+});
+
 test('serializeMessagesForRequest resolves gallery placeholders to input_image parts', () => {
   window.imageDataCache = new Map();
   window.generatedImages = [{

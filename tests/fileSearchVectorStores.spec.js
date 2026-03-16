@@ -144,11 +144,9 @@ test('file_search attaches all active vector stores from storage when none provi
     ? capturedBody.tools.find(t => t && t.type === 'file_search')
     : null;
   assert.ok(fileSearchTool, 'file_search tool should be included');
-  // Order not guaranteed, compare as sets
+  // MAX_ACTIVE_VECTOR_STORES is 2, so only the active store + 1 from metadata
   const ids = new Set(fileSearchTool.vector_store_ids);
-  assert.equal(ids.size, 3, 'should include three vector store ids from storage');
-  assert.ok(ids.has('vs_A'), 'includes vs_A');
-  assert.ok(ids.has('vs_B'), 'includes vs_B');
+  assert.equal(ids.size, 2, 'should include two vector store ids (capped by MAX_ACTIVE_VECTOR_STORES)');
   assert.ok(ids.has('vs_C'), 'includes vs_C (active)');
 });
 
