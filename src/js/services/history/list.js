@@ -218,7 +218,13 @@ window.renderChatHistoryList = function() {
         let title = '';
         const userMsg = (convo.messages || []).find(m => m.role === 'user');
         if (userMsg) {
-          title = userMsg.content.substring(0, 50) + (userMsg.content.length > 50 ? '...' : '');
+          let text = userMsg.content;
+          if (Array.isArray(text)) {
+            const part = text.find(p => p.type === 'input_text' || p.type === 'text');
+            text = part ? (part.text || part.content || '') : '';
+          }
+          text = typeof text === 'string' ? text : '';
+          title = text.substring(0, 50) + (text.length > 50 ? '...' : '');
         } else {
           title = '(No user message)';
         }
