@@ -380,7 +380,7 @@ function setupDragAndDrop(inputWrapper) {
         } else {
           resolve([]);
         }
-      } catch (_) {
+      } catch {
         resolve([]);
       }
     });

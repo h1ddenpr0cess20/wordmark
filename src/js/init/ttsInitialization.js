@@ -10,7 +10,7 @@ function initializeTts() {
 
   // Initialize TTS provider selector
   if (window.ttsProviderSelector) {
-    window.ttsProviderSelector.value = window.ttsConfig.provider || 'openai';
+    window.ttsProviderSelector.value = window.ttsConfig.provider || "openai";
   }
 
   // Populate TTS voice selector
@@ -30,9 +30,9 @@ function initializeTts() {
   if (window.ttsInstructionsInput) {
     window.ttsInstructionsInput.value = window.ttsConfig.instructions || "";
     // xAI TTS doesn't support voice instructions
-    const instructionsItem = window.ttsInstructionsInput.closest('.setting-item');
+    const instructionsItem = window.ttsInstructionsInput.closest(".setting-item");
     if (instructionsItem) {
-      instructionsItem.style.display = (window.ttsConfig.provider || 'openai') === 'xai' ? 'none' : '';
+      instructionsItem.style.display = (window.ttsConfig.provider || "openai") === "xai" ? "none" : "";
     }
   }
 
@@ -59,12 +59,12 @@ function populateTtsVoiceSelector() {
   if (window.ttsVoiceSelector && window.availableTtsVoices && window.ttsConfig) {
     window.ttsVoiceSelector.innerHTML = "";
 
-    const provider = window.ttsConfig.provider || 'openai';
+    const provider = window.ttsConfig.provider || "openai";
     const voices = window.availableTtsVoices[provider];
     if (!voices) return;
 
-    const categories = ['neutral', 'male', 'female'];
-    const labels = { neutral: 'Neutral', male: 'Male', female: 'Female' };
+    const categories = ["neutral", "male", "female"];
+    const labels = { neutral: "Neutral", male: "Male", female: "Female" };
 
     for (const category of categories) {
       if (voices[category] && voices[category].length > 0) {
@@ -83,7 +83,7 @@ function populateTtsVoiceSelector() {
     // If current voice isn't in the new provider's list, select the first available
     const allVoiceIds = categories.flatMap(c => (voices[c] || []).map(v => v.id));
     if (!allVoiceIds.includes(window.ttsConfig.voice)) {
-      window.ttsConfig.voice = allVoiceIds[0] || '';
+      window.ttsConfig.voice = allVoiceIds[0] || "";
     }
     window.ttsVoiceSelector.value = window.ttsConfig.voice;
   }

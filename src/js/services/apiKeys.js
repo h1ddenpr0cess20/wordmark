@@ -394,7 +394,7 @@ window.saveApiKeys = function() {
     // Fetch models for the active service now that keys are available
     const activeKey = window.config?.defaultService;
     const activeService = activeKey ? window.config?.services?.[activeKey] : null;
-    if (activeService && typeof activeService.fetchAndUpdateModels === 'function') {
+    if (activeService && typeof activeService.fetchAndUpdateModels === "function") {
       activeService.fetchAndUpdateModels().then(() => {
         if (typeof window.updateModelSelector === "function") {
           window.updateModelSelector();

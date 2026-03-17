@@ -51,7 +51,7 @@ export async function refreshAssistantFileList() {
     }
 
     // Build list
-    const listHtml = files.map((file, idx) => {
+    const listHtml = files.map((file) => {
       const createdDate = file.created_at ? new Date(file.created_at * 1000).toLocaleDateString() : "Unknown";
       const name = escapeHtml(file.filename || file.name || "(no name)");
       const id = escapeHtml(file.id || "");

@@ -416,7 +416,7 @@ export function removeVectorStoreMetadata(vectorStoreId) {
 export function getActiveVectorStoreId() {
   try {
     return window.activeVectorStore || localStorage.getItem("active_vector_store") || null;
-  } catch (_) {
+  } catch {
     // Fallback if localStorage is unavailable (e.g., restricted environments)
     return window.activeVectorStore || null;
   }
