@@ -41,8 +41,8 @@ window.updateParameterControls = function() {
   const serviceConfig = currentService ? window.config?.services?.[currentService] : null;
   const hasDynamicModels = serviceConfig && typeof serviceConfig.fetchAndUpdateModels === 'function';
 
-  const refreshButton = document.getElementById('refresh-lmstudio-models');
-  const refreshInfo = document.querySelector('.lmstudio-refresh-info');
+  const refreshButton = document.getElementById('refresh-models');
+  const refreshInfo = document.querySelector('.refresh-models-info');
 
   if (refreshButton) {
     refreshButton.style.display = hasDynamicModels ? 'flex' : 'none';
