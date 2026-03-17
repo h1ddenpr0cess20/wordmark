@@ -158,9 +158,9 @@ export function setupButtonEventListeners({ closeSettingsPanel } = {}) {
     });
   }
 
-  const refreshLmStudioModelsButton = document.getElementById('refresh-lmstudio-models');
-  if (refreshLmStudioModelsButton) {
-    refreshLmStudioModelsButton.addEventListener('click', async(event) => {
+  const refreshModelsButton = document.getElementById('refresh-models');
+  if (refreshModelsButton) {
+    refreshModelsButton.addEventListener('click', async(event) => {
       event.preventDefault();
       event.stopPropagation();
       event.stopImmediatePropagation();
@@ -170,21 +170,26 @@ export function setupButtonEventListeners({ closeSettingsPanel } = {}) {
       if (serviceConfig && typeof serviceConfig.fetchAndUpdateModels === 'function') {
         const serviceLabelMap = { lmstudio: 'LM Studio', ollama: 'Ollama', openai: 'OpenAI', xai: 'xAI' };
         const serviceLabel = serviceLabelMap[serviceKey] || serviceKey;
-        refreshLmStudioModelsButton.disabled = true;
-        refreshLmStudioModelsButton.innerHTML = window.icon('refresh-cw', { width: 16, height: 16, className: 'rotating-svg' });
+        refreshModelsButton.disabled = true;
+        refreshModelsButton.innerHTML = window.icon('refresh-cw', { width: 16, height: 16, className: 'rotating-svg' });
 
         try {
           await serviceConfig.fetchAndUpdateModels();
           window.updateModelSelector();
 
-          const existingStatus = document.querySelector('.lmstudio-status');
+          const models = serviceConfig.models || [];
+          const hasError = models.length === 0 || models.some(m => typeof m === 'string' && (m.startsWith('Error:') || m.startsWith('No models')));
+
+          const existingStatus = document.querySelector('.service-status');
           if (existingStatus) {
             existingStatus.remove();
           }
 
           const statusElement = document.createElement('div');
-          statusElement.className = 'lmstudio-status success';
-          statusElement.textContent = `${serviceLabel} models updated successfully!`;
+          statusElement.className = hasError ? 'service-status error' : 'service-status success';
+          statusElement.textContent = hasError
+            ? `Failed to refresh ${serviceLabel} models`
+            : `${serviceLabel} models updated successfully!`;
 
           const statusAnchor = document.querySelector('.model-selector-container') || document.querySelector('.lmstudio-action-buttons');
           if (statusAnchor) {
@@ -194,13 +199,13 @@ export function setupButtonEventListeners({ closeSettingsPanel } = {}) {
         } catch (error) {
           console.error(`Error refreshing ${serviceLabel} models:`, error);
 
-          const existingStatus = document.querySelector('.lmstudio-status');
+          const existingStatus = document.querySelector('.service-status');
           if (existingStatus) {
             existingStatus.remove();
           }
 
           const statusElement = document.createElement('div');
-          statusElement.className = 'lmstudio-status error';
+          statusElement.className = 'service-status error';
           statusElement.textContent = `Failed to refresh ${serviceLabel} models`;
 
           const statusAnchor = document.querySelector('.model-selector-container') || document.querySelector('.lmstudio-action-buttons');
@@ -209,8 +214,8 @@ export function setupButtonEventListeners({ closeSettingsPanel } = {}) {
             setTimeout(() => statusElement.remove(), 5000);
           }
         } finally {
-          refreshLmStudioModelsButton.disabled = false;
-          refreshLmStudioModelsButton.innerHTML = window.icon('refresh-cw', { width: 16, height: 16 });
+          refreshModelsButton.disabled = false;
+          refreshModelsButton.innerHTML = window.icon('refresh-cw', { width: 16, height: 16 });
         }
       }
     });

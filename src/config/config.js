@@ -228,8 +228,8 @@ window.config = {
                     this.modelsFetching = false;
                 }
 
-                if (typeof window.uiHooks !== 'undefined' && typeof window.uiHooks.updateLmStudioModelsDropdown === 'function') {
-                    window.uiHooks.updateLmStudioModelsDropdown(this.models[0]?.startsWith('Error'));
+                if (typeof window.uiHooks !== 'undefined' && typeof window.uiHooks.updateModelsDropdown === 'function') {
+                    window.uiHooks.updateModelsDropdown(this.models[0]?.startsWith('Error'));
                 }
             },
         },
@@ -290,10 +290,10 @@ window.config = {
                 }
 
                 // Attempt to update UI
-                if (typeof window.uiHooks !== 'undefined' && typeof window.uiHooks.updateLmStudioModelsDropdown === 'function') {
-                    window.uiHooks.updateLmStudioModelsDropdown(fetchError);
+                if (typeof window.uiHooks !== 'undefined' && typeof window.uiHooks.updateModelsDropdown === 'function') {
+                    window.uiHooks.updateModelsDropdown(fetchError);
                 } else {
-                    console.warn('window.uiHooks.updateLmStudioModelsDropdown function not found. UI will not be updated with new LM Studio models.');
+                    console.warn('window.uiHooks.updateModelsDropdown function not found. UI will not be updated with new LM Studio models.');
                 }
             },
         },
@@ -386,10 +386,10 @@ window.config = {
                 this.modelsFetching = false;
 
                 // Attempt to update UI
-                if (typeof window.uiHooks !== 'undefined' && typeof window.uiHooks.updateLmStudioModelsDropdown === 'function') {
-                    window.uiHooks.updateLmStudioModelsDropdown(fetchError);
+                if (typeof window.uiHooks !== 'undefined' && typeof window.uiHooks.updateModelsDropdown === 'function') {
+                    window.uiHooks.updateModelsDropdown(fetchError);
                 } else {
-                    console.warn('window.uiHooks.updateLmStudioModelsDropdown function not found. UI will not be updated with new Ollama models.');
+                    console.warn('window.uiHooks.updateModelsDropdown function not found. UI will not be updated with new Ollama models.');
                 }
             },
         },
@@ -450,8 +450,8 @@ window.config = {
                     this.modelsFetching = false;
                 }
 
-                if (typeof window.uiHooks !== 'undefined' && typeof window.uiHooks.updateLmStudioModelsDropdown === 'function') {
-                    window.uiHooks.updateLmStudioModelsDropdown(this.models[0]?.startsWith('Error'));
+                if (typeof window.uiHooks !== 'undefined' && typeof window.uiHooks.updateModelsDropdown === 'function') {
+                    window.uiHooks.updateModelsDropdown(this.models[0]?.startsWith('Error'));
                 }
             },
         },

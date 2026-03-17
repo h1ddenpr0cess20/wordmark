@@ -13,37 +13,35 @@ window.uiHooks = window.uiHooks || {};
  * Updates the local models dropdown when models are refreshed
  * @param {boolean} fetchError - Whether there was an error fetching models
  */
-window.uiHooks.updateLmStudioModelsDropdown = function(fetchError) {
+window.uiHooks.updateModelsDropdown = function(fetchError) {
   const serviceKey = window.serviceSelector ? window.serviceSelector.value : "";
-  const isLocalService = serviceKey === "lmstudio" || serviceKey === "ollama";
-  const serviceLabel = serviceKey === "lmstudio" ? "LM Studio" : serviceKey === "ollama" ? "Ollama" : "Local";
+  const serviceLabelMap = { lmstudio: "LM Studio", ollama: "Ollama", openai: "OpenAI", xai: "xAI" };
+  const serviceLabel = serviceLabelMap[serviceKey] || serviceKey;
 
-  if (isLocalService) {
-    window.updateModelSelector();
+  window.updateModelSelector();
 
-    // Show status message if there was an error
-    if (fetchError) {
-      // Remove any existing status message
-      const existingStatus = document.querySelector(".lmstudio-status");
-      if (existingStatus) {
-        existingStatus.remove();
-      }
+  // Show status message if there was an error
+  if (fetchError) {
+    // Remove any existing status message
+    const existingStatus = document.querySelector(".service-status");
+    if (existingStatus) {
+      existingStatus.remove();
+    }
 
-      // Create a new status message
-      const statusElement = document.createElement("div");
-      statusElement.className = "lmstudio-status error";
-      statusElement.textContent = `Failed to fetch ${serviceLabel} models. Check server connection.`;
+    // Create a new status message
+    const statusElement = document.createElement("div");
+    statusElement.className = "service-status error";
+    statusElement.textContent = `Failed to fetch ${serviceLabel} models. Check server connection.`;
 
-      // Add status message to the DOM
-      const statusAnchor = document.querySelector(".model-selector-container") || document.querySelector(".lmstudio-action-buttons");
-      if (statusAnchor) {
-        statusAnchor.insertAdjacentElement("afterend", statusElement);
+    // Add status message to the DOM
+    const statusAnchor = document.querySelector(".model-selector-container") || document.querySelector(".lmstudio-action-buttons");
+    if (statusAnchor) {
+      statusAnchor.insertAdjacentElement("afterend", statusElement);
 
-        // Auto-remove after 5 seconds
-        setTimeout(() => {
-          statusElement.remove();
-        }, 5000);
-      }
+      // Auto-remove after 5 seconds
+      setTimeout(() => {
+        statusElement.remove();
+      }, 5000);
     }
   }
 };
