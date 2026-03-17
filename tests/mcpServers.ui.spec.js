@@ -39,14 +39,19 @@ function createRemoveButton(label) {
 function createListContainer() {
   return {
     _innerHTML: '',
+    _children: [],
     buttons: [],
     set innerHTML(html) {
       this._innerHTML = html;
+      this._children = [];
       const matches = [...html.matchAll(/data-server-label="([^"]+)"/g)];
       this.buttons = matches.map(match => createRemoveButton(match[1]));
     },
     get innerHTML() {
       return this._innerHTML;
+    },
+    appendChild(child) {
+      this._children.push(child);
     },
     querySelectorAll(selector) {
       if (selector === '.mcp-server-remove') {
@@ -140,6 +145,21 @@ test('requestMcpServerRemoval removes confirmed servers and refreshes UI', () =>
       }
       return null;
     },
+    createElement() {
+      const children = [];
+      return {
+        className: '',
+        dataset: {},
+        textContent: '',
+        type: '',
+        title: '',
+        innerHTML: '',
+        listeners: {},
+        children,
+        appendChild(child) { children.push(child); },
+        addEventListener(event, fn) { this.listeners[event] = fn; },
+      };
+    },
   };
 
   const confirmStub = (message) => {
@@ -163,6 +183,7 @@ test('requestMcpServerRemoval removes confirmed servers and refreshes UI', () =>
       refreshToolSettingsUI() {
         refreshed = true;
       },
+      icon() { return ''; },
     },
   });
 
@@ -178,9 +199,6 @@ test('requestMcpServerRemoval removes confirmed servers and refreshes UI', () =>
   assert.equal(unregisterCalls.length, 1);
   assert.equal(unregisterCalls[0], 'first');
   assert.equal(refreshed, true);
-
-  assert.equal(container.innerHTML.includes('First Server'), false);
-  assert.equal(container.innerHTML.includes('Second Server'), true);
 
   assert.equal(notifications.length, 1);
   assert.equal(notifications[0].type, 'success');

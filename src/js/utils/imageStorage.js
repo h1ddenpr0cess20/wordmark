@@ -93,7 +93,7 @@ window.saveImageToDb = function(base64Data, filename, metadata = {}) {
 
 window.getStoredMediaDisplayUrl = async function(filename) {
   if (!filename) {
-    throw new Error('A filename is required.');
+    throw new Error("A filename is required.");
   }
 
   if (window.imageDataCache?.has(filename)) {
@@ -104,7 +104,7 @@ window.getStoredMediaDisplayUrl = async function(filename) {
   }
 
   const record = await window.loadImageFromDb(filename);
-  const displayUrl = window.getMediaDisplayUrl?.(record?.data, filename) || '';
+  const displayUrl = window.getMediaDisplayUrl?.(record?.data, filename) || "";
   if (!displayUrl) {
     throw new Error(`No display URL could be created for ${filename}`);
   }
@@ -416,12 +416,12 @@ window.getStoredMediaBlob = async function(filename) {
     return record.data;
   }
 
-  if (typeof record.data === 'string') {
-    if (record.data.startsWith('data:')) {
-      const [header, encoded] = record.data.split(',', 2);
-      const mimeMatch = /^data:([^;]+)/i.exec(header || '');
-      const mimeType = mimeMatch ? mimeMatch[1] : (record.mimeType || 'application/octet-stream');
-      const byteCharacters = atob(encoded || '');
+  if (typeof record.data === "string") {
+    if (record.data.startsWith("data:")) {
+      const [header, encoded] = record.data.split(",", 2);
+      const mimeMatch = /^data:([^;]+)/i.exec(header || "");
+      const mimeType = mimeMatch ? mimeMatch[1] : (record.mimeType || "application/octet-stream");
+      const byteCharacters = atob(encoded || "");
       const byteNumbers = new Array(byteCharacters.length);
       for (let index = 0; index < byteCharacters.length; index += 1) {
         byteNumbers[index] = byteCharacters.charCodeAt(index);
@@ -429,7 +429,7 @@ window.getStoredMediaBlob = async function(filename) {
       return new Blob([new Uint8Array(byteNumbers)], { type: mimeType });
     }
 
-    const mimeType = record.mimeType || 'application/octet-stream';
+    const mimeType = record.mimeType || "application/octet-stream";
     try {
       const byteCharacters = atob(record.data);
       const byteNumbers = new Array(byteCharacters.length);

@@ -55,12 +55,24 @@ function createMediaElement(mediaRecord, src, messageId = '') {
   return imgEl;
 }
 
+function extractTextContent(content) {
+  if (typeof content === 'string') {
+    return content;
+  }
+  if (Array.isArray(content)) {
+    const part = content.find(p => p.type === 'input_text' || p.type === 'text');
+    return part ? (part.text || part.content || '') : '';
+  }
+  return '';
+}
+
 function replaceImagePlaceholders(content, convo, imageCache) {
-  if (!content) {
+  const text = extractTextContent(content);
+  if (!text) {
     return '';
   }
 
-  return content.replace(/\[\[IMAGE: ([^\]]+)\]\]/g, (match, filename) => {
+  return text.replace(/\[\[IMAGE: ([^\]]+)\]\]/g, (match, filename) => {
     const trimmed = filename.trim();
     const img = findMediaRecord(convo, trimmed);
     if (!img) {

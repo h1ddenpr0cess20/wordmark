@@ -2,18 +2,18 @@
  * Client-side media generation/editing tools for xAI Grok Imagine and OpenAI Sora.
  */
 
-const XAI_IMAGE_MODEL = 'grok-imagine-image';
-const XAI_VIDEO_MODEL = 'grok-imagine-video';
-const OPENAI_VIDEO_MODEL = 'sora-2';
+const XAI_IMAGE_MODEL = "grok-imagine-image"; // eslint-disable-line no-unused-vars
+const XAI_VIDEO_MODEL = "grok-imagine-video"; // eslint-disable-line no-unused-vars
+const OPENAI_VIDEO_MODEL = "sora-2";
 
-const XAI_IMAGE_ASPECT_RATIOS = [
-  '1:1', '16:9', '9:16', '4:3', '3:4',
-  '3:2', '2:3', '2:1', '1:2',
-  '19.5:9', '9:19.5', '20:9', '9:20', 'auto',
+const XAI_IMAGE_ASPECT_RATIOS = [ // eslint-disable-line no-unused-vars
+  "1:1", "16:9", "9:16", "4:3", "3:4",
+  "3:2", "2:3", "2:1", "1:2",
+  "19.5:9", "9:19.5", "20:9", "9:20", "auto",
 ];
-const XAI_VIDEO_ASPECT_RATIOS = ['16:9', '9:16', '1:1', '4:3', '3:4', '3:2', '2:3'];
-const XAI_VIDEO_RESOLUTIONS = ['480p', '720p'];
-const OPENAI_SORA_SIZES = ['720x1280', '1280x720', '1024x1792', '1792x1024'];
+const XAI_VIDEO_ASPECT_RATIOS = ["16:9", "9:16", "1:1", "4:3", "3:4", "3:2", "2:3"]; // eslint-disable-line no-unused-vars
+const XAI_VIDEO_RESOLUTIONS = ["480p", "720p"]; // eslint-disable-line no-unused-vars
+const OPENAI_SORA_SIZES = ["720x1280", "1280x720", "1024x1792", "1792x1024"];
 const OPENAI_SORA_SECONDS = [4, 8, 12];
 
 const VIDEO_POLL_INTERVAL_MS = 4000;
@@ -21,14 +21,14 @@ const VIDEO_POLL_TIMEOUT_MS = 8 * 60 * 1000;
 
 function escapeHtmlAttribute(value) {
   if (value === null || value === undefined) {
-    return '';
+    return "";
   }
   return String(value)
-    .replace(/&/g, '&amp;')
-    .replace(/"/g, '&quot;')
-    .replace(/'/g, '&#39;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;');
+    .replace(/&/g, "&amp;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;");
 }
 
 function sleep(ms) {
@@ -38,18 +38,18 @@ function sleep(ms) {
 }
 
 function getProviderBaseUrl(provider) {
-  const baseUrl = window.config?.services?.[provider]?.baseUrl || '';
+  const baseUrl = window.config?.services?.[provider]?.baseUrl || "";
   if (!baseUrl) {
     throw new Error(`Base URL is not configured for ${provider}.`);
   }
-  return baseUrl.replace(/\/+$/, '');
+  return baseUrl.replace(/\/+$/, "");
 }
 
 function getProviderApiKey(provider) {
-  const apiKey = window.getApiKey?.(provider) || window.config?.services?.[provider]?.apiKey || '';
-  const trimmed = typeof apiKey === 'string' ? apiKey.trim() : '';
+  const apiKey = window.getApiKey?.(provider) || window.config?.services?.[provider]?.apiKey || "";
+  const trimmed = typeof apiKey === "string" ? apiKey.trim() : "";
   if (!trimmed) {
-    const providerLabel = provider === 'xai' ? 'xAI' : provider === 'openai' ? 'OpenAI' : provider;
+    const providerLabel = provider === "xai" ? "xAI" : provider === "openai" ? "OpenAI" : provider;
     throw new Error(`Add your ${providerLabel} API key in Settings → API Keys.`);
   }
   return trimmed;
@@ -63,55 +63,55 @@ function buildHeaders(provider, options = {}) {
     headers.Authorization = `Bearer ${apiKey}`;
   }
   if (!multipart) {
-    headers['Content-Type'] = 'application/json';
+    headers["Content-Type"] = "application/json";
   }
   return headers;
 }
 
-function isVideoMimeType(mimeType = '') {
+function isVideoMimeType(mimeType = "") {
   return /^video\//i.test(mimeType);
 }
 
-function inferMimeTypeFromFilename(filename = '') {
-  const lowered = String(filename || '').toLowerCase();
-  if (lowered.endsWith('.mp4')) return 'video/mp4';
-  if (lowered.endsWith('.mov')) return 'video/quicktime';
-  if (lowered.endsWith('.webm')) return 'video/webm';
-  if (lowered.endsWith('.m4v')) return 'video/mp4';
-  if (lowered.endsWith('.jpg') || lowered.endsWith('.jpeg')) return 'image/jpeg';
-  if (lowered.endsWith('.webp')) return 'image/webp';
-  if (lowered.endsWith('.gif')) return 'image/gif';
-  return 'image/png';
+function inferMimeTypeFromFilename(filename = "") {
+  const lowered = String(filename || "").toLowerCase();
+  if (lowered.endsWith(".mp4")) return "video/mp4";
+  if (lowered.endsWith(".mov")) return "video/quicktime";
+  if (lowered.endsWith(".webm")) return "video/webm";
+  if (lowered.endsWith(".m4v")) return "video/mp4";
+  if (lowered.endsWith(".jpg") || lowered.endsWith(".jpeg")) return "image/jpeg";
+  if (lowered.endsWith(".webp")) return "image/webp";
+  if (lowered.endsWith(".gif")) return "image/gif";
+  return "image/png";
 }
 
 function detectMediaType(source = {}) {
-  const explicitType = typeof source.mediaType === 'string' ? source.mediaType.trim().toLowerCase() : '';
-  if (explicitType === 'video' || explicitType === 'image') {
+  const explicitType = typeof source.mediaType === "string" ? source.mediaType.trim().toLowerCase() : "";
+  if (explicitType === "video" || explicitType === "image") {
     return explicitType;
   }
 
-  const mimeType = typeof source.mimeType === 'string' ? source.mimeType : inferMimeTypeFromFilename(source.filename);
+  const mimeType = typeof source.mimeType === "string" ? source.mimeType : inferMimeTypeFromFilename(source.filename);
   if (isVideoMimeType(mimeType)) {
-    return 'video';
+    return "video";
   }
 
-  const url = typeof source.url === 'string' ? source.url : '';
-  if (url.startsWith('data:video/')) {
-    return 'video';
+  const url = typeof source.url === "string" ? source.url : "";
+  if (url.startsWith("data:video/")) {
+    return "video";
   }
 
-  return 'image';
+  return "image";
 }
 
 function makeFilename(prefix, mimeType) {
-  const mediaType = isVideoMimeType(mimeType) ? 'video' : 'image';
+  const mediaType = isVideoMimeType(mimeType) ? "video" : "image";
   const extension = (() => {
-    if (mimeType === 'image/jpeg') return 'jpg';
-    if (mimeType === 'image/webp') return 'webp';
-    if (mimeType === 'image/gif') return 'gif';
-    if (mimeType === 'video/webm') return 'webm';
-    if (mimeType === 'video/quicktime') return 'mov';
-    return mediaType === 'video' ? 'mp4' : 'png';
+    if (mimeType === "image/jpeg") return "jpg";
+    if (mimeType === "image/webp") return "webp";
+    if (mimeType === "image/gif") return "gif";
+    if (mimeType === "video/webm") return "webm";
+    if (mimeType === "video/quicktime") return "mov";
+    return mediaType === "video" ? "mp4" : "png";
   })();
   const base = prefix || mediaType;
   return `${base}-${Date.now()}-${Math.random().toString(36).slice(2, 10)}.${extension}`;
@@ -119,13 +119,13 @@ function makeFilename(prefix, mimeType) {
 
 function buildMediaRecordHtml(record) {
   const mediaType = detectMediaType(record);
-  const safeFilename = escapeHtmlAttribute(record.filename || '');
-  const safePrompt = escapeHtmlAttribute(record.prompt || '');
-  const safeTimestamp = escapeHtmlAttribute(record.timestamp || '');
-  const safeAlt = escapeHtmlAttribute(record.prompt || (mediaType === 'video' ? 'Generated video' : 'Generated image'));
-  const src = escapeHtmlAttribute(record.url || '');
+  const safeFilename = escapeHtmlAttribute(record.filename || "");
+  const safePrompt = escapeHtmlAttribute(record.prompt || "");
+  const safeTimestamp = escapeHtmlAttribute(record.timestamp || "");
+  const safeAlt = escapeHtmlAttribute(record.prompt || (mediaType === "video" ? "Generated video" : "Generated image"));
+  const src = escapeHtmlAttribute(record.url || "");
 
-  if (mediaType === 'video') {
+  if (mediaType === "video") {
     return `<video src="${src}" class="generated-video-thumbnail" data-media-type="video" data-filename="${safeFilename}" data-prompt="${safePrompt}" data-timestamp="${safeTimestamp}" controls playsinline preload="metadata"></video>`;
   }
 
@@ -136,16 +136,16 @@ function createObjectUrl(value) {
   if (value instanceof Blob) {
     return URL.createObjectURL(value);
   }
-  if (typeof value === 'string') {
+  if (typeof value === "string") {
     return value;
   }
-  return '';
+  return "";
 }
 
 async function responseToJson(response) {
   if (!response.ok) {
-    const text = await response.text().catch(() => '');
-    throw new Error(`${response.status} ${response.statusText}${text ? `: ${text}` : ''}`);
+    const text = await response.text().catch(() => "");
+    throw new Error(`${response.status} ${response.statusText}${text ? `: ${text}` : ""}`);
   }
   return response.json();
 }
@@ -158,17 +158,17 @@ async function fetchJson(url, options = {}) {
 async function fetchBlob(url, options = {}) {
   const response = await fetch(url, options);
   if (!response.ok) {
-    const text = await response.text().catch(() => '');
-    throw new Error(`${response.status} ${response.statusText}${text ? `: ${text}` : ''}`);
+    const text = await response.text().catch(() => "");
+    throw new Error(`${response.status} ${response.statusText}${text ? `: ${text}` : ""}`);
   }
   return response.blob();
 }
 
 function decodeDataUri(reference) {
-  const [header, encoded] = String(reference).split(',', 2);
-  const mimeMatch = /^data:([^;]+)/i.exec(header || '');
-  const mimeType = mimeMatch ? mimeMatch[1] : 'application/octet-stream';
-  const binary = window.atob(encoded || '');
+  const [header, encoded] = String(reference).split(",", 2);
+  const mimeMatch = /^data:([^;]+)/i.exec(header || "");
+  const mimeType = mimeMatch ? mimeMatch[1] : "application/octet-stream";
+  const binary = window.atob(encoded || "");
   const bytes = new Uint8Array(binary.length);
   for (let index = 0; index < binary.length; index += 1) {
     bytes[index] = binary.charCodeAt(index);
@@ -178,19 +178,19 @@ function decodeDataUri(reference) {
 
 async function referenceToBlob(reference, options = {}) {
   if (!reference) {
-    throw new Error('Missing media reference.');
+    throw new Error("Missing media reference.");
   }
   if (reference instanceof Blob) {
     return reference;
   }
   const referenceString = String(reference).trim();
   if (!referenceString) {
-    throw new Error('Missing media reference.');
+    throw new Error("Missing media reference.");
   }
-  if (referenceString.startsWith('data:')) {
+  if (referenceString.startsWith("data:")) {
     return decodeDataUri(referenceString);
   }
-  if (referenceString.startsWith('blob:')) {
+  if (referenceString.startsWith("blob:")) {
     return fetchBlob(referenceString);
   }
 
@@ -219,7 +219,7 @@ function loadImageElementFromBlob(blob) {
 }
 
 function parseSize(size) {
-  const [width, height] = String(size || '').split('x').map(value => Number.parseInt(value, 10));
+  const [width, height] = String(size || "").split("x").map(value => Number.parseInt(value, 10));
   if (!Number.isFinite(width) || !Number.isFinite(height)) {
     throw new Error(`Invalid size '${size}'.`);
   }
@@ -242,11 +242,11 @@ function chooseSoraSize(width, height, requestedSize) {
     .sort((a, b) => a.delta - b.delta)[0]?.size || OPENAI_SORA_SIZES[0];
 }
 
-async function canvasToBlob(canvas, type = 'image/png', quality = 0.92) {
+async function canvasToBlob(canvas, type = "image/png", quality = 0.92) {
   return new Promise((resolve, reject) => {
     canvas.toBlob(blob => {
       if (!blob) {
-        reject(new Error('Failed to create blob from canvas.'));
+        reject(new Error("Failed to create blob from canvas."));
         return;
       }
       resolve(blob);
@@ -260,12 +260,12 @@ async function prepareSoraReference(imageReference, requestedSize) {
   const selectedSize = chooseSoraSize(image.naturalWidth || image.width, image.naturalHeight || image.height, requestedSize);
   const { width, height } = parseSize(selectedSize);
 
-  const canvas = document.createElement('canvas');
+  const canvas = document.createElement("canvas");
   canvas.width = width;
   canvas.height = height;
-  const context = canvas.getContext('2d');
+  const context = canvas.getContext("2d");
   if (!context) {
-    throw new Error('Canvas 2D context is unavailable.');
+    throw new Error("Canvas 2D context is unavailable.");
   }
 
   const sourceWidth = image.naturalWidth || image.width;
@@ -287,12 +287,12 @@ async function prepareSoraReference(imageReference, requestedSize) {
   }
 
   context.drawImage(image, offsetX, offsetY, drawWidth, drawHeight, 0, 0, width, height);
-  const pngBlob = await canvasToBlob(canvas, 'image/png');
+  const pngBlob = await canvasToBlob(canvas, "image/png");
   return {
     size: selectedSize,
     blob: pngBlob,
     filename: `input-reference-${Date.now()}.png`,
-    mimeType: 'image/png',
+    mimeType: "image/png",
   };
 }
 
@@ -302,14 +302,14 @@ async function pollVideo(provider, requestId, onStatus) {
     const payload = await fetchJson(`${getProviderBaseUrl(provider)}/videos/${requestId}`, {
       headers: buildHeaders(provider, { multipart: true }),
     });
-    const status = String(payload.status || '').trim().toLowerCase();
-    if (typeof onStatus === 'function') {
-      onStatus(status || 'pending');
+    const status = String(payload.status || "").trim().toLowerCase();
+    if (typeof onStatus === "function") {
+      onStatus(status || "pending");
     }
-    if (['done', 'completed', 'succeeded', 'success'].includes(status) || typeof extractVideoUrl(payload) === 'string') {
+    if (["done", "completed", "succeeded", "success"].includes(status) || typeof extractVideoUrl(payload) === "string") {
       return payload;
     }
-    if (['expired', 'failed', 'error', 'cancelled'].includes(status)) {
+    if (["expired", "failed", "error", "cancelled"].includes(status)) {
       throw new Error(`Video generation ended with status '${status}'.`);
     }
     await sleep(VIDEO_POLL_INTERVAL_MS);
@@ -318,16 +318,16 @@ async function pollVideo(provider, requestId, onStatus) {
 }
 
 function extractVideoUrl(payload) {
-  if (!payload || typeof payload !== 'object') {
+  if (!payload || typeof payload !== "object") {
     return null;
   }
-  if (typeof payload.url === 'string' && payload.url.trim()) {
+  if (typeof payload.url === "string" && payload.url.trim()) {
     return payload.url.trim();
   }
-  const keys = ['video', 'result', 'output'];
+  const keys = ["video", "result", "output"];
   for (const key of keys) {
     const candidate = payload[key];
-    if (candidate && typeof candidate === 'object' && typeof candidate.url === 'string' && candidate.url.trim()) {
+    if (candidate && typeof candidate === "object" && typeof candidate.url === "string" && candidate.url.trim()) {
       return candidate.url.trim();
     }
   }
@@ -342,9 +342,9 @@ function normalizeSeconds(seconds) {
 }
 
 function normalizePrompt(args = {}) {
-  const prompt = String(args.prompt || '').trim();
+  const prompt = String(args.prompt || "").trim();
   if (!prompt) {
-    throw new Error('A prompt is required.');
+    throw new Error("A prompt is required.");
   }
   return prompt;
 }
@@ -361,13 +361,13 @@ async function resolveStoredReference(record) {
   }
   try {
     const stored = await window.loadImageFromDb?.(record.filename);
-    const displayUrl = window.getMediaDisplayUrl?.(stored?.data, record.filename) || '';
+    const displayUrl = window.getMediaDisplayUrl?.(stored?.data, record.filename) || "";
     if (displayUrl && window.imageDataCache?.set) {
       window.imageDataCache.set(record.filename, displayUrl);
     }
     return displayUrl || null;
   } catch (error) {
-    console.warn('Failed to resolve stored media reference:', record.filename, error);
+    console.warn("Failed to resolve stored media reference:", record.filename, error);
     return null;
   }
 }
@@ -378,13 +378,13 @@ async function findLatestConversationImage() {
     const attachments = Array.isArray(message?.attachments) ? message.attachments : [];
     for (let index = attachments.length - 1; index >= 0; index -= 1) {
       const attachment = attachments[index];
-      if (!attachment || attachment.type !== 'image') {
+      if (!attachment || attachment.type !== "image") {
         continue;
       }
-      if (typeof attachment.dataUrl === 'string' && attachment.dataUrl.trim()) {
+      if (typeof attachment.dataUrl === "string" && attachment.dataUrl.trim()) {
         return attachment.dataUrl.trim();
       }
-      if (typeof attachment.url === 'string' && attachment.url.trim()) {
+      if (typeof attachment.url === "string" && attachment.url.trim()) {
         return attachment.url.trim();
       }
       if (attachment.filename) {
@@ -408,7 +408,7 @@ async function findLatestGeneratedMedia(kind) {
     if (mediaType !== kind) {
       continue;
     }
-    if (typeof item.url === 'string' && item.url.trim()) {
+    if (typeof item.url === "string" && item.url.trim()) {
       return item.url.trim();
     }
     if (item.filename) {
@@ -426,29 +426,29 @@ async function resolveLatestMediaReference(kind) {
   if (generated) {
     return generated;
   }
-  if (kind === 'image') {
+  if (kind === "image") {
     return findLatestConversationImage();
   }
   return null;
 }
 
-function parseImageResponse(payload) {
+function parseImageResponse(payload) { // eslint-disable-line no-unused-vars
   const candidates = Array.isArray(payload?.data) ? payload.data : [];
   return candidates
     .map(item => {
-      if (!item || typeof item !== 'object') {
+      if (!item || typeof item !== "object") {
         return null;
       }
-      if (typeof item.b64_json === 'string' && item.b64_json.trim()) {
-        const mimeType = item.mime_type || 'image/png';
+      if (typeof item.b64_json === "string" && item.b64_json.trim()) {
+        const mimeType = item.mime_type || "image/png";
         return {
           mimeType,
           url: `data:${mimeType};base64,${item.b64_json.trim()}`,
         };
       }
-      if (typeof item.url === 'string' && item.url.trim()) {
+      if (typeof item.url === "string" && item.url.trim()) {
         return {
-          mimeType: item.mime_type || 'image/png',
+          mimeType: item.mime_type || "image/png",
           url: item.url.trim(),
         };
       }
@@ -459,7 +459,7 @@ function parseImageResponse(payload) {
 
 function notifyStatus(message) {
   if (window.VERBOSE_LOGGING) {
-    console.info('[media-tools]', message);
+    console.info("[media-tools]", message);
   }
   showMediaSpinner(message);
 }
@@ -470,21 +470,21 @@ function showMediaSpinner(statusText) {
   if (!loadingMessage) {
     return;
   }
-  const contentWrapper = loadingMessage.querySelector('.message-content');
+  const contentWrapper = loadingMessage.querySelector(".message-content");
   if (!contentWrapper) {
     return;
   }
 
-  let spinner = contentWrapper.querySelector('.media-generation-spinner');
+  let spinner = contentWrapper.querySelector(".media-generation-spinner");
   if (!spinner) {
     // Hide the default loading dots while the spinner is shown
-    const loadingDots = contentWrapper.querySelector('.loading-animation');
+    const loadingDots = contentWrapper.querySelector(".loading-animation");
     if (loadingDots) {
-      loadingDots.style.display = 'none';
+      loadingDots.style.display = "none";
     }
 
-    spinner = document.createElement('div');
-    spinner.className = 'media-generation-spinner';
+    spinner = document.createElement("div");
+    spinner.className = "media-generation-spinner";
     spinner.innerHTML = `
       <div class="media-spinner-ring"></div>
       <span class="media-spinner-text"></span>
@@ -492,7 +492,7 @@ function showMediaSpinner(statusText) {
     contentWrapper.appendChild(spinner);
   }
 
-  const textEl = spinner.querySelector('.media-spinner-text');
+  const textEl = spinner.querySelector(".media-spinner-text");
   if (textEl) {
     textEl.textContent = statusText;
   }
@@ -504,25 +504,25 @@ function hideMediaSpinner() {
   if (!loadingMessage) {
     return;
   }
-  const contentWrapper = loadingMessage.querySelector('.message-content');
+  const contentWrapper = loadingMessage.querySelector(".message-content");
   if (!contentWrapper) {
     return;
   }
-  const spinner = contentWrapper.querySelector('.media-generation-spinner');
+  const spinner = contentWrapper.querySelector(".media-generation-spinner");
   if (spinner) {
     spinner.remove();
   }
-  const loadingDots = contentWrapper.querySelector('.loading-animation');
+  const loadingDots = contentWrapper.querySelector(".loading-animation");
   if (loadingDots) {
-    loadingDots.style.display = '';
+    loadingDots.style.display = "";
   }
 }
 
 window.isVideoMimeType = isVideoMimeType;
 window.detectMediaType = detectMediaType;
-window.getMediaDisplayUrl = function(value, filename = '') {
+window.getMediaDisplayUrl = function(value, filename = "") {
   if (!value) {
-    return '';
+    return "";
   }
   if (value instanceof Blob) {
     const cacheKey = filename || `blob-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
@@ -535,56 +535,56 @@ window.getMediaDisplayUrl = function(value, filename = '') {
     }
     return objectUrl;
   }
-  if (typeof value === 'string') {
-    if (value.startsWith('data:') || value.startsWith('blob:') || /^https?:\/\//i.test(value) || value.startsWith('/')) {
+  if (typeof value === "string") {
+    if (value.startsWith("data:") || value.startsWith("blob:") || /^https?:\/\//i.test(value) || value.startsWith("/")) {
       return value;
     }
     const mimeType = inferMimeTypeFromFilename(filename);
     return `data:${mimeType};base64,${value}`;
   }
-  return '';
+  return "";
 };
 
 window.downloadMediaSource = async function(source, filename) {
   let blob = null;
-  const remoteUrl = typeof source === 'string' && /^https?:\/\//i.test(source)
+  const remoteUrl = typeof source === "string" && /^https?:\/\//i.test(source)
     ? source.trim()
-    : '';
+    : "";
 
   if (source instanceof Blob) {
     blob = source;
-  } else if (typeof source === 'string' && source.startsWith('data:')) {
+  } else if (typeof source === "string" && source.startsWith("data:")) {
     blob = decodeDataUri(source);
-  } else if (typeof source === 'string' && source.startsWith('blob:')) {
+  } else if (typeof source === "string" && source.startsWith("blob:")) {
     blob = await fetchBlob(source);
   } else if (remoteUrl) {
     try {
       blob = await fetchBlob(remoteUrl);
-    } catch (error) {
-      const anchor = document.createElement('a');
+    } catch {
+      const anchor = document.createElement("a");
       anchor.href = remoteUrl;
-      anchor.target = '_blank';
-      anchor.rel = 'noopener';
+      anchor.target = "_blank";
+      anchor.rel = "noopener";
       if (filename) {
         anchor.download = filename;
       }
-      anchor.style.display = 'none';
+      anchor.style.display = "none";
       document.body.appendChild(anchor);
       anchor.click();
       document.body.removeChild(anchor);
       return;
     }
-  } else if (typeof source === 'string' && source.trim()) {
+  } else if (typeof source === "string" && source.trim()) {
     blob = await fetchBlob(source.trim());
   } else {
-    throw new Error('No downloadable media source was provided.');
+    throw new Error("No downloadable media source was provided.");
   }
 
   const objectUrl = URL.createObjectURL(blob);
-  const anchor = document.createElement('a');
+  const anchor = document.createElement("a");
   anchor.href = objectUrl;
-  anchor.download = filename || makeFilename('media', blob.type || inferMimeTypeFromFilename(filename));
-  anchor.style.display = 'none';
+  anchor.download = filename || makeFilename("media", blob.type || inferMimeTypeFromFilename(filename));
+  anchor.style.display = "none";
   document.body.appendChild(anchor);
   anchor.click();
   document.body.removeChild(anchor);
@@ -597,17 +597,17 @@ window.createGeneratedMediaHtml = buildMediaRecordHtml;
 window.resolveLatestMediaReference = resolveLatestMediaReference;
 window.getMediaToolInstructions = function() {
   return [
-    'For Grok image edits or video generation/editing, if the user refers to the most recent uploaded or generated image/video, you may omit image_url, image_urls, or video_url.',
-    'The runtime will automatically supply the latest available local image or video when a matching media tool is called without an explicit media URL.',
-    'Never pass both image_url and video_url to the same video tool call.',
-  ].join(' ');
+    "For Grok image edits or video generation/editing, if the user refers to the most recent uploaded or generated image/video, you may omit image_url, image_urls, or video_url.",
+    "The runtime will automatically supply the latest available local image or video when a matching media tool is called without an explicit media URL.",
+    "Never pass both image_url and video_url to the same video tool call.",
+  ].join(" ");
 };
 
 window.registerGeneratedMedia = function({
   mediaType,
   sourceData,
-  prompt = '',
-  tool = '',
+  prompt = "",
+  tool = "",
   filename,
   mimeType,
   associatedMessageId = null,
@@ -617,18 +617,18 @@ window.registerGeneratedMedia = function({
 }) {
   const effectiveMimeType = mimeType || (sourceData instanceof Blob
     ? (sourceData.type || inferMimeTypeFromFilename(filename))
-    : (typeof sourceData === 'string' && sourceData.startsWith('data:')
-      ? String(sourceData).slice(5).split(';', 1)[0]
+    : (typeof sourceData === "string" && sourceData.startsWith("data:")
+      ? String(sourceData).slice(5).split(";", 1)[0]
       : inferMimeTypeFromFilename(filename)));
-  const effectiveMediaType = mediaType || (isVideoMimeType(effectiveMimeType) ? 'video' : 'image');
-  const effectiveFilename = filename || makeFilename(effectiveMediaType === 'video' ? 'video' : 'generated', effectiveMimeType);
+  const effectiveMediaType = mediaType || (isVideoMimeType(effectiveMimeType) ? "video" : "image");
+  const effectiveFilename = filename || makeFilename(effectiveMediaType === "video" ? "video" : "generated", effectiveMimeType);
   const timestamp = new Date().toISOString();
   const displayUrl = window.getMediaDisplayUrl?.(sourceData, effectiveFilename) || createObjectUrl(sourceData);
 
   const record = {
     url: displayUrl,
-    prompt: prompt || '',
-    tool: tool || '',
+    prompt: prompt || "",
+    tool: tool || "",
     timestamp,
     filename: effectiveFilename,
     associatedMessageId,
@@ -650,14 +650,14 @@ window.registerGeneratedMedia = function({
     window.imageDataCache.set(effectiveFilename, displayUrl);
   }
 
-  if (typeof window.saveImageToDb === 'function') {
+  if (typeof window.saveImageToDb === "function") {
     window.saveImageToDb(sourceData, effectiveFilename, {
       prompt: record.prompt,
       tool: record.tool,
       timestamp: record.timestamp,
-      associatedMessageId: record.associatedMessageId || '',
-      callId: record.callId || '',
-      model: record.model || '',
+      associatedMessageId: record.associatedMessageId || "",
+      callId: record.callId || "",
+      model: record.model || "",
       mimeType: record.mimeType,
       mediaType: record.mediaType,
       uploaded: record.uploaded,
@@ -665,7 +665,7 @@ window.registerGeneratedMedia = function({
       record.isStoredInDb = true;
       delete record.pendingStorageData;
     }).catch(error => {
-      console.error('Failed to save generated media to storage:', error);
+      console.error("Failed to save generated media to storage:", error);
     });
   }
 
@@ -841,49 +841,49 @@ window.registerGeneratedMedia = function({
 
 async function generateSoraVideo(args) {
   const prompt = normalizePrompt(args);
-  const provider = 'openai';
-  let imageUrl = typeof args.image_url === 'string' && args.image_url.trim() ? args.image_url.trim() : null;
+  const provider = "openai";
+  let imageUrl = typeof args.image_url === "string" && args.image_url.trim() ? args.image_url.trim() : null;
   if (!imageUrl) {
-    imageUrl = await resolveLatestMediaReference('image');
+    imageUrl = await resolveLatestMediaReference("image");
   }
 
   const seconds = normalizeSeconds(Number(args.seconds));
   const formData = new FormData();
-  formData.append('model', OPENAI_VIDEO_MODEL);
-  formData.append('prompt', prompt);
+  formData.append("model", OPENAI_VIDEO_MODEL);
+  formData.append("prompt", prompt);
   if (seconds) {
-    formData.append('seconds', String(seconds));
+    formData.append("seconds", String(seconds));
   }
 
-  let selectedSize = typeof args.size === 'string' && OPENAI_SORA_SIZES.includes(args.size)
+  let selectedSize = typeof args.size === "string" && OPENAI_SORA_SIZES.includes(args.size)
     ? args.size
     : null;
 
   if (imageUrl) {
     const prepared = await prepareSoraReference(imageUrl, selectedSize);
     selectedSize = prepared.size;
-    formData.append('input_reference', prepared.blob, prepared.filename);
+    formData.append("input_reference", prepared.blob, prepared.filename);
   }
 
   if (selectedSize) {
-    formData.append('size', selectedSize);
+    formData.append("size", selectedSize);
   }
 
-  notifyStatus(imageUrl ? 'Animating image with Sora...' : 'Generating video with Sora...');
+  notifyStatus(imageUrl ? "Animating image with Sora..." : "Generating video with Sora...");
 
   let created = await fetchJson(`${getProviderBaseUrl(provider)}/videos`, {
-    method: 'POST',
+    method: "POST",
     headers: buildHeaders(provider, { multipart: true }),
     body: formData,
   });
 
-  const initialStatus = String(created.status || '').trim().toLowerCase();
-  if (!['done', 'completed', 'succeeded', 'success'].includes(initialStatus)) {
-    const requestId = String(created.id || '').trim();
+  const initialStatus = String(created.status || "").trim().toLowerCase();
+  if (!["done", "completed", "succeeded", "success"].includes(initialStatus)) {
+    const requestId = String(created.id || "").trim();
     if (!requestId) {
-      throw new Error('Sora did not return a request id.');
+      throw new Error("Sora did not return a request id.");
     }
-    let lastStatus = '';
+    let lastStatus = "";
     created = await pollVideo(provider, requestId, status => {
       if (status !== lastStatus) {
         lastStatus = status;
@@ -892,30 +892,30 @@ async function generateSoraVideo(args) {
     });
   }
 
-  const videoId = String(created.id || '').trim();
+  const videoId = String(created.id || "").trim();
   if (!videoId) {
-    throw new Error('Sora did not return a downloadable video id.');
+    throw new Error("Sora did not return a downloadable video id.");
   }
 
-  notifyStatus('Downloading Sora video...');
+  notifyStatus("Downloading Sora video...");
   const videoBlob = await fetchBlob(`${getProviderBaseUrl(provider)}/videos/${videoId}/content`, {
     headers: buildHeaders(provider, { multipart: true }),
   });
   const record = window.registerGeneratedMedia({
-    mediaType: 'video',
+    mediaType: "video",
     sourceData: videoBlob,
     prompt,
-    tool: 'sora_generate_video',
-    filename: makeFilename(imageUrl ? 'animated-video' : 'generated-video', videoBlob.type || 'video/mp4'),
-    mimeType: videoBlob.type || 'video/mp4',
+    tool: "sora_generate_video",
+    filename: makeFilename(imageUrl ? "animated-video" : "generated-video", videoBlob.type || "video/mp4"),
+    mimeType: videoBlob.type || "video/mp4",
     model: OPENAI_VIDEO_MODEL,
     callId: videoId,
   });
 
   return {
     ok: true,
-    backend: 'sora',
-    mediaType: 'video',
+    backend: "sora",
+    mediaType: "video",
     filename: record.filename,
   };
 }

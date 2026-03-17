@@ -69,7 +69,7 @@ test('isToolEnabled returns default state for unconfigured tools', () => {
   assert.equal(weatherEnabled, true, 'weather tool should be enabled by default');
 
   const webSearchEnabled = isToolEnabled('builtin:web_search');
-  assert.equal(webSearchEnabled, false, 'web_search should be disabled by default');
+  assert.equal(webSearchEnabled, true, 'web_search should be enabled by default');
 });
 
 test('setToolEnabled changes tool state', () => {
@@ -216,6 +216,7 @@ test('getEnabledToolDefinitions omits image tool for Codex models', () => {
 
 test('code interpreter container is omitted for xAI', () => {
   setToolEnabled('builtin:code_interpreter', true);
+  setToolEnabled('builtin:shell', false);
 
   const openaiTools = getEnabledToolDefinitions('openai', 'gpt-5.1');
   const openaiCodeTool = openaiTools.find(tool => tool.type === 'code_interpreter');

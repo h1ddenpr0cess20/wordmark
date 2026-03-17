@@ -293,7 +293,7 @@ async function initialize() {
     }
     // Apply data settings enabled/disabled state to the Data tab UI
     if (typeof window.applyDataSettingsState === "function") {
-      try { window.applyDataSettingsState(); } catch (e) { /* noop */ }
+      try { window.applyDataSettingsState(); } catch { /* noop */ }
     }
 
     if (typeof window.initGallery === "function") {

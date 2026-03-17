@@ -112,7 +112,7 @@ const EXPORT_FORMATS = {
   json: {
     extension: "json",
     mime: "application/json",
-    build(messages, includeThinking, _meta) {
+    build(messages, includeThinking) {
       const payload = messages.map((msg) => {
         const entry = {
           role: msg.role,
@@ -131,7 +131,7 @@ const EXPORT_FORMATS = {
   csv: {
     extension: "csv",
     mime: "text/csv",
-    build(messages, includeThinking, _meta) {
+    build(messages, includeThinking) {
       const header = ["role", "sender", "content", "reasoning", "timestamp"];
       const rows = messages.map((msg) => {
         const content = includeThinking ? msg.rawContent : msg.content;

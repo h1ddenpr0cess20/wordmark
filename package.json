@@ -1,7 +1,7 @@
 {
   "name": "wordmark",
-  "version": "1.5.0",
-  "description": "Client-side AI assistant for the OpenAI Responses API and local LM Studio servers.",
+  "version": "1.5.1",
+  "description": "Client-side AI assistant supporting OpenAI, xAI, and local LM Studio servers.",
   "main": "index.html",
   "type": "module",
   "scripts": {
@@ -55,8 +55,8 @@
     "url": "https://github.com/h1ddenpr0cess20/Wordmark/issues"
   },
   "engines": {
-    "node": ">=16.0.0",
-    "npm": ">=8.0.0"
+    "node": ">=22.0.0",
+    "npm": ">=10.0.0"
   },
   "browserslist": [
     "last 2 Chrome versions",
@@ -67,14 +67,13 @@
     "not ie 11"
   ],
   "devDependencies": {
-    "eslint": "^9.37.0",
-    "html-validate": "^10.1.2",
+    "@eslint/js": "^10.0.1",
+    "eslint": "^10.0.3",
+    "globals": "^17.4.0",
+    "html-validate": "^10.11.2",
     "http-server": "^14.1.1",
-    "npm-check-updates": "^19.1.0"
+    "npm-check-updates": "^19.6.5"
   },
-  "dependencies": {},
-  "optionalDependencies": {},
-  "peerDependencies": {},
   "bundledDependencies": [
     "dompurify",
     "marked",
@@ -108,5 +107,8 @@
   "cpu": [
     "x64",
     "arm64"
-  ]
+  ],
+  "dependencies": {},
+  "optionalDependencies": {},
+  "peerDependencies": {}
 }

@@ -225,12 +225,9 @@ export async function refreshVectorStoreList(applyCooldown = true) {
   }
 }
 
-/**
- * Activate a vector store
- */
+// eslint-disable-next-line no-unused-vars
 async function activateVectorStore(storeId) {
   try {
-    // Get store details to save metadata
     const store = await getVectorStore(storeId);
 
     setActiveVectorStoreId(storeId);

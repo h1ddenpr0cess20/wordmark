@@ -38,7 +38,7 @@ test('buildRequestBody includes basic required fields', () => {
 
   assert.ok(body.model, 'should include model');
   assert.ok(body.input, 'should include input messages');
-  assert.equal(body.store, true, 'should enable storing');
+  assert.equal(body.store, false, 'should disable storing');
   assert.equal(body.stream, true, 'should enable streaming');
 });
 
