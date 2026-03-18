@@ -258,13 +258,14 @@ window.config = {
                     } else {
                         const data = await response.json();
                         // LM Studio returns { "data": [ { "id": "model-id", ... }, ... ] } similar to OpenAI list
+                        const isEmbeddingModel = (id) => /embed/i.test(id);
                         if (data && Array.isArray(data.data)) {
-                            this.models = data.data.map(item => item.id).filter(Boolean).sort();
+                            this.models = data.data.map(item => item.id).filter(id => id && !isEmbeddingModel(id)).sort();
                         } else if (Array.isArray(data)) {
                             // fallback: array of string ids
-                            this.models = data.slice().sort();
+                            this.models = data.filter(id => !isEmbeddingModel(id)).sort();
                         } else if (Array.isArray(data.models)) {
-                            this.models = data.models.slice().sort();
+                            this.models = data.models.filter(id => !isEmbeddingModel(id)).sort();
                         } else {
                             console.error('Unexpected LM Studio /models response format:', data);
                             this.models = ['Error: Invalid server response'];
@@ -314,12 +315,13 @@ window.config = {
                 console.info(`Fetching Ollama models from: ${endpoint}`);
                 let fetchError = false;
 
+                const isEmbeddingModel = (id) => /embed/i.test(id);
                 const parseModels = (data) => {
                     if (data && Array.isArray(data.data)) {
-                        return data.data.map(item => item.id).filter(Boolean).sort();
+                        return data.data.map(item => item.id).filter(id => id && !isEmbeddingModel(id)).sort();
                     }
                     if (Array.isArray(data)) {
-                        return data.slice().sort();
+                        return data.filter(id => !isEmbeddingModel(id)).sort();
                     }
                     if (data && Array.isArray(data.models)) {
                         return data.models
@@ -328,7 +330,7 @@ window.config = {
                                 if (item && typeof item === 'object') return item.id || item.name || item.model;
                                 return null;
                             })
-                            .filter(Boolean)
+                            .filter(id => id && !isEmbeddingModel(id))
                             .sort();
                     }
                     return null;
