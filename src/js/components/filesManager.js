@@ -151,7 +151,7 @@ async function uploadSelectedAssistantFiles() {
  * Delete all assistant files, with strong confirmation
  */
 async function handleDeleteAllAssistantFiles() {
-  const confirmation = prompt("This will delete all OpenAI files with purpose 'assistants'. Type 'YES' to confirm:");
+  const confirmation = prompt("This will delete all files with purpose 'assistants'. Type 'YES' to confirm:");
   if (confirmation !== "YES") {
     if (window.showInfo) window.showInfo("Operation cancelled.");
     return;

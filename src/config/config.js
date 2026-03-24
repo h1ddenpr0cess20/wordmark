@@ -11,14 +11,14 @@ window.VERBOSE_LOGGING = false;
 // MCP client behavior to avoid browser CORS requirements on MCP endpoints.
 // When true, the app will NOT make browser pings to MCP servers and will assume they are online.
 // This removes any need for Access-Control-Allow-Origin on your MCP servers because
-// the actual MCP connection is handled by the AI service (e.g., OpenAI Responses), not the browser.
+// the actual MCP connection is handled by the AI service (e.g., xAI Responses), not the browser.
 window.MCP_ASSUME_ONLINE = true;
 
 // Store any API keys (these should be set by the user in the UI and stored in localStorage)
 // DO NOT hardcode actual API keys here
 
 // Application version
-window.APP_VERSION = '1.5.2';
+window.APP_VERSION = '1.6.0';
 
 // GitHub repository URL
 window.GITHUB_URL = 'https://github.com/h1ddenpr0cess20/Wordmark';
