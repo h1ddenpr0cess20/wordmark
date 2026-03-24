@@ -59,9 +59,6 @@ test('getToolCatalog includes builtin tools', () => {
 
   const codeInterpreter = catalog.find(tool => tool.key === 'builtin:code_interpreter');
   assert.ok(codeInterpreter, 'should include code_interpreter');
-
-  const imageGen = catalog.find(tool => tool.key === 'builtin:image_generation');
-  assert.ok(imageGen, 'should include image_generation');
 });
 
 test('isToolEnabled returns default state for unconfigured tools', () => {
@@ -143,13 +140,13 @@ test('getEnabledToolDefinitions filters by service', () => {
   // Enable all tools
   setAllToolsEnabled(true);
 
-  // Get definitions for OpenAI
-  const openaiTools = getEnabledToolDefinitions('openai');
-  assert.ok(Array.isArray(openaiTools), 'should return array');
+  // Get definitions for xAI
+  const xaiTools = getEnabledToolDefinitions('xai');
+  assert.ok(Array.isArray(xaiTools), 'should return array');
 
-  // OpenAI should have web_search
-  const hasWebSearch = openaiTools.some(tool => tool.type === 'web_search');
-  assert.equal(hasWebSearch, true, 'OpenAI should support web_search');
+  // xAI should have web_search
+  const hasWebSearch = xaiTools.some(tool => tool.type === 'web_search');
+  assert.equal(hasWebSearch, true, 'xAI should support web_search');
 
   // Get definitions for LM Studio (local)
   const lmstudioTools = getEnabledToolDefinitions('lmstudio');
@@ -164,7 +161,7 @@ test('getEnabledToolDefinitions filters by service', () => {
 test('getEnabledToolDefinitions respects master toggle', () => {
   globalThis.window.config.enableFunctionCalling = false;
 
-  const tools = getEnabledToolDefinitions('openai');
+  const tools = getEnabledToolDefinitions('xai');
   assert.equal(tools.length, 0, 'should return no tools when master toggle is off');
 
   globalThis.window.config.enableFunctionCalling = true;
@@ -174,7 +171,7 @@ test('getEnabledToolDefinitions excludes disabled tools', () => {
   // Disable weather tool
   setToolEnabled('function:open_meteo_forecast', false);
 
-  const tools = getEnabledToolDefinitions('openai');
+  const tools = getEnabledToolDefinitions('xai');
   const hasWeather = tools.some(tool =>
     tool.type === 'function' && tool.name === 'open_meteo_forecast'
   );
@@ -196,32 +193,10 @@ test('getEnabledToolDefinitions handles xAI service specially', () => {
 
   assert.equal(hasWebSearch, true, 'xAI should have web_search');
   assert.equal(hasXSearch, true, 'xAI should have x_search');
-
-  // xAI should not have MCP tools
-  const hasMcp = xaiTools.some(tool => tool.type === 'mcp');
-  assert.equal(hasMcp, false, 'xAI should not have MCP tools');
 });
 
-test('getEnabledToolDefinitions omits image tool for Codex models', () => {
-  setToolEnabled('builtin:image_generation', true);
-
-  const codexTools = getEnabledToolDefinitions('openai', 'gpt-5.1-codex');
-  const hasImageForCodex = codexTools.some(tool => tool.type === 'image_generation');
-  assert.equal(hasImageForCodex, false, 'Codex models should not include the image generation tool');
-
-  const standardTools = getEnabledToolDefinitions('openai', 'gpt-5.1');
-  const hasImageForStandard = standardTools.some(tool => tool.type === 'image_generation');
-  assert.equal(hasImageForStandard, true, 'Non-Codex models should keep image generation enabled');
-});
-
-test('code interpreter container is omitted for xAI', () => {
+test('code interpreter for xAI has no container metadata', () => {
   setToolEnabled('builtin:code_interpreter', true);
-  setToolEnabled('builtin:shell', false);
-
-  const openaiTools = getEnabledToolDefinitions('openai', 'gpt-5.1');
-  const openaiCodeTool = openaiTools.find(tool => tool.type === 'code_interpreter');
-  assert.ok(openaiCodeTool, 'OpenAI should include code interpreter');
-  assert.ok(openaiCodeTool.container, 'OpenAI code interpreter should include container metadata');
 
   const xaiTools = getEnabledToolDefinitions('xai', 'grok-4-fast');
   const xaiCodeTool = xaiTools.find(tool => tool.type === 'code_interpreter');

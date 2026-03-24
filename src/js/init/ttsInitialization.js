@@ -10,7 +10,7 @@ function initializeTts() {
 
   // Initialize TTS provider selector
   if (window.ttsProviderSelector) {
-    window.ttsProviderSelector.value = window.ttsConfig.provider || "openai";
+    window.ttsProviderSelector.value = window.ttsConfig.provider || "xai";
   }
 
   // Populate TTS voice selector
@@ -32,7 +32,7 @@ function initializeTts() {
     // xAI TTS doesn't support voice instructions
     const instructionsItem = window.ttsInstructionsInput.closest(".setting-item");
     if (instructionsItem) {
-      instructionsItem.style.display = (window.ttsConfig.provider || "openai") === "xai" ? "none" : "";
+      instructionsItem.style.display = (window.ttsConfig.provider || "xai") === "xai" ? "none" : "";
     }
   }
 
@@ -59,7 +59,7 @@ function populateTtsVoiceSelector() {
   if (window.ttsVoiceSelector && window.availableTtsVoices && window.ttsConfig) {
     window.ttsVoiceSelector.innerHTML = "";
 
-    const provider = window.ttsConfig.provider || "openai";
+    const provider = window.ttsConfig.provider || "xai";
     const voices = window.availableTtsVoices[provider];
     if (!voices) return;
 
