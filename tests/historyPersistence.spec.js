@@ -48,7 +48,7 @@ test('saveCurrentConversation filters metadata, persists images, and marks messa
         return Promise.resolve(conversation.id);
       },
       modelSelector: { value: 'gpt-4o' },
-      config: { defaultService: 'openai' },
+      config: { defaultService: 'xai' },
       personalityPromptRadio: { checked: true },
       personalityInput: { value: 'Be cheerful' },
       customPromptRadio: { checked: false },
@@ -68,7 +68,7 @@ test('saveCurrentConversation filters metadata, persists images, and marks messa
   assert.equal(convo.id, 'existing-id');
   assert.equal(convo.name, 'Manual Title');
   assert.equal(convo.model, 'gpt-4o');
-  assert.equal(convo.service, 'openai');
+  assert.equal(convo.service, 'xai');
   assert.equal(convo.systemPrompt.type, 'personality');
   assert.equal(convo.systemPrompt.content, 'Be cheerful');
 

@@ -11,14 +11,14 @@ window.VERBOSE_LOGGING = false;
 // MCP client behavior to avoid browser CORS requirements on MCP endpoints.
 // When true, the app will NOT make browser pings to MCP servers and will assume they are online.
 // This removes any need for Access-Control-Allow-Origin on your MCP servers because
-// the actual MCP connection is handled by the AI service (e.g., OpenAI Responses), not the browser.
+// the actual MCP connection is handled by the AI service (e.g., xAI Responses), not the browser.
 window.MCP_ASSUME_ONLINE = true;
 
 // Store any API keys (these should be set by the user in the UI and stored in localStorage)
 // DO NOT hardcode actual API keys here
 
 // Application version
-window.APP_VERSION = '1.5.2';
+window.APP_VERSION = '1.6.0';
 
 // GitHub repository URL
 window.GITHUB_URL = 'https://github.com/h1ddenpr0cess20/Wordmark';
@@ -153,87 +153,17 @@ window.LOGO_STYLE = 'wordmark';
   }
 })();
 
-// OpenAI API Configuration
+// API Configuration
 
 window.config = {
     // Default service to use
-    defaultService: 'openai',
+    defaultService: 'xai',
     
-    // Enable OpenAI function calling
+    // Enable function calling
     enableFunctionCalling: true,
     
     // Configure services (add more as needed)
     services: {
-        // Standard OpenAI service
-        openai: {
-            baseUrl: 'https://api.openai.com/v1',
-            apiKey: '',
-            models: [],
-            defaultModel: 'gpt-5.4',
-            organization: null, // OpenAI organization ID (if applicable)
-            modelsFetching: false,
-
-            _isChatModel(modelId) {
-                const lowered = modelId.toLowerCase();
-                const prefixes = ['gpt-', 'o1', 'o3', 'o4'];
-                if (!prefixes.some(p => modelId.startsWith(p))) return false;
-
-                const blocked = ['preview', 'audio', 'computer-use', 'transcribe', 'tts', 'image', 'search', 'realtime'];
-                if (blocked.some(f => lowered.includes(f))) return false;
-
-                // Exclude dated versions (e.g. gpt-4o-2024-08-06)
-                if (/-\d{4}-\d{2}-\d{2}$/.test(lowered)) return false;
-
-                return true;
-            },
-
-            async fetchAndUpdateModels() {
-                // Ensure key is loaded from localStorage if not yet on config
-                if (!this.apiKey) {
-                    const stored = localStorage.getItem('wordmark_api_key_openai');
-                    if (stored) this.apiKey = stored;
-                }
-                if (!this.apiKey) {
-                    this.models = ['Set API key to load models'];
-                    return;
-                }
-                this.modelsFetching = true;
-                const endpoint = `${this.baseUrl.replace(/\/+$/, '')}/models`;
-                console.info(`Fetching OpenAI models from: ${endpoint}`);
-                try {
-                    const response = await fetch(endpoint, {
-                        headers: { 'Authorization': `Bearer ${this.apiKey}` }
-                    });
-                    if (!response.ok) {
-                        console.error(`Error fetching OpenAI models: ${response.status}`);
-                        this.models = ['Error: Could not fetch models'];
-                    } else {
-                        const data = await response.json();
-                        if (data && Array.isArray(data.data)) {
-                            this.models = data.data
-                                .map(item => item.id)
-                                .filter(id => id && this._isChatModel(id))
-                                .sort();
-                        } else {
-                            this.models = ['Error: Invalid response'];
-                        }
-                        if (this.models.length === 0) {
-                            this.models = ['No models found'];
-                        }
-                    }
-                } catch (error) {
-                    console.error('Failed to fetch OpenAI models:', error);
-                    this.models = ['Error: Failed to connect'];
-                } finally {
-                    this.modelsFetching = false;
-                }
-
-                if (typeof window.uiHooks !== 'undefined' && typeof window.uiHooks.updateModelsDropdown === 'function') {
-                    window.uiHooks.updateModelsDropdown(this.models[0]?.startsWith('Error'));
-                }
-            },
-        },
-
         // LM Studio - Local server with OpenAI-compatible API
         lmstudio: {
             baseUrl: 'http://localhost:1234/v1',
@@ -472,11 +402,9 @@ window.config = {
     
     // Helper to get the base URL for the current service
     getBaseUrl: function() {
-        // Special case for LM Studio - use the stored URL if available
         if (this.defaultService === 'lmstudio' && typeof window.getLmStudioServerUrl === 'function') {
             return window.getLmStudioServerUrl();
         }
-        // Special case for Ollama - use the stored URL if available
         if (this.defaultService === 'ollama' && typeof window.getOllamaServerUrl === 'function') {
             return window.getOllamaServerUrl();
         }

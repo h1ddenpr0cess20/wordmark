@@ -22,7 +22,6 @@ import {
   refreshMcpAvailability,
   supportsClientSideTools,
 } from './toolManager.js';
-import { getActiveVectorStoreIds } from '../vectorStore.js';
 
 const DEFAULT_INCLUDE_FIELDS = [
   'code_interpreter_call.outputs',
@@ -53,7 +52,7 @@ export function buildRequestBody({
     input: serializeMessagesForRequest(inputMessages),
     store: true,
   };
-  if (serviceKey !== 'xai' && !isLocalService) {
+  if (!isLocalService && serviceKey !== 'xai') {
     payload.include = [...DEFAULT_INCLUDE_FIELDS];
   }
   if (allowReasoning && serviceKey !== 'xai') {
@@ -142,7 +141,6 @@ export async function runTurn({
   stream = true,
   loadingId,
   abortController,
-  vectorStoreId,
 }) {
   const baseMessages = Array.isArray(inputMessages)
     ? inputMessages.filter(msg => msg && msg.role !== 'developer' && msg.role !== 'system')
@@ -174,36 +172,6 @@ export async function runTurn({
   let enabledTools = getEnabledToolDefinitions(serviceKey, resolvedModel);
   const clientSideToolsSupported = supportsClientSideTools(serviceKey, resolvedModel);
 
-  // Handle file_search tool: attach ALL active vector stores (persisted + explicitly active)
-  if (enabledTools) {
-    const idsSet = new Set();
-    try {
-      const activeIds = getActiveVectorStoreIds ? getActiveVectorStoreIds() : [];
-      if (Array.isArray(activeIds)) {
-        activeIds.forEach(id => { if (id) idsSet.add(id); });
-      }
-    } catch (e) {
-      // non-fatal
-    }
-    if (vectorStoreId) {
-      idsSet.add(vectorStoreId);
-    }
-    const vectorStoreIds = Array.from(idsSet);
-    if (vectorStoreIds.length > 0) {
-      enabledTools = enabledTools.map(tool => {
-        if (tool && tool.type === 'file_search') {
-          return {
-            ...tool,
-            vector_store_ids: vectorStoreIds,
-          };
-        }
-        return tool;
-      });
-    } else {
-      // Remove file_search tool if no vector stores are available
-      enabledTools = enabledTools.filter(tool => tool.type !== 'file_search');
-    }
-  }
   // Aggregate across multiple Responses API cycles (e.g., when tools are called)
   let aggregateText = '';
   let aggregateReasoning = '';

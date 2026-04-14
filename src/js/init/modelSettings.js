@@ -6,7 +6,7 @@ const REASONING_EFFORT_STORAGE_KEY = "reasoningEffort";
 const DEFAULT_REASONING_EFFORT = "medium";
 const VALID_REASONING_EFFORTS = ["low", "medium", "high"];
 const DEFAULT_REASONING_HELP_TEXT = "Higher effort spends more time on structured reasoning before replying; lower effort responds faster.";
-const DISABLED_REASONING_HELP_TEXT = "Reasoning effort is unavailable for GPT-4/GPT-4.1 and Grok models without reasoning support.";
+const DISABLED_REASONING_HELP_TEXT = "Reasoning effort is unavailable for Grok models without reasoning support.";
 const VERBOSITY_STORAGE_KEY = "responseVerbosity";
 const DEFAULT_VERBOSITY = "medium";
 const VALID_VERBOSITY_LEVELS = ["low", "medium", "high"];
@@ -44,9 +44,6 @@ function modelSupportsReasoning(modelName) {
     return true;
   }
   const normalized = String(modelName).toLowerCase();
-  if (normalized.startsWith("gpt-4")) {
-    return false;
-  }
   if (normalized.startsWith("grok-4-fast")) {
     return true;
   }
@@ -58,7 +55,7 @@ function updateReasoningAvailability() {
     return;
   }
   const modelName = window.modelSelector ? window.modelSelector.value : "";
-  const activeService = window.serviceSelector ? window.serviceSelector.value : (window.config && window.config.defaultService) || "openai";
+  const activeService = window.serviceSelector ? window.serviceSelector.value : (window.config && window.config.defaultService) || "xai";
   const supported = modelSupportsReasoning(modelName) && activeService !== "xai";
   window.reasoningEffortSelector.disabled = !supported;
   if (!supported) {
@@ -154,7 +151,7 @@ window.updateReasoningAvailability = updateReasoningAvailability;
 
 window.getReasoningEffort = function() {
   const modelName = window.modelSelector ? window.modelSelector.value : "";
-  const activeService = window.serviceSelector ? window.serviceSelector.value : (window.config && window.config.defaultService) || "openai";
+  const activeService = window.serviceSelector ? window.serviceSelector.value : (window.config && window.config.defaultService) || "xai";
   if (activeService === "xai" || !modelSupportsReasoning(modelName)) {
     return null;
   }

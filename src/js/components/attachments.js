@@ -119,7 +119,7 @@ function readFileAsDataURL(file) {
 }
 
 /**
- * Supported document extensions for OpenAI file uploads
+ * Supported document extensions for file uploads
  */
 const SUPPORTED_DOCUMENT_EXTENSIONS = [
   ".c", ".cpp", ".cs", ".css", ".doc", ".docx", ".go", ".html",
