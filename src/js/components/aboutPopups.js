@@ -5,7 +5,7 @@ const ABOUT_FALLBACKS = {
     <div class="popup-default">
       <p><strong>Effective Date:</strong> June 14, 2025</p>
       <p>Wordmark is designed for privacy-first AI experimentation. All conversations, images, API keys, and settings stay in your browser; nothing is uploaded to a Wordmark server.</p>
-      <p>When you connect to third-party AI services (such as xAI) your requests go straight from your device to that provider in accordance with their privacy policy. When you run local models (LM Studio, Ollama) the data never leaves your machine.</p>
+      <p>When you connect to third-party AI services (such as OpenAI or Anthropic) your requests go straight from your device to that provider in accordance with their privacy policy. When you run local models (LM Studio, Ollama) the data never leaves your machine.</p>
       <p>You can clear every stored item at any time via Settings → History, Settings → Tools → Images, and Settings → Memory.</p>
     </div>
   `,

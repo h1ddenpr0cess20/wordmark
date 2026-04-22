@@ -15,7 +15,7 @@ window.uiHooks = window.uiHooks || {};
  */
 window.uiHooks.updateModelsDropdown = function(fetchError) {
   const serviceKey = window.serviceSelector ? window.serviceSelector.value : "";
-  const serviceLabelMap = { lmstudio: "LM Studio", ollama: "Ollama", xai: "xAI" };
+  const serviceLabelMap = { lmstudio: "LM Studio", ollama: "Ollama", openai: "OpenAI", xai: "xAI" };
   const serviceLabel = serviceLabelMap[serviceKey] || serviceKey;
 
   window.updateModelSelector();
@@ -76,7 +76,9 @@ window.updateHeaderInfo = function() {
       const serviceKey = (window.config && window.config.defaultService) ? window.config.defaultService : "";
       let displayName = "";
       switch (serviceKey) {
+      case "openai": displayName = "OpenAI"; break;
       case "xai": displayName = "xAI (Grok)"; break;
+      // case "huggingface": displayName = "Hugging Face"; break;
       case "lmstudio": displayName = "LM Studio (Local)"; break;
       case "ollama": displayName = "Ollama (Local)"; break;
       default: displayName = serviceKey ? (serviceKey.charAt(0).toUpperCase() + serviceKey.slice(1)) : "";
@@ -484,9 +486,15 @@ window.populateServiceSelector = function() {
 
     // Add specific labels for known services
     switch (serviceKey) {
+    case "openai":
+      displayName = "OpenAI";
+      break;
     case "xai":
       displayName = "xAI (Grok)";
       break;
+    // case "huggingface":
+    //   displayName = "Hugging Face";
+    //   break;
     case "lmstudio":
       displayName = "LM Studio (Local)";
       break;

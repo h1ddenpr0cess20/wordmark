@@ -213,6 +213,8 @@ window.sendMessage = async function() {
   window.isResponsePending = true;
 
   // Handle document uploads if present
+  let vectorStoreId = window.activeVectorStore || null;
+  const activeServiceKey = window.serviceSelector ? window.serviceSelector.value : "openai";
   if (hasDocuments) {
     console.log("Has documents:", documentsToUpload.length);
 
@@ -226,43 +228,97 @@ window.sendMessage = async function() {
       }
     });
 
-    // Upload files and attach as input_file references directly in the message
-    try {
-      if (window.showInfo) {
-        window.showInfo("Uploading files...");
-      }
+    if (activeServiceKey === "xai") {
+      // xAI: upload files and attach as input_file references directly in the message
+      try {
+        if (window.showInfo) {
+          window.showInfo("Uploading files...");
+        }
 
-      const { uploadFile } = await import("../services/vectorStore.js");
-      const fileIds = [];
-      for (const file of files) {
-        const uploaded = await uploadFile(file);
-        fileIds.push(uploaded.id);
-      }
+        const { uploadFile } = await import("../services/vectorStore.js");
+        const fileIds = [];
+        for (const file of files) {
+          const uploaded = await uploadFile(file);
+          fileIds.push(uploaded.id);
+        }
 
-      // Inject input_file parts into the last user message in conversation history
-      const lastUserMsg = window.conversationHistory[window.conversationHistory.length - 1];
-      if (lastUserMsg && lastUserMsg.role === "user") {
-        const fileParts = fileIds.map(id => ({ type: "input_file", file_id: id }));
-        if (typeof lastUserMsg.content === "string") {
-          const textPart = { type: "input_text", text: lastUserMsg.content };
-          lastUserMsg.content = [textPart, ...fileParts];
-        } else if (Array.isArray(lastUserMsg.content)) {
-          lastUserMsg.content.push(...fileParts);
+        // Inject input_file parts into the last user message in conversation history
+        const lastUserMsg = window.conversationHistory[window.conversationHistory.length - 1];
+        if (lastUserMsg && lastUserMsg.role === "user") {
+          const fileParts = fileIds.map(id => ({ type: "input_file", file_id: id }));
+          if (typeof lastUserMsg.content === "string") {
+            const textPart = { type: "input_text", text: lastUserMsg.content };
+            lastUserMsg.content = [textPart, ...fileParts];
+          } else if (Array.isArray(lastUserMsg.content)) {
+            lastUserMsg.content.push(...fileParts);
+          }
+        }
+
+        console.info("Files uploaded for xAI:", fileIds);
+        if (window.showInfo) {
+          window.showInfo(`${fileIds.length} file(s) uploaded`);
+        }
+      } catch (error) {
+        console.error("Failed to upload files:", error);
+        if (window.showError) {
+          window.showError(`Failed to upload files: ${error.message}`);
+        }
+        window.removeLoadingIndicator(loadingId);
+        window.resetSendButton();
+        return;
+      }
+    } else {
+      // OpenAI: use vector stores + file_search
+      console.log("File search enabled:", window.responsesClient?.isToolEnabled("builtin:file_search"));
+
+      if (!window.responsesClient?.isToolEnabled("builtin:file_search")) {
+        console.warn("File Search tool is not enabled. Documents will not be uploaded.");
+        if (window.showInfo) {
+          window.showInfo("Enable File Search tool in settings to upload documents");
+        }
+      } else {
+        try {
+          console.info("Uploading documents to vector store...");
+
+          if (window.showInfo) {
+            window.showInfo("Creating vector store and uploading documents...");
+          }
+
+          const { uploadAndAttachFiles } = await import("../services/vectorStore.js");
+
+          console.log("Files to upload:", files.map(f => f.name));
+          const result = await uploadAndAttachFiles(files, `Chat-${Date.now()}`);
+          vectorStoreId = result.vectorStoreId;
+          window.activeVectorStore = vectorStoreId;
+
+          // Save vector store metadata
+          if (typeof window.saveVectorStoreMetadata === "function") {
+            window.saveVectorStoreMetadata(vectorStoreId, {
+              name: `Chat-${Date.now()}`,
+              createdAt: Date.now(),
+              fileCount: files.length,
+            });
+          }
+
+          console.info("Documents uploaded to vector store:", vectorStoreId);
+
+          if (window.showInfo) {
+            const uploadedCount = files.length - (result.skipped || 0);
+            const message = result.skipped > 0
+              ? `Vector store created with ${uploadedCount} file(s). ${result.skipped} file(s) skipped.`
+              : `Vector store created with ${uploadedCount} file(s)`;
+            window.showInfo(message);
+          }
+        } catch (error) {
+          console.error("Failed to upload documents:", error);
+          if (window.showError) {
+            window.showError(`Failed to upload documents: ${error.message}`);
+          }
+          window.removeLoadingIndicator(loadingId);
+          window.resetSendButton();
+          return;
         }
       }
-
-      console.info("Files uploaded:", fileIds);
-      if (window.showInfo) {
-        window.showInfo(`${fileIds.length} file(s) uploaded`);
-      }
-    } catch (error) {
-      console.error("Failed to upload files:", error);
-      if (window.showError) {
-        window.showError(`Failed to upload files: ${error.message}`);
-      }
-      window.removeLoadingIndicator(loadingId);
-      window.resetSendButton();
-      return;
     }
   }
 
@@ -290,6 +346,7 @@ window.sendMessage = async function() {
       stream: true,
       loadingId,
       abortController,
+      vectorStoreId,
     });
 
     if (window.shouldStopGeneration) {

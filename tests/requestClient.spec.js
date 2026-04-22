@@ -5,10 +5,10 @@ import assert from 'node:assert/strict';
 globalThis.window = {
   config: {
     services: {
-      xai: { apiKey: 'test-xai-key', baseUrl: 'https://api.x.ai/v1' },
-      lmstudio: { baseUrl: 'http://localhost:1234/v1' },
+      openai: { apiKey: 'test-key', baseUrl: 'https://api.openai.com/v1' },
+      xai: { apiKey: 'test-xai-key', baseUrl: 'https://api.x.ai/v1' }
     },
-    defaultService: 'xai',
+    defaultService: 'openai',
     getApiKey() {
       const service = this.defaultService;
       return this.services[service]?.apiKey || '';
@@ -32,7 +32,7 @@ const { buildRequestBody, buildHeaders } = await import('../src/js/services/api/
 test('buildRequestBody includes basic required fields', () => {
   const body = buildRequestBody({
     inputMessages: [{ role: 'user', content: 'Hello' }],
-    model: 'grok-4-1-fast-non-reasoning',
+    model: 'gpt-4o',
     stream: true,
   });
 
@@ -42,14 +42,26 @@ test('buildRequestBody includes basic required fields', () => {
   assert.equal(body.stream, true, 'should enable streaming');
 });
 
-test('buildRequestBody excludes reasoning for xAI service', () => {
+test('buildRequestBody includes reasoning for supported models', () => {
   const body = buildRequestBody({
     inputMessages: [{ role: 'user', content: 'Hello' }],
-    model: 'grok-4-1-fast-non-reasoning',
+    model: 'o1-preview',
     reasoningEffort: 'high',
   });
 
-  assert.equal(body.reasoning, undefined, 'should not include reasoning for xAI');
+  assert.ok(body.reasoning, 'should include reasoning config');
+  assert.equal(body.reasoning.effort, 'high', 'should set reasoning effort');
+  assert.equal(body.reasoning.summary, 'auto', 'should set reasoning summary');
+});
+
+test('buildRequestBody excludes reasoning for non-reasoning models', () => {
+  const body = buildRequestBody({
+    inputMessages: [{ role: 'user', content: 'Hello' }],
+    model: 'gpt-4o',
+    reasoningEffort: 'high',
+  });
+
+  assert.equal(body.reasoning, undefined, 'should not include reasoning for non-reasoning models');
 });
 
 test('buildRequestBody includes tools when provided', () => {
@@ -60,7 +72,7 @@ test('buildRequestBody includes tools when provided', () => {
 
   const body = buildRequestBody({
     inputMessages: [{ role: 'user', content: 'Hello' }],
-    model: 'grok-4-1-fast-non-reasoning',
+    model: 'gpt-4o',
     tools,
   });
 
@@ -71,7 +83,7 @@ test('buildRequestBody includes tools when provided', () => {
 test('buildRequestBody includes previousResponseId when provided', () => {
   const body = buildRequestBody({
     inputMessages: [{ role: 'user', content: 'Hello' }],
-    model: 'grok-4-1-fast-non-reasoning',
+    model: 'gpt-4o',
     previousResponseId: 'resp_123',
   });
 
@@ -79,6 +91,10 @@ test('buildRequestBody includes previousResponseId when provided', () => {
 });
 
 test('buildRequestBody handles xAI service quirks', () => {
+  // Mock xAI as active service by changing defaultService
+  const originalService = globalThis.window.config.defaultService;
+  globalThis.window.config.defaultService = 'xai';
+
   const tools = [{ type: 'web_search' }];
   const body = buildRequestBody({
     inputMessages: [{ role: 'user', content: 'Hello' }],
@@ -88,9 +104,15 @@ test('buildRequestBody handles xAI service quirks', () => {
 
   assert.equal(body.include, undefined, 'xAI should not include default fields');
   assert.equal(body.text, undefined, 'xAI should remove text.format when using server tools');
+
+  // Restore
+  globalThis.window.config.defaultService = originalService;
 });
 
 test('buildRequestBody removes xAI text format when MCP tools are enabled', () => {
+  const originalService = globalThis.window.config.defaultService;
+  globalThis.window.config.defaultService = 'xai';
+
   const tools = [{ type: 'mcp', server_label: 'demo', server_url: 'https://example.com' }];
   const body = buildRequestBody({
     inputMessages: [{ role: 'user', content: 'Hello' }],
@@ -99,6 +121,8 @@ test('buildRequestBody removes xAI text format when MCP tools are enabled', () =
   });
 
   assert.equal(body.text, undefined, 'xAI should remove text.format when MCP tools are present');
+
+  globalThis.window.config.defaultService = originalService;
 });
 
 test('buildHeaders includes Authorization header', () => {

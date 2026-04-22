@@ -75,9 +75,9 @@ const STATIC_TOOLS = [
     key: 'builtin:web_search',
     type: 'builtin',
     displayName: 'Web Search',
-    description: 'Allow the assistant to use provider-managed web searches for fresh information.',
+    description: 'Allow the assistant to use provider-managed web searches for fresh information on OpenAI or xAI.',
     defaultEnabled: true,
-    onlyServices: ['xai'],
+    onlyServices: ['openai', 'xai'],
     definition: {
       type: 'web_search',
     },
@@ -88,9 +88,50 @@ const STATIC_TOOLS = [
     displayName: 'Code Interpreter',
     description: 'Allow the assistant to run Python code and work with files in the provider sandbox.',
     defaultEnabled: false,
-    onlyServices: ['xai'],
+    onlyServices: ['openai', 'xai'],
     definition: {
       type: 'code_interpreter',
+      container: {
+        type: 'auto',
+        file_ids: [],
+      },
+    },
+  },
+  {
+    key: 'builtin:image_generation',
+    type: 'builtin',
+    displayName: 'OpenAI Images',
+    description: 'Generate or edit images using the OpenAI image tool.',
+    defaultEnabled: true,
+    onlyServices: ['openai'],
+    definition: {
+      type: 'image_generation',
+    },
+  },
+  {
+    key: 'builtin:shell',
+    type: 'builtin',
+    displayName: 'Shell',
+    description: 'Allow the assistant to run shell commands in a sandboxed container environment.',
+    defaultEnabled: false,
+    onlyServices: ['openai'],
+    definition: {
+      type: 'shell',
+      environment: {
+        type: 'container_auto',
+      },
+    },
+  },
+  {
+    key: 'builtin:file_search',
+    type: 'builtin',
+    displayName: 'File Search',
+    description: 'Search through uploaded documents using vector stores.',
+    defaultEnabled: false,
+    onlyServices: ['openai'],
+    definition: {
+      type: 'file_search',
+      vector_store_ids: [],
     },
   },
   // Grok Imagine image tools commented out due to CORS issues
@@ -243,6 +284,44 @@ const STATIC_TOOLS = [
   //   },
   //   requiresApiKeyService: 'xai',
   // },
+  {
+    key: 'function:sora_generate_video',
+    type: 'function',
+    displayName: 'OpenAI Sora Video',
+    description: 'Generate a video or animate an image with OpenAI Sora. Requires an OpenAI API key.',
+    defaultEnabled: false,
+    definition: {
+      type: 'function',
+      name: 'sora_generate_video',
+      description: 'Generate a video or animate an image with OpenAI Sora.',
+      parameters: {
+        type: 'object',
+        properties: {
+          prompt: {
+            type: 'string',
+            description: 'A detailed description of the video to create.',
+          },
+          image_url: {
+            type: 'string',
+            description: 'Optional data URI or public URL for image-to-video generation.',
+          },
+          seconds: {
+            type: 'integer',
+            description: 'Requested clip duration.',
+            enum: [4, 8, 12],
+          },
+          size: {
+            type: 'string',
+            description: 'Requested video size.',
+            enum: ['720x1280', '1280x720', '1024x1792', '1792x1024'],
+          },
+        },
+        required: ['prompt'],
+        additionalProperties: false,
+      },
+    },
+    requiresApiKeyService: 'openai',
+  },
 ];
 
 const TOOL_CATALOG = [];
@@ -254,6 +333,9 @@ const SERVER_MANAGED_TOOL_TYPES = new Set([
   'web_search',
   'x_search',
   'code_interpreter',
+  'shell',
+  'image_generation',
+  'file_search',
 ]);
 
 const CLIENT_SIDE_TOOL_TYPES = new Set([
@@ -308,6 +390,10 @@ let lastMcpRefresh = 0;
 let mcpRefreshPromise = null;
 
 let toolPreferences = loadToolPreferences();
+
+function isCodexModel(modelName) {
+  return typeof modelName === 'string' && modelName.toLowerCase().includes('codex');
+}
 
 export function xaiModelDisallowsClientSideTools(modelName = getActiveModel()) {
   return typeof modelName === 'string'
@@ -441,6 +527,7 @@ export function getEnabledToolDefinitions(serviceKey = getActiveServiceKey(), mo
   }
 
   const isLocalService = serviceKey === 'lmstudio' || serviceKey === 'ollama';
+  const modelIsCodex = isCodexModel(modelName);
   const clientSideToolsSupported = supportsClientSideTools(serviceKey, modelName);
   const defs = [];
 
@@ -491,24 +578,47 @@ export function getEnabledToolDefinitions(serviceKey = getActiveServiceKey(), mo
       }
     }
 
+    if (tool.key === 'builtin:image_generation' && serviceKey === 'openai' && modelIsCodex) {
+      if (window.VERBOSE_LOGGING) {
+        console.info(`Skipping image generation tool for Codex model '${modelName}'.`);
+      }
+      return;
+    }
+
+    // Shell and code_interpreter cannot be used together; shell wins if both enabled
     if (tool.key === 'builtin:code_interpreter') {
-      defs.push({
-        type: 'code_interpreter',
-      });
+      const shellEnabled = getToolPreference('builtin:shell', false);
+      if (shellEnabled && serviceKey === 'openai') {
+        if (window.VERBOSE_LOGGING) {
+          console.info('Skipping code_interpreter because shell tool is enabled.');
+        }
+        return;
+      }
+      if (serviceKey === 'xai') {
+        defs.push({
+          type: 'code_interpreter',
+        });
+      } else {
+        defs.push(JSON.parse(JSON.stringify(tool.definition)));
+      }
       return;
     }
 
     if (tool.key === 'builtin:web_search') {
-      defs.push({
-        type: 'web_search',
-        enable_video_understanding: true,
-        enable_image_understanding: true,
-      });
-      defs.push({
-        type: 'x_search',
-        enable_video_understanding: true,
-        enable_image_understanding: true,
-      });
+      if (serviceKey === 'xai') {
+        defs.push({
+          type: 'web_search',
+          enable_video_understanding: true,
+          enable_image_understanding: true,
+        });
+        defs.push({
+          type: 'x_search',
+          enable_video_understanding: true,
+          enable_image_understanding: true,
+        });
+      } else {
+        defs.push({ type: 'web_search' });
+      }
       return;
     }
 

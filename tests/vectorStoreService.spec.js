@@ -30,7 +30,7 @@ function setupEnvironment() {
       getApiKey: () => 'vector-key',
       getBaseUrl: () => 'https://api.example.com',
     },
-    serviceSelector: { value: 'xai' },
+    serviceSelector: { value: 'openai' },
     showInfo: (message) => {
       showInfoCalls.push(message);
     },

@@ -19,7 +19,7 @@
 
   function getActiveServiceKey() {
     if (!ensureClient()) {
-      return "xai";
+      return "openai";
     }
     return window.responsesClient.getActiveServiceKey();
   }
@@ -87,23 +87,26 @@
     if (tool.requiresApiKeyService && tool.hasRequiredApiKey === false) {
       const note = document.createElement("div");
       note.className = "tool-note";
-      note.textContent = `Add your ${tool.requiresApiKeyService === "xai" ? "xAI" : tool.requiresApiKeyService} API key in Settings → API Keys to enable this tool.`;
+      note.textContent = `Add your ${tool.requiresApiKeyService === "xai" ? "xAI" : "OpenAI"} API key in Settings → API Keys to enable this tool.`;
       return note;
     }
 
     if (!isAvailable) {
       const note = document.createElement("div");
       note.className = "tool-note";
+      if (tool.key === "builtin:image_generation" && serviceKey === "openai" && codexModelActive) {
+        note.textContent = "Image generation is unavailable for Codex models.";
+        return note;
+      }
       if (!clientSideToolsSupported && isClientSideTool(tool)) {
         note.textContent = "This xAI multi-agent model does not support client-side tools.";
         return note;
       }
       if (tool.onlyServices && tool.onlyServices.length) {
         const friendlyServices = tool.onlyServices
-          .map(service => {
-            if (service === "xai") return "xAI (Grok)";
-            return service.charAt(0).toUpperCase() + service.slice(1);
-          })
+          .map(service => (service === "openai"
+            ? "OpenAI"
+            : service.charAt(0).toUpperCase() + service.slice(1)))
           .join(", ");
         note.textContent = `Available when ${friendlyServices} is selected.`;
       } else {
@@ -198,6 +201,9 @@
       }
       let isAvailable = !tool.onlyServices || tool.onlyServices.includes(serviceKey);
       if (tool.requiresApiKeyService && tool.hasRequiredApiKey === false) {
+        isAvailable = false;
+      }
+      if (tool.key === "builtin:image_generation" && serviceKey === "openai" && codexModelActive) {
         isAvailable = false;
       }
       if (!clientSideToolsSupported && isClientSideTool(tool)) {
@@ -436,8 +442,9 @@
 
     const serviceKey = typeof window.responsesClient.getActiveServiceKey === "function"
       ? window.responsesClient.getActiveServiceKey()
-      : (window.config.defaultService || "xai");
+      : (window.config.defaultService || "openai");
     const activeModelName = getActiveModelName();
+    const codexModelActive = isCodexModel(activeModelName);
     const clientSideToolsSupported = supportsClientSideToolsForCurrentModel(serviceKey, activeModelName);
 
     // Check if this is a local AI service
@@ -470,6 +477,9 @@
       }
 
       if (tool.type === "mcp" && tool.isOnline === false) {
+        return;
+      }
+      if (tool.key === "builtin:image_generation" && serviceKey === "openai" && codexModelActive) {
         return;
       }
       if (!clientSideToolsSupported && isClientSideTool(tool)) {

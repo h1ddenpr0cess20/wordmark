@@ -5,6 +5,11 @@ import assert from 'node:assert/strict';
 globalThis.window = {
   config: {
     services: {
+      openai: {
+        apiKey: 'sk-test-openai-key',
+        baseUrl: 'https://api.openai.com/v1',
+        models: ['gpt-4o', 'o1-preview', 'o1-mini'],
+      },
       xai: {
         apiKey: 'xai-test-key',
         baseUrl: 'https://api.x.ai/v1',
@@ -15,8 +20,8 @@ globalThis.window = {
         models: [],
       },
     },
-    defaultService: 'xai',
-    defaultModel: 'grok-4-1-fast-non-reasoning',
+    defaultService: 'openai',
+    defaultModel: 'gpt-5-mini',
     getApiKey() {
       const service = this.defaultService;
       return this.services[service]?.apiKey || '';
@@ -52,36 +57,36 @@ const {
 
 test('getActiveServiceKey returns default service', () => {
   const service = getActiveServiceKey();
-  assert.equal(service, 'xai', 'should return default service');
+  assert.equal(service, 'openai', 'should return default service');
 });
 
 test('getActiveModel returns default model', () => {
   const model = getActiveModel();
-  assert.equal(model, 'grok-4-1-fast-non-reasoning', 'should return default model');
+  assert.equal(model, 'gpt-5-mini', 'should return default model');
 });
 
 test('ensureApiKey returns API key for active service', () => {
   const apiKey = ensureApiKey();
-  assert.equal(apiKey, 'xai-test-key', 'should return xAI API key');
+  assert.equal(apiKey, 'sk-test-openai-key', 'should return OpenAI API key');
 });
 
 test('ensureApiKey throws when API key is missing', () => {
-  const originalKey = window.config.services.xai.apiKey;
-  window.config.services.xai.apiKey = '';
-
+  const originalKey = window.config.services.openai.apiKey;
+  window.config.services.openai.apiKey = '';
+  
   assert.throws(
     () => ensureApiKey(),
     /Add your.*API key/,
     'should throw when key is missing'
   );
-
+  
   // Restore
-  window.config.services.xai.apiKey = originalKey;
+  window.config.services.openai.apiKey = originalKey;
 });
 
 test('getBaseUrl returns base URL for active service', () => {
   const baseUrl = getBaseUrl();
-  assert.equal(baseUrl, 'https://api.x.ai/v1', 'should return xAI base URL');
+  assert.equal(baseUrl, 'https://api.openai.com/v1', 'should return OpenAI base URL');
 });
 
 test('supportsReasoningEffort returns true for o-series models', () => {
@@ -92,6 +97,8 @@ test('supportsReasoningEffort returns true for o-series models', () => {
 });
 
 test('supportsReasoningEffort returns false for non-reasoning models', () => {
+  assert.equal(supportsReasoningEffort('gpt-4o'), false, 'gpt-4o should not support reasoning');
+  assert.equal(supportsReasoningEffort('gpt-4'), false, 'gpt-4 should not support reasoning');
   assert.equal(supportsReasoningEffort('grok-beta'), false, 'grok-beta (non-fast) should not support reasoning');
   assert.equal(supportsReasoningEffort('grok-fast'), true, 'grok-fast should support reasoning');
 });
@@ -102,13 +109,13 @@ test('supportsReasoningEffort handles model with version suffix', () => {
 
 test('supportsReasoningEffort uses active model when not specified', () => {
   const originalModel = window.config.defaultModel;
-
-  window.config.defaultModel = 'grok-4-1-fast-non-reasoning';
-  assert.equal(supportsReasoningEffort(), true, 'grok-fast should support reasoning');
-
-  window.config.defaultModel = 'grok-beta';
-  assert.equal(supportsReasoningEffort(), false, 'grok-beta should not support reasoning');
-
+  
+  window.config.defaultModel = 'gpt-4o';
+  assert.equal(supportsReasoningEffort(), false, 'gpt-4o should not support reasoning');
+  
+  window.config.defaultModel = 'gpt-5-mini';
+  assert.equal(supportsReasoningEffort(), true, 'gpt-5-mini should support reasoning');
+  
   // Restore
   window.config.defaultModel = originalModel;
 });

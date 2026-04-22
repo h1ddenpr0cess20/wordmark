@@ -1,9 +1,10 @@
 /**
- * Client-side media generation/editing tools for xAI Grok Imagine.
+ * Client-side media generation/editing tools for xAI Grok Imagine and OpenAI Sora.
  */
 
 const XAI_IMAGE_MODEL = "grok-imagine-image"; // eslint-disable-line no-unused-vars
 const XAI_VIDEO_MODEL = "grok-imagine-video"; // eslint-disable-line no-unused-vars
+const OPENAI_VIDEO_MODEL = "sora-2";
 
 const XAI_IMAGE_ASPECT_RATIOS = [ // eslint-disable-line no-unused-vars
   "1:1", "16:9", "9:16", "4:3", "3:4",
@@ -12,6 +13,8 @@ const XAI_IMAGE_ASPECT_RATIOS = [ // eslint-disable-line no-unused-vars
 ];
 const XAI_VIDEO_ASPECT_RATIOS = ["16:9", "9:16", "1:1", "4:3", "3:4", "3:2", "2:3"]; // eslint-disable-line no-unused-vars
 const XAI_VIDEO_RESOLUTIONS = ["480p", "720p"]; // eslint-disable-line no-unused-vars
+const OPENAI_SORA_SIZES = ["720x1280", "1280x720", "1024x1792", "1792x1024"];
+const OPENAI_SORA_SECONDS = [4, 8, 12];
 
 const VIDEO_POLL_INTERVAL_MS = 4000;
 const VIDEO_POLL_TIMEOUT_MS = 8 * 60 * 1000;
@@ -46,7 +49,7 @@ function getProviderApiKey(provider) {
   const apiKey = window.getApiKey?.(provider) || window.config?.services?.[provider]?.apiKey || "";
   const trimmed = typeof apiKey === "string" ? apiKey.trim() : "";
   if (!trimmed) {
-    const providerLabel = provider === "xai" ? "xAI" : provider;
+    const providerLabel = provider === "xai" ? "xAI" : provider === "openai" ? "OpenAI" : provider;
     throw new Error(`Add your ${providerLabel} API key in Settings → API Keys.`);
   }
   return trimmed;
@@ -171,6 +174,171 @@ function decodeDataUri(reference) {
     bytes[index] = binary.charCodeAt(index);
   }
   return new Blob([bytes], { type: mimeType });
+}
+
+async function referenceToBlob(reference, options = {}) {
+  if (!reference) {
+    throw new Error("Missing media reference.");
+  }
+  if (reference instanceof Blob) {
+    return reference;
+  }
+  const referenceString = String(reference).trim();
+  if (!referenceString) {
+    throw new Error("Missing media reference.");
+  }
+  if (referenceString.startsWith("data:")) {
+    return decodeDataUri(referenceString);
+  }
+  if (referenceString.startsWith("blob:")) {
+    return fetchBlob(referenceString);
+  }
+
+  const { provider = null } = options;
+  const requestOptions = {};
+  if (provider && referenceString.startsWith(getProviderBaseUrl(provider))) {
+    requestOptions.headers = buildHeaders(provider, { multipart: true });
+  }
+  return fetchBlob(referenceString, requestOptions);
+}
+
+function loadImageElementFromBlob(blob) {
+  return new Promise((resolve, reject) => {
+    const imageUrl = URL.createObjectURL(blob);
+    const image = new Image();
+    image.onload = () => {
+      URL.revokeObjectURL(imageUrl);
+      resolve(image);
+    };
+    image.onerror = (error) => {
+      URL.revokeObjectURL(imageUrl);
+      reject(error);
+    };
+    image.src = imageUrl;
+  });
+}
+
+function parseSize(size) {
+  const [width, height] = String(size || "").split("x").map(value => Number.parseInt(value, 10));
+  if (!Number.isFinite(width) || !Number.isFinite(height)) {
+    throw new Error(`Invalid size '${size}'.`);
+  }
+  return { width, height };
+}
+
+function chooseSoraSize(width, height, requestedSize) {
+  if (requestedSize && OPENAI_SORA_SIZES.includes(requestedSize)) {
+    return requestedSize;
+  }
+  const sourceRatio = width && height ? width / height : 1;
+  return OPENAI_SORA_SIZES
+    .map(size => {
+      const parsed = parseSize(size);
+      return {
+        size,
+        delta: Math.abs((parsed.width / parsed.height) - sourceRatio),
+      };
+    })
+    .sort((a, b) => a.delta - b.delta)[0]?.size || OPENAI_SORA_SIZES[0];
+}
+
+async function canvasToBlob(canvas, type = "image/png", quality = 0.92) {
+  return new Promise((resolve, reject) => {
+    canvas.toBlob(blob => {
+      if (!blob) {
+        reject(new Error("Failed to create blob from canvas."));
+        return;
+      }
+      resolve(blob);
+    }, type, quality);
+  });
+}
+
+async function prepareSoraReference(imageReference, requestedSize) {
+  const sourceBlob = await referenceToBlob(imageReference);
+  const image = await loadImageElementFromBlob(sourceBlob);
+  const selectedSize = chooseSoraSize(image.naturalWidth || image.width, image.naturalHeight || image.height, requestedSize);
+  const { width, height } = parseSize(selectedSize);
+
+  const canvas = document.createElement("canvas");
+  canvas.width = width;
+  canvas.height = height;
+  const context = canvas.getContext("2d");
+  if (!context) {
+    throw new Error("Canvas 2D context is unavailable.");
+  }
+
+  const sourceWidth = image.naturalWidth || image.width;
+  const sourceHeight = image.naturalHeight || image.height;
+  const sourceRatio = sourceWidth / sourceHeight;
+  const targetRatio = width / height;
+
+  let drawWidth = sourceWidth;
+  let drawHeight = sourceHeight;
+  let offsetX = 0;
+  let offsetY = 0;
+
+  if (sourceRatio > targetRatio) {
+    drawWidth = sourceHeight * targetRatio;
+    offsetX = (sourceWidth - drawWidth) / 2;
+  } else if (sourceRatio < targetRatio) {
+    drawHeight = sourceWidth / targetRatio;
+    offsetY = (sourceHeight - drawHeight) / 2;
+  }
+
+  context.drawImage(image, offsetX, offsetY, drawWidth, drawHeight, 0, 0, width, height);
+  const pngBlob = await canvasToBlob(canvas, "image/png");
+  return {
+    size: selectedSize,
+    blob: pngBlob,
+    filename: `input-reference-${Date.now()}.png`,
+    mimeType: "image/png",
+  };
+}
+
+async function pollVideo(provider, requestId, onStatus) {
+  const deadline = Date.now() + VIDEO_POLL_TIMEOUT_MS;
+  while (Date.now() < deadline) {
+    const payload = await fetchJson(`${getProviderBaseUrl(provider)}/videos/${requestId}`, {
+      headers: buildHeaders(provider, { multipart: true }),
+    });
+    const status = String(payload.status || "").trim().toLowerCase();
+    if (typeof onStatus === "function") {
+      onStatus(status || "pending");
+    }
+    if (["done", "completed", "succeeded", "success"].includes(status) || typeof extractVideoUrl(payload) === "string") {
+      return payload;
+    }
+    if (["expired", "failed", "error", "cancelled"].includes(status)) {
+      throw new Error(`Video generation ended with status '${status}'.`);
+    }
+    await sleep(VIDEO_POLL_INTERVAL_MS);
+  }
+  throw new Error(`Timed out waiting for video generation request '${requestId}'.`);
+}
+
+function extractVideoUrl(payload) {
+  if (!payload || typeof payload !== "object") {
+    return null;
+  }
+  if (typeof payload.url === "string" && payload.url.trim()) {
+    return payload.url.trim();
+  }
+  const keys = ["video", "result", "output"];
+  for (const key of keys) {
+    const candidate = payload[key];
+    if (candidate && typeof candidate === "object" && typeof candidate.url === "string" && candidate.url.trim()) {
+      return candidate.url.trim();
+    }
+  }
+  return null;
+}
+
+function normalizeSeconds(seconds) {
+  if (!Number.isFinite(seconds)) {
+    return null;
+  }
+  return OPENAI_SORA_SECONDS.includes(seconds) ? seconds : OPENAI_SORA_SECONDS[0];
 }
 
 function normalizePrompt(args = {}) {
@@ -671,6 +839,87 @@ window.registerGeneratedMedia = function({
 //   };
 // }
 
+async function generateSoraVideo(args) {
+  const prompt = normalizePrompt(args);
+  const provider = "openai";
+  let imageUrl = typeof args.image_url === "string" && args.image_url.trim() ? args.image_url.trim() : null;
+  if (!imageUrl) {
+    imageUrl = await resolveLatestMediaReference("image");
+  }
+
+  const seconds = normalizeSeconds(Number(args.seconds));
+  const formData = new FormData();
+  formData.append("model", OPENAI_VIDEO_MODEL);
+  formData.append("prompt", prompt);
+  if (seconds) {
+    formData.append("seconds", String(seconds));
+  }
+
+  let selectedSize = typeof args.size === "string" && OPENAI_SORA_SIZES.includes(args.size)
+    ? args.size
+    : null;
+
+  if (imageUrl) {
+    const prepared = await prepareSoraReference(imageUrl, selectedSize);
+    selectedSize = prepared.size;
+    formData.append("input_reference", prepared.blob, prepared.filename);
+  }
+
+  if (selectedSize) {
+    formData.append("size", selectedSize);
+  }
+
+  notifyStatus(imageUrl ? "Animating image with Sora..." : "Generating video with Sora...");
+
+  let created = await fetchJson(`${getProviderBaseUrl(provider)}/videos`, {
+    method: "POST",
+    headers: buildHeaders(provider, { multipart: true }),
+    body: formData,
+  });
+
+  const initialStatus = String(created.status || "").trim().toLowerCase();
+  if (!["done", "completed", "succeeded", "success"].includes(initialStatus)) {
+    const requestId = String(created.id || "").trim();
+    if (!requestId) {
+      throw new Error("Sora did not return a request id.");
+    }
+    let lastStatus = "";
+    created = await pollVideo(provider, requestId, status => {
+      if (status !== lastStatus) {
+        lastStatus = status;
+        notifyStatus(`Generating video with Sora [${status}]`);
+      }
+    });
+  }
+
+  const videoId = String(created.id || "").trim();
+  if (!videoId) {
+    throw new Error("Sora did not return a downloadable video id.");
+  }
+
+  notifyStatus("Downloading Sora video...");
+  const videoBlob = await fetchBlob(`${getProviderBaseUrl(provider)}/videos/${videoId}/content`, {
+    headers: buildHeaders(provider, { multipart: true }),
+  });
+  const record = window.registerGeneratedMedia({
+    mediaType: "video",
+    sourceData: videoBlob,
+    prompt,
+    tool: "sora_generate_video",
+    filename: makeFilename(imageUrl ? "animated-video" : "generated-video", videoBlob.type || "video/mp4"),
+    mimeType: videoBlob.type || "video/mp4",
+    model: OPENAI_VIDEO_MODEL,
+    callId: videoId,
+  });
+
+  return {
+    ok: true,
+    backend: "sora",
+    mediaType: "video",
+    filename: record.filename,
+  };
+}
+
 window.toolImplementations = window.toolImplementations || {};
 // Grok Imagine tools commented out due to CORS issues
 // window.toolImplementations.grok_generate_image = async function(args) {
@@ -682,3 +931,13 @@ window.toolImplementations = window.toolImplementations || {};
 // window.toolImplementations.grok_generate_video = async function(args) {
 //   return generateGrokVideo(args || {});
 // };
+window.toolImplementations.sora_generate_video = async function(args) {
+  try {
+    const result = await generateSoraVideo(args || {});
+    hideMediaSpinner();
+    return result;
+  } catch (error) {
+    hideMediaSpinner();
+    throw error;
+  }
+};

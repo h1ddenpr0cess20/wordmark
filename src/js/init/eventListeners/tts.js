@@ -5,7 +5,7 @@ export function setupTtsEventListeners() {
         if (typeof window.loadTtsModule === 'function' && !window.lazyModulesLoaded?.tts) {
           await window.loadTtsModule();
         }
-        window.ttsConfig = window.ttsConfig || { enabled: false, voice: 'leo', instructions: '', autoplay: true };
+        window.ttsConfig = window.ttsConfig || { enabled: false, voice: 'ash', instructions: '', autoplay: true };
         window.ttsConfig.enabled = true;
         if (typeof window.initializeTts === 'function') {
           window.initializeTts();
@@ -26,7 +26,7 @@ export function setupTtsEventListeners() {
 
   if (window.ttsAutoplayToggle) {
     window.ttsAutoplayToggle.addEventListener('change', (event) => {
-      window.ttsConfig = window.ttsConfig || { enabled: false, voice: 'leo', instructions: '', autoplay: true };
+      window.ttsConfig = window.ttsConfig || { enabled: false, voice: 'ash', instructions: '', autoplay: true };
       window.ttsConfig.autoplay = event.target.checked;
       if (event.target.checked && window.ttsMessageQueue && window.ttsMessageQueue.length > 0 && !window.activeTtsAudio) {
         window.ttsAutoplayActive = true;
@@ -39,7 +39,7 @@ export function setupTtsEventListeners() {
 
   if (window.ttsProviderSelector) {
     window.ttsProviderSelector.addEventListener('change', (event) => {
-      window.ttsConfig = window.ttsConfig || { enabled: false, provider: 'xai', voice: 'leo', instructions: '', autoplay: true };
+      window.ttsConfig = window.ttsConfig || { enabled: false, provider: 'openai', voice: 'ash', instructions: '', autoplay: true };
       window.ttsConfig.provider = event.target.value;
       if (typeof window.populateTtsVoiceSelector === 'function') {
         window.populateTtsVoiceSelector();
@@ -54,27 +54,30 @@ export function setupTtsEventListeners() {
 
   if (window.ttsVoiceSelector) {
     window.ttsVoiceSelector.addEventListener('change', (event) => {
-      window.ttsConfig = window.ttsConfig || { enabled: false, provider: 'xai', voice: 'leo', instructions: '', autoplay: true };
+      window.ttsConfig = window.ttsConfig || { enabled: false, provider: 'openai', voice: 'ash', instructions: '', autoplay: true };
       window.ttsConfig.voice = event.target.value;
     });
   }
 
   if (window.ttsInstructionsInput) {
     window.ttsInstructionsInput.addEventListener('change', (event) => {
-      window.ttsConfig = window.ttsConfig || { enabled: false, voice: 'leo', instructions: '', autoplay: true };
+      window.ttsConfig = window.ttsConfig || { enabled: false, voice: 'ash', instructions: '', autoplay: true };
       window.ttsConfig.instructions = event.target.value;
     });
   }
 
   if (window.testTtsButton) {
     window.testTtsButton.addEventListener('click', () => {
-      window.ttsConfig = window.ttsConfig || { enabled: false, voice: 'leo', instructions: '', autoplay: true };
+      window.ttsConfig = window.ttsConfig || { enabled: false, voice: 'ash', instructions: '', autoplay: true };
       if (!window.ttsConfig.enabled) {
         console.warn('TTS is disabled. Enable it first to test.');
         return;
       }
 
-      const apiKey = window.config.services.xai?.apiKey;
+      const provider = window.ttsConfig.provider || 'openai';
+      const apiKey = provider === 'xai'
+        ? window.config.services.xai?.apiKey
+        : window.config.services.openai?.apiKey;
       if (!apiKey) {
         return;
       }

@@ -3,7 +3,7 @@
  * Provides access to defaults and active service/model selectors.
  */
 
-export const DEFAULT_MODEL = 'grok-4-1-fast-non-reasoning';
+export const DEFAULT_MODEL = 'gpt-5-mini';
 export const DEFAULT_VERBOSITY = 'medium';
 export const DEFAULT_REASONING_EFFORT = 'low';
 
@@ -24,7 +24,7 @@ export function getActiveServiceKey() {
   if (window.config && typeof window.config.defaultService === 'string') {
     return window.config.defaultService;
   }
-  return 'xai';
+  return 'openai';
 }
 
 export function ensureApiKey() {
@@ -41,10 +41,11 @@ export function ensureApiKey() {
     return null;
   }
   const friendlyName = (() => {
+    if (activeServiceKey === 'openai') return 'OpenAI';
     if (activeServiceKey === 'xai') return 'xAI';
     return activeServiceKey
       ? activeServiceKey.charAt(0).toUpperCase() + activeServiceKey.slice(1)
-      : 'xAI';
+      : 'OpenAI';
   })();
   throw new Error(`Add your ${friendlyName} API key in Settings → API Keys.`);
 }
@@ -64,6 +65,9 @@ export function supportsReasoningEffort(modelName = null) {
   const model = ((modelName || getActiveModel() || '') + '').toLowerCase();
   if (!model) {
     return true;
+  }
+  if (model.startsWith('gpt-4')) {
+    return false;
   }
   if (model.startsWith('grok')) {
     return model.includes('fast');

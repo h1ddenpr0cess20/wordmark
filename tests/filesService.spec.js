@@ -10,7 +10,7 @@ function setupWindow() {
       getApiKey: () => 'test-key',
       getBaseUrl: () => 'https://api.example.com',
     },
-    serviceSelector: { value: 'xai' },
+    serviceSelector: { value: 'openai' },
   };
 }
 
