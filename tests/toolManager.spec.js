@@ -62,6 +62,9 @@ test('getToolCatalog includes builtin tools', () => {
 
   const imageGen = catalog.find(tool => tool.key === 'builtin:image_generation');
   assert.ok(imageGen, 'should include image_generation');
+
+  const removedVideoTool = catalog.find(tool => /video/i.test(tool.key));
+  assert.equal(removedVideoTool, undefined, 'should not include removed video tool');
 });
 
 test('isToolEnabled returns default state for unconfigured tools', () => {
@@ -200,6 +203,19 @@ test('getEnabledToolDefinitions handles xAI service specially', () => {
   // xAI should not have MCP tools
   const hasMcp = xaiTools.some(tool => tool.type === 'mcp');
   assert.equal(hasMcp, false, 'xAI should not have MCP tools');
+});
+
+test('getEnabledToolDefinitions returns no tools for disabled services', () => {
+  const originalServices = globalThis.window.config.services;
+  globalThis.window.config.services = {
+    openai: { enabled: true },
+    xai: { enabled: false },
+  };
+
+  const xaiTools = getEnabledToolDefinitions('xai');
+  assert.deepEqual(xaiTools, [], 'disabled xAI service should not receive tools');
+
+  globalThis.window.config.services = originalServices;
 });
 
 test('getEnabledToolDefinitions omits image tool for Codex models', () => {

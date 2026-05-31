@@ -479,10 +479,11 @@ window.populateServiceSelector = function() {
   // Create and append options for each service in config
   Object.keys(window.config.services).forEach(serviceKey => {
     const serviceConfig = window.config.services[serviceKey];
+    if (serviceConfig?.enabled === false) {
+      return;
+    }
     const option = document.createElement("option");
     option.value = serviceKey;
-    const serviceEnabled = serviceConfig?.enabled !== false;
-    option.disabled = !serviceEnabled;
 
     // Determine display name based on service key
     let displayName = serviceKey.charAt(0).toUpperCase() + serviceKey.slice(1);
@@ -508,10 +509,7 @@ window.populateServiceSelector = function() {
       displayName = serviceKey.charAt(0).toUpperCase() + serviceKey.slice(1);
     }
 
-    option.textContent = serviceEnabled ? displayName : `${displayName} (disabled)`;
-    if (!serviceEnabled && serviceConfig?.disabledReason) {
-      option.title = serviceConfig.disabledReason;
-    }
+    option.textContent = displayName;
     window.serviceSelector.appendChild(option);
   });
 

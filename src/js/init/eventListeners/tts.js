@@ -40,14 +40,14 @@ export function setupTtsEventListeners() {
   if (window.ttsProviderSelector) {
     window.ttsProviderSelector.addEventListener('change', (event) => {
       window.ttsConfig = window.ttsConfig || { enabled: false, provider: 'openai', voice: 'ash', instructions: '', autoplay: true };
-      window.ttsConfig.provider = event.target.value;
+      window.ttsConfig.provider = window.availableTtsVoices?.[event.target.value] ? event.target.value : 'openai';
+      event.target.value = window.ttsConfig.provider;
       if (typeof window.populateTtsVoiceSelector === 'function') {
         window.populateTtsVoiceSelector();
       }
-      // xAI TTS doesn't support voice instructions
       const instructionsItem = window.ttsInstructionsInput?.closest('.setting-item');
       if (instructionsItem) {
-        instructionsItem.style.display = event.target.value === 'xai' ? 'none' : '';
+        instructionsItem.style.display = '';
       }
     });
   }
@@ -74,10 +74,9 @@ export function setupTtsEventListeners() {
         return;
       }
 
-      const provider = window.ttsConfig.provider || 'openai';
-      const apiKey = provider === 'xai'
-        ? window.config.services.xai?.apiKey
-        : window.config.services.openai?.apiKey;
+      const provider = window.availableTtsVoices?.[window.ttsConfig.provider] ? window.ttsConfig.provider : 'openai';
+      window.ttsConfig.provider = provider;
+      const apiKey = window.config.services.openai?.apiKey;
       if (!apiKey) {
         return;
       }
@@ -115,4 +114,3 @@ export function setupTtsEventListeners() {
     }
   });
 }
-

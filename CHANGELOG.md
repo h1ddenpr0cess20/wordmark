@@ -52,12 +52,10 @@ This version introduced several major features across multiple commits but only 
 
 ### Added
 - **Dynamic model fetching** — removed hardcoded model lists, models now fetched from provider APIs at runtime
-- **OpenAI Sora video generation** — full integration with polling, progress spinner, aspect ratio/resolution/duration options
 - Web search enabled by default
 
 ### Fixed
 - Multi-agent model patch (Grok)
-- Sora disabled by default (initially shipped enabled)
 
 ### Changed
 - Reverted "default to local models if no API keys" (shipped and immediately reverted)

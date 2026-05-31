@@ -16,7 +16,6 @@ const API_KEYS_INIT_RETRY_DELAY = 150;
 // DOM element references
 window.apiKeyInputs = {
   openai: null,
-  xai: null,
   // huggingface: null,
 };
 
@@ -51,7 +50,6 @@ function refreshApiDependentUi() {
 window.initApiKeys = function(retryCount = 0) {
   // Get DOM references for main API keys
   const openaiInput = document.getElementById("openai-api-key");
-  const xaiInput = document.getElementById("xai-api-key");
   // const huggingfaceInput = document.getElementById("huggingface-api-key");
   const saveKeysButton = document.getElementById("save-api-keys");
   const lmStudioUrlInput = document.getElementById("lmstudio-server-url");
@@ -59,7 +57,7 @@ window.initApiKeys = function(retryCount = 0) {
   const ollamaUrlInput = document.getElementById("ollama-server-url");
   const saveOllamaButton = document.getElementById("save-ollama-url");
 
-  const essentialReady = Boolean(saveKeysButton && (openaiInput || xaiInput || lmStudioUrlInput || ollamaUrlInput));
+  const essentialReady = Boolean(saveKeysButton && (openaiInput || lmStudioUrlInput || ollamaUrlInput));
 
   if (!essentialReady) {
     if (retryCount < API_KEYS_INIT_MAX_RETRIES) {
@@ -71,7 +69,6 @@ window.initApiKeys = function(retryCount = 0) {
   }
 
   window.apiKeyInputs.openai = openaiInput;
-  window.apiKeyInputs.xai = xaiInput;
   // window.apiKeyInputs.huggingface = huggingfaceInput;
   window.saveApiKeysButton = saveKeysButton;
   window.lmStudioServerUrlInput = lmStudioUrlInput;

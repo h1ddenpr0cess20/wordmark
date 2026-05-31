@@ -42,6 +42,18 @@ function cloneDefinition(definition) {
   return JSON.parse(JSON.stringify(definition));
 }
 
+function isConfiguredServiceEnabled(serviceKey) {
+  const services = window.config?.services;
+  if (!services) {
+    return true;
+  }
+  if (typeof window.config?.isServiceEnabled === 'function') {
+    return window.config.isServiceEnabled(serviceKey);
+  }
+  const service = services[serviceKey];
+  return Boolean(service && service.enabled !== false);
+}
+
 const STATIC_TOOLS = [
   {
     key: 'function:open_meteo_forecast',
@@ -284,45 +296,6 @@ const STATIC_TOOLS = [
   //   },
   //   requiresApiKeyService: 'xai',
   // },
-  {
-    key: 'function:sora_generate_video',
-    type: 'function',
-    displayName: 'OpenAI Sora Video',
-    description: 'Generate a video or animate an image with OpenAI Sora. Requires an OpenAI API key.',
-    defaultEnabled: false,
-    hidden: true,
-    definition: {
-      type: 'function',
-      name: 'sora_generate_video',
-      description: 'Generate a video or animate an image with OpenAI Sora.',
-      parameters: {
-        type: 'object',
-        properties: {
-          prompt: {
-            type: 'string',
-            description: 'A detailed description of the video to create.',
-          },
-          image_url: {
-            type: 'string',
-            description: 'Optional data URI or public URL for image-to-video generation.',
-          },
-          seconds: {
-            type: 'integer',
-            description: 'Requested clip duration.',
-            enum: [4, 8, 12],
-          },
-          size: {
-            type: 'string',
-            description: 'Requested video size.',
-            enum: ['720x1280', '1280x720', '1024x1792', '1792x1024'],
-          },
-        },
-        required: ['prompt'],
-        additionalProperties: false,
-      },
-    },
-    requiresApiKeyService: 'openai',
-  },
 ];
 
 const TOOL_CATALOG = [];
@@ -524,6 +497,9 @@ export function unregisterMcpServer(serverLabel, options = {}) {
 export function getEnabledToolDefinitions(serviceKey = getActiveServiceKey(), modelName = getActiveModel()) {
   const masterEnabled = !(window.config && window.config.enableFunctionCalling === false);
   if (!masterEnabled) {
+    return [];
+  }
+  if (!isConfiguredServiceEnabled(serviceKey)) {
     return [];
   }
 

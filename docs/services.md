@@ -4,7 +4,7 @@
 
 Defined in `src/config/config.js` under `window.config.services` with a `defaultService` and configuration helpers accessed via `src/js/services/api/clientConfig.js`:
 
-- `getActiveServiceKey()` - Returns current service (openai, xai, lmstudio, ollama)
+- `getActiveServiceKey()` - Returns current service (openai, lmstudio, ollama)
 - `getActiveModel()` - Returns selected model for active service
 - `getBaseUrl()` - Returns API base URL for active service
 - `ensureApiKey()` - Returns API key and throws if missing
@@ -13,13 +13,6 @@ Defined in `src/config/config.js` under `window.config.services` with a `default
 ### Supported Providers
 
 - **OpenAI** (`openai`) - Hosted Responses API with full feature support
-- **xAI** (`xai`) - Grok models via Responses-compatible API
-  - Uses `system` role instead of `developer` for system prompts
-  - Supports specialized tools: `web_search`, `x_search` (Twitter/X search)
-  - Supports MCP connectors; local-network servers remain blocked for security when using xAI
-  - Requires `text.format` removal when using server-side tools (web/X search, Code Interpreter, MCP connectors)
-  - Provider-managed Code Interpreter ignores OpenAI-specific container options
-  - File attachments use direct `input_file` references (uploaded via `/v1/files`, referenced by `file_id` in message content) instead of vector stores
 - **LM Studio** (`lmstudio`) - Local OpenAI-compatible server
   - Models fetched dynamically via `<baseUrl>/models`
   - No API key required
@@ -44,7 +37,7 @@ The `src/js/services/api/requestClient.js` module handles all API communication:
 
 ### Request Body Construction
 - `buildRequestBody()` - Constructs Responses API payload with model, verbosity, reasoning effort, tools
-- Handles service-specific quirks (xAI text format, reasoning support)
+- Handles service-specific quirks and reasoning support
 - Includes previous response ID for image continuation
 
 ### Streaming
@@ -69,7 +62,7 @@ Tools are managed by `src/js/services/api/toolManager.js`:
 
 ### Built-in Tools
 - **Weather** (`function:open_meteo_forecast`) - Open-Meteo 1-7 day forecasts
-- **Web Search** (`builtin:web_search`) - Provider-managed web search; xAI also surfaces `x_search` for Twitter/X
+- **Web Search** (`builtin:web_search`) - Provider-managed web search
 - **Code Interpreter** (`builtin:code_interpreter`) - Python sandbox execution
 - **Image Generation** (`builtin:image_generation`) - OpenAI DALL-E integration (automatically disabled when Codex models are selected)
 - **File Search** (`builtin:file_search`) - Vector store lookup for uploaded documents (OpenAI only)
@@ -82,7 +75,6 @@ Tools are managed by `src/js/services/api/toolManager.js`:
 
 ### Service-Specific Behavior
 - OpenAI disables the image generation tool whenever a Codex model is active.
-- xAI supports MCP tools (non-local endpoints) and automatically adds provider search tools (`web_search`, `x_search`)
 - Local services (LM Studio, Ollama) can access local MCP servers
 - Cloud services skip local network MCP servers for security
 
@@ -106,7 +98,7 @@ Tools are managed by `src/js/services/api/toolManager.js`:
 
 ## Reasoning Support
 
-Models with reasoning capability (o1, o3, o4, grok-4-fast variants) receive:
+Models with reasoning capability (o1, o3, o4 variants) receive:
 - `reasoning.effort` parameter (low, medium, high)
 - `reasoning.summary` set to 'auto'
 - Reasoning content extracted and displayed separately from main response
@@ -115,13 +107,12 @@ See [Streaming](./streaming.md) for details on reasoning display formatting.
 
 ## File & Vector Store Services
 
-Document attachments are handled differently per provider:
+Document attachments are handled through the OpenAI file/vector store path:
 
-- **OpenAI**: Files are uploaded to `/v1/files`, attached to a vector store, and searched via the `file_search` tool. Requires the File Search tool to be enabled in Settings.
-- **xAI**: Files are uploaded to `/v1/files` and referenced directly in message content as `input_file` parts with the returned `file_id`. No vector stores or file_search tool needed.
+- Files are uploaded to `/v1/files`, attached to a vector store, and searched via the `file_search` tool. Requires the File Search tool to be enabled in Settings.
 
 Shared infrastructure in `src/js/services/vectorStore.js`:
-  - `uploadFile()` uploads a file to the active provider's `/files` endpoint (used by both OpenAI and xAI)
+  - `uploadFile()` uploads a file to the active provider's `/files` endpoint
   - `filterSupportedFiles()` blocks unsupported extensions before upload
   - `uploadAndAttachFiles()` batches uploads and attaches them to a newly created vector store (OpenAI path)
   - `saveVectorStoreMetadata()` / `getVectorStoreMetadata()` persist IDs + names so the UI can pre-populate selectors

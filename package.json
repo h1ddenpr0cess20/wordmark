@@ -1,7 +1,7 @@
 {
   "name": "wordmark",
   "version": "1.5.2",
-  "description": "Client-side AI assistant supporting OpenAI, xAI, and local LM Studio servers.",
+  "description": "Client-side AI assistant supporting OpenAI and local LM Studio/Ollama servers.",
   "main": "index.html",
   "type": "module",
   "scripts": {

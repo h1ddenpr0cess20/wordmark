@@ -2,7 +2,7 @@
 
 ## Overview
 
-Wordmark breaks streaming responses into focused modules that cooperate to render text, reasoning, tool status, and generated assets in real time. The pipeline consumes Server-Sent Events from the OpenAI/xAI Responses APIs and updates the UI incrementally while preserving local history and image galleries.
+Wordmark breaks streaming responses into focused modules that cooperate to render text, reasoning, tool status, and generated assets in real time. The pipeline consumes Server-Sent Events from the OpenAI Responses API and compatible local providers, then updates the UI incrementally while preserving local history and image galleries.
 
 ## Pipeline
 

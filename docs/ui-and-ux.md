@@ -8,7 +8,7 @@ Panels & Controls
     - Click the model name to open Settings → Model.
     - Click the personality/prompt line to open Settings → Personality.
   - Provider tooltip:
-    - Hover the model name to see whether you're using OpenAI, xAI, LM Studio, or Ollama.
+    - Hover the model name to see whether you're using OpenAI, LM Studio, or Ollama.
   - Feature badges (under the prompt line):
     - Shows status for Location, Memory, and Tools.
     - Click the dot to quickly toggle a feature on/off.
@@ -37,11 +37,10 @@ Uploads
 
 TTS
 
-- Toggle via the header TTS badge or in Settings → TTS. A provider selector lets you choose between OpenAI and xAI (Grok) for speech generation.
+- Toggle via the header TTS badge or in Settings → TTS. OpenAI is used for speech generation.
 - **OpenAI**: 13 voices organized by gender (neutral: fable; male: ash, ballad, cedar, echo, onyx, verse; female: alloy, coral, marin, nova, sage, shimmer). Uses the `gpt-4o-mini-tts` model. Optional voice instructions let you customize speech style (e.g. "Speak cheerfully"); falls back to the active personality prompt if set.
-- **xAI**: 5 voices (male: leo, rex, sal; female: ara, eve). Uses the xAI TTS API at `api.x.ai/v1/tts` with automatic language detection. Voice instructions are not supported.
 - Autoplay mode queues and plays new assistant messages sequentially. Per-message controls provide play/pause, stop, and download (WAV).
-- Audio is cached in IndexedDB (last 15 files kept). The voice selector updates dynamically when switching providers.
+- Audio is cached in IndexedDB (last 15 files kept).
 
 Mobile
 
