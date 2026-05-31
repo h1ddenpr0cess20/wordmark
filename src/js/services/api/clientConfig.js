@@ -7,6 +7,28 @@ export const DEFAULT_MODEL = 'gpt-5-mini';
 export const DEFAULT_VERBOSITY = 'medium';
 export const DEFAULT_REASONING_EFFORT = 'low';
 
+function isConfiguredServiceEnabled(serviceKey) {
+  if (!serviceKey || !window.config || !window.config.services) {
+    return false;
+  }
+  if (typeof window.config.isServiceEnabled === 'function') {
+    return window.config.isServiceEnabled(serviceKey);
+  }
+  const service = window.config.services[serviceKey];
+  return Boolean(service && service.enabled !== false);
+}
+
+function getFallbackServiceKey() {
+  if (isConfiguredServiceEnabled('openai')) {
+    return 'openai';
+  }
+  const services = window.config && window.config.services;
+  if (!services) {
+    return 'openai';
+  }
+  return Object.keys(services).find(isConfiguredServiceEnabled) || 'openai';
+}
+
 export function getActiveModel() {
   if (window.modelSelector && window.modelSelector.value) {
     return window.modelSelector.value;
@@ -18,13 +40,14 @@ export function getActiveModel() {
 }
 
 export function getActiveServiceKey() {
-  if (window.serviceSelector && window.serviceSelector.value) {
-    return window.serviceSelector.value;
+  const selectedService = window.serviceSelector && window.serviceSelector.value;
+  if (isConfiguredServiceEnabled(selectedService)) {
+    return selectedService;
   }
-  if (window.config && typeof window.config.defaultService === 'string') {
+  if (window.config && typeof window.config.defaultService === 'string' && isConfiguredServiceEnabled(window.config.defaultService)) {
     return window.config.defaultService;
   }
-  return 'openai';
+  return getFallbackServiceKey();
 }
 
 export function ensureApiKey() {

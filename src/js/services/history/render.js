@@ -262,7 +262,7 @@ window.renderConversationMessages = function(convo, imageCache) {
       option => option.value === convo.service,
     );
 
-    if (serviceOption) {
+    if (serviceOption && !serviceOption.disabled) {
       window.config.defaultService = convo.service;
       window.serviceSelector.value = convo.service;
 

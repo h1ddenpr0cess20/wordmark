@@ -290,6 +290,7 @@ const STATIC_TOOLS = [
     displayName: 'OpenAI Sora Video',
     description: 'Generate a video or animate an image with OpenAI Sora. Requires an OpenAI API key.',
     defaultEnabled: false,
+    hidden: true,
     definition: {
       type: 'function',
       name: 'sora_generate_video',

@@ -20,6 +20,10 @@ export function setupSelectorEventListeners() {
   if (window.serviceSelector) {
     window.serviceSelector.addEventListener('change', async() => {
       const selectedService = window.serviceSelector.value;
+      if (window.config && typeof window.config.isServiceEnabled === 'function' && !window.config.isServiceEnabled(selectedService)) {
+        window.serviceSelector.value = window.config.normalizeServiceKey?.(window.config.defaultService) || 'openai';
+        return;
+      }
       window.config.defaultService = selectedService;
 
       if (typeof window.ensureApiKeysLoaded === 'function') {

@@ -60,6 +60,18 @@ test('getActiveServiceKey returns default service', () => {
   assert.equal(service, 'openai', 'should return default service');
 });
 
+test('getActiveServiceKey ignores disabled selected service', () => {
+  const originalSelector = window.serviceSelector;
+  const originalEnabled = window.config.services.xai.enabled;
+  window.serviceSelector = { value: 'xai' };
+  window.config.services.xai.enabled = false;
+
+  assert.equal(getActiveServiceKey(), 'openai', 'should fall back to enabled OpenAI service');
+
+  window.serviceSelector = originalSelector;
+  window.config.services.xai.enabled = originalEnabled;
+});
+
 test('getActiveModel returns default model', () => {
   const model = getActiveModel();
   assert.equal(model, 'gpt-5-mini', 'should return default model');

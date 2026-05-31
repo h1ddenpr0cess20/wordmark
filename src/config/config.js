@@ -398,6 +398,8 @@ window.config = {
 
         // xAI (Grok) service
         xai: {
+            enabled: false,
+            disabledReason: 'Temporarily disabled as a provider.',
             baseUrl: 'https://api.x.ai/v1',
             apiKey: '',
             models: [],
@@ -459,9 +461,30 @@ window.config = {
         },
     },
 
+    // Helper function to check whether a configured service can be selected
+    isServiceEnabled: function(serviceKey) {
+        const service = this.services && this.services[serviceKey];
+        return Boolean(service && service.enabled !== false);
+    },
+
+    // Helper function to normalize a service key to an enabled service
+    normalizeServiceKey: function(serviceKey) {
+        if (this.isServiceEnabled(serviceKey)) {
+            return serviceKey;
+        }
+        if (this.isServiceEnabled('openai')) {
+            return 'openai';
+        }
+        return Object.keys(this.services || {}).find(key => this.isServiceEnabled(key)) || serviceKey;
+    },
+
     // Helper function to get the active service configuration
     getActiveService: function() {
-        return this.services[this.defaultService];
+        const serviceKey = this.normalizeServiceKey(this.defaultService);
+        if (serviceKey && serviceKey !== this.defaultService) {
+            this.defaultService = serviceKey;
+        }
+        return this.services[serviceKey];
     },
     
     // Helper to get the API key for the current service
@@ -472,12 +495,16 @@ window.config = {
     
     // Helper to get the base URL for the current service
     getBaseUrl: function() {
+        const serviceKey = this.normalizeServiceKey(this.defaultService);
+        if (serviceKey && serviceKey !== this.defaultService) {
+            this.defaultService = serviceKey;
+        }
         // Special case for LM Studio - use the stored URL if available
-        if (this.defaultService === 'lmstudio' && typeof window.getLmStudioServerUrl === 'function') {
+        if (serviceKey === 'lmstudio' && typeof window.getLmStudioServerUrl === 'function') {
             return window.getLmStudioServerUrl();
         }
         // Special case for Ollama - use the stored URL if available
-        if (this.defaultService === 'ollama' && typeof window.getOllamaServerUrl === 'function') {
+        if (serviceKey === 'ollama' && typeof window.getOllamaServerUrl === 'function') {
             return window.getOllamaServerUrl();
         }
         return this.getActiveService().baseUrl;

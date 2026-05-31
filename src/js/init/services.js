@@ -9,6 +9,9 @@ function initializeServicesAndModels() {
   // Initialize the service selector
   if (window.serviceSelector && window.config) {
     window.populateServiceSelector();
+    if (typeof window.config.normalizeServiceKey === "function") {
+      window.config.defaultService = window.config.normalizeServiceKey(window.config.defaultService);
+    }
     window.serviceSelector.value = window.config.defaultService;
     if (window.VERBOSE_LOGGING) {
       console.info("Service selector initialized.");
