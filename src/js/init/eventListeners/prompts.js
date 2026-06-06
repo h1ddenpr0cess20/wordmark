@@ -1,3 +1,5 @@
+import { debounce } from "../../utils/utils.js";
+
 function setupPromptRadioEventListeners() {
   if (window.personalityPromptRadio) {
     window.personalityPromptRadio.addEventListener('change', () => {
@@ -35,11 +37,11 @@ function setupInputFieldEventListeners() {
       }
     });
 
-    window.personalityInput.addEventListener('input', window.debounce(() => {}, 1000));
+    window.personalityInput.addEventListener('input', debounce(() => {}, 1000));
   }
 
   if (window.systemPromptCustom) {
-    window.systemPromptCustom.addEventListener('input', window.debounce(() => {}, 1000));
+    window.systemPromptCustom.addEventListener('input', debounce(() => {}, 1000));
   }
 }
 

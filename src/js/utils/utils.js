@@ -2,7 +2,7 @@
  * Utility functions for the chatbot application
  */
 
-// Using window object to make functions globally available
+import { state } from "../init/state.js";
 
 /**
  * Debounces a function call
@@ -10,29 +10,29 @@
  * @param {number} wait - Time to wait in milliseconds
  * @returns {Function} - The debounced function
  */
-window.debounce = function(func, wait) {
+export function debounce(func, wait) {
   let timeout;
   return function(...args) {
     const context = this;
     clearTimeout(timeout);
     timeout = setTimeout(() => func.apply(context, args), wait);
   };
-};
+}
 
 /**
  * Sanitizes user input to prevent XSS attacks
  * @param {string} text - Text to sanitize
  * @returns {string} - Sanitized text
  */
-window.sanitizeInput = function(text) {
+export function sanitizeInput(text) {
   return text.replace(/</g, "&lt;").replace(/>/g, "&gt;");
-};
+}
 
 /**
  * Toggle the visibility of the thinking/reasoning container
  * @param {string} id - The ID of the thinking container to toggle
  */
-window.toggleThinking = function(id, event) {
+export function toggleThinking(id, event) {
   // Prevent event bubbling that might affect other elements
   if (event) {
     event.stopPropagation();
@@ -72,12 +72,12 @@ window.toggleThinking = function(id, event) {
       }, 100);
     }
   }
-};
+}
 
 /**
  * Debug function to check thinking containers
  */
-window.debugThinkingContainers = function() {
+export function debugThinkingContainers() {
   const thinkingContainers = document.querySelectorAll(".thinking-container");
 
   console.log("=== Thinking Container Debug ===");
@@ -87,7 +87,7 @@ window.debugThinkingContainers = function() {
     const isCollapsed = container.classList.contains("collapsed");
     console.log(`Thinking container ${index} (${container.id}): ${isCollapsed ? "collapsed" : "expanded"}`);
   });
-};
+}
 
 /**
  * Replace base64 image data URLs in a user message with filename placeholders.
@@ -95,11 +95,11 @@ window.debugThinkingContainers = function() {
  * @param {string} messageId - ID of the user message
  * @param {Array} placeholders - Array of placeholder strings like '[[IMAGE: file.jpg]]'
  */
-window.stripBase64FromHistory = function(messageId, placeholders = []) {
-  if (!Array.isArray(window.conversationHistory)) {
+export function stripBase64FromHistory(messageId, placeholders = []) {
+  if (!Array.isArray(state.conversationHistory)) {
     return;
   }
-  const entry = window.conversationHistory.find(msg => msg.id === messageId);
+  const entry = state.conversationHistory.find(msg => msg.id === messageId);
   if (!entry || entry.role !== "user") {
     return;
   }
@@ -116,8 +116,8 @@ window.stripBase64FromHistory = function(messageId, placeholders = []) {
         const normalized = { ...att };
         if (normalized.filename && normalized.dataUrl) {
           try {
-            if (window.imageDataCache && typeof window.imageDataCache.set === "function") {
-              window.imageDataCache.set(normalized.filename, normalized.dataUrl);
+            if (state.imageDataCache && typeof state.imageDataCache.set === "function") {
+              state.imageDataCache.set(normalized.filename, normalized.dataUrl);
             }
           } catch (cacheErr) {
             console.warn("Failed to cache attachment data for", normalized.filename, cacheErr);
@@ -149,4 +149,9 @@ window.stripBase64FromHistory = function(messageId, placeholders = []) {
   const placeholderText = placeholders.join("\n");
   entry.content = placeholderText + (textPart ? `\n\n${textPart}` : "");
   sanitizeAttachments();
-};
+}
+
+// Inline HTML handlers (onclick="toggleThinking(...)") and console debugging
+// invoke these by global name, so they remain on window.
+window.toggleThinking = toggleThinking;
+window.debugThinkingContainers = debugThinkingContainers;

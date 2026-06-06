@@ -2,6 +2,8 @@
  * User interaction handling for the chatbot application
  */
 
+import { sanitizeInput, stripBase64FromHistory } from "../utils/utils.js";
+
 // -----------------------------------------------------
 // Message sending and related functionality
 // -----------------------------------------------------
@@ -126,7 +128,7 @@ window.sendMessage = async function() {
     }
   });
 
-  let userHtml = window.sanitizeInput(message);
+  let userHtml = sanitizeInput(message);
   if (documentsHtml) {
     userHtml = `<div class="attached-documents">${documentsHtml}</div>${userHtml}`;
   }
@@ -378,8 +380,8 @@ window.sendMessage = async function() {
     }
     return;
   } finally {
-    if (uploads.length > 0 && typeof window.stripBase64FromHistory === "function") {
-      window.stripBase64FromHistory(userId, placeholders);
+    if (uploads.length > 0) {
+      stripBase64FromHistory(userId, placeholders);
     }
     window.activeAbortController = null;
     window.resetSendButton();
