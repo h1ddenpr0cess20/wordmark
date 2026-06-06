@@ -23,6 +23,73 @@ function initializeServicesAndModels() {
 }
 
 /**
+ * Choose a sensible default provider at startup when no cloud API keys are set.
+ *
+ * Order: keep the current cloud default if it has a key; otherwise probe
+ * LM Studio, then Ollama, and switch to the first one that returns models.
+ * If none are reachable, leave the default as-is so the UI shows the usual
+ * "Set API key to load models" message.
+ *
+ * @returns {Promise<boolean>} true if this function already fetched models for
+ *   the selected service (so the caller can skip its own model fetch).
+ */
+async function selectDefaultService() {
+  const services = window.config?.services || {};
+  const hasCloudKey = ["openai", "xai"].some(key => {
+    const svc = services[key];
+    return svc && typeof svc.apiKey === "string" && svc.apiKey.trim() !== "";
+  });
+
+  const current = window.config?.defaultService;
+  const currentIsCloud = current === "openai" || current === "xai";
+
+  // Only auto-pick when the default is a cloud provider with no key available.
+  if (hasCloudKey || !currentIsCloud) {
+    return false;
+  }
+
+  const isUsableModel = (m) =>
+    typeof m === "string" &&
+    !m.startsWith("Error") &&
+    !m.startsWith("No models") &&
+    !m.startsWith("Set API key");
+
+  for (const local of ["lmstudio", "ollama"]) {
+    const svc = services[local];
+    if (!svc || typeof svc.fetchAndUpdateModels !== "function") {
+      continue;
+    }
+    try {
+      await svc.fetchAndUpdateModels();
+    } catch (error) {
+      console.warn(`Probe of ${local} failed:`, error);
+      continue;
+    }
+    if (Array.isArray(svc.models) && svc.models.some(isUsableModel)) {
+      window.config.defaultService = local;
+      if (window.serviceSelector) {
+        window.serviceSelector.value = local;
+      }
+      if (typeof window.updateModelSelector === "function") {
+        window.updateModelSelector();
+      }
+      if (typeof window.updateParameterControls === "function") {
+        window.updateParameterControls();
+      }
+      if (typeof window.updateHeaderInfo === "function") {
+        window.updateHeaderInfo();
+      }
+      if (window.VERBOSE_LOGGING) {
+        console.info(`No cloud API keys found; defaulting to ${local}.`);
+      }
+      return true;
+    }
+  }
+
+  return false;
+}
+
+/**
  * Initialize models for services that fetch dynamically
  */
 function initializeServiceModels() {
@@ -147,4 +214,5 @@ window.initializeDefaultValues = initializeDefaultValues;
 window.initializeToolCalling = initializeToolCalling;
 window.initializeVerboseMode = initializeVerboseMode;
 window.initializeServiceModels = initializeServiceModels;
+window.selectDefaultService = selectDefaultService;
 // Note: initializeLocationService is defined in location.js, not here

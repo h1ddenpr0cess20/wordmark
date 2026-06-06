@@ -262,9 +262,25 @@ async function initialize() {
       }
     }
 
-    // Fetch models dynamically now that API keys are available
-    if (typeof window.initializeServiceModels === "function") {
-      window.initializeServiceModels();
+    // Fetch models dynamically now that API keys are available. First try to
+    // auto-select a default provider when no cloud API keys are configured
+    // (LM Studio, then Ollama). If that already fetched models, skip the
+    // standard fetch to avoid a duplicate request.
+    const runStandardModelInit = () => {
+      if (typeof window.initializeServiceModels === "function") {
+        window.initializeServiceModels();
+      }
+    };
+    if (typeof window.selectDefaultService === "function") {
+      window.selectDefaultService()
+        .then((handled) => {
+          if (!handled) {
+            runStandardModelInit();
+          }
+        })
+        .catch(runStandardModelInit);
+    } else {
+      runStandardModelInit();
     }
 
     // Explicitly initialize personality input
