@@ -1,3 +1,4 @@
+import { getMemoryConfig } from "../../utils/memoryStorage.js";
 /**
  * Tool catalog, preference management, and MCP availability helpers.
  */
@@ -651,8 +652,8 @@ function isLocalNetworkUrl(url) {
 
 function appendMemoryTools(defs, serviceKey = getActiveServiceKey(), modelName = getActiveModel()) {
   try {
-    const cfg = typeof window.getMemoryConfig === 'function'
-      ? window.getMemoryConfig()
+    const cfg = typeof getMemoryConfig === 'function'
+      ? getMemoryConfig()
       : { enabled: false };
     if (!cfg || !cfg.enabled) {
       return;

@@ -1,3 +1,4 @@
+import { getMemoriesForPrompt } from "../../utils/memoryStorage.js";
 /**
  * Message preparation helpers for the Responses API.
  */
@@ -383,8 +384,8 @@ export function buildDeveloperMessage(model) {
       developerBlock += `\n${mediaToolInstructions.trim()}`;
     }
   }
-  if (typeof window.getMemoriesForPrompt === 'function') {
-    const memories = window.getMemoriesForPrompt();
+  if (typeof getMemoriesForPrompt === 'function') {
+    const memories = getMemoriesForPrompt();
     if (memories) {
       developerBlock += `\n${memories.trim()}`;
     }

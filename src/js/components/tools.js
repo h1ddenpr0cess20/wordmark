@@ -1,3 +1,4 @@
+import { getMemoryConfig } from "../utils/memoryStorage.js";
 /**
  * Tool settings management for Responses API integrations.
  * Renders the tool list, persists toggle state, and synchronises with the
@@ -495,8 +496,8 @@
     try {
       if (
         clientSideToolsSupported
-        && typeof window.getMemoryConfig === "function"
-        && window.getMemoryConfig().enabled
+        && typeof getMemoryConfig === "function"
+        && getMemoryConfig().enabled
       ) {
         items.push("- Memory: The assistant can remember or forget short details when you ask it to.");
       }

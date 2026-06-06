@@ -1,11 +1,27 @@
-import test from 'node:test';
-import assert from 'node:assert/strict';
-import path from 'node:path';
-import { loadWindowScript } from './helpers/loadWindowScript.js';
+import test from "node:test";
+import assert from "node:assert/strict";
 
-// Create simple DOM element stubs
+// memoryStorage.js + components/memory.js are ES modules. Set up the browser
+// globals they touch before importing them.
+function makeLocalStorage() {
+  const store = new Map();
+  return {
+    getItem(k) { return store.has(k) ? store.get(k) : null; },
+    setItem(k, v) { store.set(k, String(v)); },
+    removeItem(k) { store.delete(k); },
+    clear() { store.clear(); },
+  };
+}
+
+globalThis.localStorage = makeLocalStorage();
+globalThis.confirm = () => true;
+globalThis.window = {
+  addEventListener() {},
+  dispatchEvent() { return true; },
+};
+
 function makeElement(initial = {}) {
-  const el = {
+  return {
     ...initial,
     listeners: {},
     addEventListener(type, cb) {
@@ -17,124 +33,63 @@ function makeElement(initial = {}) {
     },
     setAttribute() {},
     appendChild() {},
-    innerHTML: '',
+    innerHTML: "",
   };
-  return el;
 }
 
-// Prepare required globals and stubs
-const elems = {
-  toggle: makeElement({ id: 'memory-toggle', checked: false }),
-  limit: makeElement({ id: 'memory-limit', value: '25' }),
-  clear: makeElement({ id: 'clear-memories' }),
-  list: makeElement({ id: 'memory-list' }),
-};
-
-const documentStub = {
-  getElementById(id) {
-    if (id === 'memory-toggle') return elems.toggle;
-    if (id === 'memory-limit') return elems.limit;
-    if (id === 'clear-memories') return elems.clear;
-    if (id === 'memory-list') return elems.list;
-    return null;
-  },
-  createElement() { return makeElement(); },
-};
-
-// Load memory storage first for functions used by UI
-const storagePath = path.resolve('src/js/utils/memoryStorage.js');
-const windowWithStorage = loadWindowScript(storagePath, {
-  globals: {
-    localStorage: {
-      _s: new Map(),
-      getItem(k) { return this._s.has(k) ? this._s.get(k) : null; },
-      setItem(k, v) { this._s.set(k, String(v)); },
-      removeItem(k) { this._s.delete(k); },
-      clear() { this._s.clear(); },
-    },
-  },
-});
-
-// Now load the memory UI logic
-const uiPath = path.resolve('src/js/components/memory.js');
-const windowObj = loadWindowScript(uiPath, {
-  document: documentStub,
-  window: windowWithStorage, // share same window object
-  globals: {
-    confirm: () => true,
-  },
-});
-
-test('initMemorySettings attaches listeners and toggling updates enabled', () => {
-  // Sanity: initially disabled
-  let cfg = windowObj.getMemoryConfig();
-  assert.equal(cfg.enabled, false);
-
-  // Initialize
-  windowObj.initMemorySettings();
-
-  // Toggle on via event
-  elems.toggle.checked = true;
-  elems.toggle.dispatch('change');
-  cfg = windowObj.getMemoryConfig();
-  assert.equal(cfg.enabled, true);
-
-  // Change limit via event
-  elems.limit.value = '5';
-  elems.limit.dispatch('change');
-  cfg = windowObj.getMemoryConfig();
-  assert.equal(cfg.limit, 5);
-});
-
-test('manual add memory respects 600-char limit', () => {
-  const elemsManual = {
-    toggle: makeElement({ id: 'memory-toggle', checked: true }),
-    limit: makeElement({ id: 'memory-limit', value: '25' }),
-    clear: makeElement({ id: 'clear-memories' }),
-    list: makeElement({ id: 'memory-list' }),
-    addInput: makeElement({ id: 'memory-add-input' }),
-    addBtn: makeElement({ id: 'memory-add-button' }),
+function installDom(elems) {
+  globalThis.document = {
+    getElementById: (id) => elems[id] || null,
+    createElement: () => makeElement(),
   };
+}
 
-  const docStub = {
-    getElementById(id) {
-      if (id === 'memory-toggle') return elemsManual.toggle;
-      if (id === 'memory-limit') return elemsManual.limit;
-      if (id === 'clear-memories') return elemsManual.clear;
-      if (id === 'memory-list') return elemsManual.list;
-      if (id === 'memory-add-input') return elemsManual.addInput;
-      if (id === 'memory-add-button') return elemsManual.addBtn;
-      return null;
-    },
-    createElement() { return makeElement(); },
+const storage = await import("../src/js/utils/memoryStorage.js");
+await import("../src/js/components/memory.js");
+const initMemorySettings = globalThis.window.initMemorySettings;
+
+test("initMemorySettings attaches listeners and toggling updates enabled", () => {
+  storage.clearAllMemories();
+  storage.setMemoryEnabled(false);
+  const elems = {
+    "memory-toggle": makeElement({ id: "memory-toggle", checked: false }),
+    "memory-limit": makeElement({ id: "memory-limit", value: "25" }),
+    "clear-memories": makeElement({ id: "clear-memories" }),
+    "memory-list": makeElement({ id: "memory-list" }),
   };
+  installDom(elems);
 
-  const storagePath = path.resolve('src/js/utils/memoryStorage.js');
-  const winStorage = loadWindowScript(storagePath, {
-    globals: {
-      localStorage: {
-        _s: new Map(),
-        getItem(k) { return this._s.has(k) ? this._s.get(k) : null; },
-        setItem(k, v) { this._s.set(k, String(v)); },
-        removeItem(k) { this._s.delete(k); },
-        clear() { this._s.clear(); },
-      },
-    },
-  });
+  assert.equal(storage.getMemoryConfig().enabled, false);
 
-  const uiPath = path.resolve('src/js/components/memory.js');
-  const winObj = loadWindowScript(uiPath, {
-    document: docStub,
-    window: winStorage,
-  });
+  initMemorySettings();
 
-  winObj.setMemoryEnabled(true);
-  winObj.clearAllMemories();
-  winObj.initMemorySettings();
+  elems["memory-toggle"].checked = true;
+  elems["memory-toggle"].dispatch("change");
+  assert.equal(storage.getMemoryConfig().enabled, true);
 
-  elemsManual.addInput.value = 'x'.repeat(650);
-  elemsManual.addBtn.dispatch('click');
-  const mems = winObj.getMemories();
+  elems["memory-limit"].value = "5";
+  elems["memory-limit"].dispatch("change");
+  assert.equal(storage.getMemoryConfig().limit, 5);
+});
+
+test("manual add memory respects 600-char limit", () => {
+  const elems = {
+    "memory-toggle": makeElement({ id: "memory-toggle", checked: true }),
+    "memory-limit": makeElement({ id: "memory-limit", value: "25" }),
+    "clear-memories": makeElement({ id: "clear-memories" }),
+    "memory-list": makeElement({ id: "memory-list" }),
+    "memory-add-input": makeElement({ id: "memory-add-input" }),
+    "memory-add-button": makeElement({ id: "memory-add-button" }),
+  };
+  installDom(elems);
+
+  storage.setMemoryEnabled(true);
+  storage.clearAllMemories();
+  initMemorySettings();
+
+  elems["memory-add-input"].value = "x".repeat(650);
+  elems["memory-add-button"].dispatch("click");
+  const mems = storage.getMemories();
   assert.equal(mems.length, 1);
   assert.equal(mems[0].length, 600);
 });

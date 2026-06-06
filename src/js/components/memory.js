@@ -1,3 +1,4 @@
+import { getMemoryConfig, setMemoryEnabled, setMemoryLimit, getMemories, addMemory, clearAllMemories, removeMemoryAt } from "../utils/memoryStorage.js";
 /**
  * Memory settings panel functionality
  */
@@ -16,7 +17,7 @@ window.initMemorySettings = function() {
   }
 
   // Initialize from storage
-  const cfg = window.getMemoryConfig ? window.getMemoryConfig() : { enabled: false, limit: 25 };
+  const cfg = getMemoryConfig ? getMemoryConfig() : { enabled: false, limit: 25 };
   toggle.checked = Boolean(cfg.enabled);
   limitInput.value = cfg.limit;
   renderList();
@@ -33,7 +34,7 @@ window.initMemorySettings = function() {
 
   // Events
   toggle.addEventListener("change", () => {
-    if (window.setMemoryEnabled) window.setMemoryEnabled(toggle.checked);
+    if (setMemoryEnabled) setMemoryEnabled(toggle.checked);
     // Reflect in tool availability
     if (typeof window.updateToolDefinitions === "function") {
       window.updateToolDefinitions();
@@ -46,7 +47,7 @@ window.initMemorySettings = function() {
 
   limitInput.addEventListener("change", () => {
     const val = parseInt(limitInput.value, 10);
-    if (window.setMemoryLimit) window.setMemoryLimit(val);
+    if (setMemoryLimit) setMemoryLimit(val);
     renderList();
   });
 
@@ -55,7 +56,7 @@ window.initMemorySettings = function() {
       if (e && typeof e.stopPropagation === "function") e.stopPropagation();
       if (e && typeof e.preventDefault === "function") e.preventDefault();
       if (confirm("Clear all saved memories? This cannot be undone.")) {
-        if (window.clearAllMemories) window.clearAllMemories();
+        if (clearAllMemories) clearAllMemories();
         renderList();
       }
     });
@@ -67,8 +68,8 @@ window.initMemorySettings = function() {
       if (evt && typeof evt.preventDefault === "function") evt.preventDefault();
       const text = (addInput.value || "").trim();
       if (!text) return;
-      if (window.addMemory) {
-        window.addMemory(text);
+      if (addMemory) {
+        addMemory(text);
       }
       addInput.value = "";
       renderList();
@@ -90,7 +91,7 @@ window.initMemorySettings = function() {
     });
     window.addEventListener("memories:config", () => {
       // update limit/toggle display from source of truth if needed
-      const cfg = window.getMemoryConfig ? window.getMemoryConfig() : { enabled: false, limit: 25 };
+      const cfg = getMemoryConfig ? getMemoryConfig() : { enabled: false, limit: 25 };
       if (toggle) toggle.checked = Boolean(cfg.enabled);
       if (limitInput) limitInput.value = cfg.limit;
       renderList();
@@ -99,8 +100,8 @@ window.initMemorySettings = function() {
 
   function renderList() {
     if (!listContainer) return;
-    const cfg = window.getMemoryConfig ? window.getMemoryConfig() : { enabled: false };
-    const mems = window.getMemories ? window.getMemories() : [];
+    const cfg = getMemoryConfig ? getMemoryConfig() : { enabled: false };
+    const mems = getMemories ? getMemories() : [];
     if (!cfg.enabled) {
       listContainer.innerHTML = "<div class=\"info-text\">Memory is disabled.</div>";
       return;
@@ -124,8 +125,8 @@ window.initMemorySettings = function() {
       del.addEventListener("click", (e) => {
         if (e && typeof e.stopPropagation === "function") e.stopPropagation();
         if (e && typeof e.preventDefault === "function") e.preventDefault();
-        if (window.removeMemoryAt) {
-          window.removeMemoryAt(idx);
+        if (removeMemoryAt) {
+          removeMemoryAt(idx);
           renderList();
         }
       });

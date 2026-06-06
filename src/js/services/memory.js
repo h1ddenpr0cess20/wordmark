@@ -1,3 +1,4 @@
+import { getMemories, addMemory, removeMemoryAt, getMemoryConfig } from "../utils/memoryStorage.js";
 /**
  * Memory function definition and implementation
  * Exposes a separate function-call tool: `remember`
@@ -26,16 +27,16 @@ window.memoryToolDefinition = {
 window.toolImplementations = window.toolImplementations || {};
 window.toolImplementations.remember = async function(args) {
   try {
-    const cfg = window.getMemoryConfig ? window.getMemoryConfig() : { enabled: false, limit: 25 };
+    const cfg = getMemoryConfig ? getMemoryConfig() : { enabled: false, limit: 25 };
     if (!cfg.enabled) {
       return { ok: false, message: "Memory feature disabled" };
     }
     const text = (args && typeof args.memory === "string") ? args.memory : "";
-    const res = window.addMemory ? window.addMemory(text) : { ok: false, message: "Storage not available" };
+    const res = addMemory ? addMemory(text) : { ok: false, message: "Storage not available" };
     return {
       ok: Boolean(res.ok),
       stored: Boolean(res.ok) ? text : undefined,
-      total: res.count || window.getMemories()?.length || 0,
+      total: res.count || getMemories()?.length || 0,
     };
   } catch (e) {
     console.error("remember tool error:", e);
@@ -64,13 +65,13 @@ window.forgetToolDefinition = {
 
 window.toolImplementations.forget = async function(args) {
   try {
-    const cfg = window.getMemoryConfig ? window.getMemoryConfig() : { enabled: false };
+    const cfg = getMemoryConfig ? getMemoryConfig() : { enabled: false };
     if (!cfg.enabled) return { ok: false, message: "Memory feature disabled" };
 
     const keyword = (args && typeof args.keyword === "string") ? args.keyword.trim() : "";
     if (!keyword) return { ok: false, message: "Missing keyword" };
 
-    const mems = window.getMemories ? window.getMemories() : [];
+    const mems = getMemories ? getMemories() : [];
     const matches = [];
     const lower = keyword.toLowerCase();
     mems.forEach((m, i) => {
@@ -84,8 +85,8 @@ window.toolImplementations.forget = async function(args) {
     // Remove the first match by default
     const removedIndex = matches[0].index;
     const removed = matches[0].memory;
-    if (window.removeMemoryAt) window.removeMemoryAt(removedIndex);
-    const remaining = (window.getMemories ? window.getMemories() : []).length;
+    if (removeMemoryAt) removeMemoryAt(removedIndex);
+    const remaining = (getMemories ? getMemories() : []).length;
     return { ok: true, keyword, removed, removed_index: removedIndex, matches, remaining };
   } catch (e) {
     console.error("forget tool error:", e);

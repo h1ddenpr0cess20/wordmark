@@ -1,3 +1,4 @@
+import { getMemoryConfig, setMemoryEnabled } from "../utils/memoryStorage.js";
 /**
  * Settings panel related functionality
  */
@@ -134,7 +135,7 @@ window.updateHeaderInfo = function() {
     const off = label => `<span class="feature-badge" data-state="off"><span class="dot"></span>${label}</span>`;
     const locOn = Boolean(window.locationState && window.locationState.enabled);
     let memOn = false;
-    try { memOn = Boolean(window.getMemoryConfig && window.getMemoryConfig().enabled); } catch {}
+    try { memOn = Boolean(getMemoryConfig && getMemoryConfig().enabled); } catch {}
     const toolsOn = Boolean(window.config && window.config.enableFunctionCalling);
     featureStatus.innerHTML = [
       locOn ? on("Location") : off("Location"),
@@ -255,7 +256,7 @@ window.updateFeatureStatus = function() {
 
   const state = {
     location: Boolean(window.locationState && window.locationState.enabled),
-    memory: (() => { try { return Boolean(window.getMemoryConfig && window.getMemoryConfig().enabled); } catch { return false; } })(),
+    memory: (() => { try { return Boolean(getMemoryConfig && getMemoryConfig().enabled); } catch { return false; } })(),
     tools: Boolean(window.config && window.config.enableFunctionCalling !== false),
     data: Boolean(typeof window.getDataSettingsEnabled === "function" ? window.getDataSettingsEnabled() : (localStorage.getItem("dataSettingsEnabled") !== "false")),
     tts: Boolean(window.ttsConfig?.enabled),
@@ -300,8 +301,8 @@ window.updateFeatureStatus = function() {
         if (toggle) {
           toggle.checked = !isOn;
           toggle.dispatchEvent(new Event("change", { bubbles: true }));
-        } else if (typeof window.setMemoryEnabled === "function") {
-          window.setMemoryEnabled(!isOn);
+        } else if (typeof setMemoryEnabled === "function") {
+          setMemoryEnabled(!isOn);
         }
         break;
       }
