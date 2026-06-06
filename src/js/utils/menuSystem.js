@@ -1,34 +1,59 @@
 /**
- * Handles loading external HTML content and initializing menus
+ * Handles loading external HTML content and initializing menus.
+ * Panel fragments are imported at build time via Vite `?raw` imports, so there
+ * are no runtime fetches — the markup is bundled directly into the JS.
  */
+
+import panelsHtml from "../../html/panels.html?raw";
+import personalityHtml from "../../html/panels/settings/personality.html?raw";
+import modelHtml from "../../html/panels/settings/model.html?raw";
+import toolsHtml from "../../html/panels/settings/tools.html?raw";
+import dataHtml from "../../html/panels/settings/data.html?raw";
+import memoryHtml from "../../html/panels/settings/memory.html?raw";
+import ttsHtml from "../../html/panels/settings/tts.html?raw";
+import themeHtml from "../../html/panels/settings/theme.html?raw";
+import apiKeysHtml from "../../html/panels/settings/apiKeys.html?raw";
+import locationHtml from "../../html/panels/settings/location.html?raw";
+import aboutHtml from "../../html/panels/settings/about.html?raw";
+
+// Map of source path -> bundled markup so callers can keep referring to files.
+const PANEL_HTML = {
+  "src/html/panels.html": panelsHtml,
+  "src/html/panels/settings/personality.html": personalityHtml,
+  "src/html/panels/settings/model.html": modelHtml,
+  "src/html/panels/settings/tools.html": toolsHtml,
+  "src/html/panels/settings/data.html": dataHtml,
+  "src/html/panels/settings/memory.html": memoryHtml,
+  "src/html/panels/settings/tts.html": ttsHtml,
+  "src/html/panels/settings/theme.html": themeHtml,
+  "src/html/panels/settings/apiKeys.html": apiKeysHtml,
+  "src/html/panels/settings/location.html": locationHtml,
+  "src/html/panels/settings/about.html": aboutHtml,
+};
 
 // HTML Content Loader Utility
 window.HTMLLoader = {
   /**
-   * Load HTML content from a file and insert it into a container
-   * @param {string} filePath - Path to the HTML file
+   * Insert bundled HTML content into a container
+   * @param {string} filePath - Source path of the HTML fragment
    * @param {string} containerId - ID of the container element
    */
   async loadHTML(filePath, containerId) {
-    try {
-      const response = await fetch(filePath);
-      if (!response.ok) {
-        throw new Error(`Failed to load ${filePath}: ${response.status}`);
-      }
-      const htmlContent = await response.text();
-      const container = document.getElementById(containerId);
-      if (container) {
-        container.innerHTML = htmlContent;
-      } else {
-        console.error(`Container with ID '${containerId}' not found`);
-      }
-    } catch (error) {
-      console.error(`Error loading HTML content from ${filePath}:`, error);
+    const htmlContent = PANEL_HTML[filePath];
+    if (typeof htmlContent !== "string") {
+      console.error(`No bundled HTML registered for ${filePath}`);
+      return;
+    }
+    const container = document.getElementById(containerId);
+    if (container) {
+      container.innerHTML = htmlContent;
+    } else {
+      console.error(`Container with ID '${containerId}' not found`);
     }
   },
 
   /**
-   * Load multiple HTML files into their respective containers
+   * Load multiple HTML fragments into their respective containers
    * @param {Array} loadConfigs - Array of {filePath, containerId} objects
    */
   async loadMultiple(loadConfigs) {

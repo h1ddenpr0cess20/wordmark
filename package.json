@@ -5,17 +5,17 @@
   "main": "index.html",
   "type": "module",
   "scripts": {
-    "start": "npx http-server -p 8080 -c-1 --cors",
-    "start:https": "npx http-server -p 8443 -c-1 --cors -S -C cert.pem -K key.pem",
-    "dev": "npx http-server -p 3000 -c-1 --cors -o",
-    "dev:https": "npx http-server -p 3443 -c-1 --cors -S -C cert.pem -K key.pem -o",
-    "test": "node --test tests/**/*.spec.js",
-    "test:watch": "node --test --watch tests/**/*.spec.js",
+    "dev": "vite",
+    "dev:https": "vite --host --https",
+    "build": "vite build",
+    "preview": "vite preview --port 8080",
+    "start": "vite preview --port 8080",
+    "test": "node --import ./tests/helpers/registerLoaders.mjs --test tests/**/*.spec.js",
+    "test:watch": "node --import ./tests/helpers/registerLoaders.mjs --test --watch tests/**/*.spec.js",
     "lint": "npx eslint src/js/**/*.js",
     "lint:fix": "npx eslint src/js/**/*.js --fix",
     "validate": "npx html-validate index.html src/html/*.html",
     "serve": "npm run start",
-    "preview": "npm run dev",
     "cert:generate": "openssl req -x509 -newkey rsa:4096 -keyout key.pem -out cert.pem -days 365 -nodes -subj '/C=US/ST=Local/L=Local/O=Wordmark/CN=localhost'",
     "deps:check": "npx npm-check-updates",
     "deps:update": "npx npm-check-updates -u && npm install",
@@ -72,23 +72,19 @@
     "globals": "^17.4.0",
     "html-validate": "^10.11.2",
     "http-server": "^14.1.1",
-    "npm-check-updates": "^19.6.5"
+    "npm-check-updates": "^19.6.5",
+    "vite": "^8.0.16"
   },
-  "bundledDependencies": [
-    "dompurify",
-    "marked",
-    "highlight.js"
-  ],
   "files": [
     "index.html",
     "src/",
+    "public/",
     "README.md",
     "LICENSE",
     "robots.txt",
     "sitemap.xml"
   ],
   "directories": {
-    "lib": "src/js/lib",
     "doc": "."
   },
   "config": {
@@ -108,7 +104,9 @@
     "x64",
     "arm64"
   ],
-  "dependencies": {},
-  "optionalDependencies": {},
-  "peerDependencies": {}
+  "dependencies": {
+    "dompurify": "^3.4.8",
+    "highlight.js": "^11.11.1",
+    "marked": "^18.0.5"
+  }
 }

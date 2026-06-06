@@ -4,37 +4,11 @@
 
 window.lazyModulesLoaded = window.lazyModulesLoaded || {};
 
-function resolveUrl(relativePath) {
-  try {
-    return new URL(relativePath, import.meta.url).href;
-  } catch {
-    // Fallback to root-absolute paths as before
-    return relativePath.startsWith("/") ? relativePath : `/src/js/${relativePath}`;
-  }
-}
-
-function loadScriptOnce(src, flag) {
-  return new Promise((resolve, reject) => {
-    if (window.lazyModulesLoaded[flag]) {
-      return resolve();
-    }
-    const script = document.createElement("script");
-    script.src = src;
-    script.onload = () => {
-      window.lazyModulesLoaded[flag] = true;
-      resolve();
-    };
-    script.onerror = err => reject(err);
-    document.head.appendChild(script);
-  });
-}
-
 window.loadGalleryModule = function() {
   if (window.lazyModulesLoaded.gallery) {
     return Promise.resolve();
   }
-  const url = new URL("../components/gallery.js", import.meta.url).href;
-  return import(url).then((mod) => {
+  return import("../components/gallery.js").then((mod) => {
     // If the module didn’t attach to window (when treated as ESM), then do it here if exports exist
     if (mod) {
       if (mod.initGallery && !window.initGallery) {
@@ -55,8 +29,7 @@ window.loadHistoryModule = function() {
   if (window.lazyModulesLoaded.history) {
     return Promise.resolve();
   }
-  const url = new URL("../services/history.js", import.meta.url).href;
-  return import(url).then(() => {
+  return import("../services/history.js").then(() => {
     window.lazyModulesLoaded.history = true;
   });
 };
@@ -65,8 +38,7 @@ window.loadTtsModule = function() {
   if (window.lazyModulesLoaded.tts) {
     return Promise.resolve();
   }
-  const url = new URL("../services/tts.js", import.meta.url).href;
-  return import(url).then(() => {
+  return import("../services/tts.js").then(() => {
     window.lazyModulesLoaded.tts = true;
   });
 };
@@ -75,8 +47,7 @@ window.loadLocationModule = function() {
   if (window.lazyModulesLoaded.location) {
     return Promise.resolve();
   }
-  const url = new URL("../services/location.js", import.meta.url).href;
-  return import(url).then(() => {
+  return import("../services/location.js").then(() => {
     window.lazyModulesLoaded.location = true;
   });
 };
@@ -87,15 +58,20 @@ window.isMobileDevice = function() {
 };
 
 window.loadMobileHandling = function() {
-  return loadScriptOnce(resolveUrl("./mobileHandling.js"), "mobileHandling");
+  if (window.lazyModulesLoaded.mobileHandling) {
+    return Promise.resolve();
+  }
+  return import("./mobileHandling.js").then(() => {
+    window.lazyModulesLoaded.mobileHandling = true;
+  });
 };
 
 window.loadMarkedLibrary = function() {
-  return loadScriptOnce(resolveUrl("../lib/marked.min.js"), "marked").then(() => {
-    if (typeof window.initializeMarked === "function") {
-      window.initializeMarked();
-    }
-  });
+  // Marked is bundled and imported in main.js; just ensure it's configured.
+  if (typeof window.initializeMarked === "function") {
+    window.initializeMarked();
+  }
+  return Promise.resolve();
 };
 
 /**

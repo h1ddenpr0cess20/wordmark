@@ -10,6 +10,6 @@ test('icon helper renders expected SVG attributes', () => {
   const svg = win.icon('settings', { width: 24, height: 24, className: 'c', style: 'opacity:1' });
   assert.match(svg, /<svg[^>]+width="24"/);
   assert.match(svg, /class="c"/);
-  assert.match(svg, /<use href="src\/assets\/icons\.svg#settings"><\/use>/);
+  assert.match(svg, /<use href="\/icons\.svg#settings"><\/use>/);
 });
 

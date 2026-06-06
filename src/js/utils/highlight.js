@@ -2,61 +2,42 @@
  * Highlight.js integration and code formatting utilities
  */
 
-// -----------------------------------------------------
-// Lazy-load highlight.js and setup
-// -----------------------------------------------------
+import hljs from "highlight.js";
+
+// Expose hljs globally and configure it once. With Vite the library is part of
+// the bundle, so there is no async loading step — `loadHighlightJS()` is kept
+// as a no-op-friendly API for existing callers.
+window.hljs = hljs;
+window.hljsLoaded = true;
+hljs.configure({
+  ignoreUnescapedHTML: true,
+});
+
 window.loadHighlightJS = function() {
-  if (window.hljsLoaded) {
+  if (window.__hljsInitialHighlightDone) {
     return Promise.resolve();
   }
-  return new Promise((resolve, reject) => {
-    const script = document.createElement("script");
-    try {
-      const url = new URL("../lib/highlight.min.js", import.meta.url).href;
-      script.src = url;
-    } catch {
-      // Fallback to previous absolute path if import.meta.url is unavailable
-      script.src = "/src/js/lib/highlight.min.js";
-    }
-    script.onload = () => {
-      window.hljsLoaded = true;
-      console.info("Highlight.js loaded successfully");
+  window.__hljsInitialHighlightDone = true;
 
-      // Configure highlight.js with security and broad language autodetect.
-      // Avoid restricting the language list so common formats (bash, json, yaml, etc.) highlight correctly.
-      hljs.configure({
-        ignoreUnescapedHTML: true,
+  // Highlight any code blocks already present in the DOM.
+  try {
+    const codeBlocks = document.querySelectorAll("pre code");
+    if (codeBlocks.length > 0) {
+      codeBlocks.forEach((block) => {
+        // Store original content for copying
+        const originalContent = block.textContent;
+        block.setAttribute("data-original-code", originalContent);
+
+        hljs.highlightElement(block);
       });
+    } else {
+      hljs.highlightAll();
+    }
+  } catch (error) {
+    console.error("Error during initial highlighting:", error);
+  }
 
-      // Expose hljs globally
-      window.hljs = hljs;
-
-      // Highlight existing code blocks
-      try {
-        const codeBlocks = document.querySelectorAll("pre code");
-        if (codeBlocks.length > 0) {
-          codeBlocks.forEach((block) => {
-            // Store original content for copying
-            const originalContent = block.textContent;
-            block.setAttribute("data-original-code", originalContent);
-
-            hljs.highlightElement(block);
-          });
-        } else {
-          hljs.highlightAll();
-        }
-      } catch (error) {
-        console.error("Error during initial highlighting:", error);
-      }
-
-      resolve();
-    };
-    script.onerror = (err) => {
-      console.error("Failed to load highlight.js", err);
-      reject(err);
-    };
-    document.head.appendChild(script);
-  });
+  return Promise.resolve();
 };
 
 /**

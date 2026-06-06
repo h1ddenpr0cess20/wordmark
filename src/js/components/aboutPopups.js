@@ -1,5 +1,18 @@
 // About Tab Popup Functions
 
+import privacyPolicyHtml from "../../html/privacy-policy.html?raw";
+import contactHtml from "../../html/contact.html?raw";
+import termsOfServiceHtml from "../../html/terms-of-service.html?raw";
+import helpGuideHtml from "../../html/help-guide.html?raw";
+
+// Bundled standalone page markup keyed by their source path.
+const ABOUT_PAGE_HTML = {
+  "src/html/privacy-policy.html": privacyPolicyHtml,
+  "src/html/contact.html": contactHtml,
+  "src/html/terms-of-service.html": termsOfServiceHtml,
+  "src/html/help-guide.html": helpGuideHtml,
+};
+
 const ABOUT_FALLBACKS = {
   "privacy-content-container": `
     <div class="popup-default">
@@ -55,17 +68,16 @@ async function loadContentIntoContainer(url, containerId) {
     return;
   }
 
-  if (!url) {
+  const html = ABOUT_PAGE_HTML[url];
+  if (typeof html !== "string") {
+    if (window.VERBOSE_LOGGING) {
+      console.warn("No bundled content registered for", url);
+    }
+    // Keep fallback content visible
     return;
   }
 
   try {
-    const response = await fetch(url);
-    if (!response.ok) {
-      throw new Error(`Failed to load content (${response.status})`);
-    }
-    const html = await response.text();
-
     // Create a temporary DOM to extract just the main content
     const tempDiv = document.createElement("div");
     tempDiv.innerHTML = html;
@@ -78,14 +90,12 @@ async function loadContentIntoContainer(url, containerId) {
     if (mainContent) {
       container.innerHTML = mainContent.innerHTML;
       container.dataset.loaded = "true";
-    } else {
-      if (window.VERBOSE_LOGGING) {
-        console.warn("No main content found in", url);
-      }
+    } else if (window.VERBOSE_LOGGING) {
+      console.warn("No main content found in", url);
     }
   } catch (error) {
     if (window.VERBOSE_LOGGING) {
-      console.warn("About popup content fetch failed:", error);
+      console.warn("About popup content parse failed:", error);
     }
     // Keep fallback content visible
   }

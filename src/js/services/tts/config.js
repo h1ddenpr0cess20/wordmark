@@ -61,19 +61,9 @@ window.availableTtsVoices = {
 // Lazy-load audio storage helpers if needed
 document.addEventListener('DOMContentLoaded', () => {
   if (typeof window.initAudioDb === 'undefined') {
-    const script = document.createElement('script');
-    try {
-      script.src = new URL('../utils/audioStorage.js', import.meta.url).href;
-    } catch {
-      script.src = '/src/js/utils/audioStorage.js';
-    }
-    script.onload = () => {
-      console.info('Audio storage module loaded');
-    };
-    script.onerror = (err) => {
-      console.error('Failed to load audio storage module:', err);
-    };
-    document.head.appendChild(script);
+    import('../../utils/audioStorage.js')
+      .then(() => console.info('Audio storage module loaded'))
+      .catch((err) => console.error('Failed to load audio storage module:', err));
   }
 
   const clearMemoryButton = document.getElementById('clear-memory');
