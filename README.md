@@ -20,7 +20,7 @@
 
 ## Overview
 
-Wordmark is a client-side AI chat for the OpenAI Responses API and local LM Studio or Ollama servers. It supports tool/function calling, TTS, themes, and fully local storage — no backend required.
+Wordmark is a client-side AI chat for OpenAI/xAI Responses APIs and local LM Studio or Ollama servers. It supports tool/function calling, TTS, themes, and fully local storage — no backend required.
 
 **Docs:**
 - [Getting Started](docs/getting-started.md)
@@ -37,10 +37,10 @@ Wordmark is a client-side AI chat for the OpenAI Responses API and local LM Stud
 
 ## Features
 
-- **Providers** — OpenAI Responses (hosted) and local LM Studio or Ollama servers ([Services & Models](docs/services.md))
-- **Tool calling** — built-in weather, provider web search, Code Interpreter, image generation, file search (OpenAI), and custom MCP servers ([Tool Calling](docs/tool-calling.md))
+- **Providers** — OpenAI Responses (hosted), xAI Grok (Responses-compatible), and local LM Studio or Ollama servers ([Services & Models](docs/services.md))
+- **Tool calling** — built-in weather, provider web + X search, Code Interpreter, image generation, file search (OpenAI), direct file attachments (xAI), and custom MCP servers ([Tool Calling](docs/tool-calling.md))
 - **Streaming & reasoning** — dedicated reasoning panel, rich tool timelines, inline code previews, automatic image capture ([Streaming](docs/streaming.md))
-- **TTS** — OpenAI voices, optional autoplay, per-message controls, audio cached locally
+- **TTS** — OpenAI (13 voices) and xAI (5 voices) providers, optional autoplay, per-message controls, audio cached locally
 - **UX** — themes, responsive layout, syntax highlighting, markdown, image gallery ([UI & UX](docs/ui-and-ux.md))
 - **Local-only storage** — conversations, images, and audio via IndexedDB; keys stay in the browser ([Storage](docs/storage.md))
 - **Memory** — local, FIFO-limited memories appended to the system prompt ([Memory](docs/memory.md))
@@ -54,7 +54,7 @@ cd Wordmark
 
 Open `index.html` directly, or serve over HTTPS for APIs, TTS, and geolocation (see [Getting Started](docs/getting-started.md)).
 
-1. In **Settings → API Keys**, add your OpenAI key or local provider URLs. Keys and URLs are stored locally.
+1. In **Settings → API Keys**, add your OpenAI/xAI keys. Keys and URLs are stored locally.
 2. Choose a provider and model in **Settings → Model**.
 3. Type a message and send.
 
