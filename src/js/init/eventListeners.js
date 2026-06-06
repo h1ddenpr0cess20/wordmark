@@ -1,3 +1,4 @@
+import { showError } from "../utils/notifications.js";
 import { initializeConversationInput } from "./eventListeners/conversationInput.js";
 import { initializeSettingsPanelControls } from "./eventListeners/settingsPanel.js";
 import { setupButtonEventListeners } from "./eventListeners/buttons.js";
@@ -94,8 +95,8 @@ function setupEventListeners() {
         return true;
       } catch (error) {
         console.error("Vector store module failed to load:", error);
-        if (window.showError) {
-          window.showError(`Failed to load vector store manager: ${error.message}`);
+        if (showError) {
+          showError(`Failed to load vector store manager: ${error.message}`);
         }
         return false;
       }

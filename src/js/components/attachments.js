@@ -1,3 +1,4 @@
+import { showInfo } from "../utils/notifications.js";
 /**
  * File upload and attachment handling (images and documents)
  */
@@ -163,8 +164,8 @@ async function handleFiles(files, options = {}) {
       const message = unsupported.length === 1
         ? `File "${unsupportedNames[0]}" is not supported and was skipped.`
         : `${unsupported.length} files were skipped (unsupported format): ${unsupportedNames.slice(0, 3).join(", ")}${unsupported.length > 3 ? "..." : ""}`;
-      if (window.showInfo) {
-        window.showInfo(message);
+      if (showInfo) {
+        showInfo(message);
       } else {
         console.warn("Unsupported files skipped:", unsupportedNames);
       }
@@ -234,8 +235,8 @@ async function handleFiles(files, options = {}) {
       const message = unsupportedFiles.length === 1
         ? `File "${unsupportedFiles[0]}" is not supported and was skipped.`
         : `${unsupportedFiles.length} files were skipped (unsupported format): ${unsupportedFiles.slice(0, 3).join(", ")}${unsupportedFiles.length > 3 ? "..." : ""}`;
-      if (window.showInfo) {
-        window.showInfo(message);
+      if (showInfo) {
+        showInfo(message);
       } else {
         console.warn("Unsupported files skipped:", unsupportedFiles);
       }

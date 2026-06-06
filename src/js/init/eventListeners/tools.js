@@ -1,3 +1,4 @@
+import { showInfo } from "../../utils/notifications.js";
 export function setupToolCallingEventListeners() {
   if (!window.toolCallingToggle) {
     return;
@@ -27,8 +28,8 @@ export function setupToolCallingEventListeners() {
       window.updateFeatureStatus();
     }
 
-    if (typeof window.showInfo === 'function') {
-      window.showInfo(enabled ? 'Tool calling enabled.' : 'Tool calling disabled.');
+    if (typeof showInfo === 'function') {
+      showInfo(enabled ? 'Tool calling enabled.' : 'Tool calling disabled.');
     }
   });
 }

@@ -1,3 +1,4 @@
+import { showNotification } from "../utils/notifications.js";
 /**
  * MCP Server Management
  * Handles configuration and management of URL-based Model Context Protocol servers
@@ -158,13 +159,13 @@ function requestMcpServerRemoval(serverLabel, fallbackDisplayName) {
 
     refreshToolingState();
 
-    if (window.showNotification) {
-      window.showNotification("MCP server removed successfully", "success");
+    if (showNotification) {
+      showNotification("MCP server removed successfully", "success");
     }
     return true;
   } catch (error) {
-    if (window.showNotification) {
-      window.showNotification(`Error removing server: ${error.message}`, "error");
+    if (showNotification) {
+      showNotification(`Error removing server: ${error.message}`, "error");
     }
     return false;
   }
@@ -232,22 +233,22 @@ function handleAddServer() {
 
   // Validate inputs
   if (!displayName) {
-    if (window.showNotification) {
-      window.showNotification("Please enter a display name", "error");
+    if (showNotification) {
+      showNotification("Please enter a display name", "error");
     }
     return;
   }
 
   if (!server_label) {
-    if (window.showNotification) {
-      window.showNotification("Please enter a server label", "error");
+    if (showNotification) {
+      showNotification("Please enter a server label", "error");
     }
     return;
   }
 
   if (!server_url) {
-    if (window.showNotification) {
-      window.showNotification("Please enter a server URL", "error");
+    if (showNotification) {
+      showNotification("Please enter a server URL", "error");
     }
     return;
   }
@@ -258,8 +259,8 @@ function handleAddServer() {
     // URL validation successful if we get here
     void url; // Explicitly mark as intentionally unused
   } catch {
-    if (window.showNotification) {
-      window.showNotification("Please enter a valid URL (e.g., http://localhost:9404/mcp)", "error");
+    if (showNotification) {
+      showNotification("Please enter a valid URL (e.g., http://localhost:9404/mcp)", "error");
     }
     return;
   }
@@ -295,12 +296,12 @@ function handleAddServer() {
     approvalInput.value = "always";
     if (descriptionInput) descriptionInput.value = "";
 
-    if (window.showNotification) {
-      window.showNotification("MCP server added successfully. It is now available without reloading.", "success");
+    if (showNotification) {
+      showNotification("MCP server added successfully. It is now available without reloading.", "success");
     }
   } catch (error) {
-    if (window.showNotification) {
-      window.showNotification(`Error adding server: ${error.message}`, "error");
+    if (showNotification) {
+      showNotification(`Error adding server: ${error.message}`, "error");
     }
   }
 }

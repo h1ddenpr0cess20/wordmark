@@ -1,3 +1,4 @@
+import { showError } from "../../utils/notifications.js";
 /**
  * Message lifecycle helpers used during streaming and finalization.
  */
@@ -467,7 +468,7 @@ export function removeLoadingIndicator(loadingId) {
 
 export function handleInvalidResponse(loadingId) {
   removeLoadingIndicator(loadingId);
-  if (window.showError) {
-    window.showError('Unexpected API response format.');
+  if (showError) {
+    showError('Unexpected API response format.');
   }
 }

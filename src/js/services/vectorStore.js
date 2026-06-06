@@ -1,3 +1,4 @@
+import { showInfo } from "../utils/notifications.js";
 /**
  * Vector Store and File Management Service
  */
@@ -152,8 +153,8 @@ export async function uploadAndAttachFiles(files, vectorStoreName = "Chat Docume
       const unsupportedNames = unsupported.map(f => f.name).join(", ");
       console.warn(`Skipping ${unsupported.length} unsupported file(s): ${unsupportedNames}`);
 
-      if (window.showInfo) {
-        window.showInfo(`Skipped ${unsupported.length} unsupported file(s). Supported formats: ${SUPPORTED_FILE_EXTENSIONS.join(", ")}`);
+      if (showInfo) {
+        showInfo(`Skipped ${unsupported.length} unsupported file(s). Supported formats: ${SUPPORTED_FILE_EXTENSIONS.join(", ")}`);
       }
     }
 

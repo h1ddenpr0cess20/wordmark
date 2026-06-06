@@ -1,3 +1,4 @@
+import { showError } from "../../utils/notifications.js";
 /**
  * Helpers for handling Code Interpreter outputs (files, logs) within responses.
  */
@@ -585,8 +586,8 @@ export function renderCodeInterpreterOutputs(messageElement, outputs) {
         await downloadFileContent(attachment);
       } catch (error) {
         console.error('Failed to download Code Interpreter file:', error);
-        if (window.showError) {
-          window.showError('Failed to download Code Interpreter file. Check console for details.');
+        if (showError) {
+          showError('Failed to download Code Interpreter file. Check console for details.');
         }
       } finally {
         rowControls.downloadButton.disabled = false;

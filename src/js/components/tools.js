@@ -1,3 +1,4 @@
+import { showInfo } from "../utils/notifications.js";
 import { getMemoryConfig } from "../utils/memoryStorage.js";
 /**
  * Tool settings management for Responses API integrations.
@@ -144,8 +145,8 @@ import { getMemoryConfig } from "../utils/memoryStorage.js";
     if (typeof window.updateFeatureStatus === "function") {
       window.updateFeatureStatus();
     }
-    if (typeof window.showInfo === "function") {
-      window.showInfo(`${enabled ? "Enabled" : "Disabled"} ${checkbox.getAttribute("data-tool-name") || "tool"}.`);
+    if (typeof showInfo === "function") {
+      showInfo(`${enabled ? "Enabled" : "Disabled"} ${checkbox.getAttribute("data-tool-name") || "tool"}.`);
     }
   }
 
@@ -339,8 +340,8 @@ import { getMemoryConfig } from "../utils/memoryStorage.js";
         if (typeof window.updateFeatureStatus === "function") {
           window.updateFeatureStatus();
         }
-        if (typeof window.showInfo === "function") {
-          window.showInfo("All tools enabled.");
+        if (typeof showInfo === "function") {
+          showInfo("All tools enabled.");
         }
       });
     }
@@ -355,8 +356,8 @@ import { getMemoryConfig } from "../utils/memoryStorage.js";
         if (typeof window.updateFeatureStatus === "function") {
           window.updateFeatureStatus();
         }
-        if (typeof window.showInfo === "function") {
-          window.showInfo("All tools disabled.");
+        if (typeof showInfo === "function") {
+          showInfo("All tools disabled.");
         }
       });
     }

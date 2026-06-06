@@ -1,3 +1,4 @@
+import { showError } from "../../utils/notifications.js";
 window.generateTtsForMessage = async function(text, messageId) {
   if (!this.ttsConfig.enabled) {
     return;
@@ -40,8 +41,8 @@ window.generateTtsForMessage = async function(text, messageId) {
       } else {
         if (!window.ttsErrorShown) {
           window.ttsErrorShown = true;
-          if (window.showError) {
-            window.showError('TTS failed. Please check your API key configuration.');
+          if (showError) {
+            showError('TTS failed. Please check your API key configuration.');
           }
           setTimeout(() => {
             window.ttsErrorShown = false;

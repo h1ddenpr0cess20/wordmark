@@ -1,3 +1,4 @@
+import { showError,showInfo } from "../utils/notifications.js";
 /**
  * Vector Store Management UI Component
  */
@@ -57,8 +58,8 @@ export async function initVectorStoreManager() {
           Object.keys(meta).forEach(id => removeVectorStoreMetadata(id));
         }
       } catch { /* noop */ }
-      if (window.showInfo) {
-        window.showInfo("Cleared all active vector stores");
+      if (showInfo) {
+        showInfo("Cleared all active vector stores");
       }
       refreshVectorStoreList();
     });
@@ -147,8 +148,8 @@ export async function refreshVectorStoreList(applyCooldown = true) {
             const currentlyChecked = container ? container.querySelectorAll(".store-enable-toggle:checked").length : 0;
             if (currentlyChecked > MAX_ACTIVE_VECTOR_STORES) {
               e.target.checked = false;
-              if (window.showError) {
-                window.showError(`You can enable up to ${MAX_ACTIVE_VECTOR_STORES} vector stores at a time.`);
+              if (showError) {
+                showError(`You can enable up to ${MAX_ACTIVE_VECTOR_STORES} vector stores at a time.`);
               } else {
                 alert(`You can enable up to ${MAX_ACTIVE_VECTOR_STORES} vector stores at a time.`);
               }
@@ -163,8 +164,8 @@ export async function refreshVectorStoreList(applyCooldown = true) {
               createdAt: store.created_at,
               fileCount: store.file_counts?.total || 0,
             });
-            if (window.showInfo) {
-              window.showInfo(`Enabled vector store "${friendlyDisplayName || store.name || storeId}"`);
+            if (showInfo) {
+              showInfo(`Enabled vector store "${friendlyDisplayName || store.name || storeId}"`);
             }
           } else {
             // Remove metadata; also clear primary active id if it matches
@@ -176,14 +177,14 @@ export async function refreshVectorStoreList(applyCooldown = true) {
                 clearActiveVectorStore();
               }
             } catch { /* noop */ }
-            if (window.showInfo) {
-              window.showInfo(`Disabled vector store "${friendlyDisplayName}"`);
+            if (showInfo) {
+              showInfo(`Disabled vector store "${friendlyDisplayName}"`);
             }
           }
         } catch (error) {
           console.error("Failed to toggle vector store:", error);
-          if (window.showError) {
-            window.showError(`Failed to toggle vector store: ${error.message}`);
+          if (showError) {
+            showError(`Failed to toggle vector store: ${error.message}`);
           }
         } finally {
           refreshVectorStoreList(false);
@@ -237,15 +238,15 @@ async function activateVectorStore(storeId) {
       fileCount: store.file_counts?.total || 0,
     });
 
-    if (window.showInfo) {
-      window.showInfo(`Vector store "${store.name || storeId}" activated`);
+    if (showInfo) {
+      showInfo(`Vector store "${store.name || storeId}" activated`);
     }
 
     await refreshVectorStoreList();
   } catch (error) {
     console.error("Failed to activate vector store:", error);
-    if (window.showError) {
-      window.showError(`Failed to activate vector store: ${error.message}`);
+    if (showError) {
+      showError(`Failed to activate vector store: ${error.message}`);
     }
   }
 }
@@ -285,8 +286,8 @@ async function viewVectorStoreDetails(storeId) {
     }
   } catch (error) {
     console.error("Failed to view vector store details:", error);
-    if (window.showError) {
-      window.showError(`Failed to view vector store: ${error.message}`);
+    if (showError) {
+      showError(`Failed to view vector store: ${error.message}`);
     }
   }
 }
@@ -318,15 +319,15 @@ async function deleteVectorStoreById(storeId) {
     // Remove metadata
     removeVectorStoreMetadata(storeId);
 
-    if (window.showInfo) {
-      window.showInfo("Vector store deleted successfully");
+    if (showInfo) {
+      showInfo("Vector store deleted successfully");
     }
 
     await refreshVectorStoreList();
   } catch (error) {
     console.error("Failed to delete vector store:", error);
-    if (window.showError) {
-      window.showError(`Failed to delete vector store: ${error.message}`);
+    if (showError) {
+      showError(`Failed to delete vector store: ${error.message}`);
     }
   }
 }

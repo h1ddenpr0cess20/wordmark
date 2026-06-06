@@ -1,3 +1,4 @@
+import { showError } from "../../utils/notifications.js";
 export function setupLocationEventListeners() {
   if (!window.locationToggle) {
     return;
@@ -24,8 +25,8 @@ export function setupLocationEventListeners() {
         if (typeof window.updateLocationUI === 'function') {
           window.updateLocationUI();
         }
-        if (typeof window.showError === 'function') {
-          window.showError(`Location request failed: ${result.error}`);
+        if (typeof showError === 'function') {
+          showError(`Location request failed: ${result.error}`);
         }
         console.warn('Location request failed:', result.error);
       }

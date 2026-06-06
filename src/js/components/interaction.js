@@ -1,3 +1,4 @@
+import { showError,showInfo } from "../utils/notifications.js";
 /**
  * User interaction handling for the chatbot application
  */
@@ -233,8 +234,8 @@ window.sendMessage = async function() {
     if (activeServiceKey === "xai") {
       // xAI: upload files and attach as input_file references directly in the message
       try {
-        if (window.showInfo) {
-          window.showInfo("Uploading files...");
+        if (showInfo) {
+          showInfo("Uploading files...");
         }
 
         const { uploadFile } = await import("../services/vectorStore.js");
@@ -257,13 +258,13 @@ window.sendMessage = async function() {
         }
 
         console.info("Files uploaded for xAI:", fileIds);
-        if (window.showInfo) {
-          window.showInfo(`${fileIds.length} file(s) uploaded`);
+        if (showInfo) {
+          showInfo(`${fileIds.length} file(s) uploaded`);
         }
       } catch (error) {
         console.error("Failed to upload files:", error);
-        if (window.showError) {
-          window.showError(`Failed to upload files: ${error.message}`);
+        if (showError) {
+          showError(`Failed to upload files: ${error.message}`);
         }
         window.removeLoadingIndicator(loadingId);
         window.resetSendButton();
@@ -275,15 +276,15 @@ window.sendMessage = async function() {
 
       if (!window.responsesClient?.isToolEnabled("builtin:file_search")) {
         console.warn("File Search tool is not enabled. Documents will not be uploaded.");
-        if (window.showInfo) {
-          window.showInfo("Enable File Search tool in settings to upload documents");
+        if (showInfo) {
+          showInfo("Enable File Search tool in settings to upload documents");
         }
       } else {
         try {
           console.info("Uploading documents to vector store...");
 
-          if (window.showInfo) {
-            window.showInfo("Creating vector store and uploading documents...");
+          if (showInfo) {
+            showInfo("Creating vector store and uploading documents...");
           }
 
           const { uploadAndAttachFiles } = await import("../services/vectorStore.js");
@@ -304,17 +305,17 @@ window.sendMessage = async function() {
 
           console.info("Documents uploaded to vector store:", vectorStoreId);
 
-          if (window.showInfo) {
+          if (showInfo) {
             const uploadedCount = files.length - (result.skipped || 0);
             const message = result.skipped > 0
               ? `Vector store created with ${uploadedCount} file(s). ${result.skipped} file(s) skipped.`
               : `Vector store created with ${uploadedCount} file(s)`;
-            window.showInfo(message);
+            showInfo(message);
           }
         } catch (error) {
           console.error("Failed to upload documents:", error);
-          if (window.showError) {
-            window.showError(`Failed to upload documents: ${error.message}`);
+          if (showError) {
+            showError(`Failed to upload documents: ${error.message}`);
           }
           window.removeLoadingIndicator(loadingId);
           window.resetSendButton();
@@ -369,13 +370,13 @@ window.sendMessage = async function() {
     console.error("Error during message send:", error);
     if (error.name === "AbortError") {
       window.removeLoadingIndicator(loadingId);
-      if (window.showInfo) {
-        window.showInfo("Generation stopped");
+      if (showInfo) {
+        showInfo("Generation stopped");
       }
     } else {
       window.removeLoadingIndicator(loadingId);
-      if (window.showError) {
-        window.showError(`Error: ${error.message}`);
+      if (showError) {
+        showError(`Error: ${error.message}`);
       }
     }
     return;

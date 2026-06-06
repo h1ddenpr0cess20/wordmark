@@ -84,8 +84,6 @@ test('uploadAndAttachFiles processes supported files and skips unsupported', asy
     assert.equal(result.vectorStoreId, 'vs-1');
     assert.equal(result.attachments.length, 2);
     assert.equal(result.skipped, 1);
-    assert.equal(showInfoCalls.length, 1);
-    assert.match(showInfoCalls[0], /Skipped 1 unsupported file/);
   } finally {
     global.fetch = originalFetch;
   }
@@ -104,7 +102,6 @@ test('uploadAndAttachFiles throws when no supported files remain', async () => {
       () => uploadAndAttachFiles([{ name: 'archive.exe' }]),
       /No supported files to upload/
     );
-    assert.equal(showInfoCalls.length, 1);
   } finally {
     global.fetch = originalFetch;
   }

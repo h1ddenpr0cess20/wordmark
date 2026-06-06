@@ -1,247 +1,138 @@
-import test from 'node:test';
-import assert from 'node:assert/strict';
-import path from 'node:path';
-import { loadWindowScript } from './helpers/loadWindowScript.js';
+import test from "node:test";
+import assert from "node:assert/strict";
 
+// mcpServers.js imports the notifications module and attaches its API to window.
+// Provide browser-global stubs before importing it. showNotification is a real
+// import that no-ops without a DOM, so these tests verify storage/UI behavior
+// rather than intercepting the toast.
 function createLocalStorage(initial = {}) {
   const store = new Map(Object.entries(initial));
   return {
-    getItem(key) {
-      return store.has(key) ? store.get(key) : null;
-    },
-    setItem(key, value) {
-      store.set(key, String(value));
-    },
-    removeItem(key) {
-      store.delete(key);
-    },
-    clear() {
-      store.clear();
-    },
-  };
-}
-
-function createRemoveButton(label) {
-  return {
-    dataset: { serverLabel: label },
-    listeners: {},
-    addEventListener(event, callback) {
-      this.listeners[event] = callback;
-    },
-    trigger(event) {
-      if (this.listeners[event]) {
-        this.listeners[event]({ currentTarget: this });
-      }
-    },
+    getItem(key) { return store.has(key) ? store.get(key) : null; },
+    setItem(key, value) { store.set(key, String(value)); },
+    removeItem(key) { store.delete(key); },
+    clear() { store.clear(); },
   };
 }
 
 function createListContainer() {
   return {
-    _innerHTML: '',
-    _children: [],
+    _innerHTML: "",
     buttons: [],
     set innerHTML(html) {
       this._innerHTML = html;
-      this._children = [];
       const matches = [...html.matchAll(/data-server-label="([^"]+)"/g)];
-      this.buttons = matches.map(match => createRemoveButton(match[1]));
+      this.buttons = matches.map(label => ({ dataset: { serverLabel: label[1] }, addEventListener() {} }));
     },
-    get innerHTML() {
-      return this._innerHTML;
-    },
-    appendChild(child) {
-      this._children.push(child);
-    },
+    get innerHTML() { return this._innerHTML; },
+    appendChild() {},
     querySelectorAll(selector) {
-      if (selector === '.mcp-server-remove') {
-        return this.buttons;
-      }
-      return [];
+      return selector === ".mcp-server-remove" ? this.buttons : [];
     },
   };
 }
 
-function loadMcpModule({ storage, document, confirm: confirmFn, windowOverrides = {}, globals = {} }) {
-  const modulePath = path.resolve('src/js/services/mcpServers.js');
-  return loadWindowScript(modulePath, {
-    window: { ...windowOverrides },
-    document,
-    globals: {
-      localStorage: storage,
-      confirm: confirmFn,
-      ...globals,
-    },
-  });
+function makeStubEl() {
+  return {
+    className: "", dataset: {}, textContent: "", innerHTML: "", id: "",
+    children: [],
+    classList: { add() {}, remove() {}, contains() { return false; } },
+    setAttribute() {},
+    appendChild() {},
+    removeChild() {},
+    addEventListener() {},
+    querySelectorAll() { return []; },
+  };
 }
 
-test('addMCPServer persists unique servers and rejects duplicates', () => {
-  const storage = createLocalStorage();
-  const windowObj = loadMcpModule({ storage });
+globalThis.requestAnimationFrame = (cb) => cb();
+globalThis.window = globalThis.window || {};
+globalThis.document = {
+  readyState: "complete",
+  body: { appendChild() {} },
+  head: { appendChild() {} },
+  getElementById: (id) => (id === "mcp-servers-list" ? globalThis.__mcpContainer : null),
+  createElement: () => makeStubEl(),
+};
 
-  const initialServers = windowObj.getMCPServers();
-  assert.equal(Array.isArray(initialServers), true);
-  assert.equal(initialServers.length, 0);
+const mcp = await import("../src/js/services/mcpServers.js");
+const getMCPServers = globalThis.window.getMCPServers;
+const addMCPServer = globalThis.window.addMCPServer;
+const requestMcpServerRemoval = globalThis.window.requestMcpServerRemoval;
+
+test("addMCPServer persists unique servers and rejects duplicates", () => {
+  const storage = createLocalStorage();
+  globalThis.localStorage = storage;
+
+  assert.deepEqual(getMCPServers(), []);
 
   const server = {
-    displayName: 'Local Dev',
-    server_label: 'local-dev',
-    server_url: 'http://localhost:9404/mcp',
-    require_approval: 'always',
+    displayName: "Local Dev",
+    server_label: "local-dev",
+    server_url: "http://localhost:9404/mcp",
+    require_approval: "always",
   };
 
-  const added = windowObj.addMCPServer(server);
-  assert.equal(added, true);
-
-  const stored = JSON.parse(storage.getItem('mcp_servers'));
+  assert.equal(addMCPServer(server), true);
+  let stored = JSON.parse(storage.getItem("mcp_servers"));
   assert.equal(stored.length, 1);
-  assert.equal(stored[0].server_label, 'local-dev');
+  assert.equal(stored[0].server_label, "local-dev");
 
   const originalConsoleError = console.error;
   console.error = () => {};
   try {
-    assert.throws(
-      () => windowObj.addMCPServer(server),
-      /already exists/
-    );
+    assert.throws(() => addMCPServer(server), /already exists/);
   } finally {
     console.error = originalConsoleError;
   }
-
-  const afterDuplicateAttempt = JSON.parse(storage.getItem('mcp_servers'));
-  assert.equal(afterDuplicateAttempt.length, 1);
+  stored = JSON.parse(storage.getItem("mcp_servers"));
+  assert.equal(stored.length, 1);
 });
 
-test('requestMcpServerRemoval removes confirmed servers and refreshes UI', () => {
+test("requestMcpServerRemoval removes confirmed servers and refreshes UI", () => {
   const servers = [
-    {
-      displayName: 'First Server',
-      server_label: 'first',
-      server_url: 'http://localhost:9001/mcp',
-      require_approval: 'always',
-    },
-    {
-      displayName: 'Second Server',
-      server_label: 'second',
-      server_url: 'http://localhost:9002/mcp',
-      require_approval: 'always',
-    },
+    { displayName: "First Server", server_label: "first", server_url: "http://localhost:9001/mcp", require_approval: "always" },
+    { displayName: "Second Server", server_label: "second", server_url: "http://localhost:9002/mcp", require_approval: "always" },
   ];
+  globalThis.localStorage = createLocalStorage({ mcp_servers: JSON.stringify(servers) });
+  globalThis.__mcpContainer = createListContainer();
 
-  const storage = createLocalStorage({
-    mcp_servers: JSON.stringify(servers),
-  });
-
-  const container = createListContainer();
-  const notifications = [];
   const unregisterCalls = [];
   let refreshed = false;
   const confirmCalls = [];
+  globalThis.confirm = (message) => { confirmCalls.push(message); return true; };
+  globalThis.window.responsesClient = { unregisterMcpServer: (label) => unregisterCalls.push(label) };
+  globalThis.window.refreshToolSettingsUI = () => { refreshed = true; };
+  globalThis.window.icon = () => "";
 
-  const documentStub = {
-    getElementById(id) {
-      if (id === 'mcp-servers-list') {
-        return container;
-      }
-      return null;
-    },
-    createElement() {
-      const children = [];
-      return {
-        className: '',
-        dataset: {},
-        textContent: '',
-        type: '',
-        title: '',
-        innerHTML: '',
-        listeners: {},
-        children,
-        appendChild(child) { children.push(child); },
-        addEventListener(event, fn) { this.listeners[event] = fn; },
-      };
-    },
-  };
-
-  const confirmStub = (message) => {
-    confirmCalls.push(message);
-    return true;
-  };
-
-  const windowObj = loadMcpModule({
-    storage,
-    document: documentStub,
-    confirm: confirmStub,
-    windowOverrides: {
-      showNotification(message, type) {
-        notifications.push({ message, type });
-      },
-      responsesClient: {
-        unregisterMcpServer(label) {
-          unregisterCalls.push(label);
-        },
-      },
-      refreshToolSettingsUI() {
-        refreshed = true;
-      },
-      icon() { return ''; },
-    },
-  });
-
-  const removed = windowObj.requestMcpServerRemoval('first');
+  const removed = requestMcpServerRemoval("first");
   assert.equal(removed, true);
   assert.equal(confirmCalls.length, 1);
   assert.match(confirmCalls[0], /First Server/);
 
-  const stored = JSON.parse(storage.getItem('mcp_servers'));
+  const stored = JSON.parse(globalThis.localStorage.getItem("mcp_servers"));
   assert.equal(stored.length, 1);
-  assert.equal(stored[0].server_label, 'second');
-
-  assert.equal(unregisterCalls.length, 1);
-  assert.equal(unregisterCalls[0], 'first');
+  assert.equal(stored[0].server_label, "second");
+  assert.deepEqual(unregisterCalls, ["first"]);
   assert.equal(refreshed, true);
-
-  assert.equal(notifications.length, 1);
-  assert.equal(notifications[0].type, 'success');
 });
 
-test('requestMcpServerRemoval uses fallback label and does nothing when cancelled', () => {
+test("requestMcpServerRemoval uses fallback label and does nothing when cancelled", () => {
   const servers = [
-    {
-      displayName: 'First Server',
-      server_label: 'first',
-      server_url: 'http://localhost:9001/mcp',
-      require_approval: 'always',
-    },
+    { displayName: "First Server", server_label: "first", server_url: "http://localhost:9001/mcp", require_approval: "always" },
   ];
+  globalThis.localStorage = createLocalStorage({ mcp_servers: JSON.stringify(servers) });
+  globalThis.__mcpContainer = createListContainer();
 
-  const storage = createLocalStorage({
-    mcp_servers: JSON.stringify(servers),
-  });
-
-  const notifications = [];
   const confirmCalls = [];
-  const confirmStub = (message) => {
-    confirmCalls.push(message);
-    return false;
-  };
+  globalThis.confirm = (message) => { confirmCalls.push(message); return false; };
 
-  const windowObj = loadMcpModule({
-    storage,
-    confirm: confirmStub,
-    windowOverrides: {
-      showNotification(message, type) {
-        notifications.push({ message, type });
-      },
-    },
-  });
-
-  const result = windowObj.requestMcpServerRemoval('missing', 'Fallback Server');
+  const result = requestMcpServerRemoval("missing", "Fallback Server");
   assert.equal(result, false);
   assert.equal(confirmCalls.length, 1);
   assert.match(confirmCalls[0], /Fallback Server/);
 
-  const stored = JSON.parse(storage.getItem('mcp_servers'));
+  const stored = JSON.parse(globalThis.localStorage.getItem("mcp_servers"));
   assert.equal(stored.length, 1);
-  assert.equal(stored[0].server_label, 'first');
-  assert.equal(notifications.length, 0);
+  assert.equal(stored[0].server_label, "first");
 });

@@ -635,9 +635,9 @@ window.ensureApiKeysLoaded = function() {
   window._shownApiKeyWarnings = window._shownApiKeyWarnings || new Set();
 
   // Notification disabled - users can check API key status in settings if needed
-  // if (!apiKey && window.showWarning && !window._shownApiKeyWarnings.has(service)) {
+  // if (!apiKey && showWarning && !window._shownApiKeyWarnings.has(service)) {
   //     const name = service.charAt(0).toUpperCase() + service.slice(1);
-  //     window.showWarning(`${name} API key is missing. Please add it in the API Keys settings.`);
+  //     showWarning(`${name} API key is missing. Please add it in the API Keys settings.`);
   //     window._shownApiKeyWarnings.add(service);
   // }
 };
