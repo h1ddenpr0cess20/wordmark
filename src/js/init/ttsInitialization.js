@@ -31,9 +31,10 @@ function initializeTts() {
   // Initialize TTS instructions
   if (window.ttsInstructionsInput) {
     window.ttsInstructionsInput.value = window.ttsConfig.instructions || "";
+    // xAI TTS doesn't support voice instructions
     const instructionsItem = window.ttsInstructionsInput.closest(".setting-item");
     if (instructionsItem) {
-      instructionsItem.style.display = "";
+      instructionsItem.style.display = (window.ttsConfig.provider || "openai") === "xai" ? "none" : "";
     }
   }
 

@@ -398,8 +398,6 @@ window.config = {
 
         // xAI (Grok) service
         xai: {
-            enabled: false,
-            disabledReason: 'Temporarily disabled as a provider.',
             baseUrl: 'https://api.x.ai/v1',
             apiKey: '',
             models: [],

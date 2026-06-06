@@ -45,6 +45,17 @@ window.availableTtsVoices = {
       { id: 'shimmer', name: 'Shimmer', gender: 'Female' },
     ],
   },
+  xai: {
+    male: [
+      { id: 'leo', name: 'Leo', gender: 'Male' },
+      { id: 'rex', name: 'Rex', gender: 'Male' },
+      { id: 'sal', name: 'Sal', gender: 'Male' },
+    ],
+    female: [
+      { id: 'ara', name: 'Ara', gender: 'Female' },
+      { id: 'eve', name: 'Eve', gender: 'Female' },
+    ],
+  },
 };
 
 // Lazy-load audio storage helpers if needed

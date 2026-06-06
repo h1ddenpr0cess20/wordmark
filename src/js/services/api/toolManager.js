@@ -146,156 +146,107 @@ const STATIC_TOOLS = [
       vector_store_ids: [],
     },
   },
-  // Grok Imagine image tools commented out due to CORS issues
-  // {
-  //   key: 'function:grok_generate_image',
-  //   type: 'function',
-  //   displayName: 'Grok Imagine Image',
-  //   description: 'Generate an image with xAI Grok Imagine. Requires an xAI API key.',
-  //   defaultEnabled: true,
-  //   definition: {
-  //     type: 'function',
-  //     name: 'grok_generate_image',
-  //     description: 'Generate an image with xAI Grok Imagine.',
-  //     parameters: {
-  //       type: 'object',
-  //       properties: {
-  //         prompt: {
-  //           type: 'string',
-  //           description: 'A detailed description of the image to generate.',
-  //         },
-  //         aspect_ratio: {
-  //           type: 'string',
-  //           description: 'Requested image aspect ratio.',
-  //           enum: [
-  //             '1:1', '16:9', '9:16', '4:3', '3:4',
-  //             '3:2', '2:3', '2:1', '1:2',
-  //             '19.5:9', '9:19.5', '20:9', '9:20', 'auto',
-  //           ],
-  //         },
-  //         resolution: {
-  //           type: 'string',
-  //           description: 'Output resolution.',
-  //           enum: ['1k', '2k'],
-  //         },
-  //         n: {
-  //           type: 'integer',
-  //           description: 'Number of images to generate.',
-  //           minimum: 1,
-  //           maximum: 10,
-  //         },
-  //       },
-  //       required: ['prompt'],
-  //       additionalProperties: false,
-  //     },
-  //   },
-  //   requiresApiKeyService: 'xai',
-  // },
-  // {
-  //   key: 'function:grok_edit_image',
-  //   type: 'function',
-  //   displayName: 'Grok Imagine Edit',
-  //   description: 'Edit one or more images with xAI Grok Imagine. If no image URL is provided, the most recent uploaded or generated image is used.',
-  //   defaultEnabled: true,
-  //   definition: {
-  //     type: 'function',
-  //     name: 'grok_edit_image',
-  //     description: 'Edit one or more images with xAI Grok Imagine.',
-  //     parameters: {
-  //       type: 'object',
-  //       properties: {
-  //         prompt: {
-  //           type: 'string',
-  //           description: 'A detailed description of the requested image edit.',
-  //         },
-  //         image_url: {
-  //           type: 'string',
-  //           description: 'Optional data URI or public URL for a single source image.',
-  //         },
-  //         image_urls: {
-  //           type: 'array',
-  //           description: 'Optional list of source image URLs or data URIs.',
-  //           items: {
-  //             type: 'string',
-  //           },
-  //           minItems: 1,
-  //           maxItems: 3,
-  //         },
-  //         aspect_ratio: {
-  //           type: 'string',
-  //           description: 'Requested image aspect ratio.',
-  //           enum: [
-  //             '1:1', '16:9', '9:16', '4:3', '3:4',
-  //             '3:2', '2:3', '2:1', '1:2',
-  //             '19.5:9', '9:19.5', '20:9', '9:20', 'auto',
-  //           ],
-  //         },
-  //         resolution: {
-  //           type: 'string',
-  //           description: 'Output resolution.',
-  //           enum: ['1k', '2k'],
-  //         },
-  //         n: {
-  //           type: 'integer',
-  //           description: 'Number of edited images to return.',
-  //           minimum: 1,
-  //           maximum: 10,
-  //         },
-  //       },
-  //       required: ['prompt'],
-  //       additionalProperties: false,
-  //     },
-  //   },
-  //   requiresApiKeyService: 'xai',
-  // },
-  // {
-  //   key: 'function:grok_generate_video',
-  //   type: 'function',
-  //   displayName: 'Grok Imagine Video',
-  //   description: 'Generate a video, animate an image, or edit a video with xAI Grok Imagine. Requires an xAI API key.',
-  //   defaultEnabled: true,
-  //   definition: {
-  //     type: 'function',
-  //     name: 'grok_generate_video',
-  //     description: 'Generate a video, animate an image, or edit a video with xAI Grok Imagine.',
-  //     parameters: {
-  //       type: 'object',
-  //       properties: {
-  //         prompt: {
-  //           type: 'string',
-  //           description: 'A detailed description of the video to create or edit.',
-  //         },
-  //         image_url: {
-  //           type: 'string',
-  //           description: 'Optional data URI or public URL for image-to-video generation.',
-  //         },
-  //         video_url: {
-  //           type: 'string',
-  //           description: 'Optional public URL for video editing.',
-  //         },
-  //         duration: {
-  //           type: 'integer',
-  //           description: 'Requested duration for new generations.',
-  //           minimum: 1,
-  //           maximum: 15,
-  //         },
-  //         aspect_ratio: {
-  //           type: 'string',
-  //           description: 'Requested video aspect ratio.',
-  //           enum: ['16:9', '9:16', '1:1', '4:3', '3:4', '3:2', '2:3'],
-  //         },
-  //         resolution: {
-  //           type: 'string',
-  //           description: 'Requested video resolution.',
-  //           enum: ['480p', '720p'],
-  //         },
-  //       },
-  //       required: ['prompt'],
-  //       additionalProperties: false,
-  //     },
-  //   },
-  //   requiresApiKeyService: 'xai',
-  // },
+  {
+    key: "function:grok_generate_image",
+    type: "function",
+    displayName: "Grok Imagine Image",
+    description: "Generate an image with xAI Grok Imagine. Requires an xAI API key.",
+    defaultEnabled: true,
+    definition: {
+      type: "function",
+      name: "grok_generate_image",
+      description: "Generate an image with xAI Grok Imagine.",
+      parameters: {
+        type: "object",
+        properties: {
+          prompt: {
+            type: "string",
+            description: "A detailed description of the image to generate.",
+          },
+          aspect_ratio: {
+            type: "string",
+            description: "Requested image aspect ratio.",
+            enum: [
+              "1:1", "16:9", "9:16", "4:3", "3:4",
+              "3:2", "2:3", "2:1", "1:2",
+              "19.5:9", "9:19.5", "20:9", "9:20", "auto",
+            ],
+          },
+          resolution: {
+            type: "string",
+            description: "Output resolution.",
+            enum: ["1k", "2k"],
+          },
+          n: {
+            type: "integer",
+            description: "Number of images to generate.",
+            minimum: 1,
+            maximum: 10,
+          },
+        },
+        required: ["prompt"],
+        additionalProperties: false,
+      },
+    },
+    requiresApiKeyService: "xai",
+  },
+  {
+    key: "function:grok_edit_image",
+    type: "function",
+    displayName: "Grok Imagine Edit",
+    description: "Edit one or more images with xAI Grok Imagine. If no image URL is provided, the most recent uploaded or generated image is used.",
+    defaultEnabled: true,
+    definition: {
+      type: "function",
+      name: "grok_edit_image",
+      description: "Edit one or more images with xAI Grok Imagine.",
+      parameters: {
+        type: "object",
+        properties: {
+          prompt: {
+            type: "string",
+            description: "A detailed description of the requested image edit.",
+          },
+          image_url: {
+            type: "string",
+            description: "Optional data URI or public URL for a single source image.",
+          },
+          image_urls: {
+            type: "array",
+            description: "Optional list of source image URLs or data URIs.",
+            items: {
+              type: "string",
+            },
+            minItems: 1,
+            maxItems: 3,
+          },
+          aspect_ratio: {
+            type: "string",
+            description: "Requested image aspect ratio.",
+            enum: [
+              "1:1", "16:9", "9:16", "4:3", "3:4",
+              "3:2", "2:3", "2:1", "1:2",
+              "19.5:9", "9:19.5", "20:9", "9:20", "auto",
+            ],
+          },
+          resolution: {
+            type: "string",
+            description: "Output resolution.",
+            enum: ["1k", "2k"],
+          },
+          n: {
+            type: "integer",
+            description: "Number of edited images to return.",
+            minimum: 1,
+            maximum: 10,
+          },
+        },
+        required: ["prompt"],
+        additionalProperties: false,
+      },
+    },
+    requiresApiKeyService: "xai",
+  },
 ];
 
 const TOOL_CATALOG = [];

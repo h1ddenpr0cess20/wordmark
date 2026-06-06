@@ -45,9 +45,10 @@ export function setupTtsEventListeners() {
       if (typeof window.populateTtsVoiceSelector === 'function') {
         window.populateTtsVoiceSelector();
       }
+      // xAI TTS doesn't support voice instructions
       const instructionsItem = window.ttsInstructionsInput?.closest('.setting-item');
       if (instructionsItem) {
-        instructionsItem.style.display = '';
+        instructionsItem.style.display = window.ttsConfig.provider === 'xai' ? 'none' : '';
       }
     });
   }
@@ -76,7 +77,9 @@ export function setupTtsEventListeners() {
 
       const provider = window.availableTtsVoices?.[window.ttsConfig.provider] ? window.ttsConfig.provider : 'openai';
       window.ttsConfig.provider = provider;
-      const apiKey = window.config.services.openai?.apiKey;
+      const apiKey = provider === 'xai'
+        ? window.config.services.xai?.apiKey
+        : window.config.services.openai?.apiKey;
       if (!apiKey) {
         return;
       }
