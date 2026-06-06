@@ -1,5 +1,22 @@
 # Wordmark: Vite Migration + Module Architecture Refactor
 
+## Progress (resume here)
+
+Branch `vite-esm-refactor` (off `revert-remove-openai-default-grok`). All commits keep `npm run build`, `npm run lint`, and 127 tests green.
+
+**Done & committed:**
+- Phase 0.5 — xAI restored as first-class (chat, TTS, Grok image gen); video tooling stays removed.
+- Phases 0–3 — Vite 8; vendor libs modernized to current majors (DOMPurify 3, marked 18, highlight.js 11) and bundled; `?raw` panel imports; assets in `public/`; `src/js/lib/` removed.
+- Phase 4 — `src/js/init/state.js` is authoritative; `globals.js` is a window-compat bridge (accessors) so consumer migration is safe/incremental.
+- Phase 5 (partial) — converted: `utils.js`, `memoryStorage.js`, `notifications.js` (module + all consumers + test rewrites).
+- Feature — smart default provider: no cloud key → probe LM Studio → Ollama → else show "Set API key" (`selectDefaultService()` in init/services.js).
+
+**Per-module pattern:** export functions → migrate every `window.x` consumer to imports (bridge covers any miss) → keep `window` shims only for inline-HTML/console handlers → rewrite that module's `loadWindowScript` test to dynamic `import()`. Guard top-level DOM with `typeof document !== "undefined"`. Test infra: `tests/helpers/rawLoader.mjs` (Vite `?raw` in Node), wired via `npm test`'s `--import`.
+
+**Remaining:** rest of Phase 5 utilities (conversationStorage, imageStorage, audioStorage, icons, mobileHandling, tooltips, highlight, lazyLoader, toolLoader), Phases 6–8 (services/components/init), Phase 9 (finish test refactor), Phase 10 (remove the window bridge + all shims; only DEBUG/VERBOSE_LOGGING/APP_VERSION/applyConsoleLogging stay). **Version bump** (1.5.2 → new) in config.js + package.json + README before the PR.
+
+---
+
 ## Context
 
 The codebase was originally built with a workaround: every file attaches its API to `window.*` as a side effect instead of using proper ES module exports. This made initial development easier (no import/export to manage) but now causes:
