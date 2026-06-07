@@ -178,9 +178,3 @@ function escapeHtml(text) {
   div.textContent = String(text ?? "");
   return div.innerHTML;
 }
-
-// Export for use in other modules and debugging
-window.filesManager = {
-  init: initFilesManager,
-  refresh: refreshAssistantFileList,
-};

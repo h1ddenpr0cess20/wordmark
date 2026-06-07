@@ -407,9 +407,3 @@ function escapeHtml(text) {
   div.textContent = text;
   return div.innerHTML;
 }
-
-// Export for use in other modules
-window.vectorStoreManager = {
-  refresh: refreshVectorStoreList,
-  init: initVectorStoreManager,
-};
