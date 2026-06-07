@@ -1,5 +1,6 @@
 import { showError } from "../../utils/notifications.js";
 import { loadLocationModule, lazyModulesLoaded } from "../../utils/lazyLoader.js";
+import { requestLocation, disableLocation, updateLocationUI } from "../../services/location.js";
 export function setupLocationEventListeners() {
   if (!window.locationToggle) {
     return;
@@ -13,18 +14,18 @@ export function setupLocationEventListeners() {
         await loadLocationModule();
       }
 
-      const result = await window.requestLocation();
+      const result = await requestLocation();
       if (result.success) {
-        if (typeof window.updateLocationUI === 'function') {
-          window.updateLocationUI();
+        if (typeof updateLocationUI === 'function') {
+          updateLocationUI();
         }
         if (window.VERBOSE_LOGGING) {
           console.info('Location enabled:', result.locationString);
         }
       } else {
         window.locationToggle.checked = false;
-        if (typeof window.updateLocationUI === 'function') {
-          window.updateLocationUI();
+        if (typeof updateLocationUI === 'function') {
+          updateLocationUI();
         }
         if (typeof showError === 'function') {
           showError(`Location request failed: ${result.error}`);
@@ -32,11 +33,11 @@ export function setupLocationEventListeners() {
         console.warn('Location request failed:', result.error);
       }
     } else {
-      if (typeof window.disableLocation === 'function') {
-        window.disableLocation();
+      if (typeof disableLocation === 'function') {
+        disableLocation();
       }
-      if (typeof window.updateLocationUI === 'function') {
-        window.updateLocationUI();
+      if (typeof updateLocationUI === 'function') {
+        updateLocationUI();
       }
       if (window.VERBOSE_LOGGING) {
         console.info('Location services disabled');

@@ -4,7 +4,7 @@
  */
 
 // Location state management
-window.locationState = {
+export const locationState = {
   enabled: false,
   position: null,
   locationString: "",
@@ -16,10 +16,10 @@ window.locationState = {
  * Request location permission and get current position
  * @returns {Promise<Object>} - Location data or error
  */
-window.requestLocation = async function() {
+export async function requestLocation() {
   if (!navigator.geolocation) {
     const error = "Geolocation is not supported by this browser";
-    window.locationState.error = error;
+    locationState.error = error;
     console.warn(error);
     return { error };
   }
@@ -27,15 +27,15 @@ window.requestLocation = async function() {
   return new Promise((resolve) => {
     navigator.geolocation.getCurrentPosition(
       async(position) => {
-        window.locationState.position = position;
-        window.locationState.error = null;
-        window.locationState.lastFetched = new Date().toISOString();
+        locationState.position = position;
+        locationState.error = null;
+        locationState.lastFetched = new Date().toISOString();
 
         // Try to get human-readable location
         try {
-          const locationString = await window.formatLocationString(position);
-          window.locationState.locationString = locationString;
-          window.locationState.enabled = true;
+          const locationString = await formatLocationString(position);
+          locationState.locationString = locationString;
+          locationState.enabled = true;
 
           // Save to localStorage for persistence
           localStorage.setItem("locationEnabled", "true");
@@ -64,8 +64,8 @@ window.requestLocation = async function() {
         } catch {
           // Even if reverse geocoding fails, we have coordinates
           const basicLocation = `Location: ${position.coords.latitude.toFixed(4)}, ${position.coords.longitude.toFixed(4)}`;
-          window.locationState.locationString = basicLocation;
-          window.locationState.enabled = true;
+          locationState.locationString = basicLocation;
+          locationState.enabled = true;
 
           localStorage.setItem("locationEnabled", "true");
           localStorage.setItem("lastKnownLocation", JSON.stringify({
@@ -102,8 +102,8 @@ window.requestLocation = async function() {
           break;
         }
 
-        window.locationState.error = errorMessage;
-        window.locationState.enabled = false;
+        locationState.error = errorMessage;
+        locationState.enabled = false;
         localStorage.setItem("locationEnabled", "false");
 
         console.warn("Geolocation error:", errorMessage);
@@ -116,14 +116,14 @@ window.requestLocation = async function() {
       },
     );
   });
-};
+}
 
 /**
  * Format location data into a human-readable string
  * @param {Position} position - Geolocation position object
  * @returns {Promise<string>} - Formatted location string
  */
-window.formatLocationString = async function(position) {
+export async function formatLocationString(position) {
   const { latitude, longitude } = position.coords;
 
   try {
@@ -159,51 +159,49 @@ window.formatLocationString = async function(position) {
   // Fallback to coordinates and timezone
   const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
   return `Location: ${latitude.toFixed(4)}, ${longitude.toFixed(4)} (${timezone})`;
-};
+}
 
 /**
  * Get current location string for prompt templates
  * @returns {string} - Formatted location string or empty string
  */
-window.getLocationForPrompt = function() {
-  if (!window.locationState.enabled || !window.locationState.locationString) {
+export function getLocationForPrompt() {
+  if (!locationState.enabled || !locationState.locationString) {
     return "";
   }
 
-  return ` (${window.locationState.locationString})`;
-};
+  return ` (${locationState.locationString})`;
+}
 
 /**
  * Disable location services
  */
-window.disableLocation = function() {
-  window.locationState.enabled = false;
-  window.locationState.position = null;
-  window.locationState.locationString = "";
-  window.locationState.error = null;
+export function disableLocation() {
+  locationState.enabled = false;
+  locationState.position = null;
+  locationState.locationString = "";
+  locationState.error = null;
 
   localStorage.setItem("locationEnabled", "false");
   localStorage.removeItem("lastKnownLocation");
 
   // Update UI if available
-  if (typeof window.updateLocationUI === "function") {
-    window.updateLocationUI();
-  }
+  updateLocationUI();
 
   if (window.VERBOSE_LOGGING) {
     console.info("Location services disabled");
   }
-};
+}
 
 /**
  * Initialize location service from stored preferences
  */
-window.initializeLocationService = function() {
+export function initializeLocationService() {
   const locationEnabled = localStorage.getItem("locationEnabled") === "true";
   const lastKnownLocation = localStorage.getItem("lastKnownLocation");
 
   // Always restore the enabled state from localStorage first
-  window.locationState.enabled = locationEnabled;
+  locationState.enabled = locationEnabled;
 
   if (locationEnabled && lastKnownLocation) {
     try {
@@ -213,8 +211,8 @@ window.initializeLocationService = function() {
 
       // Use stored location if it's less than 1 hour old
       if (now - storedTime < 3600000) {
-        window.locationState.locationString = stored.locationString;
-        window.locationState.position = {
+        locationState.locationString = stored.locationString;
+        locationState.position = {
           coords: stored.coords,
           timestamp: storedTime,
         };
@@ -227,14 +225,14 @@ window.initializeLocationService = function() {
         if (window.VERBOSE_LOGGING) {
           console.info("Stored location expired, requesting fresh location");
         }
-        window.requestLocation();
+        requestLocation();
       }
     } catch (error) {
       console.warn("Failed to parse stored location:", error);
       localStorage.removeItem("lastKnownLocation");
       // If enabled but no valid stored location, try to get fresh location
       if (locationEnabled) {
-        window.requestLocation();
+        requestLocation();
       }
     }
   } else if (locationEnabled) {
@@ -243,36 +241,34 @@ window.initializeLocationService = function() {
     if (window.VERBOSE_LOGGING) {
       console.info("Location enabled but no stored data, requesting fresh location");
     }
-    window.requestLocation();
+    requestLocation();
   }
 
   // Update UI if available
-  if (typeof window.updateLocationUI === "function") {
-    window.updateLocationUI();
-  }
-};
+  updateLocationUI();
+}
 
 /**
  * Update location UI elements
  */
-window.updateLocationUI = function() {
+export function updateLocationUI() {
   const locationToggle = document.getElementById("location-toggle");
   const locationStatus = document.getElementById("location-status");
 
   if (locationToggle) {
-    locationToggle.checked = window.locationState.enabled;
+    locationToggle.checked = locationState.enabled;
   }
 
   if (locationStatus) {
-    if (window.locationState.enabled && window.locationState.locationString) {
-      locationStatus.textContent = `Current: ${window.locationState.locationString}`;
+    if (locationState.enabled && locationState.locationString) {
+      locationStatus.textContent = `Current: ${locationState.locationString}`;
       locationStatus.className = "location-status success";
-    } else if (window.locationState.error) {
-      locationStatus.textContent = `Error: ${window.locationState.error}`;
+    } else if (locationState.error) {
+      locationStatus.textContent = `Error: ${locationState.error}`;
       locationStatus.className = "location-status error";
     } else {
       locationStatus.textContent = "Location services disabled";
       locationStatus.className = "location-status disabled";
     }
   }
-};
+}

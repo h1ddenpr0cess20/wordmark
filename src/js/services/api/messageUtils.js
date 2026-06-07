@@ -1,4 +1,5 @@
 import { getMemoriesForPrompt } from "../../utils/memoryStorage.js";
+import { getLocationForPrompt } from "../location.js";
 /**
  * Message preparation helpers for the Responses API.
  */
@@ -354,8 +355,8 @@ export function buildDeveloperMessage(model) {
   if (!instructions) {
     return '';
   }
-  const locationInfo = typeof window.getLocationForPrompt === 'function'
-    ? window.getLocationForPrompt()
+  const locationInfo = typeof getLocationForPrompt === 'function'
+    ? getLocationForPrompt()
     : '';
   const timestamp = (() => {
     try {
@@ -411,8 +412,8 @@ function buildPersonalityInstruction() {
 }
 
 function buildLocationString() {
-  if (typeof window.getLocationForPrompt === 'function') {
-    return window.getLocationForPrompt();
+  if (typeof getLocationForPrompt === 'function') {
+    return getLocationForPrompt();
   }
   return '';
 }

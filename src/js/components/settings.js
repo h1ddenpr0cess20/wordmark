@@ -1,4 +1,5 @@
 import { getMemoryConfig, setMemoryEnabled } from "../utils/memoryStorage.js";
+import { locationState, requestLocation, disableLocation } from "../services/location.js";
 /**
  * Settings panel related functionality
  */
@@ -133,7 +134,7 @@ window.updateHeaderInfo = function() {
     // Minimal fallback if function is unavailable
     const on = label => `<span class="feature-badge" data-state="on"><span class="dot"></span>${label}</span>`;
     const off = label => `<span class="feature-badge" data-state="off"><span class="dot"></span>${label}</span>`;
-    const locOn = Boolean(window.locationState && window.locationState.enabled);
+    const locOn = Boolean(locationState && locationState.enabled);
     let memOn = false;
     try { memOn = Boolean(getMemoryConfig && getMemoryConfig().enabled); } catch {}
     const toolsOn = Boolean(window.config && window.config.enableFunctionCalling);
@@ -255,7 +256,7 @@ window.updateFeatureStatus = function() {
   if (!el) return;
 
   const state = {
-    location: Boolean(window.locationState && window.locationState.enabled),
+    location: Boolean(locationState && locationState.enabled),
     memory: (() => { try { return Boolean(getMemoryConfig && getMemoryConfig().enabled); } catch { return false; } })(),
     tools: Boolean(window.config && window.config.enableFunctionCalling !== false),
     data: Boolean(typeof window.getDataSettingsEnabled === "function" ? window.getDataSettingsEnabled() : (localStorage.getItem("dataSettingsEnabled") !== "false")),
@@ -312,15 +313,15 @@ window.updateFeatureStatus = function() {
           if (toggle) {
             toggle.checked = true;
             toggle.dispatchEvent(new Event("change", { bubbles: true }));
-          } else if (typeof window.requestLocation === "function") {
-            await window.requestLocation();
+          } else if (typeof requestLocation === "function") {
+            await requestLocation();
           }
         } else {
           if (toggle) {
             toggle.checked = false;
             toggle.dispatchEvent(new Event("change", { bubbles: true }));
-          } else if (typeof window.disableLocation === "function") {
-            window.disableLocation();
+          } else if (typeof disableLocation === "function") {
+            disableLocation();
           }
         }
         break;

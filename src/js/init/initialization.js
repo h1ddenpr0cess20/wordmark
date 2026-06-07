@@ -5,6 +5,7 @@
 
 import { focusUserInputSafely } from "../utils/mobileHandling.js";
 import { loadHistoryModule, loadLocationModule } from "../utils/lazyLoader.js";
+import { initializeLocationService } from "../services/location.js";
 
 // Configure DOMPurify to allow YouTube iframes
 function configureDOMPurify() {
@@ -331,8 +332,8 @@ async function initialize() {
     // Load location services if previously enabled
     if (localStorage.getItem("locationEnabled") === "true" && typeof loadLocationModule === "function") {
       loadLocationModule().then(() => {
-        if (typeof window.initializeLocationService === "function") {
-          window.initializeLocationService();
+        if (typeof initializeLocationService === "function") {
+          initializeLocationService();
         }
         if (typeof window.updateFeatureStatus === "function") {
           window.updateFeatureStatus();
