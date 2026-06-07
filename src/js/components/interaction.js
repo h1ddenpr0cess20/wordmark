@@ -287,7 +287,7 @@ export async function sendMessage() {
             showInfo("Creating vector store and uploading documents...");
           }
 
-          const { uploadAndAttachFiles } = await import("../services/vectorStore.js");
+          const { uploadAndAttachFiles, saveVectorStoreMetadata } = await import("../services/vectorStore.js");
 
           console.log("Files to upload:", files.map(f => f.name));
           const result = await uploadAndAttachFiles(files, `Chat-${Date.now()}`);
@@ -295,13 +295,11 @@ export async function sendMessage() {
           window.activeVectorStore = vectorStoreId;
 
           // Save vector store metadata
-          if (typeof window.saveVectorStoreMetadata === "function") {
-            window.saveVectorStoreMetadata(vectorStoreId, {
-              name: `Chat-${Date.now()}`,
-              createdAt: Date.now(),
-              fileCount: files.length,
-            });
-          }
+          saveVectorStoreMetadata(vectorStoreId, {
+            name: `Chat-${Date.now()}`,
+            createdAt: Date.now(),
+            fileCount: files.length,
+          });
 
           console.info("Documents uploaded to vector store:", vectorStoreId);
 

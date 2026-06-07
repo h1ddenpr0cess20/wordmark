@@ -61,17 +61,7 @@ export function loadVectorStoreModule() {
   }
   return import("../services/vectorStore.js").then(({
     initializeVectorStore,
-    saveVectorStoreMetadata,
-    setActiveVectorStoreId,
-    clearActiveVectorStore,
-    getActiveVectorStoreId,
   }) => {
-    // Make functions globally available
-    window.saveVectorStoreMetadata = saveVectorStoreMetadata;
-    window.setActiveVectorStoreId = setActiveVectorStoreId;
-    window.clearActiveVectorStore = clearActiveVectorStore;
-    window.getActiveVectorStoreId = getActiveVectorStoreId;
-
     // Initialize vector store from localStorage
     initializeVectorStore();
 
