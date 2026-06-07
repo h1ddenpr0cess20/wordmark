@@ -6,6 +6,7 @@ import {
   renameConversationInDb,
 } from "../../utils/conversationStorage.js";
 import { saveImageToDb, loadImageFromDb } from "../../utils/imageStorage.js";
+import { loadHighlightJS } from "../../utils/highlight.js";
 
 function processImageForStorage(img, savePromises) {
   const processedImg = { ...img };
@@ -139,8 +140,8 @@ function normalizePromptState() {
 }
 
 function ensureLibrariesLoaded() {
-  const ensureHighlight = typeof hljs === 'undefined' && typeof window.loadHighlightJS === 'function'
-    ? window.loadHighlightJS()
+  const ensureHighlight = typeof hljs === 'undefined' && typeof loadHighlightJS === 'function'
+    ? loadHighlightJS()
     : Promise.resolve();
   const ensureMarked = typeof marked === 'undefined' && typeof window.loadMarkedLibrary === 'function'
     ? window.loadMarkedLibrary()

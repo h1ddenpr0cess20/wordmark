@@ -1,4 +1,5 @@
 import { icon } from "../utils/icons.js";
+import { addCopyButton, loadHighlightJS } from "../utils/highlight.js";
 /**
  * Message handling and display functions
  */
@@ -36,7 +37,7 @@ window.highlightAndAddCopyButtons = function(messageElement) {
       if (!codeBlock.classList.contains("hljs")) {
         hljs.highlightElement(codeBlock);
       }
-      window.addCopyButton(codeBlock);
+      addCopyButton(codeBlock);
     });
   } else if (window.hljsLoaded) {
     if (typeof hljs !== "undefined") {
@@ -54,11 +55,11 @@ window.highlightAndAddCopyButtons = function(messageElement) {
         if (!codeBlock.classList.contains("hljs")) {
           hljs.highlightElement(codeBlock);
         }
-        window.addCopyButton(codeBlock);
+        addCopyButton(codeBlock);
       });
     }
   } else {
-    window.loadHighlightJS().then(() => {
+    loadHighlightJS().then(() => {
       if (typeof hljs !== "undefined") {
         codeBlocks.forEach((codeBlock) => {
           // Check if code block has no language class or only has the default hljs class
@@ -74,7 +75,7 @@ window.highlightAndAddCopyButtons = function(messageElement) {
           if (!codeBlock.classList.contains("hljs")) {
             hljs.highlightElement(codeBlock);
           }
-          window.addCopyButton(codeBlock);
+          addCopyButton(codeBlock);
         });
       }
     });

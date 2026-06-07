@@ -2,6 +2,8 @@
  * Theme management functions for the AI Assistant
  */
 
+import { loadHighlightJS } from "../utils/highlight.js";
+
 // Initialize theme variables
 window.themeSelector = null;
 window.currentTheme = "theme-dark-blue"; // Default theme
@@ -306,8 +308,8 @@ window.rehighlightCodeBlocks = function() {
         }).catch((error) => {
           console.error("Failed to load highlight.js:", error);
         });
-      } else if (typeof window.loadHighlightJS === "function") {
-        window.loadHighlightJS().then(() => {
+      } else if (typeof loadHighlightJS === "function") {
+        loadHighlightJS().then(() => {
           // Try again after loading
           window.rehighlightCodeBlocks();
         }).catch((error) => {
