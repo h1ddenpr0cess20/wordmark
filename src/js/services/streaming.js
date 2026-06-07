@@ -1,9 +1,4 @@
 import { ensureImagesHaveMessageIds } from "./streaming/imageGeneration.js";
-import {
-  finalizeStreamedResponse,
-  removeLoadingIndicator,
-  updateMessageContent,
-} from "./streaming/messageLifecycle.js";
 import { createStreamingRuntime } from "./streaming/runtime.js";
 import { createStreamingEventProcessor } from "./streaming/eventProcessor.js";
 
@@ -124,13 +119,4 @@ export async function handleStreamedResponse(response, loadingId) {
     reasoningText: runtime.getReasoningText(),
   };
 }
-
-// Window bridges for not-yet-converted Phase 7 consumers (interaction.js,
-// components/messages.js, services/history/render.js). updateMessageContent
-// MUST stay bridged here: messageLifecycle's implementation has to keep
-// winning over the (now-dead) same-named definition in components/messages.js,
-// which is load-order dependent.
-window.finalizeStreamedResponse = finalizeStreamedResponse;
-window.updateMessageContent = updateMessageContent;
-window.removeLoadingIndicator = removeLoadingIndicator;
 

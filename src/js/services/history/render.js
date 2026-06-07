@@ -1,4 +1,5 @@
 import { detectMediaType, getMediaDisplayUrl } from "../mediaTools.js";
+import { updateMessageContent } from "../streaming/messageLifecycle.js";
 
 function createMissingMediaPlaceholder(filename, mediaType = 'image') {
   const label = mediaType === 'video' ? 'Video' : 'Image';
@@ -229,7 +230,7 @@ window.renderConversationMessages = function(convo, imageCache) {
       codeInterpreterOutputs: msg.codeInterpreterOutputs || null,
     };
 
-    window.updateMessageContent?.(messageElement, contentObj);
+    updateMessageContent(messageElement, contentObj);
     window.highlightAndAddCopyButtons?.(messageElement);
     window.addMessageCopyButton?.(messageElement, messageId);
     window.setupImageInteractions?.(contentWrapper);

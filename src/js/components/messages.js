@@ -1,5 +1,6 @@
 import { icon } from "../utils/icons.js";
 import { addCopyButton, loadHighlightJS } from "../utils/highlight.js";
+import { updateMessageContent } from "../services/streaming/messageLifecycle.js";
 /**
  * Message handling and display functions
  */
@@ -170,7 +171,7 @@ window.appendMessage = function(sender, message, role, skipHistory = false) {
   // Otherwise, it might be a complex object with content and reasoning
   else if (typeof message === "object" && message !== null) {
     // Use updateMessageContent to handle complex message objects
-    window.updateMessageContent(messageElement, message);
+    updateMessageContent(messageElement, message);
   }
 
   // Add the message to the container
@@ -219,152 +220,6 @@ window.appendMessage = function(sender, message, role, skipHistory = false) {
   }, 100);
 
   return messageElement;
-};
-
-/**
- * Updates the content of a message
- * @param {HTMLElement} messageElement - The message element to update
- * @param {Object} contentObj - Object containing content and optional reasoning
- */
-window.updateMessageContent = function(messageElement, contentObj) {
-  if (!messageElement) {
-    return;
-  }
-
-  // Get or create message content wrapper
-  let contentWrapper = messageElement.querySelector(".message-content");
-  if (!contentWrapper) {
-    contentWrapper = document.createElement("div");
-    contentWrapper.className = "message-content";
-    messageElement.appendChild(contentWrapper);
-  }
-
-  // Get content and reasoning from the object
-  const content = contentObj.content || "";
-  const reasoning = contentObj.reasoning || "";
-
-  // Convert Markdown to HTML for the main content
-  let parsedContent = "";
-  if (contentObj.isHtml) {
-    parsedContent = content;
-  } else if (window.markdownit) {
-    parsedContent = window.markdownit().render(content);
-  } else {
-    parsedContent = content
-      .replace(/```([\s\S]*?)```/g, "<pre><code>$1</code></pre>")
-      .replace(/\n/g, "<br>");
-  }
-
-  // Check if there are any images to display with this message
-  const messageId = messageElement.id;
-  if (window.generatedImages && window.generatedImages.length > 0 && messageId) {
-    // Find images associated with this message
-    const associatedImages = window.generatedImages.filter(img =>
-      img.associatedMessageId === messageId ||
-      (!img.associatedMessageId && img.timestamp &&
-       Math.abs(new Date(img.timestamp) - new Date()) < 10000), // Images created in the last 10 seconds
-    );
-
-    // If we have images to display with this message
-    if (associatedImages.length > 0) {
-      // Create a container for images
-      const imagesContainer = document.createElement("div");
-      imagesContainer.className = "generated-images";
-
-      // Associate these images with this message
-      associatedImages.forEach(img => {
-        if (!img.associatedMessageId) {
-          img.associatedMessageId = messageId;
-        }
-
-        // Create image element
-        const imgEl = document.createElement("img");
-        imgEl.src = img.url;
-        imgEl.alt = img.prompt || "Generated Image";
-        imgEl.className = "generated-image-thumbnail";
-        imgEl.dataset.filename = img.filename || "";
-        imgEl.dataset.messageId = messageId;
-        imgEl.dataset.prompt = img.prompt || "";
-        imgEl.dataset.timestamp = img.timestamp || "";
-
-        // Add loading event handlers
-        imgEl.onload = () => {
-          if (window.VERBOSE_LOGGING) {
-            console.info(`Image loaded successfully in message: ${img.filename || "unnamed"}`);
-          }
-        };
-
-        imgEl.onerror = (e) => {
-          console.error(`Error loading image in message: ${img.filename || "unnamed"}`, e);
-
-          // Create a placeholder for the failed image
-          const placeholder = document.createElement("div");
-          placeholder.className = "image-placeholder";
-          placeholder.textContent = `Image could not be loaded: ${img.filename || "unnamed"}`;
-
-          // Replace the image with the placeholder
-          if (imgEl.parentNode) {
-            imgEl.parentNode.replaceChild(placeholder, imgEl);
-          }
-        };
-
-        // Add the image to the container
-        imagesContainer.appendChild(imgEl);
-      });
-
-      // Add the images container to the message
-      contentWrapper.appendChild(imagesContainer);
-
-      // Update the message in history to mark it as having images
-      if (!skipHistory && window.conversationHistory) {
-        const historyEntry = window.conversationHistory.find(msg => msg.id === messageId);
-        if (historyEntry) {
-          historyEntry.hasImages = true;
-        }
-      }
-    }
-  }
-
-  // Create a container for the main content
-  const mainContent = document.createElement("div");
-  mainContent.className = "main-content";
-  mainContent.innerHTML = window.sanitizeWithYouTube ? window.sanitizeWithYouTube(parsedContent) : DOMPurify.sanitize(parsedContent);
-  contentWrapper.appendChild(mainContent);
-
-  // If there's reasoning, create the thinking section
-  if (reasoning.trim()) {
-    // Create thinking container
-    const thinkingContainer = document.createElement("div");
-    thinkingContainer.className = "thinking-container collapsed";
-
-    // Create thinking toggle button
-    const thinkingToggle = document.createElement("button");
-    thinkingToggle.className = "thinking-title";
-    thinkingToggle.innerHTML = "<span class=\"toggle-icon\">▶</span> <span class=\"toggle-label\">Show reasoning</span>";
-    thinkingToggle.onclick = function(event) {
-      // Prevent event bubbling that might affect other elements
-      if (event) {
-        event.stopPropagation();
-        event.preventDefault();
-      }
-
-      thinkingContainer.classList.toggle("collapsed");
-      const isCollapsed = thinkingContainer.classList.contains("collapsed");
-      thinkingToggle.querySelector(".toggle-icon").textContent = isCollapsed ? "▶" : "▼";
-      thinkingToggle.querySelector(".toggle-label").textContent = isCollapsed ? "Show reasoning" : "Hide reasoning";
-    };
-    contentWrapper.appendChild(thinkingToggle);
-    // Create thinking content
-    const thinkingContent = document.createElement("div");
-    thinkingContent.className = "thinking-content";
-    if (window.markdownit) {
-      thinkingContent.innerHTML = window.sanitizeWithYouTube ? window.sanitizeWithYouTube(window.markdownit().render(reasoning)) : DOMPurify.sanitize(window.markdownit().render(reasoning));
-    } else {
-      thinkingContent.innerHTML = window.sanitizeWithYouTube ? window.sanitizeWithYouTube(reasoning.replace(/\n/g, "<br>")) : DOMPurify.sanitize(reasoning.replace(/\n/g, "<br>"));
-    }
-    thinkingContainer.appendChild(thinkingContent);
-    contentWrapper.appendChild(thinkingContainer);
-  }
 };
 
 /**

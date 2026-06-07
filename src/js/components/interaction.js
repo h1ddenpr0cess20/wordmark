@@ -6,6 +6,7 @@ import { showError,showInfo } from "../utils/notifications.js";
 import { sanitizeInput, stripBase64FromHistory } from "../utils/utils.js";
 import { saveImageToDb } from "../utils/imageStorage.js";
 import { scrollInputIntoView } from "../utils/mobileHandling.js";
+import { finalizeStreamedResponse, removeLoadingIndicator } from "../services/streaming/messageLifecycle.js";
 
 // -----------------------------------------------------
 // Message sending and related functionality
@@ -268,7 +269,7 @@ window.sendMessage = async function() {
         if (showError) {
           showError(`Failed to upload files: ${error.message}`);
         }
-        window.removeLoadingIndicator(loadingId);
+        removeLoadingIndicator(loadingId);
         window.resetSendButton();
         return;
       }
@@ -319,7 +320,7 @@ window.sendMessage = async function() {
           if (showError) {
             showError(`Failed to upload documents: ${error.message}`);
           }
-          window.removeLoadingIndicator(loadingId);
+          removeLoadingIndicator(loadingId);
           window.resetSendButton();
           return;
         }
@@ -363,7 +364,7 @@ window.sendMessage = async function() {
       return;
     }
 
-    window.finalizeStreamedResponse(loadingMessage, {
+    finalizeStreamedResponse(loadingMessage, {
       content: result.outputText,
       reasoning: result.reasoningText,
       response: result.response,
@@ -371,12 +372,12 @@ window.sendMessage = async function() {
   } catch (error) {
     console.error("Error during message send:", error);
     if (error.name === "AbortError") {
-      window.removeLoadingIndicator(loadingId);
+      removeLoadingIndicator(loadingId);
       if (showInfo) {
         showInfo("Generation stopped");
       }
     } else {
-      window.removeLoadingIndicator(loadingId);
+      removeLoadingIndicator(loadingId);
       if (showError) {
         showError(`Error: ${error.message}`);
       }
@@ -414,7 +415,7 @@ window.stopGeneration = function() {
   }
 
   if (window.activeLoadingMessageId) {
-    window.removeLoadingIndicator(window.activeLoadingMessageId);
+    removeLoadingIndicator(window.activeLoadingMessageId);
   }
 
   window.resetSendButton();

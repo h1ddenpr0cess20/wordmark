@@ -3,6 +3,8 @@
  * Provides functions for storing and retrieving images from IndexedDB
  */
 
+import { getMediaDisplayUrl } from "../services/mediaTools.js";
+
 // IndexedDB database configuration
 const IMAGE_DB_NAME = "wordmark-images";
 const IMAGE_DB_VERSION = 1;
@@ -113,7 +115,7 @@ export async function getStoredMediaDisplayUrl(filename) {
   }
 
   const record = await loadImageFromDb(filename);
-  const displayUrl = window.getMediaDisplayUrl?.(record?.data, filename) || "";
+  const displayUrl = getMediaDisplayUrl(record?.data, filename) || "";
   if (!displayUrl) {
     throw new Error(`No display URL could be created for ${filename}`);
   }

@@ -254,10 +254,6 @@ export function getMediaDisplayUrl(value, filename = "") {
   return "";
 }
 
-// Low-level imageStorage util reads this via window to avoid a util->service
-// import cycle; remove when imageStorage no longer needs a display-URL builder.
-window.getMediaDisplayUrl = getMediaDisplayUrl;
-
 export async function downloadMediaSource(source, filename) {
   let blob = null;
   const remoteUrl = typeof source === "string" && /^https?:\/\//i.test(source)
