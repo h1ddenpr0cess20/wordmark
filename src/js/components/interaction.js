@@ -7,6 +7,8 @@ import { sanitizeInput, stripBase64FromHistory } from "../utils/utils.js";
 import { saveImageToDb } from "../utils/imageStorage.js";
 import { scrollInputIntoView } from "../utils/mobileHandling.js";
 import { finalizeStreamedResponse, removeLoadingIndicator } from "../services/streaming/messageLifecycle.js";
+import { updateBrowserHistory } from "../services/history/state.js";
+import { saveCurrentConversation } from "../services/history/persistence.js";
 
 // -----------------------------------------------------
 // Message sending and related functionality
@@ -194,9 +196,7 @@ window.sendMessage = async function() {
   }
   console.info("User message added to conversation history.");
   // Auto-save after user message
-  if (window.saveCurrentConversation) {
-    window.saveCurrentConversation();
-  }
+  saveCurrentConversation();
 
   // Clear input and adjust height
   window.userInput.value = "";
@@ -210,10 +210,8 @@ window.sendMessage = async function() {
   loadingElement.id = loadingId;
 
   // Update browser URL
-  if (typeof window.updateBrowserHistory === "function") {
-    window.updateBrowserHistory();
-    console.info("Browser history updated.");
-  }
+  updateBrowserHistory();
+  console.info("Browser history updated.");
 
   window.activeLoadingMessageId = loadingId;
   window.isResponsePending = true;

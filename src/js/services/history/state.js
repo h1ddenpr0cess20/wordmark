@@ -1,6 +1,6 @@
 import { saveConversationToDb } from "../../utils/conversationStorage.js";
 
-window.updateBrowserHistory = function() {
+export function updateBrowserHistory() {
   let systemPromptValue = '';
   let promptType = 'none';
 
@@ -25,7 +25,7 @@ window.updateBrowserHistory = function() {
   window.history.pushState(newHistoryState, 'Chat');
 };
 
-window.loadFromUrl = function() {
+export function loadFromUrl() {
   if (!window.location.search) {
     return;
   }

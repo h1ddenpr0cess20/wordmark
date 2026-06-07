@@ -1,4 +1,5 @@
 import { loadHistoryModule, lazyModulesLoaded } from "../../utils/lazyLoader.js";
+import { renderChatHistoryList } from "../../services/history/list.js";
 export function setupChatHistoryEventListeners() {
   if (window.historyButton && window.historyPanel) {
     window.historyButton.addEventListener('click', async() => {
@@ -10,9 +11,7 @@ export function setupChatHistoryEventListeners() {
       window.historyPanel.setAttribute('aria-hidden', String(isExpanded));
       if (!isExpanded) {
         window.historyPanel.removeAttribute('inert');
-        if (typeof window.renderChatHistoryList === 'function') {
-          window.renderChatHistoryList();
-        }
+        renderChatHistoryList();
       } else {
         window.historyPanel.setAttribute('inert', 'true');
       }

@@ -4,10 +4,12 @@
  */
 
 import { focusUserInputSafely } from "../utils/mobileHandling.js";
-import { loadHistoryModule, loadLocationModule } from "../utils/lazyLoader.js";
+import { loadLocationModule } from "../utils/lazyLoader.js";
 import { initializeLocationService } from "../services/location.js";
 import { initMCPServers } from "../services/mcpServers.js";
 import { ensureApiKeysLoaded } from "../services/apiKeys.js";
+import { loadFromUrl } from "../services/history/state.js";
+import { renderChatHistoryList } from "../services/history/list.js";
 
 // Configure DOMPurify to allow YouTube iframes
 function configureDOMPurify() {
@@ -229,14 +231,7 @@ async function initialize() {
 
     // Try to load from URL if available
     try {
-      if (typeof window.loadFromUrl === "function") {
-        window.loadFromUrl();
-      } else if (typeof loadHistoryModule === "function") {
-        await loadHistoryModule();
-        if (typeof window.loadFromUrl === "function") {
-          window.loadFromUrl();
-        }
-      }
+      loadFromUrl();
       if (window.VERBOSE_LOGGING) {
         console.info("Loaded chat state from URL (if present).");
       }
@@ -322,9 +317,7 @@ async function initialize() {
       try { window.initGallery(); } catch (e) { console.warn("initGallery failed:", e); }
     }
 
-    if (typeof window.renderChatHistoryList === "function") {
-      try { window.renderChatHistoryList(); } catch (e) { console.warn("renderChatHistoryList failed:", e); }
-    }
+    renderChatHistoryList();
 
     // Initialize Verbose Mode toggle state
     if (typeof window.initializeVerboseMode === "function") {

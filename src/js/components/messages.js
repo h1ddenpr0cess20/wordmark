@@ -1,6 +1,7 @@
 import { icon } from "../utils/icons.js";
 import { addCopyButton, loadHighlightJS } from "../utils/highlight.js";
 import { updateMessageContent } from "../services/streaming/messageLifecycle.js";
+import { saveCurrentConversation } from "../services/history/persistence.js";
 /**
  * Message handling and display functions
  */
@@ -209,9 +210,7 @@ window.appendMessage = function(sender, message, role, skipHistory = false) {
     window.conversationHistory.push(historyEntry);
 
     // Auto-save after message is added to conversation history
-    if (window.saveCurrentConversation) {
-      window.saveCurrentConversation();
-    }
+    saveCurrentConversation();
   }
 
   // Scroll to the bottom of the message container

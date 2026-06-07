@@ -1,6 +1,8 @@
 import { icon } from "../../utils/icons.js";
 import { isMobileDevice, focusUserInputSafely } from "../../utils/mobileHandling.js";
 import { exportChat, handleExportFormatChange } from "../../services/export.js";
+import { updateBrowserHistory } from "../../services/history/state.js";
+import { startNewConversation } from "../../services/history/persistence.js";
 function closePanelIfActive(closeSettingsPanel) {
   if (typeof closeSettingsPanel === 'function' && window.settingsPanel && window.settingsPanel.classList.contains('active')) {
     closeSettingsPanel();
@@ -22,11 +24,9 @@ function closePanelIfActive(closeSettingsPanel) {
 export function setupButtonEventListeners({ closeSettingsPanel } = {}) {
   if (window.clearMemoryButton) {
     window.clearMemoryButton.addEventListener('click', () => {
-      window.startNewConversation('New Conversation');
+      startNewConversation('New Conversation');
       window.updateHeaderInfo();
-      if (typeof window.updateBrowserHistory === 'function') {
-        window.updateBrowserHistory();
-      }
+      updateBrowserHistory();
       if (typeof isMobileDevice === 'function' && !isMobileDevice() && window.userInput) {
         window.userInput.focus();
       }
@@ -36,7 +36,7 @@ export function setupButtonEventListeners({ closeSettingsPanel } = {}) {
   if (window.setPersonalityButton) {
     window.setPersonalityButton.addEventListener('click', () => {
       const personalityName = window.personalityInput ? window.personalityInput.value.trim() : '';
-      window.startNewConversation(`Personality: ${personalityName}`);
+      startNewConversation(`Personality: ${personalityName}`);
 
       if (window.personalityPromptRadio) {
         window.personalityPromptRadio.checked = true;
@@ -54,9 +54,7 @@ export function setupButtonEventListeners({ closeSettingsPanel } = {}) {
       if (typeof window.updateHeaderInfo === 'function') {
         window.updateHeaderInfo();
       }
-      if (typeof window.updateBrowserHistory === 'function') {
-        window.updateBrowserHistory();
-      }
+      updateBrowserHistory();
       if (typeof focusUserInputSafely === 'function') {
         focusUserInputSafely();
       }
@@ -72,7 +70,7 @@ export function setupButtonEventListeners({ closeSettingsPanel } = {}) {
 
   if (window.resetPersonalityButton) {
     window.resetPersonalityButton.addEventListener('click', () => {
-      window.startNewConversation('Default Personality');
+      startNewConversation('Default Personality');
 
       if (window.personalityInput) {
         window.personalityInput.value = window.DEFAULT_PERSONALITY;
@@ -91,9 +89,7 @@ export function setupButtonEventListeners({ closeSettingsPanel } = {}) {
 
       closePanelIfActive(closeSettingsPanel);
 
-      if (typeof window.updateBrowserHistory === 'function') {
-        window.updateBrowserHistory();
-      }
+      updateBrowserHistory();
       if (typeof focusUserInputSafely === 'function') {
         focusUserInputSafely();
       }
@@ -104,7 +100,7 @@ export function setupButtonEventListeners({ closeSettingsPanel } = {}) {
     window.setCustomPromptButton.addEventListener('click', () => {
       const customPrompt = window.systemPromptCustom ? window.systemPromptCustom.value.trim().substring(0, 30) : '';
       const conversationName = `Custom: ${customPrompt || 'Prompt'}`;
-      window.startNewConversation(conversationName);
+      startNewConversation(conversationName);
 
       if (window.customPromptRadio) {
         window.customPromptRadio.checked = true;
@@ -118,9 +114,7 @@ export function setupButtonEventListeners({ closeSettingsPanel } = {}) {
       if (typeof window.updateHeaderInfo === 'function') {
         window.updateHeaderInfo();
       }
-      if (typeof window.updateBrowserHistory === 'function') {
-        window.updateBrowserHistory();
-      }
+      updateBrowserHistory();
       if (window.userInput) {
         window.userInput.focus();
       }
@@ -129,7 +123,7 @@ export function setupButtonEventListeners({ closeSettingsPanel } = {}) {
 
   if (window.setNoPromptButton) {
     window.setNoPromptButton.addEventListener('click', () => {
-      window.startNewConversation('No System Prompt');
+      startNewConversation('No System Prompt');
 
       if (window.noPromptRadio) {
         window.noPromptRadio.checked = true;
@@ -143,9 +137,7 @@ export function setupButtonEventListeners({ closeSettingsPanel } = {}) {
       if (typeof window.updateHeaderInfo === 'function') {
         window.updateHeaderInfo();
       }
-      if (typeof window.updateBrowserHistory === 'function') {
-        window.updateBrowserHistory();
-      }
+      updateBrowserHistory();
       if (window.userInput) {
         window.userInput.focus();
       }

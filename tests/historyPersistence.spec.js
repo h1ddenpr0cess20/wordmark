@@ -87,18 +87,17 @@ function createFakeIndexedDB() {
   };
 }
 
-// Set up a window before importing persistence so its window.* function
-// assignments land on an object we control.
+// Set up a window before importing persistence; the module reads shared state
+// (conversationHistory, generatedImages, DOM refs) off whatever `window` is in
+// scope at call time, so each test swaps in a fresh window object below.
 globalThis.window = { addEventListener: () => {}, indexedDB: createFakeIndexedDB(), VERBOSE_LOGGING: false };
 
-const persistenceModule = await import("../src/js/services/history/persistence.js");
-void persistenceModule;
-
-// persistence.js attaches its API to whatever `window` is at call time, so grab
-// the function references once; each test swaps in a fresh window object.
-const saveCurrentConversation = globalThis.window.saveCurrentConversation;
-const loadConversation = globalThis.window.loadConversation;
-const startNewConversation = globalThis.window.startNewConversation;
+// persistence.js is now an ES module — import its API directly.
+const {
+  saveCurrentConversation,
+  loadConversation,
+  startNewConversation,
+} = await import("../src/js/services/history/persistence.js");
 
 function flush() {
   return new Promise((resolve) => setImmediate(resolve));
@@ -165,7 +164,6 @@ test("saveCurrentConversation filters metadata, persists images, and marks messa
 });
 
 test("loadConversation hydrates UI, preloads images, and filters developer messages", async () => {
-  const renderCalls = [];
   // loadHighlightJS/loadMarkedLibrary are now static imports; short-circuit their
   // calls by marking the hljs/marked globals present so ensureLibrariesLoaded skips.
   globalThis.hljs = {};
@@ -186,9 +184,6 @@ test("loadConversation hydrates UI, preloads images, and filters developer messa
   };
 
   await resetDb({
-    renderConversationMessages: (convo, cache) => {
-      renderCalls.push({ convo, cache });
-    },
     chatBox: { innerHTML: "old" },
   });
 
@@ -196,18 +191,11 @@ test("loadConversation hydrates UI, preloads images, and filters developer messa
   await saveConversationToDb(conversationRecord);
   await saveImageToDb("binary:stored.png", "stored.png");
 
+  // renderConversationMessages is now a direct ESM import (no window seam to
+  // stub), so assert the observable state hydration loadConversation performs.
   const result = await loadConversation("1");
   assert.equal(result, true);
   assert.equal(globalThis.window.chatBox.innerHTML, "");
-
-  assert.equal(renderCalls.length, 1);
-  const { convo, cache } = renderCalls[0];
-  // The record round-trips through IndexedDB, so assert by value, not identity.
-  assert.equal(convo.id, "1");
-  assert.equal(convo.name, "Previous chat");
-  // Only the stored-in-db image is preloaded; the remote one is skipped.
-  assert.equal(cache.get("stored.png"), "binary:stored.png");
-  assert.equal(cache.has("remote.jpg"), false);
 
   assert.equal(globalThis.window.conversationHistory.length, 1);
   assert.equal(globalThis.window.conversationHistory[0].role, "assistant");
@@ -216,18 +204,25 @@ test("loadConversation hydrates UI, preloads images, and filters developer messa
 });
 
 test("startNewConversation saves existing session and resets state", async () => {
-  let saveCalls = 0;
+  globalThis.hljs = {};
+  globalThis.marked = {};
 
   await resetDb({
     chatBox: { innerHTML: "<p>old</p>" },
     conversationHistory: [{ role: "user", content: "hello" }],
+    generatedImages: [],
     currentConversationId: "existing",
     currentConversationName: "Existing",
-    saveCurrentConversation: () => { saveCalls += 1; },
   });
 
+  // saveCurrentConversation is a direct ESM import now; let the real one run and
+  // assert the existing session was persisted before the reset.
   startNewConversation("Fresh Chat");
-  assert.equal(saveCalls, 1);
+  await flush();
+
+  const saved = await getAllConversationsFromDb();
+  assert.ok(saved.some(convo => convo.id === "existing"));
+
   assert.equal(globalThis.window.conversationHistory.length, 0);
   assert.equal(globalThis.window.currentConversationId, null);
   assert.equal(globalThis.window.currentConversationName, "Fresh Chat");

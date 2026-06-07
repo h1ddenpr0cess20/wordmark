@@ -1,4 +1,5 @@
 import { ensureApiKeysLoaded } from "../../services/apiKeys.js";
+import { updateBrowserHistory } from "../../services/history/state.js";
 
 export function setupSelectorEventListeners() {
   if (window.modelSelector) {
@@ -10,9 +11,7 @@ export function setupSelectorEventListeners() {
       if (typeof window.updateReasoningAvailability === 'function') {
         window.updateReasoningAvailability();
       }
-      if (typeof window.updateBrowserHistory === 'function') {
-        window.updateBrowserHistory();
-      }
+      updateBrowserHistory();
       if (typeof window.refreshToolSettingsUI === 'function') {
         window.refreshToolSettingsUI();
       }
@@ -58,9 +57,7 @@ export function setupSelectorEventListeners() {
       if (typeof window.updateReasoningAvailability === 'function') {
         window.updateReasoningAvailability();
       }
-      if (typeof window.updateBrowserHistory === 'function') {
-        window.updateBrowserHistory();
-      }
+      updateBrowserHistory();
 
       const refreshToolsUI = () => {
         if (typeof window.refreshToolSettingsUI === 'function') {

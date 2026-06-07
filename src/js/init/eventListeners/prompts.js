@@ -1,5 +1,7 @@
 import { debounce } from "../../utils/utils.js";
 import { focusUserInputSafely } from "../../utils/mobileHandling.js";
+import { updateBrowserHistory } from "../../services/history/state.js";
+import { startNewConversation } from "../../services/history/persistence.js";
 
 function setupPromptRadioEventListeners() {
   if (window.personalityPromptRadio) {
@@ -60,7 +62,7 @@ function setupPersonalityPresetEventListeners(closeSettingsPanel) {
         return;
       }
 
-      window.startNewConversation(`Personality: ${personality}`);
+      startNewConversation(`Personality: ${personality}`);
       window.personalityInput.value = personality;
 
       if (window.personalityPromptRadio) {
@@ -91,9 +93,7 @@ function setupPersonalityPresetEventListeners(closeSettingsPanel) {
       if (typeof window.updateHeaderInfo === 'function') {
         window.updateHeaderInfo();
       }
-      if (typeof window.updateBrowserHistory === 'function') {
-        window.updateBrowserHistory();
-      }
+      updateBrowserHistory();
 
       if (typeof focusUserInputSafely === 'function') {
         focusUserInputSafely();

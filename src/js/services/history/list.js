@@ -2,8 +2,9 @@ import {
   getAllConversationsFromDb,
   deleteConversationFromDb,
 } from "../../utils/conversationStorage.js";
+import { startNewConversation, loadConversation, renameConversation } from "./persistence.js";
 
-window.renderChatHistoryList = function() {
+export function renderChatHistoryList() {
   if (!window.historyList) {
     return;
   }
@@ -75,7 +76,7 @@ window.renderChatHistoryList = function() {
       };
 
       newButton.onclick = () => {
-        window.startNewConversation?.();
+        startNewConversation();
         window.historyPanel?.setAttribute('aria-hidden', 'true');
         window.historyButton?.setAttribute('aria-expanded', 'false');
       };
@@ -113,7 +114,7 @@ window.renderChatHistoryList = function() {
         const selectedRow = document.querySelector('.history-row.selected');
         if (selectedRow) {
           const conversationId = selectedRow.dataset.conversationId;
-          window.loadConversation?.(conversationId)?.then(() => {
+          loadConversation(conversationId)?.then(() => {
             window.historyPanel?.setAttribute('aria-hidden', 'true');
             window.historyButton?.setAttribute('aria-expanded', 'false');
           });
@@ -129,7 +130,7 @@ window.renderChatHistoryList = function() {
         const currentTitle = selectedRow.querySelector('.history-title')?.textContent || '';
         const newName = prompt('Rename conversation:', currentTitle);
         if (newName && newName.trim()) {
-          window.renameConversation?.(conversationId, newName.trim());
+          renameConversation(conversationId, newName.trim());
         }
       };
 
@@ -156,7 +157,7 @@ window.renderChatHistoryList = function() {
                 window.currentConversationName = null;
               }
             });
-            window.renderChatHistoryList?.();
+            renderChatHistoryList();
           })
           .catch((err) => {
             console.error('Failed to delete conversations:', err);

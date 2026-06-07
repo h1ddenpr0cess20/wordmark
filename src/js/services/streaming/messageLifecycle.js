@@ -1,4 +1,6 @@
 import { showError } from "../../utils/notifications.js";
+import { updateBrowserHistory } from "../history/state.js";
+import { saveCurrentConversation } from "../history/persistence.js";
 /**
  * Message lifecycle helpers used during streaming and finalization.
  */
@@ -273,13 +275,9 @@ export function finalizeStreamedResponse(loadingMessage, contentObj) {
     window.generateTtsForMessage(content, loadingMessage.id);
   }
 
-  if (typeof window.updateBrowserHistory === 'function') {
-    window.updateBrowserHistory();
-  }
+  updateBrowserHistory();
 
-  if (window.saveCurrentConversation) {
-    window.saveCurrentConversation();
-  }
+  saveCurrentConversation();
 
   if (window.currentGeneratedImageHtml && window.currentGeneratedImageHtml.length > 0) {
     imageDebugLog('Resetting currentGeneratedImageHtml; pending images should now be associated.', {

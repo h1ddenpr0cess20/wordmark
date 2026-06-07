@@ -10,6 +10,8 @@ import { loadHighlightJS } from "../../utils/highlight.js";
 import { loadMarkedLibrary } from "../../utils/lazyLoader.js";
 import { detectMediaType } from "../mediaTools.js";
 import { ensureImagesHaveMessageIds } from "../streaming/imageGeneration.js";
+import { renderChatHistoryList } from "./list.js";
+import { renderConversationMessages } from "./render.js";
 
 function processImageForStorage(img, savePromises) {
   const processedImg = { ...img };
@@ -191,11 +193,11 @@ function resetConversationState() {
   window.userThinkingState = {};
 }
 
-window.getAllConversations = function() {
+export function getAllConversations() {
   return getAllConversationsFromDb?.();
 };
 
-window.saveCurrentConversation = function(meta = {}) {
+export function saveCurrentConversation(meta = {}) {
   if (!window.generatedImages) {
     window.generatedImages = [];
   }
@@ -254,36 +256,36 @@ window.saveCurrentConversation = function(meta = {}) {
     });
 };
 
-window.deleteConversation = function(id) {
+export function deleteConversation(id) {
   deleteConversationFromDb?.(id)
     .then(() => {
       if (window.currentConversationId === id) {
         window.currentConversationId = null;
         window.currentConversationName = null;
       }
-      window.renderChatHistoryList?.();
+      renderChatHistoryList();
     })
     .catch((err) => {
       console.error('Failed to delete conversation from IndexedDB:', err);
     });
 };
 
-window.renameConversation = function(id, newName) {
+export function renameConversation(id, newName) {
   renameConversationInDb?.(id, newName)
     .then(() => {
       if (window.currentConversationId === id) {
         window.currentConversationName = newName;
       }
-      window.renderChatHistoryList?.();
+      renderChatHistoryList();
     })
     .catch((err) => {
       console.error('Failed to rename conversation in IndexedDB:', err);
     });
 };
 
-window.startNewConversation = function(name = null) {
+export function startNewConversation(name = null) {
   if (window.conversationHistory?.length > 0 && window.currentConversationId) {
-    window.saveCurrentConversation();
+    saveCurrentConversation();
   }
 
   resetConversationState();
@@ -301,7 +303,7 @@ window.startNewConversation = function(name = null) {
   }
 };
 
-window.loadConversation = function(id) {
+export function loadConversation(id) {
   return loadConversationFromDb?.(id)
     .then((convo) => {
       if (!convo) {
@@ -337,5 +339,5 @@ function loadConversationIntoUI(convo, imageCache) {
     window.chatBox.innerHTML = '';
   }
 
-  window.renderConversationMessages?.(convo, imageCache);
+  renderConversationMessages(convo, imageCache);
 }

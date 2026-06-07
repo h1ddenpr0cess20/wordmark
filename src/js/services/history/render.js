@@ -97,7 +97,7 @@ function replaceImagePlaceholders(content, convo, imageCache) {
   });
 }
 
-window.renderConversationMessages = function(convo, imageCache) {
+export function renderConversationMessages(convo, imageCache) {
   if (!window.appendMessage || !window.chatBox) {
     return;
   }
