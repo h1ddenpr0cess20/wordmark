@@ -35,7 +35,7 @@ function buildWordmarkLogo(svgContainer) {
   svgContainer.appendChild(wPath);
 }
 
-function renderWordmarkLogo() {
+export function renderWordmarkLogo() {
   const svgContainer = document.querySelector("#wordmark-logo g");
   if (!svgContainer) return;
 
@@ -50,8 +50,6 @@ function renderWordmarkLogo() {
 }
 
 // Initialize logo when DOM is ready
-if (typeof window !== "undefined") {
-  window.renderWordmarkLogo = renderWordmarkLogo;
+if (typeof document !== "undefined") {
+  document.addEventListener("DOMContentLoaded", renderWordmarkLogo);
 }
-
-document.addEventListener("DOMContentLoaded", renderWordmarkLogo);

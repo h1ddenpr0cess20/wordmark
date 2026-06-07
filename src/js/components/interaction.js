@@ -10,6 +10,8 @@ import { finalizeStreamedResponse, removeLoadingIndicator } from "../services/st
 import { updateBrowserHistory } from "../services/history/state.js";
 import { saveCurrentConversation } from "../services/history/persistence.js";
 import { responsesClient } from "../services/api.js";
+import { generateMessageId, addMessageCopyButton } from "./messages.js";
+import { appendMessage } from "./ui/chatMessages.js";
 
 // -----------------------------------------------------
 // Message sending and related functionality
@@ -144,10 +146,8 @@ window.sendMessage = async function() {
   }
 
   // Add user message to the conversation and store in history manually
-  const userElement = window.appendMessage("You", userHtml, "user", true);
-  const userId = userElement ? userElement.id : (typeof window.generateMessageId === "function"
-    ? window.generateMessageId()
-    : `msg-${Date.now()}`);
+  const userElement = appendMessage("You", userHtml, "user", true);
+  const userId = userElement ? userElement.id : generateMessageId();
   const historyContent = placeholders.length > 0 ? `${placeholders.join("\n")}\n\n${message}` : message;
   window.conversationHistory.push({
     role: "user",
@@ -156,9 +156,7 @@ window.sendMessage = async function() {
     timestamp: new Date().toISOString(),
     attachments: attachmentsForHistory.length > 0 ? attachmentsForHistory : undefined,
   });
-  if (typeof window.addMessageCopyButton === "function") {
-    window.addMessageCopyButton(userElement, userId);
-  }
+  addMessageCopyButton(userElement, userId);
   if (uploads.length > 0) {
     window.generatedImages = window.generatedImages || [];
     for (const up of uploads) {
@@ -206,7 +204,7 @@ window.sendMessage = async function() {
   // Create loading message with pure animation
   const loadingId = `loading-${Date.now()}`;
   const loadingHTML = "<div class=\"loading-animation\"><div class=\"loading-dot\"></div><div class=\"loading-dot\"></div><div class=\"loading-dot\"></div></div>";
-  window.appendMessage("Assistant", loadingHTML, "assistant", true);
+  appendMessage("Assistant", loadingHTML, "assistant", true);
   const loadingElement = window.chatBox.lastElementChild;
   loadingElement.id = loadingId;
 

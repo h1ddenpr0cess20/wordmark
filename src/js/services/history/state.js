@@ -1,4 +1,5 @@
 import { saveConversationToDb } from "../../utils/conversationStorage.js";
+import { appendMessage } from "../../components/ui/chatMessages.js";
 
 export function updateBrowserHistory() {
   let systemPromptValue = '';
@@ -41,7 +42,7 @@ export function loadFromUrl() {
 
     (chatData.messages || []).forEach((msg) => {
       if (msg.role !== 'system') {
-        window.appendMessage?.(msg.role === 'user' ? 'You' : '  ', msg.content, msg.role);
+        appendMessage(msg.role === 'user' ? 'You' : '  ', msg.content, msg.role);
       }
     });
 

@@ -1,5 +1,7 @@
 import { icon } from "../../utils/icons.js";
 import { loadMarkedLibrary } from "../../utils/lazyLoader.js";
+import { renderWordmarkLogo } from "../logo.js";
+import { generateMessageId, highlightAndAddCopyButtons } from "../messages.js";
 function renderAssistantIcon(senderElement) {
   senderElement.innerHTML = `
     <svg class="sender-icon assistant-icon" width="32" height="32" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -16,15 +18,13 @@ function renderAssistantIcon(senderElement) {
   };
 
   try {
-    if (typeof window.renderWordmarkLogo === 'function') {
-      window.renderWordmarkLogo();
-    }
+    renderWordmarkLogo();
   } finally {
     document.querySelector = originalSelector;
   }
 }
 
-window.appendMessage = function(sender, content, type, skipHistory = false) {
+export function appendMessage(sender, content, type, skipHistory = false) {
   const messageElement = document.createElement('div');
   messageElement.classList.add('message');
   if (type) {
@@ -52,6 +52,11 @@ window.appendMessage = function(sender, content, type, skipHistory = false) {
   messageElement.appendChild(contentElement);
   window.chatBox.appendChild(messageElement);
 
+  // Mobile/optimized fast-scroll once the message element is in the DOM.
+  if (window.shouldAutoScroll && window.chatBox && typeof window.fastScroll === "function") {
+    window.fastScroll(window.chatBox, window.chatBox.scrollHeight);
+  }
+
   setTimeout(() => {
     const ensureMarked = typeof marked === 'undefined' && typeof loadMarkedLibrary === 'function'
       ? loadMarkedLibrary()
@@ -62,12 +67,10 @@ window.appendMessage = function(sender, content, type, skipHistory = false) {
       const sanitized = window.sanitizeWithYouTube ? window.sanitizeWithYouTube(parsed) : DOMPurify.sanitize(parsed);
       contentElement.innerHTML = sanitized;
 
-      if (typeof window.highlightAndAddCopyButtons === 'function') {
-        try {
-          window.highlightAndAddCopyButtons(messageElement);
-        } catch (error) {
-          console.error('Error highlighting code:', error);
-        }
+      try {
+        highlightAndAddCopyButtons(messageElement);
+      } catch (error) {
+        console.error('Error highlighting code:', error);
       }
 
       if (typeof window.setupImageInteractions === 'function') {
@@ -89,14 +92,12 @@ window.appendMessage = function(sender, content, type, skipHistory = false) {
   }, 0);
 
   return messageElement;
-};
+}
 
-window.appendAssistantMessage = function(assistantMessage, skipHistory = false) {
+export function appendAssistantMessage(assistantMessage, skipHistory = false) {
   let msgId = null;
   if (!skipHistory) {
-    msgId = typeof window.generateMessageId === 'function'
-      ? window.generateMessageId()
-      : `msg-${Date.now()}`;
+    msgId = generateMessageId();
 
     window.conversationHistory.push({
       role: 'assistant',
@@ -106,10 +107,9 @@ window.appendAssistantMessage = function(assistantMessage, skipHistory = false) 
     });
   }
 
-  const messageElement = window.appendMessage('Assistant', assistantMessage, 'assistant', skipHistory);
+  const messageElement = appendMessage('Assistant', assistantMessage, 'assistant', skipHistory);
   if (messageElement && msgId) {
     messageElement.id = msgId;
   }
   return messageElement;
-};
-
+}

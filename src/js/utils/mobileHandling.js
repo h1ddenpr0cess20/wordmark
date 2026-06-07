@@ -125,21 +125,6 @@ export function optimizeScrolling() {
         });
       }
     };
-
-    // Replace any direct scrollTop references with our optimized version
-    const originalAppendMessage = window.appendMessage;
-    if (originalAppendMessage) {
-      window.appendMessage = function(sender, content, type, skipHistory = false) {
-        const messageElement = originalAppendMessage(sender, content, type, skipHistory);
-
-        // Optimize scroll behavior when adding new messages
-        if (window.shouldAutoScroll && window.chatBox) {
-          window.fastScroll(window.chatBox, window.chatBox.scrollHeight);
-        }
-
-        return messageElement;
-      };
-    }
   }
 }
 

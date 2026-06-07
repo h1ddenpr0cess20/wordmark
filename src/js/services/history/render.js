@@ -1,6 +1,9 @@
 import { detectMediaType, getMediaDisplayUrl } from "../mediaTools.js";
 import { updateMessageContent } from "../streaming/messageLifecycle.js";
 import { updatePromptVisibility } from "../../components/ui/settingsControls.js";
+import { highlightAndAddCopyButtons, addMessageCopyButton } from "../../components/messages.js";
+import { appendMessage } from "../../components/ui/chatMessages.js";
+import { renderWordmarkLogo } from "../../components/logo.js";
 
 function createMissingMediaPlaceholder(filename, mediaType = 'image') {
   const label = mediaType === 'video' ? 'Video' : 'Image';
@@ -99,7 +102,7 @@ function replaceImagePlaceholders(content, convo, imageCache) {
 }
 
 export function renderConversationMessages(convo, imageCache) {
-  if (!window.appendMessage || !window.chatBox) {
+  if (!window.chatBox) {
     return;
   }
 
@@ -110,13 +113,13 @@ export function renderConversationMessages(convo, imageCache) {
 
     if (msg.role === 'user') {
       const processed = replaceImagePlaceholders(msg.content, convo, imageCache);
-      const userElement = window.appendMessage('You', processed, 'user', true);
-      if (userElement && window.addMessageCopyButton) {
+      const userElement = appendMessage('You', processed, 'user', true);
+      if (userElement) {
         const messageId = msg.id || userElement.id;
         if (msg.id) {
           userElement.id = msg.id;
         }
-        window.addMessageCopyButton(userElement, messageId);
+        addMessageCopyButton(userElement, messageId);
       }
       return;
     }
@@ -147,7 +150,7 @@ export function renderConversationMessages(convo, imageCache) {
     };
 
     try {
-      window.renderWordmarkLogo?.();
+      renderWordmarkLogo();
     } finally {
       document.querySelector = originalSelector;
     }
@@ -232,8 +235,8 @@ export function renderConversationMessages(convo, imageCache) {
     };
 
     updateMessageContent(messageElement, contentObj);
-    window.highlightAndAddCopyButtons?.(messageElement);
-    window.addMessageCopyButton?.(messageElement, messageId);
+    highlightAndAddCopyButtons(messageElement);
+    addMessageCopyButton(messageElement, messageId);
     window.setupImageInteractions?.(contentWrapper);
   });
 

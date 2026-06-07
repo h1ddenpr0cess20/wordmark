@@ -87,6 +87,43 @@ function createFakeIndexedDB() {
   };
 }
 
+// renderConversationMessages now runs for real (appendMessage/render are static
+// ESM imports), so provide a minimal DOM + markdown stub good enough for the
+// hydration path. These tests only assert observable state, not rendered HTML.
+function makeEl() {
+  const el = {
+    className: "", id: "", innerHTML: "", outerHTML: "<div></div>", textContent: "",
+    style: {}, dataset: {}, childNodes: [],
+    offsetHeight: 0, scrollTop: 0, scrollHeight: 0,
+    classList: {
+      _s: new Set(),
+      add(...c) { c.forEach(x => this._s.add(x)); },
+      remove(...c) { c.forEach(x => this._s.delete(x)); },
+      contains(c) { return this._s.has(c); },
+    },
+    appendChild(child) { el.childNodes.push(child); return child; },
+    removeChild(child) { const i = el.childNodes.indexOf(child); if (i >= 0) el.childNodes.splice(i, 1); return child; },
+    remove() {},
+    setAttribute() {}, getAttribute() { return null; }, hasAttribute() { return false; },
+    addEventListener() {}, removeEventListener() {},
+    insertAdjacentHTML() {}, insertAdjacentElement() {},
+    querySelector() { return makeEl(); },
+    querySelectorAll() { return []; },
+  };
+  return el;
+}
+globalThis.document = {
+  createElement: () => makeEl(),
+  createElementNS: () => makeEl(),
+  getElementById: () => makeEl(),
+  querySelector: () => makeEl(),
+  querySelectorAll: () => [],
+  addEventListener: () => {},
+  body: makeEl(),
+};
+globalThis.marked = { parse: (s) => s };
+globalThis.DOMPurify = { sanitize: (s) => s };
+
 // Set up a window before importing persistence; the module reads shared state
 // (conversationHistory, generatedImages, DOM refs) off whatever `window` is in
 // scope at call time, so each test swaps in a fresh window object below.
@@ -167,7 +204,7 @@ test("loadConversation hydrates UI, preloads images, and filters developer messa
   // loadHighlightJS/loadMarkedLibrary are now static imports; short-circuit their
   // calls by marking the hljs/marked globals present so ensureLibrariesLoaded skips.
   globalThis.hljs = {};
-  globalThis.marked = {};
+  globalThis.marked = { parse: (s) => s };
 
   const conversationRecord = {
     id: "1",
@@ -184,7 +221,7 @@ test("loadConversation hydrates UI, preloads images, and filters developer messa
   };
 
   await resetDb({
-    chatBox: { innerHTML: "old" },
+    chatBox: { innerHTML: "old", appendChild: () => {} },
   });
 
   // Seed the conversation and the stored image into the (fake) database.
@@ -205,7 +242,7 @@ test("loadConversation hydrates UI, preloads images, and filters developer messa
 
 test("startNewConversation saves existing session and resets state", async () => {
   globalThis.hljs = {};
-  globalThis.marked = {};
+  globalThis.marked = { parse: (s) => s };
 
   await resetDb({
     chatBox: { innerHTML: "<p>old</p>" },

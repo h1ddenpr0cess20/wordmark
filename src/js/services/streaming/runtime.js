@@ -4,6 +4,7 @@ import {
   imageDebugLog,
 } from './imageGeneration.js';
 import { processMainContentMarkdown, separateThinkingSegments } from './thinkingUtils.js';
+import { highlightAndAddCopyButtons } from "../../components/messages.js";
 
 /**
  * Builds the runtime helpers responsible for tracking streaming state and
@@ -115,12 +116,10 @@ export function createStreamingRuntime({
       removePlaceholder();
     }
 
-    if (typeof window.highlightAndAddCopyButtons === 'function') {
-      try {
-        window.highlightAndAddCopyButtons(loadingMessage);
-      } catch (err) {
-        console.warn('Error highlighting code during streaming:', err);
-      }
+    try {
+      highlightAndAddCopyButtons(loadingMessage);
+    } catch (err) {
+      console.warn('Error highlighting code during streaming:', err);
     }
 
     if (window.shouldAutoScroll) {

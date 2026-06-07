@@ -18,6 +18,8 @@ import {
   processMainContentMarkdown,
   separateThinkingSegments,
 } from './thinkingUtils.js';
+import { highlightAndAddCopyButtons, generateMessageId, addMessageCopyButton } from "../../components/messages.js";
+import { appendAssistantMessage } from "../../components/ui/chatMessages.js";
 
 export function finalizeStreamedResponse(loadingMessage, contentObj) {
   if (!loadingMessage) {
@@ -142,9 +144,7 @@ export function finalizeStreamedResponse(loadingMessage, contentObj) {
   }
 
   if (!loadingMessage.id) {
-    loadingMessage.id = typeof window.generateMessageId === 'function'
-      ? window.generateMessageId()
-      : `msg-${Date.now()}`;
+    loadingMessage.id = generateMessageId();
   }
 
   if (window.currentGeneratedImageHtml && window.currentGeneratedImageHtml.length > 0) {
@@ -293,21 +293,17 @@ export function updateFinalMessage(loadingMessage) {
     return;
   }
 
-  if (typeof window.highlightAndAddCopyButtons === 'function') {
-    try {
-      window.highlightAndAddCopyButtons(loadingMessage);
-    } catch (e) {
-      console.warn('Error highlighting code in final message:', e);
-    }
+  try {
+    highlightAndAddCopyButtons(loadingMessage);
+  } catch (e) {
+    console.warn('Error highlighting code in final message:', e);
   }
 
   loadingMessage.className = 'message assistant';
   if (!loadingMessage.id) {
     loadingMessage.id = `msg-${Date.now()}`;
   }
-  if (typeof window.addMessageCopyButton === 'function') {
-    window.addMessageCopyButton(loadingMessage, loadingMessage.id);
-  }
+  addMessageCopyButton(loadingMessage, loadingMessage.id);
 }
 
 export function handleNonStreamingResponse(data, loadingId) {
@@ -351,9 +347,7 @@ export function hasValidAssistantMessage(data) {
 }
 
 export function addToConversationHistory(assistantMessage, reasoning) {
-  const msgId = typeof window.generateMessageId === 'function'
-    ? window.generateMessageId()
-    : `msg-${Date.now()}`;
+  const msgId = generateMessageId();
 
   window.conversationHistory.push({
     role: 'assistant',
@@ -382,7 +376,7 @@ export function updateLoadingIndicator(loadingMessage, assistantMessageObj) {
     }
   } else {
     const processedMessage = processMainContentMarkdown(assistantMessageObj.content);
-    window.appendAssistantMessage(processedMessage);
+    appendAssistantMessage(processedMessage);
   }
 }
 
