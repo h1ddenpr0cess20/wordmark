@@ -11,6 +11,7 @@ import {
   IMAGE_STORE_NAME,
 } from "../utils/imageStorage.js";
 import { detectMediaType, getMediaDisplayUrl, downloadMediaSource } from "../services/mediaTools.js";
+import { createImageSlideshow } from "./ui/imageInteractions.js";
 
 // -----------------------------------------------------
 // Gallery functionality
@@ -447,7 +448,7 @@ window.startGallerySlideshow = function(startIndex) {
   }
 
   // Use the shared slideshow function, passing gallery mode as true
-  window.createImageSlideshow(window.galleryImages, startIndex, true);
+  createImageSlideshow(window.galleryImages, startIndex, true);
 };
 
 /**

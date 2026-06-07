@@ -2,6 +2,7 @@ import { icon } from "../../utils/icons.js";
 import { loadMarkedLibrary } from "../../utils/lazyLoader.js";
 import { renderWordmarkLogo } from "../logo.js";
 import { generateMessageId, highlightAndAddCopyButtons } from "../messages.js";
+import { setupImageInteractions } from "./imageInteractions.js";
 function renderAssistantIcon(senderElement) {
   senderElement.innerHTML = `
     <svg class="sender-icon assistant-icon" width="32" height="32" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -73,12 +74,10 @@ export function appendMessage(sender, content, type, skipHistory = false) {
         console.error('Error highlighting code:', error);
       }
 
-      if (typeof window.setupImageInteractions === 'function') {
-        try {
-          window.setupImageInteractions(messageElement);
-        } catch (error) {
-          console.error('Error setting up image interactions:', error);
-        }
+      try {
+        setupImageInteractions(messageElement);
+      } catch (error) {
+        console.error('Error setting up image interactions:', error);
       }
 
       if (window.shouldAutoScroll) {

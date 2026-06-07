@@ -1,6 +1,7 @@
 import { ensureImagesHaveMessageIds } from "./streaming/imageGeneration.js";
 import { createStreamingRuntime } from "./streaming/runtime.js";
 import { createStreamingEventProcessor } from "./streaming/eventProcessor.js";
+import { setupImageInteractions } from "../components/ui/imageInteractions.js";
 
 export { ensureImagesHaveMessageIds };
 
@@ -35,9 +36,7 @@ export async function handleStreamedResponse(response, loadingId) {
     imagesContainer.className = "generated-images";
     imagesContainer.innerHTML = window.currentGeneratedImageHtml.join("");
     contentWrapper.appendChild(imagesContainer);
-    if (typeof window.setupImageInteractions === "function") {
-      window.setupImageInteractions(contentWrapper);
-    }
+    setupImageInteractions(contentWrapper);
   }
 
   const reader = response.body && response.body.getReader ? response.body.getReader() : null;

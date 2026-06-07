@@ -3,10 +3,6 @@ import { deleteImageFromDb } from "../../utils/imageStorage.js";
 import { isMobileDevice } from "../../utils/mobileHandling.js";
 import { detectMediaType, downloadMediaSource } from "../../services/mediaTools.js";
 
-window.downloadImage = function(url, filename) {
-  return downloadMediaSource(url, filename);
-};
-
 function elementMediaType(element) {
   const explicit = element?.dataset?.mediaType;
   if (explicit === 'video' || explicit === 'image') {
@@ -58,7 +54,7 @@ function normalizeViewerItem(source, isGalleryMode) {
   };
 }
 
-window.setupImageInteractions = function(messageElement) {
+export function setupImageInteractions(messageElement) {
   if (!messageElement) {
     return;
   }
@@ -118,8 +114,8 @@ window.setupImageInteractions = function(messageElement) {
       }
 
       window.isSlideshowOpen = true;
-      const allMediaData = window.gatherAllConversationMedia(img);
-      window.createImageSlideshow(allMediaData.images, allMediaData.clickedIndex);
+      const allMediaData = gatherAllConversationMedia(img);
+      createImageSlideshow(allMediaData.images, allMediaData.clickedIndex);
     });
   });
 
@@ -149,13 +145,13 @@ window.setupImageInteractions = function(messageElement) {
       }
 
       window.isSlideshowOpen = true;
-      const allMediaData = window.gatherAllConversationMedia(video);
-      window.createImageSlideshow(allMediaData.images, allMediaData.clickedIndex);
+      const allMediaData = gatherAllConversationMedia(video);
+      createImageSlideshow(allMediaData.images, allMediaData.clickedIndex);
     });
   });
-};
+}
 
-window.createImageSlideshow = function(images, startIndex, isGalleryMode = false) {
+export function createImageSlideshow(images, startIndex, isGalleryMode = false) {
   if (!images || !images.length) {
     return;
   }
@@ -372,9 +368,9 @@ window.createImageSlideshow = function(images, startIndex, isGalleryMode = false
     downloadMediaSource(item.url, item.filename || `${item.mediaType}-${Date.now()}`)
       .catch(error => console.error(`Failed to download ${item.mediaType}:`, error));
   });
-};
+}
 
-window.gatherAllConversationMedia = function(clickedElement) {
+function gatherAllConversationMedia(clickedElement) {
   const allMessages = Array.from(document.querySelectorAll('.message'));
   const allMedia = [];
   let clickedIndex = -1;
@@ -393,7 +389,4 @@ window.gatherAllConversationMedia = function(clickedElement) {
     images: allMedia,
     clickedIndex: clickedIndex >= 0 ? clickedIndex : 0,
   };
-};
-
-// Backwards compatibility alias
-window.gatherAllConversationImages = window.gatherAllConversationMedia;
+}

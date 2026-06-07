@@ -20,6 +20,7 @@ import {
 } from './thinkingUtils.js';
 import { highlightAndAddCopyButtons, generateMessageId, addMessageCopyButton } from "../../components/messages.js";
 import { appendAssistantMessage } from "../../components/ui/chatMessages.js";
+import { setupImageInteractions } from "../../components/ui/imageInteractions.js";
 
 export function finalizeStreamedResponse(loadingMessage, contentObj) {
   if (!loadingMessage) {
@@ -195,7 +196,7 @@ export function finalizeStreamedResponse(loadingMessage, contentObj) {
       contentWrapper.appendChild(imagesContainer);
     }
     imagesContainer.innerHTML = window.currentGeneratedImageHtml.join('');
-    window.setupImageInteractions(imagesContainer);
+    setupImageInteractions(imagesContainer);
     imageDebugLog('Injected generated images into chat bubble.', {
       imageCount: window.currentGeneratedImageHtml.length,
       messageId: loadingMessage.id,
@@ -411,7 +412,7 @@ export function updateMessageContent(loadingMessage, assistantMessageObj) {
     imagesContainer.className = 'generated-images';
     imagesContainer.innerHTML = window.messageImages[loadingMessage.id].join('');
     contentWrapper.appendChild(imagesContainer);
-    window.setupImageInteractions(imagesContainer);
+    setupImageInteractions(imagesContainer);
   }
 
   if (hasThinking) {

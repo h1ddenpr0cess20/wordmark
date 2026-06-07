@@ -4,6 +4,7 @@ import { updatePromptVisibility } from "../../components/ui/settingsControls.js"
 import { highlightAndAddCopyButtons, addMessageCopyButton } from "../../components/messages.js";
 import { appendMessage } from "../../components/ui/chatMessages.js";
 import { renderWordmarkLogo } from "../../components/logo.js";
+import { setupImageInteractions } from "../../components/ui/imageInteractions.js";
 
 function createMissingMediaPlaceholder(filename, mediaType = 'image') {
   const label = mediaType === 'video' ? 'Video' : 'Image';
@@ -237,7 +238,7 @@ export function renderConversationMessages(convo, imageCache) {
     updateMessageContent(messageElement, contentObj);
     highlightAndAddCopyButtons(messageElement);
     addMessageCopyButton(messageElement, messageId);
-    window.setupImageInteractions?.(contentWrapper);
+    setupImageInteractions(contentWrapper);
   });
 
   if (convo.systemPrompt) {
