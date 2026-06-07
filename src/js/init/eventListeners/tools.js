@@ -1,4 +1,5 @@
 import { showInfo } from "../../utils/notifications.js";
+import { loadToolScripts } from "../../utils/toolLoader.js";
 export function setupToolCallingEventListeners() {
   if (!window.toolCallingToggle) {
     return;
@@ -18,8 +19,8 @@ export function setupToolCallingEventListeners() {
       });
     }
 
-    if (enabled && typeof window.loadToolScripts === 'function') {
-      window.loadToolScripts().catch((error) => {
+    if (enabled && typeof loadToolScripts === 'function') {
+      loadToolScripts().catch((error) => {
         console.error('Failed to load tool scripts:', error);
       });
     }

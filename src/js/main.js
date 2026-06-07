@@ -26,7 +26,6 @@ import './utils/memoryStorage.js';
 import './utils/mobileHandling.js';
 import './utils/notifications.js';
 import './utils/menuSystem.js';
-import './utils/toolLoader.js';
 import './utils/lazyLoader.js';
 
 // Components

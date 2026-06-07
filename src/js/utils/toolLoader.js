@@ -2,9 +2,7 @@
  * Tool loader stub for template mode.
  */
 
-window.toolScriptsLoaded = true;
-
-window.loadToolScripts = function() {
+export function loadToolScripts() {
   console.info("Tool scripts are not loaded in template mode.");
   return Promise.resolve();
-};
+}
