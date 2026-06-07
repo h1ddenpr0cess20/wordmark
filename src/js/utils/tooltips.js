@@ -423,14 +423,18 @@ function updateTooltip(element, text) {
 }
 
 // Initialize tooltip system when DOM is ready
-if (document.readyState === "loading") {
-  document.addEventListener("DOMContentLoaded", initTooltipSystem);
-} else {
-  initTooltipSystem();
+if (typeof document !== "undefined") {
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", initTooltipSystem);
+  } else {
+    initTooltipSystem();
+  }
 }
 
 // Export functions for use in other modules
-window.tooltipSystem = {
+export { initTooltipSystem };
+
+export const tooltipSystem = {
   init: initTooltipSystem,
   show: showTooltip,
   hide: hideTooltip,
