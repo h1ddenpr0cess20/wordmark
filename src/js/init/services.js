@@ -2,6 +2,8 @@
  * Service and model initialization for the chatbot application
  */
 
+import { updateParameterControls } from "../components/ui/settingsControls.js";
+
 /**
  * Initialize services and models
  */
@@ -73,9 +75,7 @@ async function selectDefaultService() {
       if (typeof window.updateModelSelector === "function") {
         window.updateModelSelector();
       }
-      if (typeof window.updateParameterControls === "function") {
-        window.updateParameterControls();
-      }
+      updateParameterControls();
       if (typeof window.updateHeaderInfo === "function") {
         window.updateHeaderInfo();
       }

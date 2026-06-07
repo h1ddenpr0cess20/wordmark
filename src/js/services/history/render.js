@@ -1,5 +1,6 @@
 import { detectMediaType, getMediaDisplayUrl } from "../mediaTools.js";
 import { updateMessageContent } from "../streaming/messageLifecycle.js";
+import { updatePromptVisibility } from "../../components/ui/settingsControls.js";
 
 function createMissingMediaPlaceholder(filename, mediaType = 'image') {
   const label = mediaType === 'video' ? 'Video' : 'Image';
@@ -255,7 +256,7 @@ export function renderConversationMessages(convo, imageCache) {
       window.noPromptRadio.checked = true;
     }
 
-    window.updatePromptVisibility?.();
+    updatePromptVisibility();
   }
 
   if (convo.service && window.serviceSelector && window.config) {

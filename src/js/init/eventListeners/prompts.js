@@ -2,28 +2,29 @@ import { debounce } from "../../utils/utils.js";
 import { focusUserInputSafely } from "../../utils/mobileHandling.js";
 import { updateBrowserHistory } from "../../services/history/state.js";
 import { startNewConversation } from "../../services/history/persistence.js";
+import { updatePromptVisibility } from "../../components/ui/settingsControls.js";
 
 function setupPromptRadioEventListeners() {
   if (window.personalityPromptRadio) {
     window.personalityPromptRadio.addEventListener('change', () => {
-      if (window.personalityPromptRadio.checked && typeof window.updatePromptVisibility === 'function') {
-        window.updatePromptVisibility();
+      if (window.personalityPromptRadio.checked) {
+        updatePromptVisibility();
       }
     });
   }
 
   if (window.customPromptRadio) {
     window.customPromptRadio.addEventListener('change', () => {
-      if (window.customPromptRadio.checked && typeof window.updatePromptVisibility === 'function') {
-        window.updatePromptVisibility();
+      if (window.customPromptRadio.checked) {
+        updatePromptVisibility();
       }
     });
   }
 
   if (window.noPromptRadio) {
     window.noPromptRadio.addEventListener('change', () => {
-      if (window.noPromptRadio.checked && typeof window.updatePromptVisibility === 'function') {
-        window.updatePromptVisibility();
+      if (window.noPromptRadio.checked) {
+        updatePromptVisibility();
       }
     });
   }
@@ -70,9 +71,7 @@ function setupPersonalityPresetEventListeners(closeSettingsPanel) {
       }
       window.personalityInput.setAttribute('data-explicitly-set', 'true');
 
-      if (typeof window.updatePromptVisibility === 'function') {
-        window.updatePromptVisibility();
-      }
+      updatePromptVisibility();
 
       if (typeof closeSettingsPanel === 'function') {
         closeSettingsPanel();

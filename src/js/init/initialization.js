@@ -11,6 +11,7 @@ import { ensureApiKeysLoaded } from "../services/apiKeys.js";
 import { loadFromUrl } from "../services/history/state.js";
 import { renderChatHistoryList } from "../services/history/list.js";
 import { initializeTts, initializeMobileKeyboardHandling } from "./ttsInitialization.js";
+import { updateParameterControls } from "../components/ui/settingsControls.js";
 
 // Configure DOMPurify to allow YouTube iframes
 function configureDOMPurify() {
@@ -252,7 +253,7 @@ async function initialize() {
       console.info("Mobile keyboard handling initialized.");
     }
     // Call these functions to initialize the UI
-    window.updateParameterControls();
+    updateParameterControls();
 
     // Ensure API keys are loaded before fetching models
     if (typeof ensureApiKeysLoaded === "function") {

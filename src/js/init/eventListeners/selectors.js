@@ -1,6 +1,7 @@
 import { ensureApiKeysLoaded } from "../../services/apiKeys.js";
 import { updateBrowserHistory } from "../../services/history/state.js";
 import { responsesClient } from "../../services/api.js";
+import { updateParameterControls } from "../../components/ui/settingsControls.js";
 
 export function setupSelectorEventListeners() {
   if (window.modelSelector) {
@@ -49,9 +50,7 @@ export function setupSelectorEventListeners() {
       if (typeof window.updateModelSelector === 'function') {
         window.updateModelSelector();
       }
-      if (typeof window.updateParameterControls === 'function') {
-        window.updateParameterControls();
-      }
+      updateParameterControls();
       if (typeof window.updateHeaderInfo === 'function') {
         window.updateHeaderInfo();
       }

@@ -3,6 +3,7 @@ import { isMobileDevice, focusUserInputSafely } from "../../utils/mobileHandling
 import { exportChat, handleExportFormatChange } from "../../services/export.js";
 import { updateBrowserHistory } from "../../services/history/state.js";
 import { startNewConversation } from "../../services/history/persistence.js";
+import { updatePromptVisibility } from "../../components/ui/settingsControls.js";
 function closePanelIfActive(closeSettingsPanel) {
   if (typeof closeSettingsPanel === 'function' && window.settingsPanel && window.settingsPanel.classList.contains('active')) {
     closeSettingsPanel();
@@ -45,9 +46,7 @@ export function setupButtonEventListeners({ closeSettingsPanel } = {}) {
         window.personalityInput.setAttribute('data-explicitly-set', 'true');
       }
 
-      if (typeof window.updatePromptVisibility === 'function') {
-        window.updatePromptVisibility();
-      }
+      updatePromptVisibility();
 
       closePanelIfActive(closeSettingsPanel);
 
@@ -80,9 +79,7 @@ export function setupButtonEventListeners({ closeSettingsPanel } = {}) {
         window.personalityPromptRadio.checked = true;
       }
 
-      if (typeof window.updatePromptVisibility === 'function') {
-        window.updatePromptVisibility();
-      }
+      updatePromptVisibility();
       if (typeof window.updateHeaderInfo === 'function') {
         window.updateHeaderInfo();
       }
@@ -105,9 +102,7 @@ export function setupButtonEventListeners({ closeSettingsPanel } = {}) {
       if (window.customPromptRadio) {
         window.customPromptRadio.checked = true;
       }
-      if (typeof window.updatePromptVisibility === 'function') {
-        window.updatePromptVisibility();
-      }
+      updatePromptVisibility();
 
       closePanelIfActive(closeSettingsPanel);
 
@@ -128,9 +123,7 @@ export function setupButtonEventListeners({ closeSettingsPanel } = {}) {
       if (window.noPromptRadio) {
         window.noPromptRadio.checked = true;
       }
-      if (typeof window.updatePromptVisibility === 'function') {
-        window.updatePromptVisibility();
-      }
+      updatePromptVisibility();
 
       closePanelIfActive(closeSettingsPanel);
 
