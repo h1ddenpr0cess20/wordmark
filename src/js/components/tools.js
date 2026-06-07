@@ -1,6 +1,7 @@
 import { showInfo } from "../utils/notifications.js";
 import { getMemoryConfig } from "../utils/memoryStorage.js";
 import { requestMcpServerRemoval } from "../services/mcpServers.js";
+import { responsesClient } from "../services/api.js";
 /**
  * Tool settings management for Responses API integrations.
  * Renders the tool list, persists toggle state, and synchronises with the
@@ -13,7 +14,7 @@ import { requestMcpServerRemoval } from "../services/mcpServers.js";
   let bulkActionsBound = false;
 
   function ensureClient() {
-    if (!window.responsesClient) {
+    if (!responsesClient) {
       console.warn("Responses client unavailable; tool settings cannot be initialised yet.");
       return false;
     }
@@ -24,7 +25,7 @@ import { requestMcpServerRemoval } from "../services/mcpServers.js";
     if (!ensureClient()) {
       return "openai";
     }
-    return window.responsesClient.getActiveServiceKey();
+    return responsesClient.getActiveServiceKey();
   }
 
   function isMasterEnabled() {
@@ -54,18 +55,18 @@ import { requestMcpServerRemoval } from "../services/mcpServers.js";
   }
 
   function supportsClientSideToolsForCurrentModel(serviceKey, modelName) {
-    if (!window.responsesClient || typeof window.responsesClient.supportsClientSideTools !== "function") {
+    if (!responsesClient || typeof responsesClient.supportsClientSideTools !== "function") {
       return true;
     }
-    return window.responsesClient.supportsClientSideTools(serviceKey, modelName);
+    return responsesClient.supportsClientSideTools(serviceKey, modelName);
   }
 
   function isClientSideTool(tool) {
     if (!tool) {
       return false;
     }
-    if (window.responsesClient && typeof window.responsesClient.isClientSideToolType === "function") {
-      return window.responsesClient.isClientSideToolType(tool.type);
+    if (responsesClient && typeof responsesClient.isClientSideToolType === "function") {
+      return responsesClient.isClientSideToolType(tool.type);
     }
     return tool.type === "function" || tool.type === "mcp";
   }
@@ -142,7 +143,7 @@ import { requestMcpServerRemoval } from "../services/mcpServers.js";
       return;
     }
     const enabled = checkbox.checked;
-    window.responsesClient.setToolEnabled(toolKey, enabled);
+    responsesClient.setToolEnabled(toolKey, enabled);
     if (typeof window.updateFeatureStatus === "function") {
       window.updateFeatureStatus();
     }
@@ -178,7 +179,7 @@ import { requestMcpServerRemoval } from "../services/mcpServers.js";
       return;
     }
 
-    const catalog = window.responsesClient.getToolCatalog();
+    const catalog = responsesClient.getToolCatalog();
     const serviceKey = getActiveServiceKey();
     const masterEnabled = isMasterEnabled();
     const activeModelName = getActiveModelName();
@@ -213,7 +214,7 @@ import { requestMcpServerRemoval } from "../services/mcpServers.js";
         isAvailable = false;
       }
       const isOnline = tool.type !== "mcp" ? true : tool.isOnline !== false;
-      const preferenceEnabled = window.responsesClient.isToolEnabled(tool.key);
+      const preferenceEnabled = responsesClient.isToolEnabled(tool.key);
       const item = document.createElement("div");
       item.className = "tool-toggle-item";
       if (!masterEnabled) {
@@ -336,7 +337,7 @@ import { requestMcpServerRemoval } from "../services/mcpServers.js";
         if (!ensureClient()) {
           return;
         }
-        window.responsesClient.setAllToolsEnabled(true);
+        responsesClient.setAllToolsEnabled(true);
         renderToolList();
         if (typeof window.updateFeatureStatus === "function") {
           window.updateFeatureStatus();
@@ -352,7 +353,7 @@ import { requestMcpServerRemoval } from "../services/mcpServers.js";
         if (!ensureClient()) {
           return;
         }
-        window.responsesClient.setAllToolsEnabled(false);
+        responsesClient.setAllToolsEnabled(false);
         renderToolList();
         if (typeof window.updateFeatureStatus === "function") {
           window.updateFeatureStatus();
@@ -378,9 +379,9 @@ import { requestMcpServerRemoval } from "../services/mcpServers.js";
     bindBulkActions();
     renderToolList();
 
-    if (window.responsesClient && typeof window.responsesClient.refreshMcpAvailability === "function") {
+    if (responsesClient && typeof responsesClient.refreshMcpAvailability === "function") {
       try {
-        const maybePromise = window.responsesClient.refreshMcpAvailability();
+        const maybePromise = responsesClient.refreshMcpAvailability();
         if (maybePromise && typeof maybePromise.then === "function") {
           maybePromise.then(() => {
             renderToolList();
@@ -439,12 +440,12 @@ import { requestMcpServerRemoval } from "../services/mcpServers.js";
     if (!window.config || window.config.enableFunctionCalling === false) {
       return "";
     }
-    if (!window.responsesClient) {
+    if (!responsesClient) {
       return "";
     }
 
-    const serviceKey = typeof window.responsesClient.getActiveServiceKey === "function"
-      ? window.responsesClient.getActiveServiceKey()
+    const serviceKey = typeof responsesClient.getActiveServiceKey === "function"
+      ? responsesClient.getActiveServiceKey()
       : (window.config.defaultService || "openai");
     const activeModelName = getActiveModelName();
     const codexModelActive = isCodexModel(activeModelName);
@@ -454,8 +455,8 @@ import { requestMcpServerRemoval } from "../services/mcpServers.js";
     const isLocalService = serviceKey === "lmstudio" || serviceKey === "ollama";
 
     let catalog = [];
-    if (typeof window.responsesClient.getToolCatalog === "function") {
-      catalog = window.responsesClient.getToolCatalog();
+    if (typeof responsesClient.getToolCatalog === "function") {
+      catalog = responsesClient.getToolCatalog();
     }
 
     const items = [];
@@ -470,7 +471,7 @@ import { requestMcpServerRemoval } from "../services/mcpServers.js";
       // Skip MCP servers on local network when using cloud AI services
       if (tool.type === "mcp" && !isLocalService) {
         // Get server URL from the tool definition
-        const toolDef = window.responsesClient?.toolDefinitions?.find(def =>
+        const toolDef = responsesClient?.toolDefinitions?.find(def =>
           def.type === "mcp" && def.server_label === tool.key.replace("mcp:", ""),
         );
         const serverUrl = toolDef?.server_url;
@@ -488,7 +489,7 @@ import { requestMcpServerRemoval } from "../services/mcpServers.js";
       if (!clientSideToolsSupported && isClientSideTool(tool)) {
         return;
       }
-      if (typeof window.responsesClient.isToolEnabled === "function" && !window.responsesClient.isToolEnabled(tool.key)) {
+      if (typeof responsesClient.isToolEnabled === "function" && !responsesClient.isToolEnabled(tool.key)) {
         return;
       }
       const description = tool.description ? `: ${tool.description}` : "";

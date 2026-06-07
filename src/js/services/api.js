@@ -27,7 +27,7 @@ import {
   supportsClientSideTools,
 } from "./api/toolManager.js";
 
-window.responsesClient = {
+export const responsesClient = {
   buildInstructions,
   prepareInputMessages: serializeMessagesForRequest,
   collectFunctionCalls,
@@ -46,9 +46,3 @@ window.responsesClient = {
   refreshMcpAvailability,
   supportsClientSideTools,
 };
-
-if (typeof window.initApiReferences !== "function") {
-  window.initApiReferences = function(refs) {
-    window.apiReferences = refs || {};
-  };
-}

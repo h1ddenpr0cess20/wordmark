@@ -41,7 +41,6 @@ import './components/aboutPopups.js';
 import './services/memory.js';
 import './services/apiKeys.js';
 import './services/mediaTools.js';
-import './services/api.js';
 import './services/history.js';
 
 // Initialization modules

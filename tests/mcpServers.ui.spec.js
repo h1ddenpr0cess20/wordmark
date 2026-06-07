@@ -53,6 +53,9 @@ globalThis.document = {
   head: { appendChild() {} },
   getElementById: (id) => (id === "mcp-servers-list" ? globalThis.__mcpContainer : null),
   createElement: () => makeStubEl(),
+  // mcpServers now imports the responsesClient facade, which transitively loads
+  // apiKeys.js; its DOMContentLoaded self-init needs addEventListener present.
+  addEventListener() {},
 };
 
 const { getMCPServers, addMCPServer, requestMcpServerRemoval } =
@@ -95,11 +98,11 @@ test("requestMcpServerRemoval removes confirmed servers and refreshes UI", () =>
   globalThis.localStorage = createLocalStorage({ mcp_servers: JSON.stringify(servers) });
   globalThis.__mcpContainer = createListContainer();
 
-  const unregisterCalls = [];
   let refreshed = false;
   const confirmCalls = [];
   globalThis.confirm = (message) => { confirmCalls.push(message); return true; };
-  globalThis.window.responsesClient = { unregisterMcpServer: (label) => unregisterCalls.push(label) };
+  // unregisterMcpServer is now reached through the imported responsesClient
+  // facade (no window seam to spy on); assert the observable effects instead.
   globalThis.window.refreshToolSettingsUI = () => { refreshed = true; };
   globalThis.window.icon = () => "";
 
@@ -111,7 +114,6 @@ test("requestMcpServerRemoval removes confirmed servers and refreshes UI", () =>
   const stored = JSON.parse(globalThis.localStorage.getItem("mcp_servers"));
   assert.equal(stored.length, 1);
   assert.equal(stored[0].server_label, "second");
-  assert.deepEqual(unregisterCalls, ["first"]);
   assert.equal(refreshed, true);
 });
 

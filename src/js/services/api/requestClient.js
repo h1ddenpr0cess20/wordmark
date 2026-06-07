@@ -21,6 +21,7 @@ import {
   isClientSideToolType,
   refreshMcpAvailability,
   supportsClientSideTools,
+  TOOL_HANDLERS,
 } from './toolManager.js';
 import { getActiveVectorStoreIds } from '../vectorStore.js';
 import { toolImplementations } from '../toolImplementations.js';
@@ -308,7 +309,7 @@ export async function runTurn({
     const rawCalls = collectFunctionCalls(responsePayload.output || []);
     const actionableCalls = rawCalls
       .map(call => {
-        let handler = window.responsesClient?.toolHandlers?.[call.name];
+        let handler = TOOL_HANDLERS[call.name];
         if (!handler) {
           handler = toolImplementations[call.name];
         }

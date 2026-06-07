@@ -1,5 +1,6 @@
 import { icon } from "../utils/icons.js";
 import { showNotification } from "../utils/notifications.js";
+import { responsesClient } from "./api.js";
 /**
  * MCP Server Management
  * Handles configuration and management of URL-based Model Context Protocol servers
@@ -150,9 +151,9 @@ export function requestMcpServerRemoval(serverLabel, fallbackDisplayName) {
     removeMCPServer(serverLabel);
     renderMCPServersList();
 
-    if (window.responsesClient && typeof window.responsesClient.unregisterMcpServer === "function") {
+    if (responsesClient && typeof responsesClient.unregisterMcpServer === "function") {
       try {
-        window.responsesClient.unregisterMcpServer(serverLabel);
+        responsesClient.unregisterMcpServer(serverLabel);
       } catch (unregisterError) {
         console.warn("Unable to unregister MCP server:", unregisterError);
       }
@@ -185,9 +186,9 @@ function refreshToolingState(options = {}) {
     return;
   }
 
-  if (window.responsesClient && typeof window.responsesClient.refreshMcpAvailability === "function") {
+  if (responsesClient && typeof responsesClient.refreshMcpAvailability === "function") {
     try {
-      const maybePromise = window.responsesClient.refreshMcpAvailability(true);
+      const maybePromise = responsesClient.refreshMcpAvailability(true);
       if (maybePromise && typeof maybePromise.then === "function") {
         maybePromise.then(() => {
           if (typeof window.refreshToolSettingsUI === "function") {
@@ -280,9 +281,9 @@ function handleAddServer() {
     addMCPServer(server);
     renderMCPServersList();
 
-    if (window.responsesClient && typeof window.responsesClient.registerMcpServer === "function") {
+    if (responsesClient && typeof responsesClient.registerMcpServer === "function") {
       try {
-        window.responsesClient.registerMcpServer(server);
+        responsesClient.registerMcpServer(server);
       } catch (registerError) {
         console.warn("Unable to register MCP server dynamically:", registerError);
       }

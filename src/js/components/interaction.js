@@ -9,6 +9,7 @@ import { scrollInputIntoView } from "../utils/mobileHandling.js";
 import { finalizeStreamedResponse, removeLoadingIndicator } from "../services/streaming/messageLifecycle.js";
 import { updateBrowserHistory } from "../services/history/state.js";
 import { saveCurrentConversation } from "../services/history/persistence.js";
+import { responsesClient } from "../services/api.js";
 
 // -----------------------------------------------------
 // Message sending and related functionality
@@ -273,9 +274,9 @@ window.sendMessage = async function() {
       }
     } else {
       // OpenAI: use vector stores + file_search
-      console.log("File search enabled:", window.responsesClient?.isToolEnabled("builtin:file_search"));
+      console.log("File search enabled:", responsesClient?.isToolEnabled("builtin:file_search"));
 
-      if (!window.responsesClient?.isToolEnabled("builtin:file_search")) {
+      if (!responsesClient?.isToolEnabled("builtin:file_search")) {
         console.warn("File Search tool is not enabled. Documents will not be uploaded.");
         if (showInfo) {
           showInfo("Enable File Search tool in settings to upload documents");
@@ -327,7 +328,7 @@ window.sendMessage = async function() {
   }
 
   try {
-    if (!window.responsesClient || typeof window.responsesClient.runTurn !== "function") {
+    if (!responsesClient || typeof responsesClient.runTurn !== "function") {
       throw new Error("Responses client is not available. Check that services/api.js is loaded.");
     }
 
@@ -338,7 +339,7 @@ window.sendMessage = async function() {
       ? [...window.conversationHistory]
       : [];
 
-    const result = await window.responsesClient.runTurn({
+    const result = await responsesClient.runTurn({
       inputMessages: requestMessages,
       model: window.modelSelector ? window.modelSelector.value : undefined,
       verbosity: typeof window.getVerbosity === "function"

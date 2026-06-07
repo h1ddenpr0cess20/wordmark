@@ -1,5 +1,6 @@
 import { ensureApiKeysLoaded } from "../../services/apiKeys.js";
 import { updateBrowserHistory } from "../../services/history/state.js";
+import { responsesClient } from "../../services/api.js";
 
 export function setupSelectorEventListeners() {
   if (window.modelSelector) {
@@ -65,9 +66,9 @@ export function setupSelectorEventListeners() {
         }
       };
 
-      if (window.responsesClient && typeof window.responsesClient.refreshMcpAvailability === 'function') {
+      if (responsesClient && typeof responsesClient.refreshMcpAvailability === 'function') {
         try {
-          const maybePromise = window.responsesClient.refreshMcpAvailability(true);
+          const maybePromise = responsesClient.refreshMcpAvailability(true);
           if (maybePromise && typeof maybePromise.then === 'function') {
             maybePromise.then(refreshToolsUI).catch((error) => {
               console.warn('Failed to refresh MCP availability after service change:', error);

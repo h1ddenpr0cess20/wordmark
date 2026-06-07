@@ -295,8 +295,6 @@ async function initialize() {
       console.info("UI controls and selectors initialized.");
     }
 
-    // Share references with the API module
-    initializeApiReferences();
     // Add scroll event listener to chatBox to track when user manually scrolls
     setupScrollTracking();
 
@@ -360,28 +358,6 @@ async function initialize() {
     console.error("Initialization error:", error);
     // Still show the interface even if there's an error
     document.body.classList.add("loaded");
-  }
-}
-
-/**
- * Initialize API references sharing
- */
-function initializeApiReferences() {
-  if (window.initApiReferences) {
-    window.initApiReferences({
-      personalityPromptRadio: window.personalityPromptRadio,
-      personalityInput: window.personalityInput,
-      customPromptRadio: window.customPromptRadio,
-      systemPromptCustom: window.systemPromptCustom,
-      noPromptRadio: window.noPromptRadio,
-      modelSelector: window.modelSelector,
-      conversationHistory: window.conversationHistory,
-    });
-    if (window.VERBOSE_LOGGING) {
-      console.info("API references shared.");
-    }
-  } else {
-    console.warn("initApiReferences function not found. API integration may not work properly.");
   }
 }
 
