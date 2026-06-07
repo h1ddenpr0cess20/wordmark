@@ -1,3 +1,4 @@
+import { icon } from "../../utils/icons.js";
 import { showError } from "../../utils/notifications.js";
 /**
  * Helpers for handling Code Interpreter outputs (files, logs) within responses.
@@ -471,7 +472,7 @@ function buildFileRow(attachment) {
   downloadButton.className = 'code-interpreter-download-btn';
   downloadButton.setAttribute('data-file-id', attachment.fileId || '');
   downloadButton.setAttribute('aria-label', 'Download file');
-  downloadButton.innerHTML = `${window.icon ? window.icon('download', { width: 14, height: 14, className: 'code-interpreter-download-icon' }) : ''}<span>Download</span>`;
+  downloadButton.innerHTML = `${window.icon ? icon('download', { width: 14, height: 14, className: 'code-interpreter-download-icon' }) : ''}<span>Download</span>`;
 
   actions.appendChild(downloadButton);
   row.appendChild(actions);

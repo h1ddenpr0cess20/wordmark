@@ -1,3 +1,4 @@
+import { icon } from "../../utils/icons.js";
 import { deleteImageFromDb } from "../../utils/imageStorage.js";
 
 window.downloadImage = function(url, filename) {
@@ -67,7 +68,7 @@ window.setupImageInteractions = function(messageElement) {
     return;
   }
 
-  const downloadIconSvg = window.icon('download', { width: 16, height: 16 });
+  const downloadIconSvg = icon('download', { width: 16, height: 16 });
 
   mediaElements.forEach((media, index) => {
     if (media.parentNode?.classList?.contains('image-container')) {
@@ -136,7 +137,7 @@ window.setupImageInteractions = function(messageElement) {
 
     const expandBtn = document.createElement('button');
     expandBtn.className = 'video-expand-btn';
-    expandBtn.innerHTML = window.icon('maximize', { width: 16, height: 16 });
+    expandBtn.innerHTML = icon('maximize', { width: 16, height: 16 });
     expandBtn.setAttribute('aria-label', 'Open in viewer');
     expandBtn.title = 'Open in viewer';
     container.appendChild(expandBtn);
@@ -201,14 +202,14 @@ window.createImageSlideshow = function(images, startIndex, isGalleryMode = false
   downloadBtn.id = 'slideshow-download';
   downloadBtn.title = 'Download this media';
   downloadBtn.setAttribute('aria-label', 'Download this media');
-  downloadBtn.innerHTML = window.icon('download', { width: 24, height: 24 });
+  downloadBtn.innerHTML = icon('download', { width: 24, height: 24 });
 
   const closeBtn = document.createElement('button');
   closeBtn.className = 'slideshow-icon-btn';
   closeBtn.id = 'slideshow-close';
   closeBtn.title = 'Close media viewer';
   closeBtn.setAttribute('aria-label', 'Close media viewer');
-  closeBtn.innerHTML = window.icon('x', { width: 24, height: 24 });
+  closeBtn.innerHTML = icon('x', { width: 24, height: 24 });
 
   if (isGalleryMode) {
     const deleteBtn = document.createElement('button');
@@ -216,7 +217,7 @@ window.createImageSlideshow = function(images, startIndex, isGalleryMode = false
     deleteBtn.id = 'slideshow-delete';
     deleteBtn.title = 'Delete this media permanently';
     deleteBtn.setAttribute('aria-label', 'Delete this media permanently');
-    deleteBtn.innerHTML = window.icon('trash', { width: 24, height: 24 });
+    deleteBtn.innerHTML = icon('trash', { width: 24, height: 24 });
     controlsBar.appendChild(deleteBtn);
 
     deleteBtn.addEventListener('click', () => {

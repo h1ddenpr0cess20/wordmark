@@ -1,3 +1,4 @@
+import { icon } from "../utils/icons.js";
 /**
  * API key management functionality
  */
@@ -117,10 +118,10 @@ window.initApiKeys = function(retryCount = 0) {
         if (input && input.classList) {
           if (input.classList.contains("masked")) {
             input.classList.remove("masked");
-            this.innerHTML = window.icon("eye-off", { width: 16, height: 16 });
+            this.innerHTML = icon("eye-off", { width: 16, height: 16 });
           } else {
             input.classList.add("masked");
-            this.innerHTML = window.icon("eye", { width: 16, height: 16 });
+            this.innerHTML = icon("eye", { width: 16, height: 16 });
           }
         }
       });

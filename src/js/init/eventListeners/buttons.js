@@ -1,3 +1,4 @@
+import { icon } from "../../utils/icons.js";
 function closePanelIfActive(closeSettingsPanel) {
   if (typeof closeSettingsPanel === 'function' && window.settingsPanel && window.settingsPanel.classList.contains('active')) {
     closeSettingsPanel();
@@ -171,7 +172,7 @@ export function setupButtonEventListeners({ closeSettingsPanel } = {}) {
         const serviceLabelMap = { lmstudio: 'LM Studio', ollama: 'Ollama', openai: 'OpenAI', xai: 'xAI' };
         const serviceLabel = serviceLabelMap[serviceKey] || serviceKey;
         refreshModelsButton.disabled = true;
-        refreshModelsButton.innerHTML = window.icon('refresh-cw', { width: 16, height: 16, className: 'rotating-svg' });
+        refreshModelsButton.innerHTML = icon('refresh-cw', { width: 16, height: 16, className: 'rotating-svg' });
 
         try {
           await serviceConfig.fetchAndUpdateModels();
@@ -215,7 +216,7 @@ export function setupButtonEventListeners({ closeSettingsPanel } = {}) {
           }
         } finally {
           refreshModelsButton.disabled = false;
-          refreshModelsButton.innerHTML = window.icon('refresh-cw', { width: 16, height: 16 });
+          refreshModelsButton.innerHTML = icon('refresh-cw', { width: 16, height: 16 });
         }
       }
     });

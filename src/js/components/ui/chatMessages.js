@@ -1,3 +1,4 @@
+import { icon } from "../../utils/icons.js";
 function renderAssistantIcon(senderElement) {
   senderElement.innerHTML = `
     <svg class="sender-icon assistant-icon" width="32" height="32" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -36,7 +37,7 @@ window.appendMessage = function(sender, content, type, skipHistory = false) {
   senderElement.className = 'message-sender';
 
   if (sender === 'You') {
-    senderElement.innerHTML = window.icon('user', { width: 24, height: 24, color: 'var(--accent-color)', className: 'sender-icon user-icon' });
+    senderElement.innerHTML = icon('user', { width: 24, height: 24, color: 'var(--accent-color)', className: 'sender-icon user-icon' });
   } else if (sender === 'Assistant') {
     renderAssistantIcon(senderElement);
   } else {

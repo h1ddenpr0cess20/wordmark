@@ -1,3 +1,4 @@
+import { icon } from "../utils/icons.js";
 /**
  * Media Gallery functionality for the chatbot application.
  * Displays and manages generated or uploaded images and videos from IndexedDB.
@@ -240,7 +241,7 @@ window.loadGalleryImages = async function() {
 
           const badge = document.createElement("div");
           badge.className = "gallery-video-badge";
-          badge.innerHTML = window.icon("play", { width: 18, height: 18 });
+          badge.innerHTML = icon("play", { width: 18, height: 18 });
           imageContainer.appendChild(badge);
         } else {
           const img = document.createElement("img");
@@ -268,8 +269,8 @@ window.loadGalleryImages = async function() {
         const actions = document.createElement("div");
         actions.className = "gallery-actions";
         actions.innerHTML = `
-                    <button class="gallery-download-btn" title="Download ${mediaType}">${window.icon("download", { width: 16, height: 16 })}</button>
-                    <button class="gallery-delete-btn" title="Delete ${mediaType}">${window.icon("trash", { width: 16, height: 16 })}</button>
+                    <button class="gallery-download-btn" title="Download ${mediaType}">${icon("download", { width: 16, height: 16 })}</button>
+                    <button class="gallery-delete-btn" title="Delete ${mediaType}">${icon("trash", { width: 16, height: 16 })}</button>
                 `;
 
         // Add event listeners to buttons

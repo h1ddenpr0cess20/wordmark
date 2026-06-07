@@ -1,3 +1,4 @@
+import { icon } from "../utils/icons.js";
 import { showNotification } from "../utils/notifications.js";
 /**
  * MCP Server Management
@@ -124,7 +125,7 @@ function renderMCPServersList() {
     removeBtn.className = "mcp-server-remove";
     removeBtn.dataset.serverLabel = server.server_label;
     removeBtn.title = "Remove Server";
-    removeBtn.innerHTML = window.icon("trash", { width: 16, height: 16 });
+    removeBtn.innerHTML = icon("trash", { width: 16, height: 16 });
     removeBtn.addEventListener("click", handleRemoveServer);
     item.appendChild(removeBtn);
 

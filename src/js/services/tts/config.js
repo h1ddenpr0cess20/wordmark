@@ -1,3 +1,4 @@
+import { icon } from "../../utils/icons.js";
 // TTS configuration object and basic runtime state
 window.ttsConfig = {
   enabled: false,
@@ -9,10 +10,10 @@ window.ttsConfig = {
 
 // SVG Icons for TTS controls
 window.ttsSvgIcons = {
-  play: window.icon('play', { width: 14, height: 14 }).trim(),
-  pause: window.icon('pause', { width: 14, height: 14 }).trim(),
-  stop: window.icon('stop', { width: 14, height: 14 }).trim(),
-  download: window.icon('download', { width: 14, height: 14 }).trim(),
+  play: icon('play', { width: 14, height: 14 }).trim(),
+  pause: icon('pause', { width: 14, height: 14 }).trim(),
+  stop: icon('stop', { width: 14, height: 14 }).trim(),
+  download: icon('download', { width: 14, height: 14 }).trim(),
 };
 
 // Runtime tracking

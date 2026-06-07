@@ -1,3 +1,4 @@
+import { icon } from "./icons.js";
 /**
  * Highlight.js integration and code formatting utilities
  */
@@ -49,7 +50,7 @@ window.addCopyButton = function(codeBlock) {
     const copyButton = document.createElement("button");
     copyButton.className = "copy-btn";
     copyButton.setAttribute("aria-label", "Copy code");
-    copyButton.innerHTML = window.icon("copy", { width: 16, height: 16 });
+    copyButton.innerHTML = icon("copy", { width: 16, height: 16 });
     copyButton.addEventListener("click", () => {
       // Define the copy function with proper error handling
       const copyText = function(text) {
@@ -85,7 +86,7 @@ window.addCopyButton = function(codeBlock) {
             // Store original SVG
             const originalSvg = copyButton.innerHTML;
             // Show check mark SVG for success feedback
-            copyButton.innerHTML = window.icon("check", { width: 16, height: 16 });
+            copyButton.innerHTML = icon("check", { width: 16, height: 16 });
             setTimeout(() => {
               // Revert back to copy icon
               copyButton.innerHTML = originalSvg;
@@ -94,7 +95,7 @@ window.addCopyButton = function(codeBlock) {
             // Store original SVG
             const originalSvg = copyButton.innerHTML;
             // Show X mark SVG for failure feedback
-            copyButton.innerHTML = window.icon("x", { width: 16, height: 16 });
+            copyButton.innerHTML = icon("x", { width: 16, height: 16 });
             setTimeout(() => {
               // Revert back to copy icon
               copyButton.innerHTML = originalSvg;

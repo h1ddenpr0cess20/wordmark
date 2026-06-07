@@ -1,3 +1,4 @@
+import { icon } from "../utils/icons.js";
 /**
  * Message handling and display functions
  */
@@ -116,7 +117,7 @@ window.appendMessage = function(sender, message, role, skipHistory = false) {
 
   // Create SVG icon based on sender type - NO TEXT, JUST ICONS
   if (sender === "You") {
-    senderElement.innerHTML = window.icon("user", { width: 24, height: 24, color: "var(--accent-color)", className: "sender-icon user-icon" });
+    senderElement.innerHTML = icon("user", { width: 24, height: 24, color: "var(--accent-color)", className: "sender-icon user-icon" });
   } else if (sender === "Assistant") {
     // Use the exact same logo structure as in index.html
     senderElement.innerHTML = `
@@ -409,7 +410,7 @@ window.addMessageCopyButton = function(messageElement, messageId) {
   const btn = document.createElement("button");
   btn.className = "message-copy-btn";
   btn.setAttribute("aria-label", "Copy message");
-  btn.innerHTML = window.icon("copy", { width: 16, height: 16 });
+  btn.innerHTML = icon("copy", { width: 16, height: 16 });
   btn.addEventListener("click", () => {
     const raw = window.getRawMessageContent(messageId);
     if (!raw) {
