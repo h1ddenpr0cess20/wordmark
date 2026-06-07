@@ -15,6 +15,7 @@ import { updateParameterControls } from "../components/ui/settingsControls.js";
 import { initTabs, openApiKeysTabIfNeeded } from "../components/ui/settingsTabs.js";
 import { initMemorySettings } from "../components/memory.js";
 import { updateHeaderInfo, updateModelSelector, updateFeatureStatus, initializePersonalityInput, applyDataSettingsState } from "../components/settings.js";
+import { initToolsSettings } from "../components/tools.js";
 
 // Configure DOMPurify to allow YouTube iframes
 function configureDOMPurify() {
@@ -193,8 +194,8 @@ async function initialize() {
     }
 
     // Initialize tools settings
-    if (typeof window.initToolsSettings === "function") {
-      window.initToolsSettings();
+    if (typeof initToolsSettings === "function") {
+      initToolsSettings();
       if (window.VERBOSE_LOGGING) {
         console.info("Tools settings initialized.");
       }

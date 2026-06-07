@@ -4,6 +4,7 @@
 
 import { updateParameterControls } from "../components/ui/settingsControls.js";
 import { updateHeaderInfo, updateModelSelector, updateFeatureStatus, populateServiceSelector } from "../components/settings.js";
+import { updateMasterToolCallingStatus, refreshToolSettingsUI } from "../components/tools.js";
 
 /**
  * Initialize services and models
@@ -174,16 +175,16 @@ function initializeToolCalling() {
     window.toolCallingToggle.title = enabled ? "Tool calling is enabled." : "Tool calling is disabled.";
   }
 
-  if (typeof window.updateMasterToolCallingStatus === "function") {
-    window.updateMasterToolCallingStatus(enabled);
+  if (typeof updateMasterToolCallingStatus === "function") {
+    updateMasterToolCallingStatus(enabled);
   }
 
   if (typeof updateFeatureStatus === "function") {
     updateFeatureStatus();
   }
 
-  if (typeof window.refreshToolSettingsUI === "function") {
-    window.refreshToolSettingsUI();
+  if (typeof refreshToolSettingsUI === "function") {
+    refreshToolSettingsUI();
   }
 }
 

@@ -8,6 +8,14 @@ import { responsesClient } from "../services/api.js";
  * Renders the tool list, persists toggle state, and synchronises with the
  * Responses client so only enabled tools are sent with each request.
  */
+// Public API is assigned by the IIFE below and re-exported; the IIFE form is
+// kept to preserve the module's private state/closure without re-indenting.
+let initToolsSettings;
+let updateMasterToolCallingStatus;
+let refreshToolSettingsUI;
+let updateToolDefinitions;
+let getToolsDescription;
+
 (function() {
   let toolsContainer = null;
   let enableAllButton = null;
@@ -366,7 +374,7 @@ import { responsesClient } from "../services/api.js";
     }
   }
 
-  window.initToolsSettings = function() {
+  initToolsSettings = function() {
     toolsContainer = document.getElementById("individual-tools-container");
     enableAllButton = document.getElementById("enable-all-tools");
     disableAllButton = document.getElementById("disable-all-tools");
@@ -398,7 +406,7 @@ import { responsesClient } from "../services/api.js";
     }
   };
 
-  window.updateMasterToolCallingStatus = function(enabled) {
+  updateMasterToolCallingStatus = function(enabled) {
     if (window.toolCallingToggle) {
       window.toolCallingToggle.checked = enabled;
     }
@@ -408,14 +416,12 @@ import { responsesClient } from "../services/api.js";
     renderToolList();
   };
 
-  window.refreshToolSettingsUI = function() {
+  refreshToolSettingsUI = function() {
     renderToolList();
   };
 
-  window.updateToolDefinitions = function() {
-    if (typeof window.refreshToolSettingsUI === "function") {
-      window.refreshToolSettingsUI();
-    }
+  updateToolDefinitions = function() {
+    refreshToolSettingsUI();
   };
 
   function isLocalNetworkUrl(url) {
@@ -437,7 +443,7 @@ import { responsesClient } from "../services/api.js";
     }
   }
 
-  window.getToolsDescription = function() {
+  getToolsDescription = function() {
     if (!window.config || window.config.enableFunctionCalling === false) {
       return "";
     }
@@ -515,3 +521,5 @@ import { responsesClient } from "../services/api.js";
     return `\nAvailable tools you can call when needed:\n${items.join("\n")}\n`;
   };
 })();
+
+export { initToolsSettings, updateMasterToolCallingStatus, refreshToolSettingsUI, updateToolDefinitions, getToolsDescription };

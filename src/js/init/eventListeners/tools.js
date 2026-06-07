@@ -1,6 +1,7 @@
 import { showInfo } from "../../utils/notifications.js";
 import { loadToolScripts } from "../../utils/toolLoader.js";
 import { updateFeatureStatus } from "../../components/settings.js";
+import { updateMasterToolCallingStatus } from "../../components/tools.js";
 export function setupToolCallingEventListeners() {
   if (!window.toolCallingToggle) {
     return;
@@ -11,8 +12,8 @@ export function setupToolCallingEventListeners() {
     window.config.enableFunctionCalling = enabled;
     localStorage.setItem('enableFunctionCalling', enabled ? 'true' : 'false');
 
-    if (typeof window.updateMasterToolCallingStatus === 'function') {
-      window.updateMasterToolCallingStatus(enabled);
+    if (typeof updateMasterToolCallingStatus === 'function') {
+      updateMasterToolCallingStatus(enabled);
     } else if (window.individualToolsContainer) {
       const toggles = window.individualToolsContainer.querySelectorAll('input[type="checkbox"]');
       toggles.forEach((toggle) => {

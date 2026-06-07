@@ -32,8 +32,11 @@ export const responsesClient = {
   prepareInputMessages: serializeMessagesForRequest,
   collectFunctionCalls,
   runTurn,
-  toolDefinitions: TOOL_DEFINITIONS,
-  toolHandlers: TOOL_HANDLERS,
+  // Getters defer reading these toolManager consts until runtime so that an
+  // import cycle (toolManager → apiKeys → tools → api → toolManager) does not
+  // hit them in the temporal dead zone during module evaluation.
+  get toolDefinitions() { return TOOL_DEFINITIONS; },
+  get toolHandlers() { return TOOL_HANDLERS; },
   getToolCatalog,
   isToolEnabled,
   isClientSideToolType,

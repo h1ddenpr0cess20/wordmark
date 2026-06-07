@@ -3,6 +3,7 @@ import { updateBrowserHistory } from "../../services/history/state.js";
 import { responsesClient } from "../../services/api.js";
 import { updateParameterControls } from "../../components/ui/settingsControls.js";
 import { updateHeaderInfo, updateModelSelector } from "../../components/settings.js";
+import { refreshToolSettingsUI } from "../../components/tools.js";
 
 export function setupSelectorEventListeners() {
   if (window.modelSelector) {
@@ -15,8 +16,8 @@ export function setupSelectorEventListeners() {
         window.updateReasoningAvailability();
       }
       updateBrowserHistory();
-      if (typeof window.refreshToolSettingsUI === 'function') {
-        window.refreshToolSettingsUI();
+      if (typeof refreshToolSettingsUI === 'function') {
+        refreshToolSettingsUI();
       }
     });
   }
@@ -61,8 +62,8 @@ export function setupSelectorEventListeners() {
       updateBrowserHistory();
 
       const refreshToolsUI = () => {
-        if (typeof window.refreshToolSettingsUI === 'function') {
-          window.refreshToolSettingsUI();
+        if (typeof refreshToolSettingsUI === 'function') {
+          refreshToolSettingsUI();
         }
       };
 

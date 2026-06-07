@@ -1,5 +1,6 @@
 import { icon } from "../utils/icons.js";
 import { updateFeatureStatus, updateModelSelector } from "../components/settings.js";
+import { refreshToolSettingsUI } from "../components/tools.js";
 /**
  * API key management functionality
  */
@@ -31,9 +32,9 @@ let apiKeysEventHandlersApplied = false;
 let shownApiKeyWarnings = null;
 
 function refreshApiDependentUi() {
-  if (typeof window.refreshToolSettingsUI === "function") {
+  if (typeof refreshToolSettingsUI === "function") {
     try {
-      window.refreshToolSettingsUI();
+      refreshToolSettingsUI();
     } catch (error) {
       console.error("Failed to refresh tool settings UI:", error);
     }

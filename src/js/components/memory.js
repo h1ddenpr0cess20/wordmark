@@ -1,5 +1,6 @@
 import { getMemoryConfig, setMemoryEnabled, setMemoryLimit, getMemories, addMemory, clearAllMemories, removeMemoryAt } from "../utils/memoryStorage.js";
 import { updateFeatureStatus } from "./settings.js";
+import { updateToolDefinitions } from "./tools.js";
 /**
  * Memory settings panel functionality
  */
@@ -29,16 +30,16 @@ export function initMemorySettings() {
   }
 
   // Update tool definitions to include/exclude memory tool on load
-  if (typeof window.updateToolDefinitions === "function") {
-    window.updateToolDefinitions();
+  if (typeof updateToolDefinitions === "function") {
+    updateToolDefinitions();
   }
 
   // Events
   toggle.addEventListener("change", () => {
     if (setMemoryEnabled) setMemoryEnabled(toggle.checked);
     // Reflect in tool availability
-    if (typeof window.updateToolDefinitions === "function") {
-      window.updateToolDefinitions();
+    if (typeof updateToolDefinitions === "function") {
+      updateToolDefinitions();
     }
     renderList();
     if (typeof updateFeatureStatus === "function") {

@@ -1,6 +1,7 @@
 import { getMemoriesForPrompt } from "../../utils/memoryStorage.js";
 import { getLocationForPrompt } from "../location.js";
 import { getMediaToolInstructions } from "../mediaTools.js";
+import { getToolsDescription } from "../../components/tools.js";
 /**
  * Message preparation helpers for the Responses API.
  */
@@ -374,8 +375,8 @@ export function buildDeveloperMessage(model) {
   if (!developerBlock.includes(timestamp)) {
     developerBlock += `\n(Generated on ${timestamp})`;
   }
-  if (window.config?.enableFunctionCalling && typeof window.getToolsDescription === 'function') {
-    const toolsDescription = window.getToolsDescription();
+  if (window.config?.enableFunctionCalling && typeof getToolsDescription === 'function') {
+    const toolsDescription = getToolsDescription();
     if (toolsDescription) {
       developerBlock += `\n${toolsDescription.trim()}`;
     }

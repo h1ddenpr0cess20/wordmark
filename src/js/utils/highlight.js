@@ -8,8 +8,10 @@ import hljs from "highlight.js";
 // Expose hljs globally and configure it once. With Vite the library is part of
 // the bundle, so there is no async loading step — `loadHighlightJS()` is kept
 // as a no-op-friendly API for existing callers.
-window.hljs = hljs;
-window.hljsLoaded = true;
+if (typeof window !== "undefined") {
+  window.hljs = hljs;
+  window.hljsLoaded = true;
+}
 hljs.configure({
   ignoreUnescapedHTML: true,
 });
