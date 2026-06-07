@@ -4,6 +4,16 @@
 
 import { loadHighlightJS } from "../utils/highlight.js";
 
+// Theme CSS is imported as raw text so theme class names can be parsed in both
+// the Vite dev server (where a plain fetch of a .css URL returns a JS HMR
+// wrapper, not the stylesheet) and production builds.
+import darkThemeCss from "../../css/themes/base/dark.css?raw";
+import lightThemeCss from "../../css/themes/base/light.css?raw";
+import metalThemeCss from "../../css/themes/base/metal.css?raw";
+import neonThemeCss from "../../css/themes/base/neon.css?raw";
+import countryThemeCss from "../../css/themes/base/country.css?raw";
+import specialThemeCss from "../../css/themes/base/special.css?raw";
+
 // Initialize theme variables
 let themeSelector = null;
 let currentTheme = "theme-dark-blue"; // Default theme
@@ -17,7 +27,16 @@ let colorParsingContext = null;
 /**
  * Extract theme names from CSS files
  */
-async function extractThemesFromCSS() {
+function extractThemesFromCSS() {
+  const themeSources = {
+    "Dark Themes": darkThemeCss,
+    "Light Themes": lightThemeCss,
+    "Metal Themes": metalThemeCss,
+    "Neon Themes": neonThemeCss,
+    "Country Themes": countryThemeCss,
+    "Special Themes": specialThemeCss,
+  };
+
   const categories = {
     "Dark Themes": [],
     "Light Themes": [],
@@ -27,31 +46,13 @@ async function extractThemesFromCSS() {
     "Special Themes": [],
   };
 
-  const themeFiles = {
-    "Dark Themes": new URL("../../css/themes/base/dark.css", import.meta.url).href,
-    "Light Themes": new URL("../../css/themes/base/light.css", import.meta.url).href,
-    "Metal Themes": new URL("../../css/themes/base/metal.css", import.meta.url).href,
-    "Neon Themes": new URL("../../css/themes/base/neon.css", import.meta.url).href,
-    "Country Themes": new URL("../../css/themes/base/country.css", import.meta.url).href,
-    "Special Themes": new URL("../../css/themes/base/special.css", import.meta.url).href,
-  };
-
-  for (const [category, filePath] of Object.entries(themeFiles)) {
-    try {
-      const response = await fetch(filePath);
-      const cssContent = await response.text();
-
-      // Extract theme class names using regex
-      const themeMatches = cssContent.match(/^\.theme-[a-zA-Z0-9-]+(?=\s*\{)/gm);
-      if (themeMatches) {
-        const themes = themeMatches
-          .map(match => match.substring(1)) // Remove the leading dot
-          .filter((theme, index, arr) => arr.indexOf(theme) === index);
-
-        categories[category] = themes;
-      }
-    } catch (error) {
-      console.error(`Failed to load themes from ${filePath}:`, error);
+  for (const [category, cssContent] of Object.entries(themeSources)) {
+    // Extract theme class names using regex
+    const themeMatches = (cssContent || "").match(/^\.theme-[a-zA-Z0-9-]+(?=\s*\{)/gm);
+    if (themeMatches) {
+      categories[category] = themeMatches
+        .map(match => match.substring(1)) // Remove the leading dot
+        .filter((theme, index, arr) => arr.indexOf(theme) === index);
     }
   }
 
