@@ -328,6 +328,63 @@ assert.equal(sanitizeInput('<script>'), '&lt;script&gt;');
 
 ---
 
+## Phase 11 — Feature Work (after the refactor lands)
+
+These are new product features, not part of the window→ESM migration. Build them
+on the refactored (export/import) code so they ship as proper modules. Each is its
+own commit with tests + version bump.
+
+### 11a — Retry prompt + conversation branching
+
+Add per-message controls (alongside the existing copy button) to:
+- **Retry** — re-run the last user prompt, replacing the assistant response in place.
+- **Branch** — fork the conversation from a chosen message into a new conversation,
+  carrying history up to that point so the user can explore an alternate path.
+
+**Touch points:**
+- `src/js/components/messages.js` — `addMessageCopyButton` is the model for adding
+  per-message buttons; add retry/branch buttons next to it (user msgs get retry +
+  branch, assistant msgs get retry-from-here).
+- `src/js/components/interaction.js` — `sendMessage()` / `conversationHistory` push
+  logic (~line 145). Retry: truncate history back to the target user turn and
+  resend. Branch: deep-copy history up to the target index into a new conversation.
+- `src/js/services/history/*` — persistence/list: branching creates a new
+  conversation record (`saveConversationToDb`); decide whether to link parent id.
+- Tests: extend interaction/history specs for the truncate-and-resend and
+  fork-history paths.
+
+### 11b — Token-count-based history (replace message-count windowing)
+
+Today the full `conversationHistory` is sent each turn (interaction.js ~line 336)
+with no token budgeting. Switch context windowing from message count to a **token
+budget**: estimate tokens per message and include the most recent messages that fit
+under a configurable budget (keep the system prompt + most recent turns; drop oldest
+first).
+
+**Touch points:**
+- `src/js/services/api/messageUtils.js` — where request messages are assembled;
+  add a token estimator (char/4 heuristic or a small tokenizer) and trim to budget.
+- `src/config/config.js` — add a `historyTokenBudget` setting (per-model default).
+- Settings UI (`src/html/panels/settings/model.html` or data tab) — expose the
+  budget control; persist to localStorage.
+- Tests: `messageUtils.spec.js` — assert oldest messages drop when over budget and
+  the system prompt + latest turn always survive.
+
+### 11c — Copy button feedback
+
+The code-block copy button already swaps to a check/x icon for 1.5s
+(`src/js/utils/highlight.js` ~line 82). The **message-level** copy button
+(`addMessageCopyButton` in `src/js/components/messages.js` ~line 405) has no
+feedback, and the `copyToClipboard` helper it calls isn't defined anywhere.
+
+- Add a shared `copyToClipboard(text, button)` helper that writes to clipboard and
+  swaps the button icon to `check` (or `x` on failure) for ~1.5s, then reverts —
+  reusing the same pattern/timeout as the code-block button so both feel identical.
+- Wire `addMessageCopyButton` to use it so message copies show confirmation.
+- Tests: assert the icon swaps to `check` after a successful copy and reverts.
+
+---
+
 ## Key Risks
 
 | Risk | Mitigation |
