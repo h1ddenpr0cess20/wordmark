@@ -4,24 +4,16 @@
 
 export const lazyModulesLoaded = {};
 
+let galleryModule = null;
+
 export function loadGalleryModule() {
-  if (lazyModulesLoaded.gallery) {
-    return Promise.resolve();
+  if (galleryModule) {
+    return Promise.resolve(galleryModule);
   }
   return import("../components/gallery.js").then((mod) => {
-    // If the module didn’t attach to window (when treated as ESM), then do it here if exports exist
-    if (mod) {
-      if (mod.initGallery && !window.initGallery) {
-        window.initGallery = mod.initGallery;
-      }
-      if (mod.downloadGalleryImage && !window.downloadGalleryImage) {
-        window.downloadGalleryImage = mod.downloadGalleryImage;
-      }
-      if (mod.showFullSizeImage && !window.showFullSizeImage) {
-        window.showFullSizeImage = mod.showFullSizeImage;
-      }
-    }
+    galleryModule = mod;
     lazyModulesLoaded.gallery = true;
+    return mod;
   });
 }
 

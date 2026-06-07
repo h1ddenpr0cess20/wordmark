@@ -310,10 +310,6 @@ async function initialize() {
       try { applyDataSettingsState(); } catch { /* noop */ }
     }
 
-    if (typeof window.initGallery === "function") {
-      try { window.initGallery(); } catch (e) { console.warn("initGallery failed:", e); }
-    }
-
     renderChatHistoryList();
 
     // Initialize Verbose Mode toggle state

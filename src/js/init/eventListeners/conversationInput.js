@@ -37,11 +37,9 @@ export function initializeConversationInput() {
   if (window.galleryButton) {
     const firstGalleryClick = async(event) => {
       event.preventDefault();
-      if (typeof loadGalleryModule === 'function') {
-        await loadGalleryModule();
-      }
-      if (typeof window.initGallery === 'function') {
-        window.initGallery();
+      const mod = await loadGalleryModule();
+      if (mod && typeof mod.initGallery === 'function') {
+        mod.initGallery();
       }
       window.galleryButton.removeEventListener('click', firstGalleryClick);
       window.galleryButton.click();

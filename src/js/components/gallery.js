@@ -23,7 +23,7 @@ window.isSlideshowOpen = false;
 /**
  * Initialize the gallery functionality
  */
-window.initGallery = function() {
+const initGallery = function() {
   if (window.__GALLERY_INITIALIZED__) {
     return;
   }
@@ -52,11 +52,11 @@ window.initGallery = function() {
 
     if (!isExpanded) {
       galleryPanel.removeAttribute("inert"); // Ensure panel is not inert when opened
-      window.showGalleryPlaceholders();
+      showGalleryPlaceholders();
 
       // Then load the actual images asynchronously
       setTimeout(() => {
-        window.loadGalleryImages();
+        loadGalleryImages();
       }, 50); // Small delay to ensure animation completes first
     } else {
       galleryPanel.setAttribute("inert", "true"); // Make panel inert when closed
@@ -80,14 +80,14 @@ window.initGallery = function() {
   // Refresh gallery when the refresh button is clicked
   if (refreshGalleryBtn) {
     refreshGalleryBtn.addEventListener("click", () => {
-      window.loadGalleryImages();
+      loadGalleryImages();
     });
   }
 
   // Handle bulk delete
   if (bulkDeleteBtn) {
     bulkDeleteBtn.addEventListener("click", () => {
-      window.bulkDeleteSelectedImages();
+      bulkDeleteSelectedImages();
     });
   }
 
@@ -101,7 +101,7 @@ window.initGallery = function() {
 /**
  * Show placeholder grid while media items are loading
  */
-window.showGalleryPlaceholders = function() {
+const showGalleryPlaceholders = function() {
   const galleryGrid = document.getElementById("gallery-grid");
   if (!galleryGrid) {
     return;
@@ -140,7 +140,7 @@ window.showGalleryPlaceholders = function() {
 /**
  * Load media from IndexedDB and display them in the gallery
  */
-window.loadGalleryImages = async function() {
+const loadGalleryImages = async function() {
   const galleryGrid = document.getElementById("gallery-grid");
   if (!galleryGrid) {
     return;
@@ -148,7 +148,7 @@ window.loadGalleryImages = async function() {
 
   try {
     // Get all media records from IndexedDB
-    const images = await window.getAllImagesFromDb();
+    const images = await getAllImagesFromDb();
 
     // Filter images based on current tab
     const currentTab = window.currentGalleryTab || "generated";
@@ -278,14 +278,14 @@ window.loadGalleryImages = async function() {
         deleteBtn.addEventListener("click", (e) => {
           e.stopPropagation();
           if (confirm(`Delete this ${mediaType}?`)) {
-            window.deleteImageAndUpdateGallery(image.filename);
+            deleteImageAndUpdateGallery(image.filename);
           }
         });
 
         const downloadBtn = actions.querySelector(".gallery-download-btn");
         downloadBtn.addEventListener("click", (e) => {
           e.stopPropagation();
-          window.downloadGalleryImage(image.data, image.filename);
+          downloadGalleryImage(image.data, image.filename);
         });
 
         // Add prompt truncated text (first few words) or "uploaded" label
@@ -324,7 +324,7 @@ window.loadGalleryImages = async function() {
 
         // Add click event to show the viewer starting with this media item
         galleryItem.addEventListener("click", () => {
-          window.startGallerySlideshow(i);
+          startGallerySlideshow(i);
         });
 
         // Append all elements to gallery item in the correct order
@@ -355,11 +355,11 @@ window.loadGalleryImages = async function() {
  * Get all media records from IndexedDB
  * @returns {Promise<Array>} Promise resolving to an array of media objects
  */
-window.getAllImagesFromDb = function() {
+const getAllImagesFromDb = function() {
   return new Promise((resolve, reject) => {
     if (!getImageDb()) {
       initImageDb()
-        .then(() => window.getAllImagesFromDb())
+        .then(() => getAllImagesFromDb())
         .then(resolve)
         .catch(reject);
       return;
@@ -396,7 +396,7 @@ window.getAllImagesFromDb = function() {
  * Delete a media item from IndexedDB and remove it from the gallery
  * @param {string} filename - The filename of the media item to delete
  */
-window.deleteImageAndUpdateGallery = async function(filename) {
+const deleteImageAndUpdateGallery = async function(filename) {
   try {
     await deleteImageFromDb(filename);
 
@@ -429,7 +429,7 @@ window.deleteImageAndUpdateGallery = async function(filename) {
  * @param {string|Blob} imageData - Media data or display URL
  * @param {string} filename - The filename to save as
  */
-window.downloadGalleryImage = function(imageData, filename) {
+const downloadGalleryImage = function(imageData, filename) {
   downloadMediaSource(imageData, filename)
     .catch(error => {
       console.error("Failed to download gallery media:", error);
@@ -441,7 +441,7 @@ window.downloadGalleryImage = function(imageData, filename) {
  * Start the gallery slideshow from a specific index
  * @param {number} startIndex - The index to start from
  */
-window.startGallerySlideshow = function(startIndex) {
+const startGallerySlideshow = function(startIndex) {
   if (!window.galleryImages || window.galleryImages.length === 0) {
     console.error("No media available for viewer");
     return;
@@ -452,39 +452,9 @@ window.startGallerySlideshow = function(startIndex) {
 };
 
 /**
- * Show a full-size view of a media item
- * @param {string} imageUrl - The media display URL
- * @param {Object} imageData - The media metadata
- */
-window.showFullSizeImage = function(imageUrl, imageData) {
-  // Find the media index in gallery items
-  const index = window.galleryImages.findIndex(img => img.filename === imageData.filename);
-  if (index !== -1) {
-    window.startGallerySlideshow(index);
-  } else {
-    // If media is not found in gallery, add it temporarily and show it.
-    const tempImage = {
-      data: imageUrl,
-      filename: imageData.filename,
-      prompt: imageData.prompt,
-      timestamp: imageData.timestamp,
-      mediaType: imageData.mediaType || detectMediaType(imageData),
-      mimeType: imageData.mimeType || "",
-    };
-
-    if (!window.galleryImages) {
-      window.galleryImages = [];
-    }
-
-    window.galleryImages.push(tempImage);
-    window.startGallerySlideshow(window.galleryImages.length - 1);
-  }
-};
-
-/**
  * Bulk delete selected media items
  */
-window.bulkDeleteSelectedImages = async function() {
+const bulkDeleteSelectedImages = async function() {
   const selectedCheckboxes = document.querySelectorAll(".gallery-select-checkbox:checked");
 
   if (selectedCheckboxes.length === 0) {
@@ -523,13 +493,13 @@ window.bulkDeleteSelectedImages = async function() {
     await Promise.all(deletePromises);
 
     // Reload the gallery
-    window.loadGalleryImages();
+    loadGalleryImages();
   } catch (error) {
     console.error("Error bulk deleting media:", error);
     alert("Some media items could not be deleted. Please try again.");
 
     // Reload the gallery
-    window.loadGalleryImages();
+    loadGalleryImages();
   }
 };
 
@@ -563,7 +533,7 @@ function initializeGalleryTabs() {
  * Switch between gallery tabs
  * @param {string} tabName - 'generated' or 'uploaded'
  */
-window.switchGalleryTab = function(tabName) {
+const switchGalleryTab = function(tabName) {
   window.currentGalleryTab = tabName;
 
   // Update tab active states
@@ -583,5 +553,7 @@ window.switchGalleryTab = function(tabName) {
   });
 
   // Reload gallery with the new filter
-  window.loadGalleryImages();
+  loadGalleryImages();
 };
+
+export { initGallery };
