@@ -1,3 +1,4 @@
+import { getApiKey } from "../../services/apiKeys.js";
 window.initTabs = function() {
   const tabButtons = document.querySelectorAll('.tab-button');
   const tabContents = document.querySelectorAll('.tab-content');
@@ -64,7 +65,7 @@ window.checkApiKeysMissing = function() {
     return false;
   }
 
-  const apiKey = typeof window.getApiKey === 'function' ? window.getApiKey(currentService) : null;
+  const apiKey = typeof getApiKey === 'function' ? getApiKey(currentService) : null;
   return !apiKey || apiKey.trim() === '';
 };
 

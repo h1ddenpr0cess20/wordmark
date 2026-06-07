@@ -7,6 +7,7 @@ import { focusUserInputSafely } from "../utils/mobileHandling.js";
 import { loadHistoryModule, loadLocationModule } from "../utils/lazyLoader.js";
 import { initializeLocationService } from "../services/location.js";
 import { initMCPServers } from "../services/mcpServers.js";
+import { ensureApiKeysLoaded } from "../services/apiKeys.js";
 
 // Configure DOMPurify to allow YouTube iframes
 function configureDOMPurify() {
@@ -260,8 +261,8 @@ async function initialize() {
     window.updateParameterControls();
 
     // Ensure API keys are loaded before fetching models
-    if (typeof window.ensureApiKeysLoaded === "function") {
-      window.ensureApiKeysLoaded();
+    if (typeof ensureApiKeysLoaded === "function") {
+      ensureApiKeysLoaded();
       if (window.VERBOSE_LOGGING) {
         console.info("API keys loaded from localStorage.");
       }

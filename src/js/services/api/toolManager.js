@@ -6,6 +6,7 @@ import { getMemoryConfig } from "../../utils/memoryStorage.js";
 import { getActiveServiceKey, getActiveModel } from './clientConfig.js';
 import { weatherToolHandler } from "../weather.js";
 import { memoryToolDefinition, forgetToolDefinition } from "../memory.js";
+import { getApiKey } from "../apiKeys.js";
 
 const TOOL_STORAGE_KEY = 'wordmark_tool_preferences';
 
@@ -352,10 +353,10 @@ export function getToolCatalog() {
     defaultEnabled: tool.defaultEnabled !== false,
     requiresApiKeyService: tool.requiresApiKeyService,
     hasRequiredApiKey: (() => {
-      if (!tool.requiresApiKeyService || typeof window.getApiKey !== 'function') {
+      if (!tool.requiresApiKeyService || typeof getApiKey !== 'function') {
         return true;
       }
-      return Boolean((window.getApiKey(tool.requiresApiKeyService) || '').trim());
+      return Boolean((getApiKey(tool.requiresApiKeyService) || '').trim());
     })(),
     isOnline: (() => {
       if (tool.type !== 'mcp') {
@@ -502,8 +503,8 @@ export function getEnabledToolDefinitions(serviceKey = getActiveServiceKey(), mo
       return;
     }
 
-    if (tool.requiresApiKeyService && typeof window.getApiKey === 'function') {
-      const requiredKey = window.getApiKey(tool.requiresApiKeyService);
+    if (tool.requiresApiKeyService && typeof getApiKey === 'function') {
+      const requiredKey = getApiKey(tool.requiresApiKeyService);
       if (!requiredKey || !requiredKey.trim()) {
         return;
       }

@@ -4,6 +4,7 @@
 
 import { loadImageFromDb, saveImageToDb } from "../utils/imageStorage.js";
 import { toolImplementations } from "./toolImplementations.js";
+import { getApiKey } from "./apiKeys.js";
 
 const XAI_IMAGE_MODEL = "grok-imagine-image";
 
@@ -390,7 +391,7 @@ function getProviderBaseUrl(provider) {
 }
 
 function getProviderApiKey(provider) {
-  const apiKey = window.getApiKey?.(provider) || window.config?.services?.[provider]?.apiKey || "";
+  const apiKey = getApiKey?.(provider) || window.config?.services?.[provider]?.apiKey || "";
   const trimmed = typeof apiKey === "string" ? apiKey.trim() : "";
   if (!trimmed) {
     const providerLabel = provider === "xai" ? "xAI" : provider === "openai" ? "OpenAI" : provider;

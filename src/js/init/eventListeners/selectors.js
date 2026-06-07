@@ -1,3 +1,5 @@
+import { ensureApiKeysLoaded } from "../../services/apiKeys.js";
+
 export function setupSelectorEventListeners() {
   if (window.modelSelector) {
     window.modelSelector.addEventListener('change', () => {
@@ -26,8 +28,8 @@ export function setupSelectorEventListeners() {
       }
       window.config.defaultService = selectedService;
 
-      if (typeof window.ensureApiKeysLoaded === 'function') {
-        window.ensureApiKeysLoaded();
+      if (typeof ensureApiKeysLoaded === 'function') {
+        ensureApiKeysLoaded();
       }
 
       const serviceConfig = window.config?.services?.[selectedService];
