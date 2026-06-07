@@ -55,10 +55,8 @@ globalThis.document = {
   createElement: () => makeStubEl(),
 };
 
-const mcp = await import("../src/js/services/mcpServers.js");
-const getMCPServers = globalThis.window.getMCPServers;
-const addMCPServer = globalThis.window.addMCPServer;
-const requestMcpServerRemoval = globalThis.window.requestMcpServerRemoval;
+const { getMCPServers, addMCPServer, requestMcpServerRemoval } =
+  await import("../src/js/services/mcpServers.js");
 
 test("addMCPServer persists unique servers and rejects duplicates", () => {
   const storage = createLocalStorage();

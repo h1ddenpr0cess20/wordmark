@@ -12,7 +12,7 @@ const MCP_SERVERS_STORAGE_KEY = "mcp_servers";
  * Get all configured MCP servers
  * @returns {Array} Array of server configurations
  */
-function getMCPServers() {
+export function getMCPServers() {
   try {
     const stored = localStorage.getItem(MCP_SERVERS_STORAGE_KEY);
     return stored ? JSON.parse(stored) : [];
@@ -40,7 +40,7 @@ function saveMCPServers(servers) {
  * @param {Object} server - Server configuration
  * @returns {boolean} Success status
  */
-function addMCPServer(server) {
+export function addMCPServer(server) {
   try {
     const servers = getMCPServers();
 
@@ -63,7 +63,7 @@ function addMCPServer(server) {
  * @param {string} serverLabel - Label of server to remove
  * @returns {boolean} Success status
  */
-function removeMCPServer(serverLabel) {
+export function removeMCPServer(serverLabel) {
   try {
     const servers = getMCPServers();
     const filtered = servers.filter(s => s.server_label !== serverLabel);
@@ -133,7 +133,7 @@ function renderMCPServersList() {
   });
 }
 
-function requestMcpServerRemoval(serverLabel, fallbackDisplayName) {
+export function requestMcpServerRemoval(serverLabel, fallbackDisplayName) {
   if (!serverLabel) {
     return false;
   }
@@ -310,7 +310,7 @@ function handleAddServer() {
 /**
  * Initialize MCP server management
  */
-function initMCPServers() {
+export function initMCPServers() {
   // Render initial list
   renderMCPServersList();
 
@@ -320,10 +320,3 @@ function initMCPServers() {
     addButton.addEventListener("click", handleAddServer);
   }
 }
-
-// Export functions to window for access from other modules
-window.getMCPServers = getMCPServers;
-window.addMCPServer = addMCPServer;
-window.removeMCPServer = removeMCPServer;
-window.requestMcpServerRemoval = requestMcpServerRemoval;
-window.initMCPServers = initMCPServers;

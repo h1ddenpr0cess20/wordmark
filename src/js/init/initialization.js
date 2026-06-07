@@ -6,6 +6,7 @@
 import { focusUserInputSafely } from "../utils/mobileHandling.js";
 import { loadHistoryModule, loadLocationModule } from "../utils/lazyLoader.js";
 import { initializeLocationService } from "../services/location.js";
+import { initMCPServers } from "../services/mcpServers.js";
 
 // Configure DOMPurify to allow YouTube iframes
 function configureDOMPurify() {
@@ -214,9 +215,9 @@ async function initialize() {
     }
 
     // Initialize MCP servers management
-    if (typeof window.initMCPServers === "function") {
+    if (typeof initMCPServers === "function") {
       try {
-        window.initMCPServers();
+        initMCPServers();
         if (window.VERBOSE_LOGGING) {
           console.info("MCP servers initialized.");
         }

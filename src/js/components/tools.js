@@ -1,5 +1,6 @@
 import { showInfo } from "../utils/notifications.js";
 import { getMemoryConfig } from "../utils/memoryStorage.js";
+import { requestMcpServerRemoval } from "../services/mcpServers.js";
 /**
  * Tool settings management for Responses API integrations.
  * Renders the tool list, persists toggle state, and synchronises with the
@@ -155,8 +156,8 @@ import { getMemoryConfig } from "../utils/memoryStorage.js";
       return;
     }
     const label = tool.key.replace(/^mcp:/, "");
-    if (typeof window.requestMcpServerRemoval === "function") {
-      window.requestMcpServerRemoval(label, tool.displayName);
+    if (typeof requestMcpServerRemoval === "function") {
+      requestMcpServerRemoval(label, tool.displayName);
     } else {
       console.warn("MCP removal helper unavailable; unable to delete server from UI.");
     }
