@@ -1,11 +1,12 @@
 import { getMemories, addMemory, removeMemoryAt, getMemoryConfig } from "../utils/memoryStorage.js";
+import { toolImplementations } from "./toolImplementations.js";
 /**
  * Memory function definition and implementation
  * Exposes a separate function-call tool: `remember`
  */
 
 // Define the memory tool separately from normal tool definitions
-window.memoryToolDefinition = {
+export const memoryToolDefinition = {
   type: "function",
   name: "remember",
   description: "Store a brief memory to personalize future responses. Use when the user specifically asks to remember a detail, or implies they want it to be remembered.  do not overuse.",
@@ -23,9 +24,8 @@ window.memoryToolDefinition = {
   strict: false,
 };
 
-// Implementation registered in the same global map used by other tools
-window.toolImplementations = window.toolImplementations || {};
-window.toolImplementations.remember = async function(args) {
+// Implementation registered in the shared tool-implementation registry
+toolImplementations.remember = async function(args) {
   try {
     const cfg = getMemoryConfig ? getMemoryConfig() : { enabled: false, limit: 25 };
     if (!cfg.enabled) {
@@ -45,7 +45,7 @@ window.toolImplementations.remember = async function(args) {
 };
 
 // Define a companion tool for forgetting a memory by keyword
-window.forgetToolDefinition = {
+export const forgetToolDefinition = {
   type: "function",
   name: "forget",
   description: "Forget a stored memory that matches a given keyword (case-insensitive substring). Use when the user asks to forget something.",
@@ -63,7 +63,7 @@ window.forgetToolDefinition = {
   strict: false,
 };
 
-window.toolImplementations.forget = async function(args) {
+toolImplementations.forget = async function(args) {
   try {
     const cfg = getMemoryConfig ? getMemoryConfig() : { enabled: false };
     if (!cfg.enabled) return { ok: false, message: "Memory feature disabled" };

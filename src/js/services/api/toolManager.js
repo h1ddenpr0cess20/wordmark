@@ -5,6 +5,7 @@ import { getMemoryConfig } from "../../utils/memoryStorage.js";
 
 import { getActiveServiceKey, getActiveModel } from './clientConfig.js';
 import { weatherToolHandler } from "../weather.js";
+import { memoryToolDefinition, forgetToolDefinition } from "../memory.js";
 
 const TOOL_STORAGE_KEY = 'wordmark_tool_preferences';
 
@@ -680,11 +681,11 @@ function appendMemoryTools(defs, serviceKey = getActiveServiceKey(), modelName =
       }
       return;
     }
-    if (window.memoryToolDefinition) {
-      defs.push(JSON.parse(JSON.stringify(window.memoryToolDefinition)));
+    if (memoryToolDefinition) {
+      defs.push(JSON.parse(JSON.stringify(memoryToolDefinition)));
     }
-    if (window.forgetToolDefinition) {
-      defs.push(JSON.parse(JSON.stringify(window.forgetToolDefinition)));
+    if (forgetToolDefinition) {
+      defs.push(JSON.parse(JSON.stringify(forgetToolDefinition)));
     }
   } catch (error) {
     console.warn('Unable to append memory tools:', error);

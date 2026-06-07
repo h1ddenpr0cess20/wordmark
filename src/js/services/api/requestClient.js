@@ -23,6 +23,7 @@ import {
   supportsClientSideTools,
 } from './toolManager.js';
 import { getActiveVectorStoreIds } from '../vectorStore.js';
+import { toolImplementations } from '../toolImplementations.js';
 
 const DEFAULT_INCLUDE_FIELDS = [
   'code_interpreter_call.outputs',
@@ -307,8 +308,8 @@ export async function runTurn({
     const actionableCalls = rawCalls
       .map(call => {
         let handler = window.responsesClient?.toolHandlers?.[call.name];
-        if (!handler && window.toolImplementations) {
-          handler = window.toolImplementations[call.name];
+        if (!handler) {
+          handler = toolImplementations[call.name];
         }
         if (!handler) {
           if (window.VERBOSE_LOGGING) {

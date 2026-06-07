@@ -3,6 +3,7 @@
  */
 
 import { loadImageFromDb, saveImageToDb } from "../utils/imageStorage.js";
+import { toolImplementations } from "./toolImplementations.js";
 
 const XAI_IMAGE_MODEL = "grok-imagine-image";
 
@@ -498,10 +499,9 @@ async function generateGrokImage(args, mode) {
   };
 }
 
-window.toolImplementations = window.toolImplementations || {};
-window.toolImplementations.grok_generate_image = async function(args) {
+toolImplementations.grok_generate_image = async function(args) {
   return generateGrokImage(args || {}, "generate");
 };
-window.toolImplementations.grok_edit_image = async function(args) {
+toolImplementations.grok_edit_image = async function(args) {
   return generateGrokImage(args || {}, "edit");
 };
