@@ -9,7 +9,7 @@ window.pendingUploads = [];
 window.pendingDocuments = [];
 window.activeVectorStore = null;
 
-window.initImageUploads = function() {
+export function initImageUploads() {
   const uploadInput = document.getElementById("image-upload");
   const directoryInput = document.getElementById("directory-upload");
   const uploadButton = document.getElementById("upload-button");
@@ -44,7 +44,7 @@ window.initImageUploads = function() {
 
   // Paste functionality
   setupPasteHandler(userInput);
-};
+}
 
 /**
  * Show upload menu to choose between files or directory
@@ -261,9 +261,7 @@ async function handleFiles(files, options = {}) {
     }
   }
 
-  if (typeof window.showPendingUploadPreviews === "function") {
-    window.showPendingUploadPreviews();
-  }
+  showPendingUploadPreviews();
 }
 
 /**
@@ -471,7 +469,7 @@ function setupPasteHandler(userInput) {
   });
 }
 
-window.showPendingUploadPreviews = function() {
+function showPendingUploadPreviews() {
   const wrapper = document.querySelector(".input-wrapper");
   if (!wrapper) {
     return;
@@ -591,7 +589,7 @@ window.showPendingUploadPreviews = function() {
       preview.appendChild(container);
     }
   });
-};
+}
 
 function formatFileSize(bytes) {
   if (bytes < 1024) return bytes + " B";
@@ -605,7 +603,7 @@ function formatFileSize(bytes) {
 function removeUploadPreview(index) {
   if (index >= 0 && index < window.pendingUploads.length) {
     window.pendingUploads.splice(index, 1);
-    window.showPendingUploadPreviews();
+    showPendingUploadPreviews();
   }
 }
 
@@ -615,6 +613,6 @@ function removeUploadPreview(index) {
 function removeDocumentPreview(index) {
   if (index >= 0 && index < window.pendingDocuments.length) {
     window.pendingDocuments.splice(index, 1);
-    window.showPendingUploadPreviews();
+    showPendingUploadPreviews();
   }
 }

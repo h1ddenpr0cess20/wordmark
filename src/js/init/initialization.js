@@ -16,6 +16,7 @@ import { initTabs, openApiKeysTabIfNeeded } from "../components/ui/settingsTabs.
 import { initMemorySettings } from "../components/memory.js";
 import { updateHeaderInfo, updateModelSelector, updateFeatureStatus, initializePersonalityInput, applyDataSettingsState } from "../components/settings.js";
 import { initToolsSettings } from "../components/tools.js";
+import { initImageUploads } from "../components/attachments.js";
 
 // Configure DOMPurify to allow YouTube iframes
 function configureDOMPurify() {
@@ -143,9 +144,7 @@ async function initialize() {
       console.info("DOM references initialized.");
     }
 
-    if (typeof window.initImageUploads === "function") {
-      window.initImageUploads();
-    }
+    initImageUploads();
 
     // Initialize textarea height to prevent shrinking when typing
     initializeTextareaHeight();
