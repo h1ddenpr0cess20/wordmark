@@ -14,6 +14,7 @@ import ttsHtml from "../../html/panels/settings/tts.html?raw";
 import themeHtml from "../../html/panels/settings/theme.html?raw";
 import apiKeysHtml from "../../html/panels/settings/apiKeys.html?raw";
 import locationHtml from "../../html/panels/settings/location.html?raw";
+import { initTheme } from "../components/theme.js";
 import aboutHtml from "../../html/panels/settings/about.html?raw";
 
 // Map of source path -> bundled markup so callers can keep referring to files.
@@ -96,12 +97,10 @@ const SETTINGS_TAB_PARTIALS = [
     await window.HTMLLoader.loadMultiple(SETTINGS_TAB_PARTIALS);
     console.log("All menu panels loaded successfully");
     // Initialize theme selector now that panels exist
-    if (typeof window.initTheme === "function") {
-      try {
-        await window.initTheme();
-      } catch (e) {
-        console.warn("initTheme failed:", e);
-      }
+    try {
+      await initTheme();
+    } catch (e) {
+      console.warn("initTheme failed:", e);
     }
 
     // Now that menus are loaded, initialize the application

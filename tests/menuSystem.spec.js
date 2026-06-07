@@ -29,6 +29,10 @@ async function loadMenuSystem(windowStub, document) {
   globalThis.document = document;
   // Cache-bust so the side-effecting IIFE runs on every import.
   await import(`../src/js/utils/menuSystem.js?case=${importCounter++}`);
+  // The IIFE is fire-and-forget and now awaits initTheme()'s (failing) fetches,
+  // so drain pending tasks before returning to keep tests isolated — otherwise a
+  // late-settling IIFE calls the next test's window.initialize stub.
+  await new Promise(resolve => setTimeout(resolve, 50));
 }
 
 const SETTINGS_CONTENT_IDS = [
@@ -81,11 +85,11 @@ test("initializeMenus IIFE loads panels and calls initialize", async () => {
   SETTINGS_CONTENT_IDS.forEach(id => elements.set(id, { id, innerHTML: "" }));
 
   let initCalled = 0;
-  let themeCalled = 0;
+  // initTheme is now a static ESM import (no window seam to intercept); it runs
+  // for real and bails early because there is no #theme-selector element here.
   const windowStub = {
     addEventListener() {},
     initialize() { initCalled++; },
-    initTheme: async () => { themeCalled++; },
   };
 
   await loadMenuSystem(windowStub, document);
@@ -95,6 +99,5 @@ test("initializeMenus IIFE loads panels and calls initialize", async () => {
   assert.ok(panelsContainer.innerHTML.length > 0, "panels.html inserted");
   assert.ok(elements.get("content-personality").innerHTML.length > 0, "personality tab inserted");
   assert.ok(elements.get("content-model").innerHTML.length > 0, "model tab inserted");
-  assert.equal(themeCalled, 1, "initTheme called once");
   assert.equal(initCalled, 1, "initialize called once");
 });
