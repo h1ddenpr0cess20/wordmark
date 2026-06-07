@@ -4,6 +4,7 @@ import { getMemoryConfig } from "../../utils/memoryStorage.js";
  */
 
 import { getActiveServiceKey, getActiveModel } from './clientConfig.js';
+import { weatherToolHandler } from "../weather.js";
 
 const TOOL_STORAGE_KEY = 'wordmark_tool_preferences';
 
@@ -302,8 +303,8 @@ STATIC_TOOLS.forEach(tool => addStaticTool(tool));
 
 const TOOL_HANDLERS = {
   open_meteo_forecast: function(...args) {
-    if (window.weatherToolHandler) {
-      return window.weatherToolHandler(...args);
+    if (weatherToolHandler) {
+      return weatherToolHandler(...args);
     }
     return { error: 'Weather tool not loaded' };
   },
