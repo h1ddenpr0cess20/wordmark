@@ -17,12 +17,10 @@ import './init/state.js';
 import './init/globals.js';
 
 // Utilities
-import './utils/icons.js';
 import './utils/utils.js';
 import './utils/highlight.js';
 import './utils/imageStorage.js';
 import './utils/conversationStorage.js';
-import './utils/memoryStorage.js';
 import './utils/mobileHandling.js';
 import './utils/notifications.js';
 import './utils/menuSystem.js';
