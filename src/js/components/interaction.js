@@ -20,7 +20,7 @@ import { appendMessage } from "./ui/chatMessages.js";
 /**
  * Sends a message to the API and handles the response
  */
-window.sendMessage = async function() {
+export async function sendMessage() {
   const message = window.userInput.value.trim();
   const hasImages = window.pendingUploads && window.pendingUploads.length > 0;
   const hasDocuments = window.pendingDocuments && window.pendingDocuments.length > 0;
@@ -43,8 +43,8 @@ window.sendMessage = async function() {
   window.sendButton.title = "Stop generation";
 
   // Change button action to stop generation
-  window.sendButton.removeEventListener("click", window.sendMessage);
-  window.sendButton.addEventListener("click", window.stopGeneration);
+  window.sendButton.removeEventListener("click", sendMessage);
+  window.sendButton.addEventListener("click", stopGeneration);
 
   // Handle standalone image uploads (not part of a directory)
   const uploads = window.pendingUploads || [];
@@ -267,7 +267,7 @@ window.sendMessage = async function() {
           showError(`Failed to upload files: ${error.message}`);
         }
         removeLoadingIndicator(loadingId);
-        window.resetSendButton();
+        resetSendButton();
         return;
       }
     } else {
@@ -318,7 +318,7 @@ window.sendMessage = async function() {
             showError(`Failed to upload documents: ${error.message}`);
           }
           removeLoadingIndicator(loadingId);
-          window.resetSendButton();
+          resetSendButton();
           return;
         }
       }
@@ -385,14 +385,14 @@ window.sendMessage = async function() {
       stripBase64FromHistory(userId, placeholders);
     }
     window.activeAbortController = null;
-    window.resetSendButton();
+    resetSendButton();
   }
-};
+}
 
 /**
  * Stops ongoing generation
  */
-window.stopGeneration = function() {
+export function stopGeneration() {
   if (!window.isResponsePending) {
     return;
   }
@@ -415,17 +415,17 @@ window.stopGeneration = function() {
     removeLoadingIndicator(window.activeLoadingMessageId);
   }
 
-  window.resetSendButton();
+  resetSendButton();
 
   if (window.VERBOSE_LOGGING) {
     console.info("Response generation cancelled.");
   }
-};
+}
 
 /**
  * Resets the send button to its original state
  */
-window.resetSendButton = function() {
+export function resetSendButton() {
   window.sendButton.classList.remove("stop-mode", "stopping");
   window.sendButton.title = "Send message";
   window.sendButton.disabled = false;
@@ -436,8 +436,8 @@ window.resetSendButton = function() {
   window.activeAbortController = null;
 
   // Reset both button and enter key handlers
-  window.sendButton.removeEventListener("click", window.stopGeneration);
-  window.sendButton.addEventListener("click", window.sendMessage);
+  window.sendButton.removeEventListener("click", stopGeneration);
+  window.sendButton.addEventListener("click", sendMessage);
 
   // Make sure userInput is properly enabled but don't focus on mobile
   if (window.userInput) {
@@ -454,4 +454,4 @@ window.resetSendButton = function() {
       scrollInputIntoView();
     }
   }
-};
+}

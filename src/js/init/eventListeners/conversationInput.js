@@ -1,4 +1,5 @@
 import { loadGalleryModule } from "../../utils/lazyLoader.js";
+import { sendMessage } from "../../components/interaction.js";
 export function initializeConversationInput() {
   if (!window.userInput || !window.sendButton) {
     return;
@@ -8,14 +9,14 @@ export function initializeConversationInput() {
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault();
       if (!window.activeAbortController && !window.isResponsePending) {
-        window.sendMessage();
+        sendMessage();
       } else {
         console.info('Message sending prevented - generation in progress');
       }
     }
   });
 
-  window.sendButton.addEventListener('click', window.sendMessage);
+  window.sendButton.addEventListener('click', sendMessage);
 
   const svgSelectors = '#settings-button svg, #history-button svg, #gallery-button svg, .close-settings svg, .close-history svg, .close-gallery svg';
   document.querySelectorAll(svgSelectors).forEach((svg) => {

@@ -21,6 +21,7 @@ import {
 import { highlightAndAddCopyButtons, generateMessageId, addMessageCopyButton } from "../../components/messages.js";
 import { appendAssistantMessage } from "../../components/ui/chatMessages.js";
 import { setupImageInteractions } from "../../components/ui/imageInteractions.js";
+import { resetSendButton } from "../../components/interaction.js";
 
 export function finalizeStreamedResponse(loadingMessage, contentObj) {
   if (!loadingMessage) {
@@ -330,7 +331,7 @@ export function handleNonStreamingResponse(data, loadingId) {
     reasoning: reasoningText,
     response: responsePayload,
   });
-  window.resetSendButton();
+  resetSendButton();
 }
 
 export function hasValidAssistantMessage(data) {
