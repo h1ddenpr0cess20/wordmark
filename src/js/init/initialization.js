@@ -12,6 +12,7 @@ import { loadFromUrl } from "../services/history/state.js";
 import { renderChatHistoryList } from "../services/history/list.js";
 import { initializeTts, initializeMobileKeyboardHandling } from "./ttsInitialization.js";
 import { updateParameterControls } from "../components/ui/settingsControls.js";
+import { initTabs, openApiKeysTabIfNeeded } from "../components/ui/settingsTabs.js";
 
 // Configure DOMPurify to allow YouTube iframes
 function configureDOMPurify() {
@@ -184,13 +185,9 @@ async function initialize() {
     }
 
     // Initialize tabs in settings panel
-    if (typeof window.initTabs === "function") {
-      window.initTabs();
-      if (window.VERBOSE_LOGGING) {
-        console.info("Settings panel tabs initialized.");
-      }
-    } else {
-      console.warn("Tab initialization function not found");
+    initTabs();
+    if (window.VERBOSE_LOGGING) {
+      console.info("Settings panel tabs initialized.");
     }
 
     // Initialize tools settings
@@ -340,12 +337,10 @@ async function initialize() {
     }
 
     // Check if API keys are missing and auto-open the API keys tab if needed
-    if (typeof window.openApiKeysTabIfNeeded === "function") {
-      // Add a delay so users can see the chat interface before the API key menu appears
-      setTimeout(() => {
-        window.openApiKeysTabIfNeeded();
-      }, 2000);
-    }
+    // Add a delay so users can see the chat interface before the API key menu appears
+    setTimeout(() => {
+      openApiKeysTabIfNeeded();
+    }, 2000);
 
     if (window.VERBOSE_LOGGING) {
       console.info("Chatbot application initialization complete.");

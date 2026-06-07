@@ -1,3 +1,5 @@
+import { switchToTab } from "../../components/ui/settingsTabs.js";
+
 function updatePanelOpenState() {
   const settingsOpen = Boolean(window.settingsPanel && window.settingsPanel.classList.contains('active'));
   const historyOpen = Boolean(window.historyPanel && window.historyPanel.getAttribute('aria-hidden') === 'false');
@@ -183,8 +185,8 @@ export function initializeSettingsPanelControls() {
       window.organizeSettingsLayout();
     }
 
-    if (typeof window.switchToTab === 'function' && tabId) {
-      setTimeout(() => window.switchToTab(tabId), 0);
+    if (tabId) {
+      setTimeout(() => switchToTab(tabId), 0);
     }
   }
 

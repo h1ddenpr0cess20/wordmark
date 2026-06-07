@@ -1,5 +1,5 @@
 import { getApiKey } from "../../services/apiKeys.js";
-window.initTabs = function() {
+export function initTabs() {
   const tabButtons = document.querySelectorAll('.tab-button');
   const tabContents = document.querySelectorAll('.tab-content');
 
@@ -29,9 +29,9 @@ window.initTabs = function() {
       }
     });
   });
-};
+}
 
-window.switchToTab = function(tabId) {
+export function switchToTab(tabId) {
   const tabButtons = document.querySelectorAll('.tab-button');
   const tabContents = document.querySelectorAll('.tab-content');
 
@@ -53,9 +53,9 @@ window.switchToTab = function(tabId) {
     targetButton.setAttribute('aria-selected', 'true');
     targetContent.classList.add('active');
   }
-};
+}
 
-window.checkApiKeysMissing = function() {
+function checkApiKeysMissing() {
   if (!window.config || !window.config.services) {
     return false;
   }
@@ -67,10 +67,10 @@ window.checkApiKeysMissing = function() {
 
   const apiKey = typeof getApiKey === 'function' ? getApiKey(currentService) : null;
   return !apiKey || apiKey.trim() === '';
-};
+}
 
-window.openApiKeysTabIfNeeded = function() {
-  if (!window.checkApiKeysMissing()) {
+export function openApiKeysTabIfNeeded() {
+  if (!checkApiKeysMissing()) {
     return;
   }
 
@@ -99,7 +99,7 @@ window.openApiKeysTabIfNeeded = function() {
     window.galleryButton.style.display = 'none';
   }
 
-  window.switchToTab('tab-apikeys');
+  switchToTab('tab-apikeys');
 
   if (typeof window.organizeSettingsLayout === 'function') {
     window.organizeSettingsLayout();
@@ -108,4 +108,4 @@ window.openApiKeysTabIfNeeded = function() {
   if (window.VERBOSE_LOGGING) {
     console.info('Automatically opened API keys tab due to missing API key');
   }
-};
+}
