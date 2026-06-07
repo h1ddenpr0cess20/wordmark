@@ -625,14 +625,3 @@ export function getCodeInterpreterOutputsForMessage(message) {
   return { attachments: [], logs: [] };
 }
 
-export function initializeCodeInterpreterHelpers() {
-  if (!window.codeInterpreterHelpersInitialized) {
-    window.codeInterpreterHelpersInitialized = true;
-    window.getCodeInterpreterOutputsForMessage = getCodeInterpreterOutputsForMessage;
-    window.renderCodeInterpreterOutputs = (messageElement, outputs) => {
-      renderCodeInterpreterOutputs(messageElement, outputs);
-    };
-  }
-}
-
-initializeCodeInterpreterHelpers();
