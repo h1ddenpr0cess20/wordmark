@@ -3,7 +3,7 @@ import { getMemoryConfig, setMemoryEnabled, setMemoryLimit, getMemories, addMemo
  * Memory settings panel functionality
  */
 
-window.initMemorySettings = function() {
+export function initMemorySettings() {
   // Grab elements
   const toggle = document.getElementById("memory-toggle");
   const limitInput = document.getElementById("memory-limit");
@@ -135,4 +135,4 @@ window.initMemorySettings = function() {
       listContainer.appendChild(row);
     });
   }
-};
+}

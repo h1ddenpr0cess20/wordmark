@@ -13,6 +13,7 @@ import { renderChatHistoryList } from "../services/history/list.js";
 import { initializeTts, initializeMobileKeyboardHandling } from "./ttsInitialization.js";
 import { updateParameterControls } from "../components/ui/settingsControls.js";
 import { initTabs, openApiKeysTabIfNeeded } from "../components/ui/settingsTabs.js";
+import { initMemorySettings } from "../components/memory.js";
 
 // Configure DOMPurify to allow YouTube iframes
 function configureDOMPurify() {
@@ -201,9 +202,9 @@ async function initialize() {
     }
 
     // Initialize memory settings (separate from tools UI)
-    if (typeof window.initMemorySettings === "function") {
+    {
       try {
-        window.initMemorySettings();
+        initMemorySettings();
         if (window.VERBOSE_LOGGING) {
           console.info("Memory settings initialized.");
         }

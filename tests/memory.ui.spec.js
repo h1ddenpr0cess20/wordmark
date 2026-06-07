@@ -45,8 +45,7 @@ function installDom(elems) {
 }
 
 const storage = await import("../src/js/utils/memoryStorage.js");
-await import("../src/js/components/memory.js");
-const initMemorySettings = globalThis.window.initMemorySettings;
+const { initMemorySettings } = await import("../src/js/components/memory.js");
 
 test("initMemorySettings attaches listeners and toggling updates enabled", () => {
   storage.clearAllMemories();
