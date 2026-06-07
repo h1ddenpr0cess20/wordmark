@@ -1,7 +1,5 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import path from 'node:path';
-import { loadWindowScript } from './helpers/loadWindowScript.js';
 
 // Minimal fake IndexedDB for tests
 function createFakeIndexedDB() {
@@ -86,36 +84,41 @@ function createFakeIndexedDB() {
   };
 }
 
-const file = path.resolve('src/js/utils/conversationStorage.js');
+// Provide a window with a fake IndexedDB before importing the ES module.
+globalThis.window = { addEventListener: () => {}, indexedDB: createFakeIndexedDB() };
+
+const {
+  initConversationDb,
+  saveConversationToDb,
+  loadConversationFromDb,
+  getAllConversationsFromDb,
+  renameConversationInDb,
+  deleteConversationFromDb,
+} = await import('../src/js/utils/conversationStorage.js');
 
 test('conversation storage: init, save, load, getAll, rename, delete', async () => {
-  const fakeIDB = createFakeIndexedDB();
-  const win = loadWindowScript(file, {
-    window: { addEventListener: (ev, cb) => { if (ev === 'DOMContentLoaded') cb(); }, indexedDB: fakeIDB },
-  });
-
-  await win.initConversationDb();
+  await initConversationDb();
   const convo = { id: 'c1', name: 'First', messages: [{ role: 'user', content: 'hi' }] };
-  const id = await win.saveConversationToDb(convo);
+  const id = await saveConversationToDb(convo);
   assert.equal(id, 'c1');
 
-  const loaded = await win.loadConversationFromDb('c1');
+  const loaded = await loadConversationFromDb('c1');
   assert.equal(loaded.name, 'First');
 
-  const all = await win.getAllConversationsFromDb();
+  const all = await getAllConversationsFromDb();
   assert.equal(Array.isArray(all), true);
   assert.equal(all.length, 1);
 
-  const renamed = await win.renameConversationInDb('c1', 'Renamed');
+  const renamed = await renameConversationInDb('c1', 'Renamed');
   assert.equal(renamed, true);
-  const loaded2 = await win.loadConversationFromDb('c1');
+  const loaded2 = await loadConversationFromDb('c1');
   assert.equal(loaded2.name, 'Renamed');
 
-  const deleted = await win.deleteConversationFromDb('c1');
+  const deleted = await deleteConversationFromDb('c1');
   assert.equal(deleted, true);
 
   // After deletion, loading should reject
   let threw = false;
-  try { await win.loadConversationFromDb('c1'); } catch (e) { threw = true; }
+  try { await loadConversationFromDb('c1'); } catch (e) { threw = true; }
   assert.equal(threw, true);
 });

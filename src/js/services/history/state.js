@@ -1,3 +1,5 @@
+import { saveConversationToDb } from "../../utils/conversationStorage.js";
+
 window.updateBrowserHistory = function() {
   let systemPromptValue = '';
   let promptType = 'none';
@@ -72,7 +74,7 @@ window.loadFromUrl = function() {
     window.currentConversationId = conversation.id;
     window.currentConversationName = conversation.name;
 
-    window.saveConversationToDb?.(conversation)
+    saveConversationToDb?.(conversation)
       .then((id) => {
         if (window.VERBOSE_LOGGING) {
           console.info('Saved URL-imported conversation to IndexedDB:', id);

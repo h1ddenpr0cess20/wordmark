@@ -8,13 +8,16 @@ const CONVO_DB_NAME = "wordmark-conversations";
 const CONVO_DB_VERSION = 1;
 const CONVO_STORE_NAME = "conversations";
 
+// Module-level handle to the open database (was window.conversationDb)
+let conversationDb = null;
+
 /**
  * Initialize the IndexedDB database for conversation storage
  * @returns {Promise} - Promise that resolves when the database is ready
  */
-window.initConversationDb = function() {
+export function initConversationDb() {
   return new Promise((resolve, reject) => {
-    if (window.indexedDB === undefined) {
+    if (typeof window === "undefined" || window.indexedDB === undefined) {
       console.error("IndexedDB is not supported in this browser");
       reject(new Error("IndexedDB not supported"));
       return;
@@ -37,32 +40,32 @@ window.initConversationDb = function() {
     };
 
     request.onsuccess = (event) => {
-      window.conversationDb = event.target.result;
+      conversationDb = event.target.result;
       console.info("IndexedDB initialized for conversation storage");
       resolve();
     };
   });
-};
+}
 
 /**
  * Save a conversation to IndexedDB
  * @param {Object} conversation - The conversation object to save
  * @returns {Promise<string>} - Promise that resolves with the conversation id
  */
-window.saveConversationToDb = function(conversation) {
+export function saveConversationToDb(conversation) {
   return new Promise((resolve, reject) => {
-    if (!window.conversationDb) {
+    if (!conversationDb) {
       console.error("Conversation IndexedDB not initialized");
       // Try to initialize it now
-      window.initConversationDb().then(() => {
+      initConversationDb().then(() => {
         // Retry after initialization
-        window.saveConversationToDb(conversation).then(resolve).catch(reject);
+        saveConversationToDb(conversation).then(resolve).catch(reject);
       }).catch(reject);
       return;
     }
 
     // Start a transaction
-    const transaction = window.conversationDb.transaction([CONVO_STORE_NAME], "readwrite");
+    const transaction = conversationDb.transaction([CONVO_STORE_NAME], "readwrite");
     const store = transaction.objectStore(CONVO_STORE_NAME);
 
     // Make sure the conversation has an id
@@ -83,27 +86,27 @@ window.saveConversationToDb = function(conversation) {
       resolve(conversation.id);
     };
   });
-};
+}
 
 /**
  * Load a conversation from IndexedDB
  * @param {string} id - The conversation ID to retrieve
  * @returns {Promise<Object>} - Promise that resolves with the conversation object
  */
-window.loadConversationFromDb = function(id) {
+export function loadConversationFromDb(id) {
   return new Promise((resolve, reject) => {
-    if (!window.conversationDb) {
+    if (!conversationDb) {
       console.error("Conversation IndexedDB not initialized");
       // Try to initialize it now
-      window.initConversationDb().then(() => {
+      initConversationDb().then(() => {
         // Retry after initialization
-        window.loadConversationFromDb(id).then(resolve).catch(reject);
+        loadConversationFromDb(id).then(resolve).catch(reject);
       }).catch(reject);
       return;
     }
 
     // Start a transaction
-    const transaction = window.conversationDb.transaction([CONVO_STORE_NAME], "readonly");
+    const transaction = conversationDb.transaction([CONVO_STORE_NAME], "readonly");
     const store = transaction.objectStore(CONVO_STORE_NAME);
 
     // Get the conversation
@@ -126,26 +129,26 @@ window.loadConversationFromDb = function(id) {
       }
     };
   });
-};
+}
 
 /**
  * Get all conversations from IndexedDB
  * @returns {Promise<Array>} - Promise that resolves with an array of conversation objects
  */
-window.getAllConversationsFromDb = function() {
+export function getAllConversationsFromDb() {
   return new Promise((resolve, reject) => {
-    if (!window.conversationDb) {
+    if (!conversationDb) {
       console.error("Conversation IndexedDB not initialized");
       // Try to initialize it now
-      window.initConversationDb().then(() => {
+      initConversationDb().then(() => {
         // Retry after initialization
-        window.getAllConversationsFromDb().then(resolve).catch(reject);
+        getAllConversationsFromDb().then(resolve).catch(reject);
       }).catch(reject);
       return;
     }
 
     const conversations = [];
-    const transaction = window.conversationDb.transaction([CONVO_STORE_NAME], "readonly");
+    const transaction = conversationDb.transaction([CONVO_STORE_NAME], "readonly");
     const store = transaction.objectStore(CONVO_STORE_NAME);
 
     const request = store.openCursor();
@@ -166,23 +169,23 @@ window.getAllConversationsFromDb = function() {
       }
     };
   });
-};
+}
 
 /**
  * Delete a conversation from IndexedDB
  * @param {string} id - The conversation ID to delete
  * @returns {Promise<boolean>} - Promise that resolves when deleted
  */
-window.deleteConversationFromDb = function(id) {
+export function deleteConversationFromDb(id) {
   return new Promise((resolve, reject) => {
-    if (!window.conversationDb) {
+    if (!conversationDb) {
       console.error("Conversation IndexedDB not initialized");
       reject(new Error("Conversation IndexedDB not initialized"));
       return;
     }
 
     // Start a transaction
-    const transaction = window.conversationDb.transaction([CONVO_STORE_NAME], "readwrite");
+    const transaction = conversationDb.transaction([CONVO_STORE_NAME], "readwrite");
     const store = transaction.objectStore(CONVO_STORE_NAME);
 
     // Delete the conversation
@@ -198,7 +201,7 @@ window.deleteConversationFromDb = function(id) {
       resolve(true);
     };
   });
-};
+}
 
 /**
  * Rename a conversation in IndexedDB
@@ -206,29 +209,29 @@ window.deleteConversationFromDb = function(id) {
  * @param {string} newName - The new name for the conversation
  * @returns {Promise<boolean>} - Promise that resolves when renamed
  */
-window.renameConversationInDb = function(id, newName) {
+export function renameConversationInDb(id, newName) {
   return new Promise((resolve, reject) => {
     // First load the conversation
-    window.loadConversationFromDb(id)
+    loadConversationFromDb(id)
       .then(conversation => {
         // Update the name
         conversation.name = newName;
         conversation.updated = new Date().toISOString();
 
         // Save it back
-        return window.saveConversationToDb(conversation);
+        return saveConversationToDb(conversation);
       })
       .then(() => {
         resolve(true);
       })
       .catch(reject);
   });
-};
+}
 
 // Initialize the conversation database when this script loads
-if (typeof window !== "undefined") {
+if (typeof window !== "undefined" && typeof window.addEventListener === "function") {
   window.addEventListener("DOMContentLoaded", () => {
-    window.initConversationDb().catch(err => {
+    initConversationDb().catch(err => {
       console.error("Failed to initialize conversation database:", err);
     });
   });

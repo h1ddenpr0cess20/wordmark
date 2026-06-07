@@ -1,3 +1,11 @@
+import {
+  getAllConversationsFromDb,
+  saveConversationToDb,
+  loadConversationFromDb,
+  deleteConversationFromDb,
+  renameConversationInDb,
+} from "../../utils/conversationStorage.js";
+
 function processImageForStorage(img, savePromises) {
   const processedImg = { ...img };
   const mediaType = typeof window.detectMediaType === 'function'
@@ -181,7 +189,7 @@ function resetConversationState() {
 }
 
 window.getAllConversations = function() {
-  return window.getAllConversationsFromDb?.();
+  return getAllConversationsFromDb?.();
 };
 
 window.saveCurrentConversation = function(meta = {}) {
@@ -234,7 +242,7 @@ window.saveCurrentConversation = function(meta = {}) {
       console.error('Error saving images to IndexedDB:', err);
     });
 
-  window.saveConversationToDb?.(conversation)
+  saveConversationToDb?.(conversation)
     .then((id) => {
       if (window.VERBOSE_LOGGING) {
         console.info('Saved conversation to IndexedDB:', id);
@@ -246,7 +254,7 @@ window.saveCurrentConversation = function(meta = {}) {
 };
 
 window.deleteConversation = function(id) {
-  window.deleteConversationFromDb?.(id)
+  deleteConversationFromDb?.(id)
     .then(() => {
       if (window.currentConversationId === id) {
         window.currentConversationId = null;
@@ -260,7 +268,7 @@ window.deleteConversation = function(id) {
 };
 
 window.renameConversation = function(id, newName) {
-  window.renameConversationInDb?.(id, newName)
+  renameConversationInDb?.(id, newName)
     .then(() => {
       if (window.currentConversationId === id) {
         window.currentConversationName = newName;
@@ -293,7 +301,7 @@ window.startNewConversation = function(name = null) {
 };
 
 window.loadConversation = function(id) {
-  return window.loadConversationFromDb?.(id)
+  return loadConversationFromDb?.(id)
     .then((convo) => {
       if (!convo) {
         console.warn(`Conversation ${id} not found in IndexedDB`);

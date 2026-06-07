@@ -1,9 +1,14 @@
+import {
+  getAllConversationsFromDb,
+  deleteConversationFromDb,
+} from "../../utils/conversationStorage.js";
+
 window.renderChatHistoryList = function() {
   if (!window.historyList) {
     return;
   }
 
-  window.getAllConversationsFromDb?.()
+  getAllConversationsFromDb?.()
     .then((convos) => {
       window.historyList.innerHTML = '';
 
@@ -143,7 +148,7 @@ window.renderChatHistoryList = function() {
           return;
         }
 
-        Promise.all(conversationIds.map(id => window.deleteConversationFromDb?.(id)))
+        Promise.all(conversationIds.map(id => deleteConversationFromDb?.(id)))
           .then(() => {
             conversationIds.forEach((id) => {
               if (window.currentConversationId === id) {
