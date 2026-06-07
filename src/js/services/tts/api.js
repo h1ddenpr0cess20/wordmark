@@ -1,60 +1,62 @@
-window.generateSpeech = async function(text) {
-  if (!this.ttsConfig.enabled) {
+import { ttsConfig } from "./config.js";
+
+export async function generateSpeech(text) {
+  if (!ttsConfig.enabled) {
     return null;
   }
 
   try {
-    const provider = this.ttsConfig.provider || 'openai';
+    const provider = ttsConfig.provider || "openai";
 
-    if (provider === 'xai') {
+    if (provider === "xai") {
       return await generateSpeechXai(text);
     }
     return await generateSpeechOpenai(text);
   } catch (error) {
-    console.error('TTS generation error:', error);
+    console.error("TTS generation error:", error);
     return null;
   }
-};
+}
 
 async function generateSpeechOpenai(text) {
   const openaiApiKey = window.config.services.openai?.apiKey;
 
   if (!openaiApiKey) {
-    console.error('OpenAI API key not found for TTS. Please ensure your OpenAI API key is configured.');
+    console.error("OpenAI API key not found for TTS. Please ensure your OpenAI API key is configured.");
     return null;
   }
 
-  let instructions = window.ttsConfig.instructions || '';
+  let instructions = ttsConfig.instructions || "";
 
   if (!instructions && window.personalityPromptRadio?.checked &&
-      window.personalityInput?.value.trim() !== '' &&
-      window.personalityInput?.getAttribute('data-explicitly-set') === 'true') {
+      window.personalityInput?.value.trim() !== "" &&
+      window.personalityInput?.getAttribute("data-explicitly-set") === "true") {
     instructions = `Assume the personality of ${window.personalityInput.value.trim()}. Roleplay and never break character.  Do not read code blocks that appear between backticks or other non-speech content such as emotes which appear between asterisks in *italics* like that.`;
   }
 
   if (!instructions) {
-    instructions = 'Speak in a natural, conversational tone.';
+    instructions = "Speak in a natural, conversational tone.";
   }
 
   const requestBody = {
-    model: 'gpt-4o-mini-tts',
+    model: "gpt-4o-mini-tts",
     input: text,
-    voice: window.ttsConfig.voice,
+    voice: ttsConfig.voice,
     instructions,
-    response_format: 'wav',
+    response_format: "wav",
   };
 
-  const response = await fetch('https://api.openai.com/v1/audio/speech', {
-    method: 'POST',
+  const response = await fetch("https://api.openai.com/v1/audio/speech", {
+    method: "POST",
     headers: {
       Authorization: `Bearer ${openaiApiKey}`,
-      'Content-Type': 'application/json',
+      "Content-Type": "application/json",
     },
     body: JSON.stringify(requestBody),
   });
 
   if (!response.ok) {
-    let errorDetails = '';
+    let errorDetails = "";
     try {
       const errorData = await response.json();
       errorDetails = errorData.error?.message || JSON.stringify(errorData);
@@ -71,31 +73,31 @@ async function generateSpeechXai(text) {
   const xaiApiKey = window.config.services.xai?.apiKey;
 
   if (!xaiApiKey) {
-    console.error('xAI API key not found for TTS. Please ensure your xAI API key is configured.');
+    console.error("xAI API key not found for TTS. Please ensure your xAI API key is configured.");
     return null;
   }
 
   const requestBody = {
     text,
-    voice_id: window.ttsConfig.voice,
-    language: 'auto',
+    voice_id: ttsConfig.voice,
+    language: "auto",
     output_format: {
-      codec: 'wav',
+      codec: "wav",
       sample_rate: 24000,
     },
   };
 
-  const response = await fetch('https://api.x.ai/v1/tts', {
-    method: 'POST',
+  const response = await fetch("https://api.x.ai/v1/tts", {
+    method: "POST",
     headers: {
       Authorization: `Bearer ${xaiApiKey}`,
-      'Content-Type': 'application/json',
+      "Content-Type": "application/json",
     },
     body: JSON.stringify(requestBody),
   });
 
   if (!response.ok) {
-    let errorDetails = '';
+    let errorDetails = "";
     try {
       const errorData = await response.json();
       errorDetails = errorData.error?.message || JSON.stringify(errorData);

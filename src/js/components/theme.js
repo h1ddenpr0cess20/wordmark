@@ -3,6 +3,7 @@
  */
 
 import { loadHighlightJS } from "../utils/highlight.js";
+import { ttsConfig } from "../services/tts.js";
 
 // Initialize theme variables
 window.themeSelector = null;
@@ -368,12 +369,10 @@ window.initializeTheme = function() {
   }
 
   // Initialize any theme-specific TTS UI elements
-  if (window.ttsConfig) {
-    const toggleSwitch = document.querySelector(".toggle-switch");
-    if (toggleSwitch) {
-      toggleSwitch.style.backgroundColor = window.ttsConfig.enabled ?
-        "var(--accent-color)" : "var(--bg-secondary)";
-    }
+  const toggleSwitch = document.querySelector(".toggle-switch");
+  if (toggleSwitch) {
+    toggleSwitch.style.backgroundColor = ttsConfig.enabled ?
+      "var(--accent-color)" : "var(--bg-secondary)";
   }
 };
 

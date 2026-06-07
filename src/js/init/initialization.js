@@ -10,6 +10,7 @@ import { initMCPServers } from "../services/mcpServers.js";
 import { ensureApiKeysLoaded } from "../services/apiKeys.js";
 import { loadFromUrl } from "../services/history/state.js";
 import { renderChatHistoryList } from "../services/history/list.js";
+import { initializeTts, initializeMobileKeyboardHandling } from "./ttsInitialization.js";
 
 // Configure DOMPurify to allow YouTube iframes
 function configureDOMPurify() {
@@ -243,12 +244,10 @@ async function initialize() {
     initializeServicesAndModels();
 
     // Initialize TTS voice selector and provider state
-    if (typeof window.initializeTts === "function") {
-      window.initializeTts();
-    }
+    initializeTts();
 
     // Initialize mobile keyboard handling
-    window.initializeMobileKeyboardHandling();
+    initializeMobileKeyboardHandling();
     if (window.VERBOSE_LOGGING) {
       console.info("Mobile keyboard handling initialized.");
     }

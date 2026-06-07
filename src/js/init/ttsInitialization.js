@@ -3,17 +3,18 @@
  */
 
 import { setupMobileKeyboardHandling } from "../utils/mobileHandling.js";
+import { ttsConfig, availableTtsVoices, initTtsReferences } from "../services/tts.js";
 
 /**
  * Initialize TTS functionality
  */
-function initializeTts() {
-  if (!window.ttsConfig) return;
+export function initializeTts() {
+  if (!ttsConfig) return;
 
   // Initialize TTS provider selector
   if (window.ttsProviderSelector) {
-    const provider = window.availableTtsVoices?.[window.ttsConfig.provider] ? window.ttsConfig.provider : "openai";
-    window.ttsConfig.provider = provider;
+    const provider = availableTtsVoices?.[ttsConfig.provider] ? ttsConfig.provider : "openai";
+    ttsConfig.provider = provider;
     window.ttsProviderSelector.value = provider;
   }
 
@@ -22,49 +23,37 @@ function initializeTts() {
 
   // Initialize TTS toggle state
   if (window.ttsToggle) {
-    window.ttsToggle.checked = window.ttsConfig.enabled;
+    window.ttsToggle.checked = ttsConfig.enabled;
   }
 
   // Initialize TTS autoplay toggle state
   if (window.ttsAutoplayToggle) {
-    window.ttsAutoplayToggle.checked = window.ttsConfig.autoplay;
+    window.ttsAutoplayToggle.checked = ttsConfig.autoplay;
   }
 
   // Initialize TTS instructions
   if (window.ttsInstructionsInput) {
-    window.ttsInstructionsInput.value = window.ttsConfig.instructions || "";
+    window.ttsInstructionsInput.value = ttsConfig.instructions || "";
     // xAI TTS doesn't support voice instructions
     const instructionsItem = window.ttsInstructionsInput.closest(".setting-item");
     if (instructionsItem) {
-      instructionsItem.style.display = (window.ttsConfig.provider || "openai") === "xai" ? "none" : "";
+      instructionsItem.style.display = (ttsConfig.provider || "openai") === "xai" ? "none" : "";
     }
   }
 
-  // Share references with TTS service
-  if (window.initTtsReferences) {
-    window.initTtsReferences({
-      ttsToggle: window.ttsToggle,
-      ttsAutoplayToggle: window.ttsAutoplayToggle,
-      ttsProviderSelector: window.ttsProviderSelector,
-      ttsVoiceSelector: window.ttsVoiceSelector,
-      ttsInstructionsInput: window.ttsInstructionsInput,
-      personalityInput: window.personalityInput,
-      personalityPromptRadio: window.personalityPromptRadio,
-    });
-  } else {
-    console.warn("initTtsReferences function not found. TTS may not work properly.");
-  }
+  // Wire the TTS voice-change listener.
+  initTtsReferences();
 }
 
 /**
  * Populate the TTS voice selector with available voices
  */
-function populateTtsVoiceSelector() {
-  if (window.ttsVoiceSelector && window.availableTtsVoices && window.ttsConfig) {
+export function populateTtsVoiceSelector() {
+  if (window.ttsVoiceSelector && availableTtsVoices && ttsConfig) {
     window.ttsVoiceSelector.innerHTML = "";
 
-    const provider = window.ttsConfig.provider || "openai";
-    const voices = window.availableTtsVoices[provider];
+    const provider = ttsConfig.provider || "openai";
+    const voices = availableTtsVoices[provider];
     if (!voices) return;
 
     const categories = ["neutral", "male", "female"];
@@ -86,17 +75,17 @@ function populateTtsVoiceSelector() {
 
     // If current voice isn't in the new provider's list, select the first available
     const allVoiceIds = categories.flatMap(c => (voices[c] || []).map(v => v.id));
-    if (!allVoiceIds.includes(window.ttsConfig.voice)) {
-      window.ttsConfig.voice = allVoiceIds[0] || "";
+    if (!allVoiceIds.includes(ttsConfig.voice)) {
+      ttsConfig.voice = allVoiceIds[0] || "";
     }
-    window.ttsVoiceSelector.value = window.ttsConfig.voice;
+    window.ttsVoiceSelector.value = ttsConfig.voice;
   }
 }
 
 /**
  * Initialize mobile keyboard handling
  */
-function initializeMobileKeyboardHandling() {
+export function initializeMobileKeyboardHandling() {
   if (typeof setupMobileKeyboardHandling === "function") {
     setupMobileKeyboardHandling();
     if (window.VERBOSE_LOGGING) {
@@ -106,8 +95,3 @@ function initializeMobileKeyboardHandling() {
     console.warn("Mobile keyboard handling function not available");
   }
 }
-
-// Make functions available globally
-window.initializeTts = initializeTts;
-window.populateTtsVoiceSelector = populateTtsVoiceSelector;
-window.initializeMobileKeyboardHandling = initializeMobileKeyboardHandling;

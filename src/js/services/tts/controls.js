@@ -1,16 +1,21 @@
 import { showError } from "../../utils/notifications.js";
 import { exportAudioForDownload } from "../../utils/audioStorage.js";
-window.generateTtsForMessage = async function(text, messageId) {
-  if (!this.ttsConfig.enabled) {
+import { ttsConfig, ttsRuntime, ttsSvgIcons, ttsMessageQueue } from "./config.js";
+import { ttsAudioResources } from "./resources.js";
+import { generateSpeech } from "./api.js";
+import { stopTtsAudio, handleTtsAudioEnded } from "./playback.js";
+import { playNextMessageInQueue } from "./queue.js";
+export async function generateTtsForMessage(text, messageId) {
+  if (!ttsConfig.enabled) {
     return;
   }
 
   try {
-    if (window.activeTtsAudio && window.activeTtsAudio.paused) {
+    if (ttsRuntime.activeTtsAudio && ttsRuntime.activeTtsAudio.paused) {
       if (window.VERBOSE_LOGGING) {
         console.info('Active TTS audio is paused; treating as stopped before queuing next message.');
       }
-      window.stopTtsAudio();
+      stopTtsAudio();
     }
 
     const lowerText = text.toLowerCase();
@@ -21,49 +26,49 @@ window.generateTtsForMessage = async function(text, messageId) {
       return;
     }
 
-    if (this.ttsConfig.autoplay) {
-      const audioData = await this.generateSpeech(text);
+    if (ttsConfig.autoplay) {
+      const audioData = await generateSpeech(text);
 
       if (audioData) {
-        this.addTtsControlsToMessage(audioData, messageId, text);
+        addTtsControlsToMessage(audioData, messageId, text);
 
-        if (!window.ttsMessageQueue.includes(messageId)) {
+        if (!ttsMessageQueue.includes(messageId)) {
           console.info('Adding message to TTS queue:', messageId);
-          window.ttsMessageQueue.push(messageId);
+          ttsMessageQueue.push(messageId);
 
-          if (!window.activeTtsAudio) {
+          if (!ttsRuntime.activeTtsAudio) {
             console.info('No active audio, starting autoplay sequence');
-            window.ttsAutoplayActive = true;
-            window.playNextMessageInQueue();
+            ttsRuntime.autoplayActive = true;
+            playNextMessageInQueue();
           } else {
             console.info('Audio already playing, message queued for later playback');
           }
         }
       } else {
-        if (!window.ttsErrorShown) {
-          window.ttsErrorShown = true;
+        if (!ttsRuntime.errorShown) {
+          ttsRuntime.errorShown = true;
           if (showError) {
             showError('TTS failed. Please check your API key configuration.');
           }
           setTimeout(() => {
-            window.ttsErrorShown = false;
+            ttsRuntime.errorShown = false;
           }, 30000);
         }
 
         if (window.ttsToggle) {
           window.ttsToggle.checked = false;
-          window.ttsConfig.enabled = false;
+          ttsConfig.enabled = false;
         }
       }
     } else {
-      this.addPlaceholderTtsControls(messageId, text);
+      addPlaceholderTtsControls(messageId, text);
     }
   } catch (error) {
     console.error('Failed to generate TTS for message:', error);
   }
 };
 
-window.addPlaceholderTtsControls = function(messageId, text) {
+export function addPlaceholderTtsControls(messageId, text) {
   const messageElement = document.getElementById(messageId);
   if (!messageElement) {
     return;
@@ -81,14 +86,14 @@ window.addPlaceholderTtsControls = function(messageId, text) {
   const controlsContainer = document.createElement('div');
   controlsContainer.className = 'tts-controls';
   controlsContainer.setAttribute('data-original-text', text);
-  controlsContainer.setAttribute('data-voice', window.ttsConfig.voice);
+  controlsContainer.setAttribute('data-voice', ttsConfig.voice);
   controlsContainer.setAttribute('data-audio-generated', 'false');
 
   const playButton = document.createElement('button');
   playButton.className = 'tts-play-pause';
   playButton.title = 'Generate and play voice';
   playButton.setAttribute('aria-label', 'Generate and play voice');
-  playButton.innerHTML = window.ttsSvgIcons.play;
+  playButton.innerHTML = ttsSvgIcons.play;
 
   const statusText = document.createElement('span');
   statusText.className = 'tts-status';
@@ -104,10 +109,10 @@ window.addPlaceholderTtsControls = function(messageId, text) {
     statusText.style.display = 'inline';
 
     try {
-      const audioData = await window.generateSpeech(text);
+      const audioData = await generateSpeech(text);
 
       if (audioData) {
-        window.addTtsControlsToMessage(audioData, messageId, text);
+        addTtsControlsToMessage(audioData, messageId, text);
         setTimeout(() => {
           const newControls = document.getElementById(messageId)?.querySelector('.tts-controls');
           const newPlayButton = newControls?.querySelector('.tts-play-pause');
@@ -117,14 +122,14 @@ window.addPlaceholderTtsControls = function(messageId, text) {
         }, 100);
       } else {
         statusText.textContent = 'Failed to generate audio';
-        playButton.innerHTML = window.ttsSvgIcons.play;
+        playButton.innerHTML = ttsSvgIcons.play;
         setTimeout(() => {
           statusText.style.display = 'none';
         }, 3000);
       }
     } catch (error) {
       console.error('Failed to generate audio on demand:', error);
-      playButton.innerHTML = window.ttsSvgIcons.play;
+      playButton.innerHTML = ttsSvgIcons.play;
       statusText.textContent = 'Error';
       statusText.style.display = 'inline';
       setTimeout(() => {
@@ -144,7 +149,7 @@ window.addPlaceholderTtsControls = function(messageId, text) {
   }
 };
 
-window.addTtsControlsToMessage = function(audioData, messageId, originalText) {
+export function addTtsControlsToMessage(audioData, messageId, originalText) {
   const messageElement = document.getElementById(messageId);
   if (!messageElement) {
     return;
@@ -162,32 +167,32 @@ window.addTtsControlsToMessage = function(audioData, messageId, originalText) {
   const audioBlob = new Blob([audioData], { type: 'audio/wav' });
   const audioUrl = URL.createObjectURL(audioBlob);
 
-  window.ttsAudioResources.addUrl(audioUrl, messageId, audioData);
+  ttsAudioResources.addUrl(audioUrl, messageId, audioData);
 
   const audio = new Audio(audioUrl);
   const playbackState = { isPlaying: false };
   const controlsContainer = document.createElement('div');
   controlsContainer.className = 'tts-controls';
   controlsContainer.setAttribute('data-original-text', originalText);
-  controlsContainer.setAttribute('data-voice', window.ttsConfig.voice);
+  controlsContainer.setAttribute('data-voice', ttsConfig.voice);
 
   const playPauseButton = document.createElement('button');
   playPauseButton.className = 'tts-play-pause';
   playPauseButton.title = 'Play voice';
   playPauseButton.setAttribute('aria-label', 'Play voice');
-  playPauseButton.innerHTML = window.ttsSvgIcons.play;
+  playPauseButton.innerHTML = ttsSvgIcons.play;
 
   const stopButton = document.createElement('button');
   stopButton.className = 'tts-stop';
   stopButton.title = 'Stop and reset voice';
   stopButton.setAttribute('aria-label', 'Stop voice');
-  stopButton.innerHTML = window.ttsSvgIcons.stop;
+  stopButton.innerHTML = ttsSvgIcons.stop;
 
   const downloadButton = document.createElement('button');
   downloadButton.className = 'tts-download';
   downloadButton.title = 'Download audio';
   downloadButton.setAttribute('aria-label', 'Download audio');
-  downloadButton.innerHTML = window.ttsSvgIcons.download;
+  downloadButton.innerHTML = ttsSvgIcons.download;
 
   const statusText = document.createElement('span');
   statusText.className = 'tts-status';
@@ -216,7 +221,7 @@ window.addTtsControlsToMessage = function(audioData, messageId, originalText) {
     }
 
     const audioVoice = controlsContainer.getAttribute('data-voice');
-    const currentVoice = window.ttsConfig.voice;
+    const currentVoice = ttsConfig.voice;
 
     if (audioVoice !== currentVoice) {
       if (isPlaying) {
@@ -232,11 +237,11 @@ window.addTtsControlsToMessage = function(audioData, messageId, originalText) {
       const messageText = controlsContainer.getAttribute('data-original-text');
       if (messageText) {
         try {
-          const newAudioData = await window.generateSpeech(messageText);
+          const newAudioData = await generateSpeech(messageText);
           if (newAudioData) {
-            window.ttsAudioResources.removeUrl(audioUrl);
+            ttsAudioResources.removeUrl(audioUrl);
             URL.revokeObjectURL(audioUrl);
-            window.addTtsControlsToMessage(newAudioData, messageId, messageText);
+            addTtsControlsToMessage(newAudioData, messageId, messageText);
             setTimeout(() => {
               const newControls = document.getElementById(messageId)?.querySelector('.tts-controls');
               const newPlayButton = newControls?.querySelector('.tts-play-pause');
@@ -248,7 +253,7 @@ window.addTtsControlsToMessage = function(audioData, messageId, originalText) {
           }
 
           isLoading = false;
-          playPauseButton.innerHTML = window.ttsSvgIcons.play;
+          playPauseButton.innerHTML = ttsSvgIcons.play;
           statusText.textContent = 'Voice change failed';
           statusText.style.display = 'inline';
           setTimeout(() => {
@@ -258,7 +263,7 @@ window.addTtsControlsToMessage = function(audioData, messageId, originalText) {
         } catch (error) {
           console.error('Failed to regenerate audio:', error);
           isLoading = false;
-          playPauseButton.innerHTML = window.ttsSvgIcons.play;
+          playPauseButton.innerHTML = ttsSvgIcons.play;
           statusText.textContent = 'Error';
           statusText.style.display = 'inline';
           setTimeout(() => {
@@ -275,13 +280,13 @@ window.addTtsControlsToMessage = function(audioData, messageId, originalText) {
         playPauseButton.innerHTML = '';
         playPauseButton.appendChild(loadingSpinner);
 
-        if (window.activeTtsAudio && window.activeTtsAudio !== audio) {
-          window.activeTtsAudio.pause();
-          window.activeTtsAudio.currentTime = 0;
+        if (ttsRuntime.activeTtsAudio && ttsRuntime.activeTtsAudio !== audio) {
+          ttsRuntime.activeTtsAudio.pause();
+          ttsRuntime.activeTtsAudio.currentTime = 0;
 
           document.querySelectorAll('.tts-play-pause').forEach((btn) => {
             if (btn !== playPauseButton && !btn.contains(loadingSpinner)) {
-              btn.innerHTML = window.ttsSvgIcons.play;
+              btn.innerHTML = ttsSvgIcons.play;
               btn.title = 'Play voice';
               btn.setAttribute('aria-label', 'Play voice');
             }
@@ -293,15 +298,15 @@ window.addTtsControlsToMessage = function(audioData, messageId, originalText) {
           audio.play().then(() => {
             playbackState.isPlaying = true;
             isPlaying = true;
-            playPauseButton.innerHTML = window.ttsSvgIcons.pause;
+            playPauseButton.innerHTML = ttsSvgIcons.pause;
             playPauseButton.title = 'Pause voice';
             playPauseButton.setAttribute('aria-label', 'Pause voice');
             statusText.textContent = 'Playing';
             statusText.style.display = 'inline';
-            window.activeTtsAudio = audio;
+            ttsRuntime.activeTtsAudio = audio;
           }).catch((error) => {
             console.error('Failed to play audio:', error);
-            playPauseButton.innerHTML = window.ttsSvgIcons.play;
+            playPauseButton.innerHTML = ttsSvgIcons.play;
             statusText.textContent = 'Failed';
             statusText.style.display = 'inline';
             setTimeout(() => {
@@ -319,24 +324,24 @@ window.addTtsControlsToMessage = function(audioData, messageId, originalText) {
         audio.play();
         playbackState.isPlaying = true;
         isPlaying = true;
-        playPauseButton.innerHTML = window.ttsSvgIcons.pause;
+        playPauseButton.innerHTML = ttsSvgIcons.pause;
         playPauseButton.title = 'Pause voice';
         playPauseButton.setAttribute('aria-label', 'Pause voice');
         statusText.textContent = 'Playing';
         statusText.style.display = 'inline';
-        window.activeTtsAudio = audio;
+        ttsRuntime.activeTtsAudio = audio;
       }
     } else {
       audio.pause();
       playbackState.isPlaying = false;
       isPlaying = false;
-      playPauseButton.innerHTML = window.ttsSvgIcons.play;
+      playPauseButton.innerHTML = ttsSvgIcons.play;
       playPauseButton.title = 'Play voice';
       playPauseButton.setAttribute('aria-label', 'Play voice');
       statusText.textContent = 'Paused';
       statusText.style.display = 'inline';
-      if (window.activeTtsAudio === audio) {
-        window.activeTtsAudio = null;
+      if (ttsRuntime.activeTtsAudio === audio) {
+        ttsRuntime.activeTtsAudio = null;
       }
       setTimeout(() => {
         if (audio.paused) {
@@ -350,7 +355,7 @@ window.addTtsControlsToMessage = function(audioData, messageId, originalText) {
     audio.pause();
     audio.currentTime = 0;
     isPlaying = false;
-    playPauseButton.innerHTML = window.ttsSvgIcons.play;
+    playPauseButton.innerHTML = ttsSvgIcons.play;
     playPauseButton.title = 'Play voice';
     playPauseButton.setAttribute('aria-label', 'Play voice');
     statusText.textContent = 'Stopped';
@@ -359,8 +364,8 @@ window.addTtsControlsToMessage = function(audioData, messageId, originalText) {
       statusText.style.display = 'none';
     }, 2000);
 
-    if (window.activeTtsAudio === audio) {
-      window.activeTtsAudio = null;
+    if (ttsRuntime.activeTtsAudio === audio) {
+      ttsRuntime.activeTtsAudio = null;
     }
   });
 
@@ -371,10 +376,10 @@ window.addTtsControlsToMessage = function(audioData, messageId, originalText) {
     try {
       const now = new Date();
       const timestamp = now.toISOString().replace(/[-:]/g, '').replace(/\..+/, '');
-      const voiceName = window.ttsConfig.voice;
+      const voiceName = ttsConfig.voice;
       const filename = `tts_${voiceName}_${timestamp}.wav`;
 
-      const cachedAudioData = window.ttsAudioResources.getAudioData(messageId);
+      const cachedAudioData = ttsAudioResources.getAudioData(messageId);
 
       if (cachedAudioData) {
         if (typeof exportAudioForDownload === 'function') {
@@ -416,25 +421,25 @@ window.addTtsControlsToMessage = function(audioData, messageId, originalText) {
     }
   });
 
-  audio.addEventListener('ended', window.handleTtsAudioEnded(playPauseButton, statusText, audioUrl, playbackState));
+  audio.addEventListener('ended', handleTtsAudioEnded(playPauseButton, statusText, audioUrl, playbackState));
 
   audio.addEventListener('error', (event) => {
     console.error('Audio playback error:', event);
     isLoading = false;
     isPlaying = false;
     playbackState.isPlaying = false;
-    playPauseButton.innerHTML = window.ttsSvgIcons.play;
+    playPauseButton.innerHTML = ttsSvgIcons.play;
     statusText.textContent = 'Error';
     statusText.style.display = 'inline';
     setTimeout(() => {
       statusText.style.display = 'none';
     }, 3000);
 
-    window.ttsAudioResources.removeUrl(audioUrl);
+    ttsAudioResources.removeUrl(audioUrl);
 
-    if (window.ttsConfig.autoplay) {
+    if (ttsConfig.autoplay) {
       console.info('Audio error, trying next message in queue');
-      setTimeout(() => window.playNextMessageInQueue(), 500);
+      setTimeout(() => playNextMessageInQueue(), 500);
     }
   });
 

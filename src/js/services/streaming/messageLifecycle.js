@@ -1,6 +1,7 @@
 import { showError } from "../../utils/notifications.js";
 import { updateBrowserHistory } from "../history/state.js";
 import { saveCurrentConversation } from "../history/persistence.js";
+import { ttsConfig, generateTtsForMessage } from "../tts.js";
 /**
  * Message lifecycle helpers used during streaming and finalization.
  */
@@ -271,8 +272,8 @@ export function finalizeStreamedResponse(loadingMessage, contentObj) {
   updateFinalMessage(loadingMessage);
 
   // TTS uses the cleaned content (think tags stripped when present)
-  if (window.ttsConfig && window.ttsConfig.enabled && typeof window.generateTtsForMessage === 'function') {
-    window.generateTtsForMessage(content, loadingMessage.id);
+  if (ttsConfig.enabled) {
+    generateTtsForMessage(content, loadingMessage.id);
   }
 
   updateBrowserHistory();

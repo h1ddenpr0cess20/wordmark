@@ -1,5 +1,6 @@
 import { getMemoryConfig, setMemoryEnabled } from "../utils/memoryStorage.js";
 import { locationState, requestLocation, disableLocation } from "../services/location.js";
+import { ttsConfig } from "../services/tts.js";
 /**
  * Settings panel related functionality
  */
@@ -260,7 +261,7 @@ window.updateFeatureStatus = function() {
     memory: (() => { try { return Boolean(getMemoryConfig && getMemoryConfig().enabled); } catch { return false; } })(),
     tools: Boolean(window.config && window.config.enableFunctionCalling !== false),
     data: Boolean(typeof window.getDataSettingsEnabled === "function" ? window.getDataSettingsEnabled() : (localStorage.getItem("dataSettingsEnabled") !== "false")),
-    tts: Boolean(window.ttsConfig?.enabled),
+    tts: Boolean(ttsConfig.enabled),
   };
 
   // Rebuild to bind handlers

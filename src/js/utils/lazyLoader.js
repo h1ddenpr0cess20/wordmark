@@ -34,15 +34,6 @@ export function loadHistoryModule() {
   });
 }
 
-export function loadTtsModule() {
-  if (lazyModulesLoaded.tts) {
-    return Promise.resolve();
-  }
-  return import("../services/tts.js").then(() => {
-    lazyModulesLoaded.tts = true;
-  });
-}
-
 export function loadLocationModule() {
   if (lazyModulesLoaded.location) {
     return Promise.resolve();

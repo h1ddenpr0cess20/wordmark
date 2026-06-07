@@ -1,101 +1,104 @@
-window.playNextMessageInQueue = function() {
-  if (!window.ttsMessageQueue.length || !window.ttsConfig.autoplay) {
+import { ttsConfig, ttsRuntime, ttsMessageQueue } from "./config.js";
+import { shouldSkipTts } from "./filters.js";
+import { stopTtsAudio } from "./playback.js";
+
+export function playNextMessageInQueue() {
+  if (!ttsMessageQueue.length || !ttsConfig.autoplay) {
     if (window.VERBOSE_LOGGING) {
-      console.info('Autoplay sequence ended: queue empty or autoplay disabled');
+      console.info("Autoplay sequence ended: queue empty or autoplay disabled");
     }
-    window.ttsAutoplayActive = false;
+    ttsRuntime.autoplayActive = false;
     return;
   }
 
-  if (window.activeTtsAudio) {
+  if (ttsRuntime.activeTtsAudio) {
     if (window.VERBOSE_LOGGING) {
-      console.info('Audio already playing, will continue queue when finished');
+      console.info("Audio already playing, will continue queue when finished");
     }
     return;
   }
 
   if (window.VERBOSE_LOGGING) {
-    console.info('Playing next message in queue. Queue length:', window.ttsMessageQueue.length);
+    console.info("Playing next message in queue. Queue length:", ttsMessageQueue.length);
   }
 
-  const nextMessageId = window.ttsMessageQueue[0];
+  const nextMessageId = ttsMessageQueue[0];
   const messageElement = document.getElementById(nextMessageId);
 
   if (messageElement) {
-    const controlsContainer = messageElement.querySelector('.tts-controls');
-    const playButton = controlsContainer?.querySelector('.tts-play-pause');
+    const controlsContainer = messageElement.querySelector(".tts-controls");
+    const playButton = controlsContainer?.querySelector(".tts-play-pause");
 
     if (playButton) {
-      window.ttsMessageQueue.shift();
+      ttsMessageQueue.shift();
       try {
         playButton.click();
         return;
       } catch (error) {
-        console.error('Error clicking play button:', error);
-        setTimeout(() => window.playNextMessageInQueue(), 100);
+        console.error("Error clicking play button:", error);
+        setTimeout(() => playNextMessageInQueue(), 100);
         return;
       }
     }
 
-    console.warn('Could not find play controls for message:', nextMessageId);
+    console.warn("Could not find play controls for message:", nextMessageId);
   } else {
-    console.warn('Could not find message element:', nextMessageId);
+    console.warn("Could not find message element:", nextMessageId);
   }
 
-  window.ttsMessageQueue.shift();
-  setTimeout(() => window.playNextMessageInQueue(), 100);
-};
+  ttsMessageQueue.shift();
+  setTimeout(() => playNextMessageInQueue(), 100);
+}
 
-window.addMessageToTtsQueue = function(messageId) {
-  if (!window.ttsConfig.enabled || !window.ttsConfig.autoplay) {
+export function addMessageToTtsQueue(messageId) {
+  if (!ttsConfig.enabled || !ttsConfig.autoplay) {
     return;
   }
 
-  if (window.shouldSkipTts(messageId)) {
+  if (shouldSkipTts(messageId)) {
     return;
   }
 
-  if (!window.ttsMessageQueue.includes(messageId)) {
-    window.ttsMessageQueue.push(messageId);
+  if (!ttsMessageQueue.includes(messageId)) {
+    ttsMessageQueue.push(messageId);
     if (window.VERBOSE_LOGGING) {
-      console.info('Adding message to TTS queue:', messageId);
+      console.info("Adding message to TTS queue:", messageId);
     }
 
-    if (!window.activeTtsAudio && window.ttsAutoplayActive) {
+    if (!ttsRuntime.activeTtsAudio && ttsRuntime.autoplayActive) {
       if (window.VERBOSE_LOGGING) {
-        console.info('No active audio, starting autoplay sequence');
+        console.info("No active audio, starting autoplay sequence");
       }
-      window.playQueuedTtsMessage();
-    } else if (window.activeTtsAudio && window.VERBOSE_LOGGING) {
-      console.info('Audio already playing, message queued for later playback');
+      playQueuedTtsMessage();
+    } else if (ttsRuntime.activeTtsAudio && window.VERBOSE_LOGGING) {
+      console.info("Audio already playing, message queued for later playback");
     }
   }
-};
+}
 
-window.startTtsAutoplay = function() {
-  if (window.ttsConfig.enabled && window.ttsConfig.autoplay && !window.ttsAutoplayActive) {
-    window.ttsAutoplayActive = true;
+export function startTtsAutoplay() {
+  if (ttsConfig.enabled && ttsConfig.autoplay && !ttsRuntime.autoplayActive) {
+    ttsRuntime.autoplayActive = true;
     if (window.VERBOSE_LOGGING) {
-      console.info('Starting TTS autoplay sequence.');
+      console.info("Starting TTS autoplay sequence.");
     }
-    window.playQueuedTtsMessage();
+    playQueuedTtsMessage();
   } else if (window.VERBOSE_LOGGING) {
-    console.info('TTS autoplay not started: already active or disabled.');
+    console.info("TTS autoplay not started: already active or disabled.");
   }
-};
+}
 
-window.stopTtsAutoplay = function() {
-  if (window.ttsAutoplayActive) {
-    window.ttsAutoplayActive = false;
+export function stopTtsAutoplay() {
+  if (ttsRuntime.autoplayActive) {
+    ttsRuntime.autoplayActive = false;
     if (window.VERBOSE_LOGGING) {
-      console.info('Stopping TTS autoplay sequence.');
+      console.info("Stopping TTS autoplay sequence.");
     }
-    window.stopTtsAudio();
+    stopTtsAudio();
   }
-};
+}
 
 // Legacy helper used by older handlers – keep as thin wrapper
-window.playQueuedTtsMessage = function() {
-  window.playNextMessageInQueue();
-};
-
+export function playQueuedTtsMessage() {
+  playNextMessageInQueue();
+}

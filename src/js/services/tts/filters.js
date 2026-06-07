@@ -1,4 +1,4 @@
-window.shouldSkipTts = function(messageId) {
+export function shouldSkipTts(messageId) {
   const messageElement = document.getElementById(`message-${messageId}`) || document.getElementById(messageId);
   if (!messageElement) {
     return true;
