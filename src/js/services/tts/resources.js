@@ -1,3 +1,5 @@
+import { saveAudioToDb } from "../../utils/audioStorage.js";
+
 window.ttsAudioResources = {
   activeUrls: new Map(),
 
@@ -8,7 +10,7 @@ window.ttsAudioResources = {
       audioData,
     });
 
-    if (typeof window.saveAudioToDb === 'function' && audioData) {
+    if (audioData) {
       const messageElement = document.getElementById(messageId);
       let text = '';
       let voice = window.ttsConfig.voice;
@@ -21,7 +23,7 @@ window.ttsAudioResources = {
         }
       }
 
-      window.saveAudioToDb(audioData, messageId, text, voice).catch((err) => {
+      saveAudioToDb(audioData, messageId, text, voice).catch((err) => {
         console.error('Failed to save audio to IndexedDB:', err);
       });
     }

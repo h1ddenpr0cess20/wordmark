@@ -58,14 +58,8 @@ window.availableTtsVoices = {
   },
 };
 
-// Lazy-load audio storage helpers if needed
+// Audio storage (audioStorage.js) is imported by the TTS modules that use it.
 document.addEventListener('DOMContentLoaded', () => {
-  if (typeof window.initAudioDb === 'undefined') {
-    import('../../utils/audioStorage.js')
-      .then(() => console.info('Audio storage module loaded'))
-      .catch((err) => console.error('Failed to load audio storage module:', err));
-  }
-
   const clearMemoryButton = document.getElementById('clear-memory');
   if (clearMemoryButton) {
     clearMemoryButton.addEventListener('click', () => {

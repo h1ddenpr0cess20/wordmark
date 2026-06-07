@@ -1,4 +1,5 @@
 import { showError } from "../../utils/notifications.js";
+import { exportAudioForDownload } from "../../utils/audioStorage.js";
 window.generateTtsForMessage = async function(text, messageId) {
   if (!this.ttsConfig.enabled) {
     return;
@@ -376,8 +377,8 @@ window.addTtsControlsToMessage = function(audioData, messageId, originalText) {
       const cachedAudioData = window.ttsAudioResources.getAudioData(messageId);
 
       if (cachedAudioData) {
-        if (typeof window.exportAudioForDownload === 'function') {
-          window.exportAudioForDownload(cachedAudioData, filename);
+        if (typeof exportAudioForDownload === 'function') {
+          exportAudioForDownload(cachedAudioData, filename);
           statusText.textContent = 'Downloaded';
         } else {
           const blob = new Blob([cachedAudioData], { type: 'audio/wav' });
