@@ -1,4 +1,5 @@
 import { debounce } from "../../utils/utils.js";
+import { focusUserInputSafely } from "../../utils/mobileHandling.js";
 
 function setupPromptRadioEventListeners() {
   if (window.personalityPromptRadio) {
@@ -94,8 +95,8 @@ function setupPersonalityPresetEventListeners(closeSettingsPanel) {
         window.updateBrowserHistory();
       }
 
-      if (typeof window.focusUserInputSafely === 'function') {
-        window.focusUserInputSafely();
+      if (typeof focusUserInputSafely === 'function') {
+        focusUserInputSafely();
       } else if (window.userInput) {
         window.userInput.focus();
       }

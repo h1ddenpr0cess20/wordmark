@@ -2,6 +2,8 @@
  * TTS initialization for the chatbot application
  */
 
+import { setupMobileKeyboardHandling } from "../utils/mobileHandling.js";
+
 /**
  * Initialize TTS functionality
  */
@@ -95,8 +97,8 @@ function populateTtsVoiceSelector() {
  * Initialize mobile keyboard handling
  */
 function initializeMobileKeyboardHandling() {
-  if (typeof window.setupMobileKeyboardHandling === "function") {
-    window.setupMobileKeyboardHandling();
+  if (typeof setupMobileKeyboardHandling === "function") {
+    setupMobileKeyboardHandling();
     if (window.VERBOSE_LOGGING) {
       console.info("Mobile keyboard handling initialized.");
     }

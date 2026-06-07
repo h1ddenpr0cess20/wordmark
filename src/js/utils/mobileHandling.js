@@ -6,36 +6,36 @@
  * Check if the device is a mobile device
  * @returns {boolean} True if the current device is mobile
  */
-window.isMobileDevice = function() {
+export function isMobileDevice() {
   return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) ||
          window.innerWidth <= 768;
-};
+}
 
 /**
  * Handles mobile keyboard appearance and ensures the input remains visible
  */
-window.setupMobileKeyboardHandling = function() {
+export function setupMobileKeyboardHandling() {
   // Check if Visual Viewport API is available
   if (window.visualViewport) {
     // Use visualViewport API to detect keyboard appearance
     window.visualViewport.addEventListener("resize", () => {
       if (document.activeElement === window.userInput) {
-        window.scrollInputIntoView();
+        scrollInputIntoView();
       }
     });
   }
 
   // Add focus event to scroll input into view when focused
   if (window.userInput) {
-    window.userInput.addEventListener("focus", window.scrollInputIntoView);
+    window.userInput.addEventListener("focus", scrollInputIntoView);
   }
-};
+}
 
 /**
  * Scrolls the input field into view
  * Uses smooth scrolling for better UX
  */
-window.scrollInputIntoView = function() {
+export function scrollInputIntoView() {
   // Use a minimal timeout to ensure DOM is ready and keyboard has appeared
   setTimeout(() => {
     // Find the input container for better positioning
@@ -52,17 +52,17 @@ window.scrollInputIntoView = function() {
       }
     }
   }, 100); // Reduced delay for faster response
-};
+}
 
 /**
  * Safely focuses the user input field, handling mobile differences
  */
-window.focusUserInputSafely = function() {
+export function focusUserInputSafely() {
   if (!window.userInput) {
     return;
   }
 
-  const isMobile = window.isMobileDevice();
+  const isMobile = isMobileDevice();
 
   if (!isMobile) {
     // On desktop, focus immediately
@@ -70,36 +70,36 @@ window.focusUserInputSafely = function() {
   } else {
     // On mobile we intentionally avoid forcing focus to prevent unwanted keyboard popups.
   }
-};
+}
 
 /**
  * Initializes mobile keyboard handling for the app
  * Combined from scrollOptimizer.js
  */
-window.initializeMobileKeyboardHandling = function() {
+export function initializeMobileKeyboardHandling() {
   // Setup mobile keyboard handling
-  window.setupMobileKeyboardHandling();
+  setupMobileKeyboardHandling();
 
   // Add a class to the body to identify mobile devices for CSS targeting
-  const isMobile = window.isMobileDevice();
+  const isMobile = isMobileDevice();
 
   if (isMobile) {
     document.body.classList.add("mobile-device");
   }
 
   // Optimize scrolling behavior for better performance on mobile
-  window.optimizeScrolling();
+  optimizeScrolling();
 
   // Setup tap-to-expand for system prompt area
-  window.setupPromptTapExpand();
-};
+  setupPromptTapExpand();
+}
 
 /**
  * Optimizes scrolling behavior throughout the app
  * Makes scrolling more responsive on mobile devices
  * Combined from scrollOptimizer.js
  */
-window.optimizeScrolling = function() {
+export function optimizeScrolling() {
   // Use passive event listeners for touch events to prevent scrolling jank
   document.addEventListener("touchstart", () => {}, { passive: true });
   document.addEventListener("touchmove", () => {}, { passive: true });
@@ -141,26 +141,26 @@ window.optimizeScrolling = function() {
       };
     }
   }
-};
+}
 
 /**
  * Sets up tap-to-expand functionality for the system prompt area on mobile
  */
-window.setupPromptTapExpand = function() {
+export function setupPromptTapExpand() {
   // Wait for DOM to be ready
   if (document.readyState === "loading") {
-    document.addEventListener("DOMContentLoaded", window.setupPromptTapExpand);
+    document.addEventListener("DOMContentLoaded", setupPromptTapExpand);
     return;
   }
 
   const promptContainer = document.getElementById("model-info");
   if (!promptContainer) {
-    setTimeout(window.setupPromptTapExpand, 1000);
+    setTimeout(setupPromptTapExpand, 1000);
     return;
   }
 
   // Only add this functionality on mobile devices
-  const isMobile = window.isMobileDevice();
+  const isMobile = isMobileDevice();
   if (!isMobile) {
     return;
   }
@@ -189,9 +189,11 @@ window.setupPromptTapExpand = function() {
       promptContainer.classList.remove("expanded");
     }
   });
-};
+}
 
 // Also force setup on window load
-window.addEventListener("load", () => {
-  setTimeout(window.setupPromptTapExpand, 100);
-});
+if (typeof window !== "undefined" && typeof window.addEventListener === "function") {
+  window.addEventListener("load", () => {
+    setTimeout(setupPromptTapExpand, 100);
+  });
+}

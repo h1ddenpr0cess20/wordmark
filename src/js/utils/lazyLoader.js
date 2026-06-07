@@ -52,11 +52,6 @@ window.loadLocationModule = function() {
   });
 };
 
-window.isMobileDevice = function() {
-  return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) ||
-         window.innerWidth <= 768;
-};
-
 window.loadMobileHandling = function() {
   if (window.lazyModulesLoaded.mobileHandling) {
     return Promise.resolve();

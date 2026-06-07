@@ -5,6 +5,7 @@ import { showError,showInfo } from "../utils/notifications.js";
 
 import { sanitizeInput, stripBase64FromHistory } from "../utils/utils.js";
 import { saveImageToDb } from "../utils/imageStorage.js";
+import { scrollInputIntoView } from "../utils/mobileHandling.js";
 
 // -----------------------------------------------------
 // Message sending and related functionality
@@ -450,9 +451,9 @@ window.resetSendButton = function() {
 
     if (!isMobile) {
       window.userInput.focus();
-    } else if (typeof window.scrollInputIntoView === "function") {
+    } else if (typeof scrollInputIntoView === "function") {
       // For mobile, ensure the input is visible without forcing focus
-      window.scrollInputIntoView();
+      scrollInputIntoView();
     }
   }
 };

@@ -1,4 +1,5 @@
 import { icon } from "../../utils/icons.js";
+import { isMobileDevice, focusUserInputSafely } from "../../utils/mobileHandling.js";
 function closePanelIfActive(closeSettingsPanel) {
   if (typeof closeSettingsPanel === 'function' && window.settingsPanel && window.settingsPanel.classList.contains('active')) {
     closeSettingsPanel();
@@ -25,7 +26,7 @@ export function setupButtonEventListeners({ closeSettingsPanel } = {}) {
       if (typeof window.updateBrowserHistory === 'function') {
         window.updateBrowserHistory();
       }
-      if (typeof window.isMobileDevice === 'function' && !window.isMobileDevice() && window.userInput) {
+      if (typeof isMobileDevice === 'function' && !isMobileDevice() && window.userInput) {
         window.userInput.focus();
       }
     });
@@ -55,8 +56,8 @@ export function setupButtonEventListeners({ closeSettingsPanel } = {}) {
       if (typeof window.updateBrowserHistory === 'function') {
         window.updateBrowserHistory();
       }
-      if (typeof window.focusUserInputSafely === 'function') {
-        window.focusUserInputSafely();
+      if (typeof focusUserInputSafely === 'function') {
+        focusUserInputSafely();
       }
     });
   }
@@ -92,8 +93,8 @@ export function setupButtonEventListeners({ closeSettingsPanel } = {}) {
       if (typeof window.updateBrowserHistory === 'function') {
         window.updateBrowserHistory();
       }
-      if (typeof window.focusUserInputSafely === 'function') {
-        window.focusUserInputSafely();
+      if (typeof focusUserInputSafely === 'function') {
+        focusUserInputSafely();
       }
     });
   }

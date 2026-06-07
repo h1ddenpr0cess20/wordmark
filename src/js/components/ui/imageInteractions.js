@@ -1,5 +1,6 @@
 import { icon } from "../../utils/icons.js";
 import { deleteImageFromDb } from "../../utils/imageStorage.js";
+import { isMobileDevice } from "../../utils/mobileHandling.js";
 
 window.downloadImage = function(url, filename) {
   return window.downloadMediaSource?.(url, filename);
@@ -166,7 +167,7 @@ window.createImageSlideshow = function(images, startIndex, isGalleryMode = false
   }
 
   let currentIndex = startIndex || 0;
-  const isMobile = typeof window.isMobileDevice === 'function' ? window.isMobileDevice() : false;
+  const isMobile = typeof isMobileDevice === 'function' ? isMobileDevice() : false;
 
   const slideshow = document.createElement('div');
   slideshow.className = 'gallery-slideshow';

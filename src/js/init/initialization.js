@@ -3,6 +3,8 @@
  * This file loads all initialization modules and coordinates the startup process
  */
 
+import { focusUserInputSafely } from "../utils/mobileHandling.js";
+
 // Configure DOMPurify to allow YouTube iframes
 function configureDOMPurify() {
   // Add a small delay to ensure DOMPurify has loaded
@@ -402,7 +404,7 @@ function setupScrollTracking() {
  */
 function focusInputField() {
   // Check if the implementation from mobileHandling.js is available
-  const externalImplementation = window.focusUserInputSafely;
+  const externalImplementation = focusUserInputSafely;
 
   if (typeof externalImplementation === "function") {
     // Call the implementation from mobileHandling.js
