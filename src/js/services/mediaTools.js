@@ -2,6 +2,8 @@
  * Client-side media generation/display helpers for xAI Grok Imagine images.
  */
 
+import { loadImageFromDb, saveImageToDb } from "../utils/imageStorage.js";
+
 const XAI_IMAGE_MODEL = "grok-imagine-image";
 
 const XAI_IMAGE_ASPECT_RATIOS = [
@@ -128,7 +130,7 @@ async function resolveStoredReference(record) {
     }
   }
   try {
-    const stored = await window.loadImageFromDb?.(record.filename);
+    const stored = await loadImageFromDb(record.filename);
     const displayUrl = window.getMediaDisplayUrl?.(stored?.data, record.filename) || "";
     if (displayUrl && window.imageDataCache?.set) {
       window.imageDataCache.set(record.filename, displayUrl);
@@ -356,8 +358,8 @@ window.registerGeneratedMedia = function({
     window.imageDataCache.set(effectiveFilename, displayUrl);
   }
 
-  if (typeof window.saveImageToDb === "function") {
-    window.saveImageToDb(sourceData, effectiveFilename, {
+  if (typeof saveImageToDb === "function") {
+    saveImageToDb(sourceData, effectiveFilename, {
       prompt: record.prompt,
       tool: record.tool,
       timestamp: record.timestamp,

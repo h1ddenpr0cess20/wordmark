@@ -4,6 +4,7 @@ import { showError,showInfo } from "../utils/notifications.js";
  */
 
 import { sanitizeInput, stripBase64FromHistory } from "../utils/utils.js";
+import { saveImageToDb } from "../utils/imageStorage.js";
 
 // -----------------------------------------------------
 // Message sending and related functionality
@@ -168,8 +169,8 @@ window.sendMessage = async function() {
         mimeType: (up.file && up.file.type) || "image/png",
         isStoredInDb: true,
       });
-      if (window.saveImageToDb) {
-        window.saveImageToDb(up.dataUrl, up.filename, {
+      if (saveImageToDb) {
+        saveImageToDb(up.dataUrl, up.filename, {
           tool: "upload",
           prompt: "",
           timestamp: up.timestamp,

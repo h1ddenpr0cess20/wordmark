@@ -5,6 +5,7 @@ import {
   deleteConversationFromDb,
   renameConversationInDb,
 } from "../../utils/conversationStorage.js";
+import { saveImageToDb, loadImageFromDb } from "../../utils/imageStorage.js";
 
 function processImageForStorage(img, savePromises) {
   const processedImg = { ...img };
@@ -53,7 +54,7 @@ function processImageForStorage(img, savePromises) {
       const savePayload = processedImg.pendingStorageData instanceof Blob
         ? processedImg.pendingStorageData
         : processedImg.url;
-      const savePromise = window.saveImageToDb?.(savePayload, processedImg.filename, {
+      const savePromise = saveImageToDb?.(savePayload, processedImg.filename, {
         prompt: processedImg.prompt || '',
         tool: processedImg.tool || '',
         associatedMessageId: processedImg.associatedMessageId || '',
@@ -154,7 +155,7 @@ function preloadImages(convo) {
 
   (convo.images || []).forEach((imgRef) => {
     if (imgRef.isStoredInDb && imgRef.filename) {
-      const loadPromise = window.loadImageFromDb?.(imgRef.filename)
+      const loadPromise = loadImageFromDb?.(imgRef.filename)
         .then((imageRecord) => {
           if (imageRecord?.data) {
             imageCache.set(imgRef.filename, imageRecord.data);

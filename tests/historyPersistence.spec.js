@@ -9,6 +9,7 @@ import {
   saveConversationToDb,
   getAllConversationsFromDb,
 } from "../src/js/utils/conversationStorage.js";
+import { saveImageToDb } from "../src/js/utils/imageStorage.js";
 
 // Minimal fake IndexedDB (mirrors conversationStorage.spec.js)
 function createFakeIndexedDB() {
@@ -114,8 +115,6 @@ async function resetDb(extraWindow = {}) {
 }
 
 test("saveCurrentConversation filters metadata, persists images, and marks messages", async () => {
-  const savedImages = [];
-
   await resetDb({
     conversationHistory: [
       { id: "m-user", role: "user", content: "Hello" },
@@ -129,10 +128,6 @@ test("saveCurrentConversation filters metadata, persists images, and marks messa
     currentConversationId: "existing-id",
     currentConversationName: "Existing Name",
     ensureImagesHaveMessageIds() { return 0; },
-    saveImageToDb(dataUrl, filename, meta) {
-      savedImages.push({ dataUrl, filename, meta });
-      return Promise.resolve(`stored-${filename}`);
-    },
     modelSelector: { value: "gpt-4o" },
     config: { defaultService: "openai" },
     personalityPromptRadio: { checked: true },
@@ -144,10 +139,6 @@ test("saveCurrentConversation filters metadata, persists images, and marks messa
   saveCurrentConversation({ name: "Manual Title" });
   await flush();
   await flush();
-
-  assert.equal(savedImages.length, 1);
-  assert.ok(savedImages[0].filename.endsWith(".png"));
-  assert.equal(savedImages[0].meta.prompt, "sunset");
 
   const all = await getAllConversationsFromDb();
   assert.equal(all.length, 1);
@@ -163,14 +154,17 @@ test("saveCurrentConversation filters metadata, persists images, and marks messa
   const assistantMsg = convo.messages.find(msg => msg.role === "assistant");
   assert.equal(assistantMsg.hasImages, true);
 
+  // The data-URL image is persisted (new filename, marked stored); the remote
+  // image is passed through untouched. Metadata rides along on the record.
   assert.equal(convo.images.length, 2);
   const storedImage = convo.images.find(img => img.isStoredInDb);
+  assert.ok(storedImage.filename.endsWith(".png"));
+  assert.equal(storedImage.prompt, "sunset");
   assert.equal(storedImage.associatedMessageId, "m-assistant");
   assert.equal(globalThis.window.currentConversationName, "Manual Title");
 });
 
 test("loadConversation hydrates UI, preloads images, and filters developer messages", async () => {
-  const loadedImages = [];
   const renderCalls = [];
   let highlightLoaded = false;
   let markedLoaded = false;
@@ -190,10 +184,6 @@ test("loadConversation hydrates UI, preloads images, and filters developer messa
   };
 
   await resetDb({
-    loadImageFromDb: async (filename) => {
-      loadedImages.push(filename);
-      return { data: `binary:${filename}` };
-    },
     renderConversationMessages: (convo, cache) => {
       renderCalls.push({ convo, cache });
     },
@@ -202,14 +192,14 @@ test("loadConversation hydrates UI, preloads images, and filters developer messa
     chatBox: { innerHTML: "old" },
   });
 
-  // Seed the conversation into the (fake) database.
+  // Seed the conversation and the stored image into the (fake) database.
   await saveConversationToDb(conversationRecord);
+  await saveImageToDb("binary:stored.png", "stored.png");
 
   const result = await loadConversation("1");
   assert.equal(result, true);
   assert.equal(highlightLoaded, true);
   assert.equal(markedLoaded, true);
-  assert.deepEqual(loadedImages, ["stored.png"]);
   assert.equal(globalThis.window.chatBox.innerHTML, "");
 
   assert.equal(renderCalls.length, 1);
@@ -217,7 +207,9 @@ test("loadConversation hydrates UI, preloads images, and filters developer messa
   // The record round-trips through IndexedDB, so assert by value, not identity.
   assert.equal(convo.id, "1");
   assert.equal(convo.name, "Previous chat");
+  // Only the stored-in-db image is preloaded; the remote one is skipped.
   assert.equal(cache.get("stored.png"), "binary:stored.png");
+  assert.equal(cache.has("remote.jpg"), false);
 
   assert.equal(globalThis.window.conversationHistory.length, 1);
   assert.equal(globalThis.window.conversationHistory[0].role, "assistant");

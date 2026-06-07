@@ -6,18 +6,27 @@
 // IndexedDB database configuration
 const IMAGE_DB_NAME = "wordmark-images";
 const IMAGE_DB_VERSION = 1;
-const IMAGE_STORE_NAME = "images";
-if (typeof window !== "undefined") {
-  window.IMAGE_STORE_NAME = IMAGE_STORE_NAME;
+export const IMAGE_STORE_NAME = "images";
+
+// Module-level handle to the open database (was window.imageDb)
+let imageDb = null;
+
+/**
+ * Accessor for the open image database handle (used by the gallery to run its
+ * own cursor queries).
+ * @returns {IDBDatabase|null}
+ */
+export function getImageDb() {
+  return imageDb;
 }
 
 /**
  * Initialize the IndexedDB database for image storage
  * @returns {Promise} - Promise that resolves when the database is ready
  */
-window.initImageDb = function() {
+export function initImageDb() {
   return new Promise((resolve, reject) => {
-    if (window.indexedDB === undefined) {
+    if (typeof window === "undefined" || window.indexedDB === undefined) {
       console.error("IndexedDB is not supported in this browser");
       reject(new Error("IndexedDB not supported"));
       return;
@@ -39,12 +48,12 @@ window.initImageDb = function() {
     };
 
     request.onsuccess = (event) => {
-      window.imageDb = event.target.result;
+      imageDb = event.target.result;
       console.info("IndexedDB initialized for image storage");
       resolve();
     };
   });
-};
+}
 
 /**
  * Save an image to IndexedDB
@@ -53,19 +62,19 @@ window.initImageDb = function() {
  * @param {string} metadata - Any additional metadata about the image
  * @returns {Promise<string>} - Promise that resolves with the filename
  */
-window.saveImageToDb = function(base64Data, filename, metadata = {}) {
+export function saveImageToDb(base64Data, filename, metadata = {}) {
   return new Promise((resolve, reject) => {
-    if (!window.imageDb) {
+    if (!imageDb) {
       console.error("IndexedDB not initialized");
       // Try to initialize it now
-      window.initImageDb().then(() => {
+      initImageDb().then(() => {
         // Retry after initialization
-        window.saveImageToDb(base64Data, filename, metadata).then(resolve).catch(reject);
+        saveImageToDb(base64Data, filename, metadata).then(resolve).catch(reject);
       }).catch(reject);
       return;
     }
     // Start a transaction
-    const transaction = window.imageDb.transaction([IMAGE_STORE_NAME], "readwrite");
+    const transaction = imageDb.transaction([IMAGE_STORE_NAME], "readwrite");
     const store = transaction.objectStore(IMAGE_STORE_NAME);
 
     // Create a record with the image data
@@ -89,9 +98,9 @@ window.saveImageToDb = function(base64Data, filename, metadata = {}) {
       resolve(filename);
     };
   });
-};
+}
 
-window.getStoredMediaDisplayUrl = async function(filename) {
+export async function getStoredMediaDisplayUrl(filename) {
   if (!filename) {
     throw new Error("A filename is required.");
   }
@@ -103,7 +112,7 @@ window.getStoredMediaDisplayUrl = async function(filename) {
     }
   }
 
-  const record = await window.loadImageFromDb(filename);
+  const record = await loadImageFromDb(filename);
   const displayUrl = window.getMediaDisplayUrl?.(record?.data, filename) || "";
   if (!displayUrl) {
     throw new Error(`No display URL could be created for ${filename}`);
@@ -112,26 +121,26 @@ window.getStoredMediaDisplayUrl = async function(filename) {
     window.imageDataCache.set(filename, displayUrl);
   }
   return displayUrl;
-};
+}
 
 /**
  * Load an image from IndexedDB
  * @param {string} filename - The filename key to retrieve
  * @returns {Promise<Object>} - Promise that resolves with the image record
  */
-window.loadImageFromDb = function(filename) {
+export function loadImageFromDb(filename) {
   return new Promise((resolve, reject) => {
-    if (!window.imageDb) {
+    if (!imageDb) {
       console.error("IndexedDB not initialized");
       // Try to initialize it now
-      window.initImageDb().then(() => {
+      initImageDb().then(() => {
         // Retry after initialization
-        window.loadImageFromDb(filename).then(resolve).catch(reject);
+        loadImageFromDb(filename).then(resolve).catch(reject);
       }).catch(reject);
       return;
     }
     // Start a transaction
-    const transaction = window.imageDb.transaction([IMAGE_STORE_NAME], "readonly");
+    const transaction = imageDb.transaction([IMAGE_STORE_NAME], "readonly");
     const store = transaction.objectStore(IMAGE_STORE_NAME);
 
     // Get the record
@@ -154,22 +163,22 @@ window.loadImageFromDb = function(filename) {
       }
     };
   });
-};
+}
 
 /**
  * Delete an image from IndexedDB
  * @param {string} filename - The filename key to delete
  * @returns {Promise<boolean>} - Promise that resolves when deleted
  */
-window.deleteImageFromDb = function(filename) {
+export function deleteImageFromDb(filename) {
   return new Promise((resolve, reject) => {
-    if (!window.imageDb) {
+    if (!imageDb) {
       console.error("IndexedDB not initialized");
       reject(new Error("IndexedDB not initialized"));
       return;
     }
     // Start a transaction
-    const transaction = window.imageDb.transaction([IMAGE_STORE_NAME], "readwrite");
+    const transaction = imageDb.transaction([IMAGE_STORE_NAME], "readwrite");
     const store = transaction.objectStore(IMAGE_STORE_NAME);
 
     // Delete the record
@@ -185,14 +194,14 @@ window.deleteImageFromDb = function(filename) {
       resolve(true);
     };
   });
-};
+}
 
 /**
  * Debug helper for diagnosing image loading issues
  * @param {boolean} verbose - Whether to print detailed information for each image
  * @returns {Object} - Object containing diagnostic information
  */
-window.debugImageLoading = function(verbose = false) {
+export function debugImageLoading(verbose = false) {
   console.group("Image Loading Diagnostics");
   console.log("Running image diagnostics...");
 
@@ -245,7 +254,7 @@ window.debugImageLoading = function(verbose = false) {
           messageDetail.filenames.push(filename);
 
           // Check if this image exists in DB
-          window.loadImageFromDb(filename)
+          loadImageFromDb(filename)
             .then(() => {
               diagnostics.imagesFoundInDb++;
               console.log(`✅ Image found in DB: ${filename}`);
@@ -284,12 +293,17 @@ window.debugImageLoading = function(verbose = false) {
 
   console.groupEnd();
   return diagnostics;
-};
+}
+
+// Console/debug helper invoked from the debug event handler.
+if (typeof window !== "undefined") {
+  window.debugImageLoading = debugImageLoading;
+}
 
 // Initialize the image database when this script loads
-if (typeof window !== "undefined") {
+if (typeof window !== "undefined" && typeof window.addEventListener === "function") {
   window.addEventListener("DOMContentLoaded", () => {
-    window.initImageDb().catch(err => {
+    initImageDb().catch(err => {
       console.error("Failed to initialize image database:", err);
     });
   });
@@ -300,10 +314,10 @@ if (typeof window !== "undefined") {
  * @param {string} imageId - The image ID or filename in storage
  * @returns {Promise<Blob>} - Promise that resolves with the image as a Blob
  */
-window.getImageBlobForUpload = async function(imageId) {
+export async function getImageBlobForUpload(imageId) {
   try {
     // Load the image from database
-    const imageRecord = await window.loadImageFromDb(imageId);
+    const imageRecord = await loadImageFromDb(imageId);
 
     if (!imageRecord || !imageRecord.data) {
       throw new Error(`Image not found or has no data: ${imageId}`);
@@ -358,17 +372,17 @@ window.getImageBlobForUpload = async function(imageId) {
     console.error("Error getting image blob for upload:", error);
     throw error;
   }
-};
+}
 
 /**
  * Get image data URL for upload/processing (for APIs that need data URLs like Gemini)
  * @param {string} imageId - The image ID to retrieve
  * @returns {Promise<string>} - Promise that resolves with the data URL
  */
-window.getImageDataForUpload = async function(imageId) {
+export async function getImageDataForUpload(imageId) {
   try {
     // Load the image from database
-    const imageRecord = await window.loadImageFromDb(imageId);
+    const imageRecord = await loadImageFromDb(imageId);
 
     if (!imageRecord || !imageRecord.data) {
       throw new Error(`Image not found or has no data: ${imageId}`);
@@ -404,10 +418,10 @@ window.getImageDataForUpload = async function(imageId) {
     console.error("Error getting image data URL for upload:", error);
     throw error;
   }
-};
+}
 
-window.getStoredMediaBlob = async function(filename) {
-  const record = await window.loadImageFromDb(filename);
+export async function getStoredMediaBlob(filename) {
+  const record = await loadImageFromDb(filename);
   if (!record || !record.data) {
     throw new Error(`Media not found: ${filename}`);
   }
@@ -443,4 +457,4 @@ window.getStoredMediaBlob = async function(filename) {
   }
 
   throw new Error(`Unsupported media data format for ${filename}`);
-};
+}

@@ -1,3 +1,5 @@
+import { deleteImageFromDb } from "../../utils/imageStorage.js";
+
 window.downloadImage = function(url, filename) {
   return window.downloadMediaSource?.(url, filename);
 };
@@ -224,7 +226,7 @@ window.createImageSlideshow = function(images, startIndex, isGalleryMode = false
         return;
       }
 
-      window.deleteImageFromDb?.(image.filename)
+      deleteImageFromDb?.(image.filename)
         .then(() => {
           window.galleryImages.splice(currentIndex, 1);
 

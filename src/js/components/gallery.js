@@ -3,6 +3,13 @@
  * Displays and manages generated or uploaded images and videos from IndexedDB.
  */
 
+import {
+  initImageDb,
+  deleteImageFromDb,
+  getImageDb,
+  IMAGE_STORE_NAME,
+} from "../utils/imageStorage.js";
+
 // -----------------------------------------------------
 // Gallery functionality
 // -----------------------------------------------------
@@ -349,16 +356,16 @@ window.loadGalleryImages = async function() {
  */
 window.getAllImagesFromDb = function() {
   return new Promise((resolve, reject) => {
-    if (!window.imageDb) {
-      window.initImageDb()
+    if (!getImageDb()) {
+      initImageDb()
         .then(() => window.getAllImagesFromDb())
         .then(resolve)
         .catch(reject);
       return;
     }
     const images = [];
-    const storeName = (typeof window !== "undefined" && window.IMAGE_STORE_NAME) ? window.IMAGE_STORE_NAME : "images";
-    const transaction = window.imageDb.transaction([storeName], "readonly");
+    const storeName = IMAGE_STORE_NAME || "images";
+    const transaction = getImageDb().transaction([storeName], "readonly");
     const store = transaction.objectStore(storeName);
 
     const request = store.openCursor();
@@ -392,7 +399,7 @@ window.getAllImagesFromDb = function() {
  */
 window.deleteImageAndUpdateGallery = async function(filename) {
   try {
-    await window.deleteImageFromDb(filename);
+    await deleteImageFromDb(filename);
 
     // Remove the media element from the gallery
     const galleryItem = document.querySelector(`.gallery-item[data-filename="${filename}"]`);
@@ -511,7 +518,7 @@ window.bulkDeleteSelectedImages = async function() {
       if (galleryItem) {
         const filename = galleryItem.dataset.filename;
         if (filename) {
-          deletePromises.push(window.deleteImageFromDb(filename));
+          deletePromises.push(deleteImageFromDb(filename));
         }
       }
     });
