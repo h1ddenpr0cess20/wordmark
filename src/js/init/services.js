@@ -3,6 +3,7 @@
  */
 
 import { updateParameterControls } from "../components/ui/settingsControls.js";
+import { updateHeaderInfo, updateModelSelector, updateFeatureStatus, populateServiceSelector } from "../components/settings.js";
 
 /**
  * Initialize services and models
@@ -10,7 +11,7 @@ import { updateParameterControls } from "../components/ui/settingsControls.js";
 function initializeServicesAndModels() {
   // Initialize the service selector
   if (window.serviceSelector && window.config) {
-    window.populateServiceSelector();
+    populateServiceSelector();
     if (typeof window.config.normalizeServiceKey === "function") {
       window.config.defaultService = window.config.normalizeServiceKey(window.config.defaultService);
     }
@@ -20,7 +21,7 @@ function initializeServicesAndModels() {
     }
 
     // Model fetching happens after API keys are loaded (see initialization.js)
-    window.updateModelSelector();
+    updateModelSelector();
   }
 }
 
@@ -72,12 +73,12 @@ async function selectDefaultService() {
       if (window.serviceSelector) {
         window.serviceSelector.value = local;
       }
-      if (typeof window.updateModelSelector === "function") {
-        window.updateModelSelector();
+      if (typeof updateModelSelector === "function") {
+        updateModelSelector();
       }
       updateParameterControls();
-      if (typeof window.updateHeaderInfo === "function") {
-        window.updateHeaderInfo();
+      if (typeof updateHeaderInfo === "function") {
+        updateHeaderInfo();
       }
       if (window.VERBOSE_LOGGING) {
         console.info(`No cloud API keys found; defaulting to ${local}.`);
@@ -104,13 +105,13 @@ function initializeServiceModels() {
         }
         // Update model selector after fetching models
         if (window.config.defaultService === serviceKey) {
-          window.updateModelSelector();
+          updateModelSelector();
         }
       })
       .catch(err => {
         console.error("Failed to fetch models on initialization:", err);
         // Still update model selector to show error state
-        window.updateModelSelector();
+        updateModelSelector();
       });
   }
 }
@@ -177,8 +178,8 @@ function initializeToolCalling() {
     window.updateMasterToolCallingStatus(enabled);
   }
 
-  if (typeof window.updateFeatureStatus === "function") {
-    window.updateFeatureStatus();
+  if (typeof updateFeatureStatus === "function") {
+    updateFeatureStatus();
   }
 
   if (typeof window.refreshToolSettingsUI === "function") {

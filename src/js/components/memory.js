@@ -1,4 +1,5 @@
 import { getMemoryConfig, setMemoryEnabled, setMemoryLimit, getMemories, addMemory, clearAllMemories, removeMemoryAt } from "../utils/memoryStorage.js";
+import { updateFeatureStatus } from "./settings.js";
 /**
  * Memory settings panel functionality
  */
@@ -40,8 +41,8 @@ export function initMemorySettings() {
       window.updateToolDefinitions();
     }
     renderList();
-    if (typeof window.updateFeatureStatus === "function") {
-      window.updateFeatureStatus();
+    if (typeof updateFeatureStatus === "function") {
+      updateFeatureStatus();
     }
   });
 

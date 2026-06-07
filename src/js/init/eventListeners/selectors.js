@@ -2,13 +2,14 @@ import { ensureApiKeysLoaded } from "../../services/apiKeys.js";
 import { updateBrowserHistory } from "../../services/history/state.js";
 import { responsesClient } from "../../services/api.js";
 import { updateParameterControls } from "../../components/ui/settingsControls.js";
+import { updateHeaderInfo, updateModelSelector } from "../../components/settings.js";
 
 export function setupSelectorEventListeners() {
   if (window.modelSelector) {
     window.modelSelector.addEventListener('change', () => {
       window.modelSelector.setAttribute('data-last-selected', window.modelSelector.value);
-      if (typeof window.updateHeaderInfo === 'function') {
-        window.updateHeaderInfo();
+      if (typeof updateHeaderInfo === 'function') {
+        updateHeaderInfo();
       }
       if (typeof window.updateReasoningAvailability === 'function') {
         window.updateReasoningAvailability();
@@ -47,12 +48,12 @@ export function setupSelectorEventListeners() {
         }
       }
 
-      if (typeof window.updateModelSelector === 'function') {
-        window.updateModelSelector();
+      if (typeof updateModelSelector === 'function') {
+        updateModelSelector();
       }
       updateParameterControls();
-      if (typeof window.updateHeaderInfo === 'function') {
-        window.updateHeaderInfo();
+      if (typeof updateHeaderInfo === 'function') {
+        updateHeaderInfo();
       }
       if (typeof window.updateReasoningAvailability === 'function') {
         window.updateReasoningAvailability();

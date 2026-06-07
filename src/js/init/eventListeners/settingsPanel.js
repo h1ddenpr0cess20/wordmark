@@ -1,4 +1,5 @@
 import { switchToTab } from "../../components/ui/settingsTabs.js";
+import { updateHeaderInfo, organizeSettingsLayout } from "../../components/settings.js";
 
 function updatePanelOpenState() {
   const settingsOpen = Boolean(window.settingsPanel && window.settingsPanel.classList.contains('active'));
@@ -135,8 +136,8 @@ function setupOutsideClickHandler(state) {
         !isSettingsPanelElement && !isSettingsButton) {
       restoreOriginalValues(state);
       hideSettingsPanel({ focusButton: true });
-      if (typeof window.updateHeaderInfo === 'function') {
-        window.updateHeaderInfo();
+      if (typeof updateHeaderInfo === 'function') {
+        updateHeaderInfo();
       }
     }
 
@@ -181,8 +182,8 @@ export function initializeSettingsPanelControls() {
     storeOriginalValues(state);
     showSettingsPanel();
 
-    if (typeof window.organizeSettingsLayout === 'function') {
-      window.organizeSettingsLayout();
+    if (typeof organizeSettingsLayout === 'function') {
+      organizeSettingsLayout();
     }
 
     if (tabId) {
@@ -196,8 +197,8 @@ export function initializeSettingsPanelControls() {
     window.settingsButton.addEventListener('click', () => {
       storeOriginalValues(state);
       showSettingsPanel();
-      if (typeof window.organizeSettingsLayout === 'function') {
-        window.organizeSettingsLayout();
+      if (typeof organizeSettingsLayout === 'function') {
+        organizeSettingsLayout();
       }
     });
   }
@@ -206,8 +207,8 @@ export function initializeSettingsPanelControls() {
     window.closeSettingsButton.addEventListener('click', () => {
       restoreOriginalValues(state);
       hideSettingsPanel({ focusButton: true });
-      if (typeof window.updateHeaderInfo === 'function') {
-        window.updateHeaderInfo();
+      if (typeof updateHeaderInfo === 'function') {
+        updateHeaderInfo();
       }
     });
   }

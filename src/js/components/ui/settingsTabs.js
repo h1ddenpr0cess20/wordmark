@@ -1,4 +1,5 @@
 import { getApiKey } from "../../services/apiKeys.js";
+import { organizeSettingsLayout } from "../settings.js";
 export function initTabs() {
   const tabButtons = document.querySelectorAll('.tab-button');
   const tabContents = document.querySelectorAll('.tab-content');
@@ -101,8 +102,8 @@ export function openApiKeysTabIfNeeded() {
 
   switchToTab('tab-apikeys');
 
-  if (typeof window.organizeSettingsLayout === 'function') {
-    window.organizeSettingsLayout();
+  if (typeof organizeSettingsLayout === 'function') {
+    organizeSettingsLayout();
   }
 
   if (window.VERBOSE_LOGGING) {

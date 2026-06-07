@@ -14,6 +14,7 @@ import { initializeTts, initializeMobileKeyboardHandling } from "./ttsInitializa
 import { updateParameterControls } from "../components/ui/settingsControls.js";
 import { initTabs, openApiKeysTabIfNeeded } from "../components/ui/settingsTabs.js";
 import { initMemorySettings } from "../components/memory.js";
+import { updateHeaderInfo, updateModelSelector, updateFeatureStatus, initializePersonalityInput, applyDataSettingsState } from "../components/settings.js";
 
 // Configure DOMPurify to allow YouTube iframes
 function configureDOMPurify() {
@@ -209,8 +210,8 @@ async function initialize() {
           console.info("Memory settings initialized.");
         }
         // Sync feature badges after memory init
-        if (typeof window.updateFeatureStatus === "function") {
-          window.updateFeatureStatus();
+        if (typeof updateFeatureStatus === "function") {
+          updateFeatureStatus();
         }
       } catch (e) {
         console.error("Memory settings initialization failed:", e);
@@ -283,12 +284,12 @@ async function initialize() {
     }
 
     // Explicitly initialize personality input
-    if (typeof window.initializePersonalityInput === "function") {
-      window.initializePersonalityInput();
+    if (typeof initializePersonalityInput === "function") {
+      initializePersonalityInput();
     }
 
-    window.updateModelSelector();
-    window.updateHeaderInfo();
+    updateModelSelector();
+    updateHeaderInfo();
     if (window.VERBOSE_LOGGING) {
       console.info("UI controls and selectors initialized.");
     }
@@ -301,12 +302,12 @@ async function initialize() {
 
     // Initialize tool calling toggle state
     initializeToolCalling();
-    if (typeof window.updateFeatureStatus === "function") {
-      window.updateFeatureStatus();
+    if (typeof updateFeatureStatus === "function") {
+      updateFeatureStatus();
     }
     // Apply data settings enabled/disabled state to the Data tab UI
-    if (typeof window.applyDataSettingsState === "function") {
-      try { window.applyDataSettingsState(); } catch { /* noop */ }
+    if (typeof applyDataSettingsState === "function") {
+      try { applyDataSettingsState(); } catch { /* noop */ }
     }
 
     if (typeof window.initGallery === "function") {
@@ -326,14 +327,14 @@ async function initialize() {
         if (typeof initializeLocationService === "function") {
           initializeLocationService();
         }
-        if (typeof window.updateFeatureStatus === "function") {
-          window.updateFeatureStatus();
+        if (typeof updateFeatureStatus === "function") {
+          updateFeatureStatus();
         }
       }).catch(err => console.error("Failed to load location module", err));
     } else {
       // Ensure badges render at least once even if location is disabled
-      if (typeof window.updateFeatureStatus === "function") {
-        window.updateFeatureStatus();
+      if (typeof updateFeatureStatus === "function") {
+        updateFeatureStatus();
       }
     }
 

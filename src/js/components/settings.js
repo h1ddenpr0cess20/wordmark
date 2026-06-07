@@ -9,19 +9,17 @@ import { ttsConfig } from "../services/tts.js";
 // Settings panel functions
 // -----------------------------------------------------
 
-// UI hooks for updating model lists
-window.uiHooks = window.uiHooks || {};
-
 /**
- * Updates the local models dropdown when models are refreshed
+ * Updates the local models dropdown when models are refreshed.
+ * Exposed on window.uiHooks for config.js (a classic, non-module script) to call.
  * @param {boolean} fetchError - Whether there was an error fetching models
  */
-window.uiHooks.updateModelsDropdown = function(fetchError) {
+function updateModelsDropdown(fetchError) {
   const serviceKey = window.serviceSelector ? window.serviceSelector.value : "";
   const serviceLabelMap = { lmstudio: "LM Studio", ollama: "Ollama", openai: "OpenAI", xai: "xAI" };
   const serviceLabel = serviceLabelMap[serviceKey] || serviceKey;
 
-  window.updateModelSelector();
+  updateModelSelector();
 
   // Show status message if there was an error
   if (fetchError) {
@@ -47,15 +45,21 @@ window.uiHooks.updateModelsDropdown = function(fetchError) {
       }, 5000);
     }
   }
-};
+}
+
+// uiHooks must live on window: config.js (a classic <script>, not a module)
+// calls window.uiHooks.updateModelsDropdown after fetching provider models.
+if (typeof window !== "undefined") {
+  window.uiHooks = window.uiHooks || {};
+  window.uiHooks.updateModelsDropdown = updateModelsDropdown;
+}
 
 /**
  * Updates the header information
  */
-window.updateHeaderInfo = function() {
+export function updateHeaderInfo() {
   const headerTitle = document.getElementById("header-title");
   const modelInfo = document.getElementById("model-info");
-  const featureStatus = document.getElementById("feature-status");
 
   // Check if required elements exist
   if (!headerTitle || !modelInfo || !window.modelSelector) {
@@ -129,41 +133,26 @@ window.updateHeaderInfo = function() {
   }
 
   // Update feature status line as part of header refresh
-  if (typeof window.updateFeatureStatus === "function") {
-    try { window.updateFeatureStatus(); } catch { /* noop */ }
-  } else if (featureStatus) {
-    // Minimal fallback if function is unavailable
-    const on = label => `<span class="feature-badge" data-state="on"><span class="dot"></span>${label}</span>`;
-    const off = label => `<span class="feature-badge" data-state="off"><span class="dot"></span>${label}</span>`;
-    const locOn = Boolean(locationState && locationState.enabled);
-    let memOn = false;
-    try { memOn = Boolean(getMemoryConfig && getMemoryConfig().enabled); } catch {}
-    const toolsOn = Boolean(window.config && window.config.enableFunctionCalling);
-    featureStatus.innerHTML = [
-      locOn ? on("Location") : off("Location"),
-      memOn ? on("Memory") : off("Memory"),
-      toolsOn ? on("Tools") : off("Tools"),
-    ].join(" ");
-  }
+  try { updateFeatureStatus(); } catch { /* noop */ }
 
   if (typeof window.updateReasoningAvailability === "function") {
     window.updateReasoningAvailability();
   }
-};
+}
 
 /**
  * Data settings enable/disable control (persisted in localStorage)
  */
-window.getDataSettingsEnabled = function() {
+export function getDataSettingsEnabled() {
   try {
     const v = localStorage.getItem("dataSettingsEnabled");
     return v === null ? true : v === "true";
   } catch {
     return true;
   }
-};
+}
 
-window.setDataSettingsEnabled = function(enabled) {
+export function setDataSettingsEnabled(enabled) {
   try {
     localStorage.setItem("dataSettingsEnabled", enabled ? "true" : "false");
   } catch { /* noop */ }
@@ -174,20 +163,16 @@ window.setDataSettingsEnabled = function(enabled) {
     toggle.checked = enabled;
   }
 
-  if (typeof window.applyDataSettingsState === "function") {
-    try { window.applyDataSettingsState(); } catch { /* noop */ }
-  }
+  try { applyDataSettingsState(); } catch { /* noop */ }
 
   // Keep header feature badges in sync
-  if (typeof window.updateFeatureStatus === "function") {
-    try { window.updateFeatureStatus(); } catch { /* noop */ }
-  }
-};
+  try { updateFeatureStatus(); } catch { /* noop */ }
+}
 
-window.applyDataSettingsState = function() {
+export function applyDataSettingsState() {
   const content = document.getElementById("content-data");
   if (!content) return;
-  const enabled = (typeof window.getDataSettingsEnabled === "function") ? window.getDataSettingsEnabled() : true;
+  const enabled = getDataSettingsEnabled();
 
   if (enabled) {
     // Re-enable tab UI
@@ -247,12 +232,12 @@ window.applyDataSettingsState = function() {
       }
     });
   }
-};
+}
 
 /**
  * Updates the small feature status line under the header.
  */
-window.updateFeatureStatus = function() {
+export function updateFeatureStatus() {
   const el = document.getElementById("feature-status");
   if (!el) return;
 
@@ -260,7 +245,7 @@ window.updateFeatureStatus = function() {
     location: Boolean(locationState && locationState.enabled),
     memory: (() => { try { return Boolean(getMemoryConfig && getMemoryConfig().enabled); } catch { return false; } })(),
     tools: Boolean(window.config && window.config.enableFunctionCalling !== false),
-    data: Boolean(typeof window.getDataSettingsEnabled === "function" ? window.getDataSettingsEnabled() : (localStorage.getItem("dataSettingsEnabled") !== "false")),
+    data: getDataSettingsEnabled(),
     tts: Boolean(ttsConfig.enabled),
   };
 
@@ -328,14 +313,7 @@ window.updateFeatureStatus = function() {
         break;
       }
       case "data": {
-        if (typeof window.setDataSettingsEnabled === "function") {
-          window.setDataSettingsEnabled(!isOn);
-        } else {
-          localStorage.setItem("dataSettingsEnabled", (!isOn).toString());
-          if (typeof window.applyDataSettingsState === "function") {
-            window.applyDataSettingsState();
-          }
-        }
+        setDataSettingsEnabled(!isOn);
         break;
       }
       case "tts": {
@@ -347,7 +325,7 @@ window.updateFeatureStatus = function() {
         break;
       }
       }
-      setTimeout(() => window.updateFeatureStatus(), 50);
+      setTimeout(() => updateFeatureStatus(), 50);
     };
 
     dot.addEventListener("click", () => { toggleFeature(); });
@@ -372,12 +350,12 @@ window.updateFeatureStatus = function() {
   el.appendChild(makeBadge("Tools", "tools", state.tools, "tab-tools"));
   el.appendChild(makeBadge("Data", "data", state.data, "tab-data"));
   el.appendChild(makeBadge("TTS", "tts", state.tts, "tab-tts"));
-};
+}
 
 /**
  * Updates model selector with available models for the current service
  */
-window.updateModelSelector = function() {
+export function updateModelSelector() {
   // Check if modelSelector exists
   if (!window.modelSelector) {
     console.warn("Model selector not found, skipping updateModelSelector");
@@ -454,7 +432,7 @@ window.updateModelSelector = function() {
     }
 
     window.modelSelector.setAttribute("data-last-selected", window.modelSelector.value);
-    window.updateHeaderInfo();
+    updateHeaderInfo();
     if (typeof window.updateReasoningAvailability === "function") {
       window.updateReasoningAvailability();
     }
@@ -465,12 +443,12 @@ window.updateModelSelector = function() {
     option.textContent = "Error loading models";
     window.modelSelector.appendChild(option);
   }
-};
+}
 
 /**
  * Dynamically populates the service selector dropdown based on available services in config
  */
-window.populateServiceSelector = function() {
+export function populateServiceSelector() {
   if (!window.serviceSelector || !window.config || !window.config.services) {
     console.warn("Service selector or config not found, skipping populateServiceSelector");
     return;
@@ -519,12 +497,12 @@ window.populateServiceSelector = function() {
   if (typeof window.config.normalizeServiceKey === "function") {
     window.config.defaultService = window.config.normalizeServiceKey(window.config.defaultService);
   }
-};
+}
 
 /**
  * Explicitly initialize the personality input with the default personality
  */
-window.initializePersonalityInput = function() {
+export function initializePersonalityInput() {
   if (window.personalityInput && window.DEFAULT_PERSONALITY) {
     window.personalityInput.value = window.DEFAULT_PERSONALITY;
     window.personalityInput.setAttribute("data-explicitly-set", "true");
@@ -532,12 +510,12 @@ window.initializePersonalityInput = function() {
   } else {
     console.warn("Could not initialize personality input: element or default personality not available");
   }
-};
+}
 
 /**
  * Organizes settings content into columns for wider panel layout
  */
-window.organizeSettingsLayout = function() {
+export function organizeSettingsLayout() {
   // Apply to the Model tab
   const modelTab = document.getElementById("model-settings");
   if (modelTab) {
@@ -578,4 +556,4 @@ window.organizeSettingsLayout = function() {
       }
     }
   }
-};
+}

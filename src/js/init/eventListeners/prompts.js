@@ -3,6 +3,7 @@ import { focusUserInputSafely } from "../../utils/mobileHandling.js";
 import { updateBrowserHistory } from "../../services/history/state.js";
 import { startNewConversation } from "../../services/history/persistence.js";
 import { updatePromptVisibility } from "../../components/ui/settingsControls.js";
+import { updateHeaderInfo } from "../../components/settings.js";
 
 function setupPromptRadioEventListeners() {
   if (window.personalityPromptRadio) {
@@ -89,8 +90,8 @@ function setupPersonalityPresetEventListeners(closeSettingsPanel) {
         }
       }
 
-      if (typeof window.updateHeaderInfo === 'function') {
-        window.updateHeaderInfo();
+      if (typeof updateHeaderInfo === 'function') {
+        updateHeaderInfo();
       }
       updateBrowserHistory();
 

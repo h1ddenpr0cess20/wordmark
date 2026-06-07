@@ -1,4 +1,5 @@
 import { icon } from "../utils/icons.js";
+import { updateFeatureStatus, updateModelSelector } from "../components/settings.js";
 /**
  * API key management functionality
  */
@@ -38,9 +39,9 @@ function refreshApiDependentUi() {
     }
   }
 
-  if (typeof window.updateFeatureStatus === "function") {
+  if (typeof updateFeatureStatus === "function") {
     try {
-      window.updateFeatureStatus();
+      updateFeatureStatus();
     } catch (error) {
       console.error("Failed to update feature status after API key change:", error);
     }
@@ -398,18 +399,18 @@ function saveApiKeys() {
     const activeService = activeKey ? window.config?.services?.[activeKey] : null;
     if (activeService && typeof activeService.fetchAndUpdateModels === "function") {
       activeService.fetchAndUpdateModels().then(() => {
-        if (typeof window.updateModelSelector === "function") {
-          window.updateModelSelector();
+        if (typeof updateModelSelector === "function") {
+          updateModelSelector();
         }
       }).catch(err => {
         console.error("Failed to fetch models after saving API keys:", err);
-        if (typeof window.updateModelSelector === "function") {
-          window.updateModelSelector();
+        if (typeof updateModelSelector === "function") {
+          updateModelSelector();
         }
         refreshApiDependentUi();
       });
-    } else if (typeof window.updateModelSelector === "function") {
-      window.updateModelSelector();
+    } else if (typeof updateModelSelector === "function") {
+      updateModelSelector();
     }
 
     refreshApiDependentUi();

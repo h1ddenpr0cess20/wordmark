@@ -4,6 +4,7 @@ import { exportChat, handleExportFormatChange } from "../../services/export.js";
 import { updateBrowserHistory } from "../../services/history/state.js";
 import { startNewConversation } from "../../services/history/persistence.js";
 import { updatePromptVisibility } from "../../components/ui/settingsControls.js";
+import { updateHeaderInfo, updateModelSelector } from "../../components/settings.js";
 function closePanelIfActive(closeSettingsPanel) {
   if (typeof closeSettingsPanel === 'function' && window.settingsPanel && window.settingsPanel.classList.contains('active')) {
     closeSettingsPanel();
@@ -26,7 +27,7 @@ export function setupButtonEventListeners({ closeSettingsPanel } = {}) {
   if (window.clearMemoryButton) {
     window.clearMemoryButton.addEventListener('click', () => {
       startNewConversation('New Conversation');
-      window.updateHeaderInfo();
+      updateHeaderInfo();
       updateBrowserHistory();
       if (typeof isMobileDevice === 'function' && !isMobileDevice() && window.userInput) {
         window.userInput.focus();
@@ -50,8 +51,8 @@ export function setupButtonEventListeners({ closeSettingsPanel } = {}) {
 
       closePanelIfActive(closeSettingsPanel);
 
-      if (typeof window.updateHeaderInfo === 'function') {
-        window.updateHeaderInfo();
+      if (typeof updateHeaderInfo === 'function') {
+        updateHeaderInfo();
       }
       updateBrowserHistory();
       if (typeof focusUserInputSafely === 'function') {
@@ -80,8 +81,8 @@ export function setupButtonEventListeners({ closeSettingsPanel } = {}) {
       }
 
       updatePromptVisibility();
-      if (typeof window.updateHeaderInfo === 'function') {
-        window.updateHeaderInfo();
+      if (typeof updateHeaderInfo === 'function') {
+        updateHeaderInfo();
       }
 
       closePanelIfActive(closeSettingsPanel);
@@ -106,8 +107,8 @@ export function setupButtonEventListeners({ closeSettingsPanel } = {}) {
 
       closePanelIfActive(closeSettingsPanel);
 
-      if (typeof window.updateHeaderInfo === 'function') {
-        window.updateHeaderInfo();
+      if (typeof updateHeaderInfo === 'function') {
+        updateHeaderInfo();
       }
       updateBrowserHistory();
       if (window.userInput) {
@@ -127,8 +128,8 @@ export function setupButtonEventListeners({ closeSettingsPanel } = {}) {
 
       closePanelIfActive(closeSettingsPanel);
 
-      if (typeof window.updateHeaderInfo === 'function') {
-        window.updateHeaderInfo();
+      if (typeof updateHeaderInfo === 'function') {
+        updateHeaderInfo();
       }
       updateBrowserHistory();
       if (window.userInput) {
@@ -163,7 +164,7 @@ export function setupButtonEventListeners({ closeSettingsPanel } = {}) {
 
         try {
           await serviceConfig.fetchAndUpdateModels();
-          window.updateModelSelector();
+          updateModelSelector();
 
           const models = serviceConfig.models || [];
           const hasError = models.length === 0 || models.some(m => typeof m === 'string' && (m.startsWith('Error:') || m.startsWith('No models')));

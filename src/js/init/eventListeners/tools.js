@@ -1,5 +1,6 @@
 import { showInfo } from "../../utils/notifications.js";
 import { loadToolScripts } from "../../utils/toolLoader.js";
+import { updateFeatureStatus } from "../../components/settings.js";
 export function setupToolCallingEventListeners() {
   if (!window.toolCallingToggle) {
     return;
@@ -25,8 +26,8 @@ export function setupToolCallingEventListeners() {
       });
     }
 
-    if (typeof window.updateFeatureStatus === 'function') {
-      window.updateFeatureStatus();
+    if (typeof updateFeatureStatus === 'function') {
+      updateFeatureStatus();
     }
 
     if (typeof showInfo === 'function') {

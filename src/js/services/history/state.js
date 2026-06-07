@@ -1,5 +1,6 @@
 import { saveConversationToDb } from "../../utils/conversationStorage.js";
 import { appendMessage } from "../../components/ui/chatMessages.js";
+import { updateHeaderInfo } from "../../components/settings.js";
 
 export function updateBrowserHistory() {
   let systemPromptValue = '';
@@ -52,7 +53,7 @@ export function loadFromUrl() {
       );
       if (modelOption) {
         window.modelSelector.value = chatData.model;
-        window.updateHeaderInfo?.();
+        updateHeaderInfo?.();
       }
     }
 

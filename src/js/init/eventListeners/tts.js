@@ -10,6 +10,7 @@ import {
   playNextMessageInQueue,
 } from "../../services/tts.js";
 import { initializeTts, populateTtsVoiceSelector } from "../ttsInitialization.js";
+import { updateFeatureStatus } from "../../components/settings.js";
 
 export function setupTtsEventListeners() {
   if (window.ttsToggle) {
@@ -21,8 +22,8 @@ export function setupTtsEventListeners() {
         ttsConfig.enabled = false;
         stopTtsAudio();
       }
-      if (typeof window.updateFeatureStatus === "function") {
-        window.updateFeatureStatus();
+      if (typeof updateFeatureStatus === "function") {
+        updateFeatureStatus();
       }
     });
   }

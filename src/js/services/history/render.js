@@ -5,6 +5,7 @@ import { highlightAndAddCopyButtons, addMessageCopyButton } from "../../componen
 import { appendMessage } from "../../components/ui/chatMessages.js";
 import { renderWordmarkLogo } from "../../components/logo.js";
 import { setupImageInteractions } from "../../components/ui/imageInteractions.js";
+import { updateHeaderInfo, updateModelSelector } from "../../components/settings.js";
 
 function createMissingMediaPlaceholder(filename, mediaType = 'image') {
   const label = mediaType === 'video' ? 'Video' : 'Image';
@@ -281,33 +282,33 @@ export function renderConversationMessages(convo, imageCache) {
             : convo.service;
         serviceConfig.fetchAndUpdateModels()
           .then(() => {
-            window.updateModelSelector?.();
+            updateModelSelector?.();
             if (convo.model && window.modelSelector) {
               const modelOption = Array.from(window.modelSelector.options || []).find(opt => opt.value === convo.model);
               if (modelOption) {
                 window.modelSelector.value = convo.model;
-                window.updateHeaderInfo?.();
+                updateHeaderInfo?.();
               }
             }
           })
           .catch((err) => {
             console.error(`Failed to refresh ${serviceLabel} models:`, err);
-            window.updateModelSelector?.();
+            updateModelSelector?.();
             if (convo.model && window.modelSelector) {
               const modelOption = Array.from(window.modelSelector.options || []).find(opt => opt.value === convo.model);
               if (modelOption) {
                 window.modelSelector.value = convo.model;
-                window.updateHeaderInfo?.();
+                updateHeaderInfo?.();
               }
             }
           });
       } else {
-        window.updateModelSelector?.();
+        updateModelSelector?.();
         if (convo.model && window.modelSelector) {
           const modelOption = Array.from(window.modelSelector.options || []).find(opt => opt.value === convo.model);
           if (modelOption) {
             window.modelSelector.value = convo.model;
-            window.updateHeaderInfo?.();
+            updateHeaderInfo?.();
           }
         }
       }
@@ -318,11 +319,11 @@ export function renderConversationMessages(convo, imageCache) {
     const modelOption = Array.from(window.modelSelector.options || []).find(option => option.value === convo.model);
     if (modelOption) {
       window.modelSelector.value = convo.model;
-      window.updateHeaderInfo?.();
+      updateHeaderInfo?.();
     }
   }
 
-  window.updateHeaderInfo?.();
+  updateHeaderInfo?.();
 
   if (!convo.id) {
     window.loadedSystemPrompt = null;

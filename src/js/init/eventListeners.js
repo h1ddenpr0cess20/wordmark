@@ -1,4 +1,5 @@
 import { showError } from "../utils/notifications.js";
+import { getDataSettingsEnabled, setDataSettingsEnabled, applyDataSettingsState, updateFeatureStatus } from "../components/settings.js";
 import { loadVectorStoreModule, lazyModulesLoaded } from "../utils/lazyLoader.js";
 import { initializeConversationInput } from "./eventListeners/conversationInput.js";
 import { initializeSettingsPanelControls } from "./eventListeners/settingsPanel.js";
@@ -47,22 +48,22 @@ function setupEventListeners() {
 
   if (window.dataSettingsToggle) {
     try {
-      const enabled = (typeof window.getDataSettingsEnabled === "function") ? window.getDataSettingsEnabled() : true;
+      const enabled = (typeof getDataSettingsEnabled === "function") ? getDataSettingsEnabled() : true;
       window.dataSettingsToggle.checked = enabled;
     } catch {}
 
     window.dataSettingsToggle.addEventListener("change", (e) => {
       const on = e.target.checked;
-      if (typeof window.setDataSettingsEnabled === "function") {
-        window.setDataSettingsEnabled(on);
+      if (typeof setDataSettingsEnabled === "function") {
+        setDataSettingsEnabled(on);
       } else {
         localStorage.setItem("dataSettingsEnabled", on ? "true" : "false");
-        if (typeof window.applyDataSettingsState === "function") {
-          window.applyDataSettingsState();
+        if (typeof applyDataSettingsState === "function") {
+          applyDataSettingsState();
         }
       }
-      if (typeof window.updateFeatureStatus === "function") {
-        window.updateFeatureStatus();
+      if (typeof updateFeatureStatus === "function") {
+        updateFeatureStatus();
       }
     });
 

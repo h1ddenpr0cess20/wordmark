@@ -1,5 +1,6 @@
 import { showInfo } from "../utils/notifications.js";
 import { getMemoryConfig } from "../utils/memoryStorage.js";
+import { updateFeatureStatus } from "./settings.js";
 import { requestMcpServerRemoval } from "../services/mcpServers.js";
 import { responsesClient } from "../services/api.js";
 /**
@@ -144,8 +145,8 @@ import { responsesClient } from "../services/api.js";
     }
     const enabled = checkbox.checked;
     responsesClient.setToolEnabled(toolKey, enabled);
-    if (typeof window.updateFeatureStatus === "function") {
-      window.updateFeatureStatus();
+    if (typeof updateFeatureStatus === "function") {
+      updateFeatureStatus();
     }
     if (typeof showInfo === "function") {
       showInfo(`${enabled ? "Enabled" : "Disabled"} ${checkbox.getAttribute("data-tool-name") || "tool"}.`);
@@ -321,8 +322,8 @@ import { responsesClient } from "../services/api.js";
       toolsContainer.appendChild(item);
     });
 
-    if (typeof window.updateFeatureStatus === "function") {
-      window.updateFeatureStatus();
+    if (typeof updateFeatureStatus === "function") {
+      updateFeatureStatus();
     }
   }
 
@@ -339,8 +340,8 @@ import { responsesClient } from "../services/api.js";
         }
         responsesClient.setAllToolsEnabled(true);
         renderToolList();
-        if (typeof window.updateFeatureStatus === "function") {
-          window.updateFeatureStatus();
+        if (typeof updateFeatureStatus === "function") {
+          updateFeatureStatus();
         }
         if (typeof showInfo === "function") {
           showInfo("All tools enabled.");
@@ -355,8 +356,8 @@ import { responsesClient } from "../services/api.js";
         }
         responsesClient.setAllToolsEnabled(false);
         renderToolList();
-        if (typeof window.updateFeatureStatus === "function") {
-          window.updateFeatureStatus();
+        if (typeof updateFeatureStatus === "function") {
+          updateFeatureStatus();
         }
         if (typeof showInfo === "function") {
           showInfo("All tools disabled.");

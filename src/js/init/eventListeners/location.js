@@ -1,5 +1,6 @@
 import { showError } from "../../utils/notifications.js";
 import { loadLocationModule, lazyModulesLoaded } from "../../utils/lazyLoader.js";
+import { updateFeatureStatus } from "../../components/settings.js";
 import { requestLocation, disableLocation, updateLocationUI } from "../../services/location.js";
 export function setupLocationEventListeners() {
   if (!window.locationToggle) {
@@ -44,8 +45,8 @@ export function setupLocationEventListeners() {
       }
     }
 
-    if (typeof window.updateFeatureStatus === 'function') {
-      window.updateFeatureStatus();
+    if (typeof updateFeatureStatus === 'function') {
+      updateFeatureStatus();
     }
   });
 }
