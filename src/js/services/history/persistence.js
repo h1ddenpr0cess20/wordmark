@@ -7,6 +7,7 @@ import {
 } from "../../utils/conversationStorage.js";
 import { saveImageToDb, loadImageFromDb } from "../../utils/imageStorage.js";
 import { loadHighlightJS } from "../../utils/highlight.js";
+import { loadMarkedLibrary } from "../../utils/lazyLoader.js";
 
 function processImageForStorage(img, savePromises) {
   const processedImg = { ...img };
@@ -143,8 +144,8 @@ function ensureLibrariesLoaded() {
   const ensureHighlight = typeof hljs === 'undefined' && typeof loadHighlightJS === 'function'
     ? loadHighlightJS()
     : Promise.resolve();
-  const ensureMarked = typeof marked === 'undefined' && typeof window.loadMarkedLibrary === 'function'
-    ? window.loadMarkedLibrary()
+  const ensureMarked = typeof marked === 'undefined' && typeof loadMarkedLibrary === 'function'
+    ? loadMarkedLibrary()
     : Promise.resolve();
 
   return Promise.all([ensureHighlight, ensureMarked]);

@@ -1,4 +1,5 @@
 import { showError } from "../utils/notifications.js";
+import { loadVectorStoreModule, lazyModulesLoaded } from "../utils/lazyLoader.js";
 import { initializeConversationInput } from "./eventListeners/conversationInput.js";
 import { initializeSettingsPanelControls } from "./eventListeners/settingsPanel.js";
 import { setupButtonEventListeners } from "./eventListeners/buttons.js";
@@ -76,16 +77,16 @@ function setupEventListeners() {
     }
   }
 
-  if (typeof window.loadVectorStoreModule === "function") {
+  if (typeof loadVectorStoreModule === "function") {
     let vectorStoreModuleLoadingPromise = null;
 
     async function ensureVectorStoreModuleLoaded() {
-      if (window.lazyModulesLoaded && window.lazyModulesLoaded.vectorStore) {
+      if (lazyModulesLoaded && lazyModulesLoaded.vectorStore) {
         return true;
       }
 
       if (!vectorStoreModuleLoadingPromise) {
-        vectorStoreModuleLoadingPromise = window.loadVectorStoreModule().finally(() => {
+        vectorStoreModuleLoadingPromise = loadVectorStoreModule().finally(() => {
           vectorStoreModuleLoadingPromise = null;
         });
       }
@@ -115,7 +116,7 @@ function setupEventListeners() {
       if (!el) return;
 
       el.addEventListener("click", async(event) => {
-        if (window.lazyModulesLoaded && window.lazyModulesLoaded.vectorStore) {
+        if (lazyModulesLoaded && lazyModulesLoaded.vectorStore) {
           return;
         }
 

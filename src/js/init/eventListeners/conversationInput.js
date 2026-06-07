@@ -1,3 +1,4 @@
+import { loadGalleryModule } from "../../utils/lazyLoader.js";
 export function initializeConversationInput() {
   if (!window.userInput || !window.sendButton) {
     return;
@@ -35,8 +36,8 @@ export function initializeConversationInput() {
   if (window.galleryButton) {
     const firstGalleryClick = async(event) => {
       event.preventDefault();
-      if (typeof window.loadGalleryModule === 'function') {
-        await window.loadGalleryModule();
+      if (typeof loadGalleryModule === 'function') {
+        await loadGalleryModule();
       }
       if (typeof window.initGallery === 'function') {
         window.initGallery();

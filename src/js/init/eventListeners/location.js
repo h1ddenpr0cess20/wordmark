@@ -1,4 +1,5 @@
 import { showError } from "../../utils/notifications.js";
+import { loadLocationModule, lazyModulesLoaded } from "../../utils/lazyLoader.js";
 export function setupLocationEventListeners() {
   if (!window.locationToggle) {
     return;
@@ -8,8 +9,8 @@ export function setupLocationEventListeners() {
     const isEnabled = event.target.checked;
 
     if (isEnabled) {
-      if (typeof window.loadLocationModule === 'function' && !window.lazyModulesLoaded?.location) {
-        await window.loadLocationModule();
+      if (typeof loadLocationModule === 'function' && !lazyModulesLoaded?.location) {
+        await loadLocationModule();
       }
 
       const result = await window.requestLocation();

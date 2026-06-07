@@ -2,6 +2,8 @@
  * Helpers for rendering reasoning/thinking content.
  */
 
+import { loadMarkedLibrary } from "../../utils/lazyLoader.js";
+
 export function processMainContentMarkdown(mainText) {
   let html = mainText;
 
@@ -14,8 +16,8 @@ export function processMainContentMarkdown(mainText) {
     html += '`';
   }
 
-  if (typeof marked === 'undefined' && typeof window.loadMarkedLibrary === 'function') {
-    window.loadMarkedLibrary();
+  if (typeof marked === 'undefined' && typeof loadMarkedLibrary === 'function') {
+    loadMarkedLibrary();
   }
   let parsedContent = typeof marked !== 'undefined'
     ? (window.sanitizeWithYouTube ? window.sanitizeWithYouTube(marked.parse(html)) : DOMPurify.sanitize(marked.parse(html)))

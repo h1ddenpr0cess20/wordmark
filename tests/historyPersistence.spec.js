@@ -166,10 +166,10 @@ test("saveCurrentConversation filters metadata, persists images, and marks messa
 
 test("loadConversation hydrates UI, preloads images, and filters developer messages", async () => {
   const renderCalls = [];
-  let markedLoaded = false;
-  // loadHighlightJS is now a static import; short-circuit its call by marking
-  // the hljs global as already present so ensureLibrariesLoaded skips it.
+  // loadHighlightJS/loadMarkedLibrary are now static imports; short-circuit their
+  // calls by marking the hljs/marked globals present so ensureLibrariesLoaded skips.
   globalThis.hljs = {};
+  globalThis.marked = {};
 
   const conversationRecord = {
     id: "1",
@@ -189,7 +189,6 @@ test("loadConversation hydrates UI, preloads images, and filters developer messa
     renderConversationMessages: (convo, cache) => {
       renderCalls.push({ convo, cache });
     },
-    loadMarkedLibrary: async () => { markedLoaded = true; },
     chatBox: { innerHTML: "old" },
   });
 
@@ -199,7 +198,6 @@ test("loadConversation hydrates UI, preloads images, and filters developer messa
 
   const result = await loadConversation("1");
   assert.equal(result, true);
-  assert.equal(markedLoaded, true);
   assert.equal(globalThis.window.chatBox.innerHTML, "");
 
   assert.equal(renderCalls.length, 1);

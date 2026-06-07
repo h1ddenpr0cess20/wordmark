@@ -1,4 +1,5 @@
 import { icon } from "../../utils/icons.js";
+import { loadMarkedLibrary } from "../../utils/lazyLoader.js";
 function renderAssistantIcon(senderElement) {
   senderElement.innerHTML = `
     <svg class="sender-icon assistant-icon" width="32" height="32" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -52,8 +53,8 @@ window.appendMessage = function(sender, content, type, skipHistory = false) {
   window.chatBox.appendChild(messageElement);
 
   setTimeout(() => {
-    const ensureMarked = typeof marked === 'undefined' && typeof window.loadMarkedLibrary === 'function'
-      ? window.loadMarkedLibrary()
+    const ensureMarked = typeof marked === 'undefined' && typeof loadMarkedLibrary === 'function'
+      ? loadMarkedLibrary()
       : Promise.resolve();
 
     Promise.resolve(ensureMarked).then(() => {

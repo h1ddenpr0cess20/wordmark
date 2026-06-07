@@ -1,9 +1,10 @@
+import { loadTtsModule, lazyModulesLoaded } from "../../utils/lazyLoader.js";
 export function setupTtsEventListeners() {
   if (window.ttsToggle) {
     window.ttsToggle.addEventListener('change', async(event) => {
       if (event.target.checked) {
-        if (typeof window.loadTtsModule === 'function' && !window.lazyModulesLoaded?.tts) {
-          await window.loadTtsModule();
+        if (typeof loadTtsModule === 'function' && !lazyModulesLoaded?.tts) {
+          await loadTtsModule();
         }
         window.ttsConfig = window.ttsConfig || { enabled: false, voice: 'ash', instructions: '', autoplay: true };
         window.ttsConfig.enabled = true;
