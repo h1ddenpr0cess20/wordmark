@@ -1,3 +1,5 @@
+import { ensureImagesHaveMessageIds } from "../../services/streaming/imageGeneration.js";
+
 function showDebugToggleNotification(status) {
   const notification = document.createElement('div');
   notification.className = 'debug-toggle-notification';
@@ -92,12 +94,10 @@ export function setupDebugEventListeners() {
     const summary = `Image Loading Diagnostics:\n- Messages with images: ${diagnostics.messagesWithImages}\n- Total image placeholders: ${diagnostics.totalImagePlaceholders}\n- Filename-specific placeholders: ${diagnostics.filenameSpecificPlaceholders}\n- Generic placeholders: ${diagnostics.genericPlaceholders}\n- Images missing message associations: ${diagnostics.imagesWithoutAssociatedMessage}`;
     alert(summary);
 
-    if (typeof window.ensureImagesHaveMessageIds === 'function') {
-      const fixedCount = window.ensureImagesHaveMessageIds();
-      console.info(`Fixed ${fixedCount} image associations`);
-      if (fixedCount > 0) {
-        alert(`Fixed ${fixedCount} image associations. Save the conversation to preserve these changes.`);
-      }
+    const fixedCount = ensureImagesHaveMessageIds();
+    console.info(`Fixed ${fixedCount} image associations`);
+    if (fixedCount > 0) {
+      alert(`Fixed ${fixedCount} image associations. Save the conversation to preserve these changes.`);
     }
   });
 }

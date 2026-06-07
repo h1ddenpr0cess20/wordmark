@@ -24,6 +24,7 @@ import {
 } from './toolManager.js';
 import { getActiveVectorStoreIds } from '../vectorStore.js';
 import { toolImplementations } from '../toolImplementations.js';
+import { handleStreamedResponse } from '../streaming.js';
 
 const DEFAULT_INCLUDE_FIELDS = [
   'code_interpreter_call.outputs',
@@ -234,7 +235,7 @@ export async function runTurn({
     try {
       if (stream) {
         const streamResponse = await executeStreamingRequest(body, abortController);
-        const result = await window.handleStreamedResponse(streamResponse, loadingId);
+        const result = await handleStreamedResponse(streamResponse, loadingId);
         responsePayload = result.response;
         streamedText = result.outputText || '';
         streamedReasoning = result.reasoningText || '';

@@ -1,22 +1,15 @@
 import { ensureImagesHaveMessageIds } from "./streaming/imageGeneration.js";
-import { processMainContentMarkdown } from "./streaming/thinkingUtils.js";
 import {
-  addToConversationHistory,
   finalizeStreamedResponse,
-  handleInvalidResponse,
-  handleNonStreamingResponse,
-  hasValidAssistantMessage,
   removeLoadingIndicator,
-  updateFinalMessage,
-  updateLoadingIndicator,
   updateMessageContent,
 } from "./streaming/messageLifecycle.js";
 import { createStreamingRuntime } from "./streaming/runtime.js";
 import { createStreamingEventProcessor } from "./streaming/eventProcessor.js";
 
-window.ensureImagesHaveMessageIds = ensureImagesHaveMessageIds;
+export { ensureImagesHaveMessageIds };
 
-window.handleStreamedResponse = async function(response, loadingId) {
+export async function handleStreamedResponse(response, loadingId) {
   const loadingMessage = document.getElementById(loadingId);
   if (!loadingMessage) {
     return { response: null, outputText: "", reasoningText: "" };
@@ -130,16 +123,14 @@ window.handleStreamedResponse = async function(response, loadingId) {
     outputText: runtime.getOutputText(),
     reasoningText: runtime.getReasoningText(),
   };
-};
+}
 
-window.processMainContentMarkdown = processMainContentMarkdown;
+// Window bridges for not-yet-converted Phase 7 consumers (interaction.js,
+// components/messages.js, services/history/render.js). updateMessageContent
+// MUST stay bridged here: messageLifecycle's implementation has to keep
+// winning over the (now-dead) same-named definition in components/messages.js,
+// which is load-order dependent.
 window.finalizeStreamedResponse = finalizeStreamedResponse;
-window.updateFinalMessage = updateFinalMessage;
-window.handleNonStreamingResponse = handleNonStreamingResponse;
-window.hasValidAssistantMessage = hasValidAssistantMessage;
-window.addToConversationHistory = addToConversationHistory;
-window.updateLoadingIndicator = updateLoadingIndicator;
 window.updateMessageContent = updateMessageContent;
 window.removeLoadingIndicator = removeLoadingIndicator;
-window.handleInvalidResponse = handleInvalidResponse;
 

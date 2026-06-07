@@ -9,6 +9,7 @@ import { saveImageToDb, loadImageFromDb } from "../../utils/imageStorage.js";
 import { loadHighlightJS } from "../../utils/highlight.js";
 import { loadMarkedLibrary } from "../../utils/lazyLoader.js";
 import { detectMediaType } from "../mediaTools.js";
+import { ensureImagesHaveMessageIds } from "../streaming/imageGeneration.js";
 
 function processImageForStorage(img, savePromises) {
   const processedImg = { ...img };
@@ -199,11 +200,9 @@ window.saveCurrentConversation = function(meta = {}) {
     window.generatedImages = [];
   }
 
-  if (typeof window.ensureImagesHaveMessageIds === 'function') {
-    const updatedCount = window.ensureImagesHaveMessageIds();
-    if (window.VERBOSE_LOGGING && updatedCount > 0) {
-      console.info(`Associated ${updatedCount} images with messages before saving`);
-    }
+  const updatedCount = ensureImagesHaveMessageIds();
+  if (window.VERBOSE_LOGGING && updatedCount > 0) {
+    console.info(`Associated ${updatedCount} images with messages before saving`);
   }
 
   const now = new Date();
