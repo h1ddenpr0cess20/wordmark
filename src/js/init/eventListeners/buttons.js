@@ -1,5 +1,6 @@
 import { icon } from "../../utils/icons.js";
 import { isMobileDevice, focusUserInputSafely } from "../../utils/mobileHandling.js";
+import { exportChat, handleExportFormatChange } from "../../services/export.js";
 function closePanelIfActive(closeSettingsPanel) {
   if (typeof closeSettingsPanel === 'function' && window.settingsPanel && window.settingsPanel.classList.contains('active')) {
     closeSettingsPanel();
@@ -63,10 +64,10 @@ export function setupButtonEventListeners({ closeSettingsPanel } = {}) {
   }
 
   if (window.exportChatButton) {
-    window.exportChatButton.addEventListener('click', window.exportChat);
+    window.exportChatButton.addEventListener('click', exportChat);
   }
-  if (window.exportFormatSelector && typeof window.handleExportFormatChange === 'function') {
-    window.exportFormatSelector.addEventListener('change', window.handleExportFormatChange);
+  if (window.exportFormatSelector && typeof handleExportFormatChange === 'function') {
+    window.exportFormatSelector.addEventListener('change', handleExportFormatChange);
   }
 
   if (window.resetPersonalityButton) {

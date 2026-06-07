@@ -266,7 +266,7 @@ function resolveSelectedExportFormat() {
   return "md";
 }
 
-window.handleExportFormatChange = function(event) {
+export function handleExportFormatChange(event) {
   const value = event && event.target ? event.target.value : null;
   const formatKey = normaliseExportFormat(value);
   if (!formatKey || !EXPORT_FORMATS[formatKey]) {
@@ -276,21 +276,21 @@ window.handleExportFormatChange = function(event) {
   if (event && event.target && event.target.value !== formatKey) {
     event.target.value = formatKey;
   }
-};
+}
 
-window.initializeExportControls = function() {
+export function initializeExportControls() {
   if (!window.exportFormatSelector) {
     return;
   }
   const stored = getStoredExportFormat();
   const effective = EXPORT_FORMATS[stored] ? stored : "md";
   window.exportFormatSelector.value = effective;
-};
+}
 
 /**
  * Exports the current chat conversation to a user-selected format
  */
-window.exportChat = function() {
+export function exportChat() {
   const formatKey = resolveSelectedExportFormat();
   const formatConfig = EXPORT_FORMATS[formatKey];
   if (!formatConfig) {
@@ -321,4 +321,4 @@ window.exportChat = function() {
   anchor.click();
   document.body.removeChild(anchor);
   URL.revokeObjectURL(url);
-};
+}
