@@ -1,9 +1,10 @@
 import { icon } from "../../utils/icons.js";
 import { deleteImageFromDb } from "../../utils/imageStorage.js";
 import { isMobileDevice } from "../../utils/mobileHandling.js";
+import { detectMediaType, downloadMediaSource } from "../../services/mediaTools.js";
 
 window.downloadImage = function(url, filename) {
-  return window.downloadMediaSource?.(url, filename);
+  return downloadMediaSource(url, filename);
 };
 
 function elementMediaType(element) {
@@ -35,9 +36,7 @@ function buildViewerMediaElement(item) {
 
 function normalizeViewerItem(source, isGalleryMode) {
   if (isGalleryMode) {
-    const mediaType = typeof window.detectMediaType === 'function'
-      ? window.detectMediaType(source)
-      : ((source?.mimeType || '').startsWith('video/') ? 'video' : 'image');
+    const mediaType = detectMediaType(source);
     return {
       mediaType,
       url: source.data,
@@ -102,7 +101,7 @@ window.setupImageInteractions = function(messageElement) {
         : `image-${Date.now()}-${index + 1}.png`;
       const filename = media.dataset.filename || fallbackName;
       const source = mediaType === 'video' ? (media.currentSrc || media.src) : media.src;
-      window.downloadMediaSource?.(source, filename)
+      downloadMediaSource(source, filename)
         .catch(error => console.error(`Error downloading ${mediaType}:`, error));
     });
   });
@@ -223,7 +222,7 @@ window.createImageSlideshow = function(images, startIndex, isGalleryMode = false
 
     deleteBtn.addEventListener('click', () => {
       const image = window.galleryImages[currentIndex];
-      const mediaType = typeof window.detectMediaType === 'function' ? window.detectMediaType(image) : 'media';
+      const mediaType = detectMediaType(image);
       if (!confirm(`Delete this ${mediaType}?`)) {
         return;
       }
@@ -370,7 +369,7 @@ window.createImageSlideshow = function(images, startIndex, isGalleryMode = false
 
   downloadBtn.addEventListener('click', () => {
     const item = normalizeViewerItem(images[currentIndex], isGalleryMode);
-    window.downloadMediaSource?.(item.url, item.filename || `${item.mediaType}-${Date.now()}`)
+    downloadMediaSource(item.url, item.filename || `${item.mediaType}-${Date.now()}`)
       .catch(error => console.error(`Failed to download ${item.mediaType}:`, error));
   });
 };

@@ -26,7 +26,7 @@ function escapeHtmlAttribute(value) {
     .replace(/>/g, "&gt;");
 }
 
-function isVideoMimeType(mimeType = "") {
+export function isVideoMimeType(mimeType = "") {
   return /^video\//i.test(mimeType);
 }
 
@@ -42,7 +42,7 @@ function inferMimeTypeFromFilename(filename = "") {
   return "image/png";
 }
 
-function detectMediaType(source = {}) {
+export function detectMediaType(source = {}) {
   const explicitType = typeof source.mediaType === "string" ? source.mediaType.trim().toLowerCase() : "";
   if (explicitType === "video" || explicitType === "image") {
     return explicitType;
@@ -75,7 +75,7 @@ function makeFilename(prefix, mimeType) {
   return `${base}-${Date.now()}-${Math.random().toString(36).slice(2, 10)}.${extension}`;
 }
 
-function buildMediaRecordHtml(record) {
+export function buildMediaRecordHtml(record) {
   const mediaType = detectMediaType(record);
   const safeFilename = escapeHtmlAttribute(record.filename || "");
   const safePrompt = escapeHtmlAttribute(record.prompt || "");
@@ -133,7 +133,7 @@ async function resolveStoredReference(record) {
   }
   try {
     const stored = await loadImageFromDb(record.filename);
-    const displayUrl = window.getMediaDisplayUrl?.(stored?.data, record.filename) || "";
+    const displayUrl = getMediaDisplayUrl(stored?.data, record.filename) || "";
     if (displayUrl && window.imageDataCache?.set) {
       window.imageDataCache.set(record.filename, displayUrl);
     }
@@ -193,7 +193,7 @@ async function findLatestGeneratedMedia(kind) {
   return null;
 }
 
-async function resolveLatestMediaReference(kind) {
+export async function resolveLatestMediaReference(kind) {
   const generated = await findLatestGeneratedMedia(kind);
   if (generated) {
     return generated;
@@ -229,9 +229,7 @@ function parseImageResponse(payload) {
     .filter(Boolean);
 }
 
-window.isVideoMimeType = isVideoMimeType;
-window.detectMediaType = detectMediaType;
-window.getMediaDisplayUrl = function(value, filename = "") {
+export function getMediaDisplayUrl(value, filename = "") {
   if (!value) {
     return "";
   }
@@ -254,9 +252,13 @@ window.getMediaDisplayUrl = function(value, filename = "") {
     return `data:${mimeType};base64,${value}`;
   }
   return "";
-};
+}
 
-window.downloadMediaSource = async function(source, filename) {
+// Low-level imageStorage util reads this via window to avoid a util->service
+// import cycle; remove when imageStorage no longer needs a display-URL builder.
+window.getMediaDisplayUrl = getMediaDisplayUrl;
+
+export async function downloadMediaSource(source, filename) {
   let blob = null;
   const remoteUrl = typeof source === "string" && /^https?:\/\//i.test(source)
     ? source.trim()
@@ -302,18 +304,16 @@ window.downloadMediaSource = async function(source, filename) {
   window.setTimeout(() => {
     URL.revokeObjectURL(objectUrl);
   }, 1000);
-};
+}
 
-window.createGeneratedMediaHtml = buildMediaRecordHtml;
-window.resolveLatestMediaReference = resolveLatestMediaReference;
-window.getMediaToolInstructions = function() {
+export function getMediaToolInstructions() {
   return [
     "For Grok image edits, if the user refers to the most recent uploaded or generated image, you may omit image_url or image_urls.",
     "The runtime will automatically supply the latest available local image when an image edit tool is called without an explicit image URL.",
   ].join(" ");
-};
+}
 
-window.registerGeneratedMedia = function({
+export function registerGeneratedMedia({
   mediaType,
   sourceData,
   prompt = "",
@@ -333,7 +333,7 @@ window.registerGeneratedMedia = function({
   const effectiveMediaType = mediaType || (isVideoMimeType(effectiveMimeType) ? "video" : "image");
   const effectiveFilename = filename || makeFilename(effectiveMediaType === "video" ? "video" : "generated", effectiveMimeType);
   const timestamp = new Date().toISOString();
-  const displayUrl = window.getMediaDisplayUrl?.(sourceData, effectiveFilename) || createObjectUrl(sourceData);
+  const displayUrl = getMediaDisplayUrl(sourceData, effectiveFilename) || createObjectUrl(sourceData);
 
   const record = {
     url: displayUrl,
@@ -380,7 +380,7 @@ window.registerGeneratedMedia = function({
   }
 
   return record;
-};
+}
 
 function getProviderBaseUrl(provider) {
   const baseUrl = window.config?.services?.[provider]?.baseUrl || "";
@@ -480,7 +480,7 @@ async function generateGrokImage(args, mode) {
     throw new Error("The image API did not return any images.");
   }
 
-  const records = images.map(image => window.registerGeneratedMedia({
+  const records = images.map(image => registerGeneratedMedia({
     mediaType: "image",
     sourceData: image.url,
     prompt,

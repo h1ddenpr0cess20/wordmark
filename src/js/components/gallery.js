@@ -10,6 +10,7 @@ import {
   getImageDb,
   IMAGE_STORE_NAME,
 } from "../utils/imageStorage.js";
+import { detectMediaType, getMediaDisplayUrl, downloadMediaSource } from "../services/mediaTools.js";
 
 // -----------------------------------------------------
 // Gallery functionality
@@ -211,9 +212,7 @@ window.loadGalleryImages = async function() {
 
       for (let i = startIndex; i < endIndex; i++) {
         const image = visibleImages[i];
-        const mediaType = typeof window.detectMediaType === "function"
-          ? window.detectMediaType(image)
-          : ((image.mimeType || "").startsWith("video/") ? "video" : "image");
+        const mediaType = detectMediaType(image);
 
         // Create gallery item
         const galleryItem = document.createElement("div");
@@ -381,10 +380,8 @@ window.getAllImagesFromDb = function() {
         const value = cursor.value;
         images.push({
           ...value,
-          data: window.getMediaDisplayUrl?.(value.data, value.filename) || value.data,
-          mediaType: typeof window.detectMediaType === "function"
-            ? window.detectMediaType(value)
-            : ((value.mimeType || "").startsWith("video/") ? "video" : "image"),
+          data: getMediaDisplayUrl(value.data, value.filename) || value.data,
+          mediaType: detectMediaType(value),
         });
         cursor.continue();
       } else {
@@ -432,7 +429,7 @@ window.deleteImageAndUpdateGallery = async function(filename) {
  * @param {string} filename - The filename to save as
  */
 window.downloadGalleryImage = function(imageData, filename) {
-  window.downloadMediaSource?.(imageData, filename)
+  downloadMediaSource(imageData, filename)
     .catch(error => {
       console.error("Failed to download gallery media:", error);
       alert("Failed to download the selected media item.");
@@ -470,9 +467,7 @@ window.showFullSizeImage = function(imageUrl, imageData) {
       filename: imageData.filename,
       prompt: imageData.prompt,
       timestamp: imageData.timestamp,
-      mediaType: imageData.mediaType || (typeof window.detectMediaType === "function"
-        ? window.detectMediaType(imageData)
-        : "image"),
+      mediaType: imageData.mediaType || detectMediaType(imageData),
       mimeType: imageData.mimeType || "",
     };
 

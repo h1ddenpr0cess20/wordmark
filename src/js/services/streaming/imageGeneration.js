@@ -2,6 +2,8 @@
  * Image generation and attachment helpers used during streaming.
  */
 
+import { registerGeneratedMedia } from "../mediaTools.js";
+
 export const IMAGE_GENERATION_CALL_TYPE = 'image_generation_call';
 
 export function ensureImagesHaveMessageIds() {
@@ -90,17 +92,6 @@ export function imageDebugLog(...args) {
   }
 }
 
-function escapeHtmlAttribute(value) {
-  if (value === null || value === undefined) {
-    return '';
-  }
-  return String(value)
-    .replace(/&/g, '&amp;')
-    .replace(/"/g, '&quot;')
-    .replace(/'/g, '&#39;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;');
-}
 
 function extractMimeFromDataUrl(dataUrl) {
   if (typeof dataUrl !== 'string') {
@@ -410,39 +401,16 @@ export function processImageGenerationOutputs(responsePayload) {
       const randomChunk = Math.random().toString(36).substring(2, 10);
       const filenameBase = sourceLabel === 'image_edit' ? 'edited' : 'generated';
       const filename = `${filenameBase}-${Date.now()}-${randomChunk}-${index + 1}.${extension}`;
-      if (typeof window.registerGeneratedMedia === 'function') {
-        window.registerGeneratedMedia({
-          mediaType: 'image',
-          sourceData: image.dataUrl,
-          prompt: prompt || '',
-          tool: sourceLabel,
-          filename,
-          mimeType,
-          callId,
-          model: responsePayload.model || undefined,
-        });
-      } else {
-        const timestamp = new Date().toISOString();
-        const altText = prompt || (sourceLabel === 'image_edit' ? 'Edited image' : 'Generated image');
-        const safeAlt = escapeHtmlAttribute(altText);
-        const safePromptAttr = escapeHtmlAttribute(prompt);
-        const html = `<img src="${image.dataUrl}" alt="${safeAlt}" class="generated-image-thumbnail" data-media-type="image" data-filename="${filename}" data-prompt="${safePromptAttr}" data-timestamp="${timestamp}" />`;
-
-        window.currentGeneratedImageHtml.push(html);
-        window.generatedImages.push({
-          url: image.dataUrl,
-          prompt: prompt || '',
-          tool: sourceLabel,
-          timestamp,
-          filename,
-          associatedMessageId: null,
-          callId,
-          mimeType,
-          mediaType: 'image',
-          model: responsePayload.model || undefined,
-          isStoredInDb: false,
-        });
-      }
+      registerGeneratedMedia({
+        mediaType: 'image',
+        sourceData: image.dataUrl,
+        prompt: prompt || '',
+        tool: sourceLabel,
+        filename,
+        mimeType,
+        callId,
+        model: responsePayload.model || undefined,
+      });
     });
   });
 

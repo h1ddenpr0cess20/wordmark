@@ -1,3 +1,5 @@
+import { detectMediaType, getMediaDisplayUrl } from "../mediaTools.js";
+
 function createMissingMediaPlaceholder(filename, mediaType = 'image') {
   const label = mediaType === 'video' ? 'Video' : 'Image';
   return `<div class='image-placeholder' style='padding:40px;background:#f1f1f1;border-radius:8px;margin:8px 0;text-align:center;font-style:italic;color:#666;'>${label} could not be loaded: ${filename}</div>`;
@@ -17,16 +19,14 @@ function resolveMediaSource(mediaRecord, filename, imageCache) {
   }
 
   if (mediaRecord.isStoredInDb && imageCache?.has(filename)) {
-    return window.getMediaDisplayUrl?.(imageCache.get(filename), filename) || imageCache.get(filename);
+    return getMediaDisplayUrl(imageCache.get(filename), filename) || imageCache.get(filename);
   }
 
   return '';
 }
 
 function createMediaElement(mediaRecord, src, messageId = '') {
-  const mediaType = typeof window.detectMediaType === 'function'
-    ? window.detectMediaType(mediaRecord)
-    : ((mediaRecord?.mimeType || '').startsWith('video/') ? 'video' : 'image');
+  const mediaType = detectMediaType(mediaRecord);
 
   if (mediaType === 'video') {
     const videoEl = document.createElement('video');

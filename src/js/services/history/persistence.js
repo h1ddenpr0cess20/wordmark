@@ -8,12 +8,11 @@ import {
 import { saveImageToDb, loadImageFromDb } from "../../utils/imageStorage.js";
 import { loadHighlightJS } from "../../utils/highlight.js";
 import { loadMarkedLibrary } from "../../utils/lazyLoader.js";
+import { detectMediaType } from "../mediaTools.js";
 
 function processImageForStorage(img, savePromises) {
   const processedImg = { ...img };
-  const mediaType = typeof window.detectMediaType === 'function'
-    ? window.detectMediaType(processedImg)
-    : ((processedImg.mimeType || '').startsWith('video/') ? 'video' : 'image');
+  const mediaType = detectMediaType(processedImg);
   const mimeType = processedImg.mimeType
     || (typeof processedImg.url === 'string' && processedImg.url.startsWith('data:')
       ? processedImg.url.slice(5).split(';', 1)[0]
