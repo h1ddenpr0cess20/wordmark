@@ -68,7 +68,7 @@ async function generateSpeechOpenai(text) {
     throw new Error(`TTS API request failed: ${errorDetails}`);
   }
 
-  return await response.arrayBuffer();
+  return response.arrayBuffer();
 }
 
 async function generateSpeechXai(text) {
@@ -109,5 +109,5 @@ async function generateSpeechXai(text) {
     throw new Error(`xAI TTS API request failed: ${errorDetails}`);
   }
 
-  return await response.arrayBuffer();
+  return response.arrayBuffer();
 }

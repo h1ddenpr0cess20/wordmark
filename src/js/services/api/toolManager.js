@@ -3,23 +3,23 @@ import { getMemoryConfig } from "../../utils/memoryStorage.js";
  * Tool catalog, preference management, and MCP availability helpers.
  */
 
-import { getActiveServiceKey, getActiveModel } from './clientConfig.js';
+import { getActiveServiceKey, getActiveModel } from "./clientConfig.js";
 import { weatherToolHandler } from "../weather.js";
 import { memoryToolDefinition, forgetToolDefinition } from "../memory.js";
 import { getApiKey } from "../apiKeys.js";
 import { MCP_ASSUME_ONLINE, config } from "../../../config/config.js";
 import { state } from "../../init/state.js";
 
-const TOOL_STORAGE_KEY = 'wordmark_tool_preferences';
+const TOOL_STORAGE_KEY = "wordmark_tool_preferences";
 
 function loadUserMCPServers() {
   try {
-    const stored = localStorage.getItem('mcp_servers');
+    const stored = localStorage.getItem("mcp_servers");
     if (!stored) return [];
     const servers = JSON.parse(stored);
     return Array.isArray(servers) ? servers : [];
   } catch (error) {
-    console.error('Error loading user MCP servers:', error);
+    console.error("Error loading user MCP servers:", error);
     return [];
   }
 }
@@ -30,16 +30,16 @@ function buildMcpToolEntry(server) {
   }
   return {
     key: `mcp:${server.server_label}`,
-    type: 'mcp',
+    type: "mcp",
     displayName: server.displayName || server.server_label,
-    description: server.description || 'User-configured MCP server',
+    description: server.description || "User-configured MCP server",
     defaultEnabled: true,
     isOnline: null,
     definition: {
-      type: 'mcp',
+      type: "mcp",
       server_label: server.server_label,
       server_url: server.server_url,
-      require_approval: server.require_approval || 'always',
+      require_approval: server.require_approval || "always",
     },
   };
 }
@@ -53,7 +53,7 @@ function isConfiguredServiceEnabled(serviceKey) {
   if (!services) {
     return true;
   }
-  if (typeof config?.isServiceEnabled === 'function') {
+  if (typeof config?.isServiceEnabled === "function") {
     return config.isServiceEnabled(serviceKey);
   }
   const service = services[serviceKey];
@@ -62,93 +62,93 @@ function isConfiguredServiceEnabled(serviceKey) {
 
 const STATIC_TOOLS = [
   {
-    key: 'function:open_meteo_forecast',
-    type: 'function',
-    displayName: 'Weather (Open-Meteo)',
-    description: 'Fetch 1-7 day forecasts using the Open-Meteo API.',
+    key: "function:open_meteo_forecast",
+    type: "function",
+    displayName: "Weather (Open-Meteo)",
+    description: "Fetch 1-7 day forecasts using the Open-Meteo API.",
     defaultEnabled: true,
     definition: {
-      type: 'function',
-      name: 'open_meteo_forecast',
-      description: 'Get a short weather forecast via Open-Meteo (1-7 days).',
+      type: "function",
+      name: "open_meteo_forecast",
+      description: "Get a short weather forecast via Open-Meteo (1-7 days).",
       parameters: {
-        type: 'object',
+        type: "object",
         properties: {
           city: {
-            type: 'string',
-            description: 'City name, e.g. Detroit',
+            type: "string",
+            description: "City name, e.g. Detroit",
           },
           days: {
-            type: 'integer',
-            description: 'Number of days of forecast to get',
+            type: "integer",
+            description: "Number of days of forecast to get",
           },
         },
-        required: ['city', 'days'],
+        required: ["city", "days"],
         additionalProperties: false,
       },
       strict: true,
     },
   },
   {
-    key: 'builtin:web_search',
-    type: 'builtin',
-    displayName: 'Web Search',
-    description: 'Allow the assistant to use provider-managed web searches for fresh information on OpenAI or xAI.',
+    key: "builtin:web_search",
+    type: "builtin",
+    displayName: "Web Search",
+    description: "Allow the assistant to use provider-managed web searches for fresh information on OpenAI or xAI.",
     defaultEnabled: true,
-    onlyServices: ['openai', 'xai'],
+    onlyServices: ["openai", "xai"],
     definition: {
-      type: 'web_search',
+      type: "web_search",
     },
   },
   {
-    key: 'builtin:code_interpreter',
-    type: 'builtin',
-    displayName: 'Code Interpreter',
-    description: 'Allow the assistant to run Python code and work with files in the provider sandbox.',
+    key: "builtin:code_interpreter",
+    type: "builtin",
+    displayName: "Code Interpreter",
+    description: "Allow the assistant to run Python code and work with files in the provider sandbox.",
     defaultEnabled: false,
-    onlyServices: ['openai', 'xai'],
+    onlyServices: ["openai", "xai"],
     definition: {
-      type: 'code_interpreter',
+      type: "code_interpreter",
       container: {
-        type: 'auto',
+        type: "auto",
         file_ids: [],
       },
     },
   },
   {
-    key: 'builtin:image_generation',
-    type: 'builtin',
-    displayName: 'OpenAI Images',
-    description: 'Generate or edit images using the OpenAI image tool.',
+    key: "builtin:image_generation",
+    type: "builtin",
+    displayName: "OpenAI Images",
+    description: "Generate or edit images using the OpenAI image tool.",
     defaultEnabled: true,
-    onlyServices: ['openai'],
+    onlyServices: ["openai"],
     definition: {
-      type: 'image_generation',
+      type: "image_generation",
     },
   },
   {
-    key: 'builtin:shell',
-    type: 'builtin',
-    displayName: 'Shell',
-    description: 'Allow the assistant to run shell commands in a sandboxed container environment.',
+    key: "builtin:shell",
+    type: "builtin",
+    displayName: "Shell",
+    description: "Allow the assistant to run shell commands in a sandboxed container environment.",
     defaultEnabled: false,
-    onlyServices: ['openai'],
+    onlyServices: ["openai"],
     definition: {
-      type: 'shell',
+      type: "shell",
       environment: {
-        type: 'container_auto',
+        type: "container_auto",
       },
     },
   },
   {
-    key: 'builtin:file_search',
-    type: 'builtin',
-    displayName: 'File Search',
-    description: 'Search through uploaded documents using vector stores.',
+    key: "builtin:file_search",
+    type: "builtin",
+    displayName: "File Search",
+    description: "Search through uploaded documents using vector stores.",
     defaultEnabled: false,
-    onlyServices: ['openai'],
+    onlyServices: ["openai"],
     definition: {
-      type: 'file_search',
+      type: "file_search",
       vector_store_ids: [],
     },
   },
@@ -259,19 +259,18 @@ const TOOL_CATALOG = [];
 const TOOL_DEFINITIONS = [];
 let userMcpToolCount = 0;
 
-
 const SERVER_MANAGED_TOOL_TYPES = new Set([
-  'web_search',
-  'x_search',
-  'code_interpreter',
-  'shell',
-  'image_generation',
-  'file_search',
+  "web_search",
+  "x_search",
+  "code_interpreter",
+  "shell",
+  "image_generation",
+  "file_search",
 ]);
 
 const CLIENT_SIDE_TOOL_TYPES = new Set([
-  'function',
-  'mcp',
+  "function",
+  "mcp",
 ]);
 
 function insertMcpTool(toolEntry) {
@@ -310,7 +309,7 @@ const TOOL_HANDLERS = {
     if (weatherToolHandler) {
       return weatherToolHandler(...args);
     }
-    return { error: 'Weather tool not loaded' };
+    return { error: "Weather tool not loaded" };
   },
 };
 
@@ -323,19 +322,19 @@ let mcpRefreshPromise = null;
 let toolPreferences = loadToolPreferences();
 
 function isCodexModel(modelName) {
-  return typeof modelName === 'string' && modelName.toLowerCase().includes('codex');
+  return typeof modelName === "string" && modelName.toLowerCase().includes("codex");
 }
 
 export function xaiModelDisallowsClientSideTools(modelName = getActiveModel()) {
-  return typeof modelName === 'string'
-    && modelName.toLowerCase().includes('multi-agent');
+  return typeof modelName === "string"
+    && modelName.toLowerCase().includes("multi-agent");
 }
 
 export function supportsClientSideTools(
   serviceKey = getActiveServiceKey(),
   modelName = getActiveModel(),
 ) {
-  if (serviceKey !== 'xai') {
+  if (serviceKey !== "xai") {
     return true;
   }
   return !xaiModelDisallowsClientSideTools(modelName);
@@ -355,26 +354,26 @@ export function getToolCatalog() {
     defaultEnabled: tool.defaultEnabled !== false,
     requiresApiKeyService: tool.requiresApiKeyService,
     hasRequiredApiKey: (() => {
-      if (!tool.requiresApiKeyService || typeof getApiKey !== 'function') {
+      if (!tool.requiresApiKeyService || typeof getApiKey !== "function") {
         return true;
       }
-      return Boolean((getApiKey(tool.requiresApiKeyService) || '').trim());
+      return Boolean((getApiKey(tool.requiresApiKeyService) || "").trim());
     })(),
     isOnline: (() => {
-      if (tool.type !== 'mcp') {
+      if (tool.type !== "mcp") {
         return true;
       }
-      if (typeof window !== 'undefined' && MCP_ASSUME_ONLINE === true) {
+      if (typeof window !== "undefined" && MCP_ASSUME_ONLINE === true) {
         return true;
       }
       const cached = getCachedMcpStatus(tool.key);
-      if (typeof cached === 'boolean') {
+      if (typeof cached === "boolean") {
         return cached;
       }
-      return typeof tool.isOnline === 'boolean' ? tool.isOnline : null;
+      return typeof tool.isOnline === "boolean" ? tool.isOnline : null;
     })(),
     hidden: tool.hidden === true,
-    serverUrl: tool.type === 'mcp' ? tool.definition?.server_url : undefined,
+    serverUrl: tool.type === "mcp" ? tool.definition?.server_url : undefined,
   }));
 }
 
@@ -460,7 +459,7 @@ export function getEnabledToolDefinitions(serviceKey = getActiveServiceKey(), mo
     return [];
   }
 
-  const isLocalService = serviceKey === 'lmstudio' || serviceKey === 'ollama';
+  const isLocalService = serviceKey === "lmstudio" || serviceKey === "ollama";
   const modelIsCodex = isCodexModel(modelName);
   const clientSideToolsSupported = supportsClientSideTools(serviceKey, modelName);
   const defs = [];
@@ -480,7 +479,7 @@ export function getEnabledToolDefinitions(serviceKey = getActiveServiceKey(), mo
       return;
     }
 
-    if (tool.type === 'mcp') {
+    if (tool.type === "mcp") {
       if (!isLocalService) {
         const serverUrl = tool.definition?.server_url;
         if (serverUrl && isLocalNetworkUrl(serverUrl)) {
@@ -492,10 +491,10 @@ export function getEnabledToolDefinitions(serviceKey = getActiveServiceKey(), mo
       }
     }
 
-    const onlineState = tool.type === 'mcp'
-      ? ((typeof window !== 'undefined' && MCP_ASSUME_ONLINE === true)
-          ? true
-          : (getCachedMcpStatus(tool.key) ?? (typeof tool.isOnline === 'boolean' ? tool.isOnline : false)))
+    const onlineState = tool.type === "mcp"
+      ? ((typeof window !== "undefined" && MCP_ASSUME_ONLINE === true)
+        ? true
+        : (getCachedMcpStatus(tool.key) ?? (typeof tool.isOnline === "boolean" ? tool.isOnline : false)))
       : true;
     if (!onlineState) {
       return;
@@ -512,7 +511,7 @@ export function getEnabledToolDefinitions(serviceKey = getActiveServiceKey(), mo
       }
     }
 
-    if (tool.key === 'builtin:image_generation' && serviceKey === 'openai' && modelIsCodex) {
+    if (tool.key === "builtin:image_generation" && serviceKey === "openai" && modelIsCodex) {
       if (state.verboseLogging) {
         console.info(`Skipping image generation tool for Codex model '${modelName}'.`);
       }
@@ -520,17 +519,17 @@ export function getEnabledToolDefinitions(serviceKey = getActiveServiceKey(), mo
     }
 
     // Shell and code_interpreter cannot be used together; shell wins if both enabled
-    if (tool.key === 'builtin:code_interpreter') {
-      const shellEnabled = getToolPreference('builtin:shell', false);
-      if (shellEnabled && serviceKey === 'openai') {
+    if (tool.key === "builtin:code_interpreter") {
+      const shellEnabled = getToolPreference("builtin:shell", false);
+      if (shellEnabled && serviceKey === "openai") {
         if (state.verboseLogging) {
-          console.info('Skipping code_interpreter because shell tool is enabled.');
+          console.info("Skipping code_interpreter because shell tool is enabled.");
         }
         return;
       }
-      if (serviceKey === 'xai') {
+      if (serviceKey === "xai") {
         defs.push({
-          type: 'code_interpreter',
+          type: "code_interpreter",
         });
       } else {
         defs.push(JSON.parse(JSON.stringify(tool.definition)));
@@ -538,20 +537,20 @@ export function getEnabledToolDefinitions(serviceKey = getActiveServiceKey(), mo
       return;
     }
 
-    if (tool.key === 'builtin:web_search') {
-      if (serviceKey === 'xai') {
+    if (tool.key === "builtin:web_search") {
+      if (serviceKey === "xai") {
         defs.push({
-          type: 'web_search',
+          type: "web_search",
           enable_video_understanding: true,
           enable_image_understanding: true,
         });
         defs.push({
-          type: 'x_search',
+          type: "x_search",
           enable_video_understanding: true,
           enable_image_understanding: true,
         });
       } else {
-        defs.push({ type: 'web_search' });
+        defs.push({ type: "web_search" });
       }
       return;
     }
@@ -564,8 +563,8 @@ export function getEnabledToolDefinitions(serviceKey = getActiveServiceKey(), mo
 }
 
 export function refreshMcpAvailability(force = false) {
-  const mcpTools = TOOL_CATALOG.filter(tool => tool.type === 'mcp');
-  if (typeof window !== 'undefined' && MCP_ASSUME_ONLINE === true) {
+  const mcpTools = TOOL_CATALOG.filter(tool => tool.type === "mcp");
+  if (typeof window !== "undefined" && MCP_ASSUME_ONLINE === true) {
     mcpTools.forEach(tool => setCachedMcpStatus(tool.key, true));
     lastMcpRefresh = Date.now();
     return Promise.resolve();
@@ -581,7 +580,7 @@ export function refreshMcpAvailability(force = false) {
     return Promise.resolve();
   }
 
-  if (typeof navigator !== 'undefined' && navigator.onLine === false) {
+  if (typeof navigator !== "undefined" && navigator.onLine === false) {
     mcpTools.forEach(tool => setCachedMcpStatus(tool.key, false));
     lastMcpRefresh = Date.now();
     return Promise.resolve();
@@ -599,7 +598,7 @@ export function refreshMcpAvailability(force = false) {
       }
     }));
   })().catch(error => {
-    console.warn('Error refreshing MCP availability:', error);
+    console.warn("Error refreshing MCP availability:", error);
   }).finally(() => {
     lastMcpRefresh = Date.now();
     mcpRefreshPromise = null;
@@ -617,7 +616,7 @@ function loadToolPreferences() {
       return {};
     }
     const parsed = JSON.parse(raw);
-    return parsed && typeof parsed === 'object' ? parsed : {};
+    return parsed && typeof parsed === "object" ? parsed : {};
   } catch (_) {
     return {};
   }
@@ -642,13 +641,13 @@ function isLocalNetworkUrl(url) {
   try {
     const parsed = new URL(url);
     const hostname = parsed.hostname.toLowerCase();
-    if (hostname === 'localhost' || hostname === '127.0.0.1' || hostname === '::1') {
+    if (hostname === "localhost" || hostname === "127.0.0.1" || hostname === "::1") {
       return true;
     }
     if (hostname.match(/^192\.168\.\d+\.\d+$/)) return true;
     if (hostname.match(/^10\.\d+\.\d+\.\d+$/)) return true;
     if (hostname.match(/^172\.(1[6-9]|2[0-9]|3[01])\.\d+\.\d+$/)) return true;
-    if (hostname.endsWith('.local')) return true;
+    if (hostname.endsWith(".local")) return true;
     return false;
   } catch (error) {
     return false;
@@ -670,13 +669,13 @@ function appendMemoryTools(defs, serviceKey = getActiveServiceKey(), modelName =
     }
 
     const hasServerManagedTool = defs.some(def => {
-      if (!def || typeof def !== 'object') {
+      if (!def || typeof def !== "object") {
         return false;
       }
       return SERVER_MANAGED_TOOL_TYPES.has(def.type);
     });
 
-    if (hasServerManagedTool && serviceKey === 'xai') {
+    if (hasServerManagedTool && serviceKey === "xai") {
       if (state.verboseLogging) {
         console.info(`Skipping memory tools because server-managed tools are active for service '${serviceKey}'.`);
       }
@@ -689,7 +688,7 @@ function appendMemoryTools(defs, serviceKey = getActiveServiceKey(), modelName =
       defs.push(JSON.parse(JSON.stringify(forgetToolDefinition)));
     }
   } catch (error) {
-    console.warn('Unable to append memory tools:', error);
+    console.warn("Unable to append memory tools:", error);
   }
 }
 
@@ -707,11 +706,11 @@ function setCachedMcpStatus(toolKey, online) {
 }
 
 async function pingMcpServer(url) {
-  const normalizedUrl = typeof url === 'string' ? url : '';
+  const normalizedUrl = typeof url === "string" ? url : "";
   if (!normalizedUrl) {
     return false;
   }
-  if (typeof window !== 'undefined' && MCP_ASSUME_ONLINE === true) {
+  if (typeof window !== "undefined" && MCP_ASSUME_ONLINE === true) {
     return true;
   }
   if (!isHostAllowed(normalizedUrl)) {
@@ -720,28 +719,28 @@ async function pingMcpServer(url) {
     }
     return null;
   }
-  const corsAttempt = await attemptMcpFetch(normalizedUrl, 'cors');
-  if (corsAttempt.status === 'ok') {
+  const corsAttempt = await attemptMcpFetch(normalizedUrl, "cors");
+  if (corsAttempt.status === "ok") {
     return true;
   }
-  if (corsAttempt.status === 'bad-status') {
+  if (corsAttempt.status === "bad-status") {
     return false;
   }
-  if (corsAttempt.status === 'timeout') {
+  if (corsAttempt.status === "timeout") {
     return false;
   }
 
-  const noCorsAttempt = await attemptMcpFetch(normalizedUrl, 'no-cors');
-  if (noCorsAttempt.status === 'ok') {
+  const noCorsAttempt = await attemptMcpFetch(normalizedUrl, "no-cors");
+  if (noCorsAttempt.status === "ok") {
     return true;
   }
-  if (noCorsAttempt.status === 'bad-status') {
+  if (noCorsAttempt.status === "bad-status") {
     return false;
   }
-  if (noCorsAttempt.status === 'timeout') {
+  if (noCorsAttempt.status === "timeout") {
     return false;
   }
-  if (noCorsAttempt.status === 'error') {
+  if (noCorsAttempt.status === "error") {
     if (state.verboseLogging) {
       console.warn(`MCP availability check failed (${normalizedUrl}) with network error:`, noCorsAttempt.error);
     }
@@ -758,31 +757,31 @@ async function attemptMcpFetch(url, mode) {
   const timeoutId = setTimeout(() => controller.abort(), MCP_PING_TIMEOUT_MS);
   try {
     const response = await fetch(url, {
-      method: 'GET',
+      method: "GET",
       mode,
-      cache: 'no-store',
+      cache: "no-store",
       signal: controller.signal,
     });
     clearTimeout(timeoutId);
     if (!response) {
-      return { status: 'ok' };
+      return { status: "ok" };
     }
-    if (response.type === 'opaque') {
-      return { status: 'ok' };
+    if (response.type === "opaque") {
+      return { status: "ok" };
     }
     if (response.status < 500) {
-      return { status: 'ok' };
+      return { status: "ok" };
     }
-    return { status: 'bad-status', code: response.status };
+    return { status: "bad-status", code: response.status };
   } catch (error) {
     clearTimeout(timeoutId);
-    if (error && error.name === 'AbortError') {
-      return { status: 'timeout' };
+    if (error && error.name === "AbortError") {
+      return { status: "timeout" };
     }
     if (state.verboseLogging) {
       console.warn(`MCP availability check failed (${mode}) for ${url}:`, error);
     }
-    return { status: 'error', error };
+    return { status: "error", error };
   }
 }
 
@@ -796,15 +795,15 @@ function isHostAllowed(url) {
     if (host === window.location.hostname) {
       return true;
     }
-    if (host === 'localhost' || host === '127.0.0.1') {
+    if (host === "localhost" || host === "127.0.0.1") {
       return true;
     }
-    if (host.endsWith('.localhost')) {
+    if (host.endsWith(".localhost")) {
       return true;
     }
     return true;
   } catch (error) {
-    console.warn('Failed to parse MCP URL:', url, error);
+    console.warn("Failed to parse MCP URL:", url, error);
     return false;
   }
 }

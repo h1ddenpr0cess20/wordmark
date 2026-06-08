@@ -11,27 +11,27 @@ import {
   getActiveServiceKey,
   getBaseUrl,
   supportsReasoningEffort,
-} from './clientConfig.js';
+} from "./clientConfig.js";
 import {
   buildDeveloperMessage,
   collectFunctionCalls,
   serializeMessagesForRequest,
-} from './messageUtils.js';
+} from "./messageUtils.js";
 import {
   getEnabledToolDefinitions,
   isClientSideToolType,
   refreshMcpAvailability,
   supportsClientSideTools,
   TOOL_HANDLERS,
-} from './toolManager.js';
-import { getActiveVectorStoreIds } from '../vectorStore.js';
-import { toolImplementations } from '../toolImplementations.js';
-import { handleStreamedResponse } from '../streaming.js';
+} from "./toolManager.js";
+import { getActiveVectorStoreIds } from "../vectorStore.js";
+import { toolImplementations } from "../toolImplementations.js";
+import { handleStreamedResponse } from "../streaming.js";
 
 const DEFAULT_INCLUDE_FIELDS = [
-  'code_interpreter_call.outputs',
+  "code_interpreter_call.outputs",
   // 'reasoning.encrypted_content',
-  'web_search_call.action.sources',
+  "web_search_call.action.sources",
 ];
 
 export function buildRequestBody({
@@ -47,23 +47,23 @@ export function buildRequestBody({
   const targetModel = model || getActiveModel();
   const allowReasoning = supportsReasoningEffort(targetModel);
   const serviceKey = getActiveServiceKey();
-  const isLocalService = serviceKey === 'lmstudio' || serviceKey === 'ollama';
+  const isLocalService = serviceKey === "lmstudio" || serviceKey === "ollama";
   const payload = {
     model: targetModel,
     text: {
-      format: { type: 'text' },
+      format: { type: "text" },
       verbosity: verbosity || DEFAULT_VERBOSITY,
     },
     input: serializeMessagesForRequest(inputMessages),
     store: true,
   };
-  if (serviceKey !== 'xai' && !isLocalService) {
+  if (serviceKey !== "xai" && !isLocalService) {
     payload.include = [...DEFAULT_INCLUDE_FIELDS];
   }
-  if (allowReasoning && serviceKey !== 'xai') {
+  if (allowReasoning && serviceKey !== "xai") {
     payload.reasoning = {
       effort: reasoningEffort || DEFAULT_REASONING_EFFORT,
-      summary: 'auto',
+      summary: "auto",
     };
   }
   if (instructions) {
@@ -78,13 +78,13 @@ export function buildRequestBody({
   if (previousResponseId) {
     payload.previous_response_id = previousResponseId;
   }
-  if (serviceKey === 'xai' && payload.text) {
+  if (serviceKey === "xai" && payload.text) {
     const usesServerSideTools = Array.isArray(tools) && tools.some(tool => {
-      if (!tool || typeof tool !== 'object') {
+      if (!tool || typeof tool !== "object") {
         return false;
       }
-      const type = typeof tool.type === 'string' ? tool.type.toLowerCase() : '';
-      return type === 'web_search' || type === 'x_search' || type === 'code_interpreter' || type === 'mcp';
+      const type = typeof tool.type === "string" ? tool.type.toLowerCase() : "";
+      return type === "web_search" || type === "x_search" || type === "code_interpreter" || type === "mcp";
     });
     if (usesServerSideTools) {
       delete payload.text;
@@ -96,8 +96,8 @@ export function buildRequestBody({
 export function buildHeaders() {
   const apiKey = ensureApiKey();
   const headers = {
-    'Content-Type': 'application/json',
-    'Accept': 'text/event-stream',
+    "Content-Type": "application/json",
+    "Accept": "text/event-stream",
   };
   if (apiKey) {
     headers.Authorization = `Bearer ${apiKey}`;
@@ -108,13 +108,13 @@ export function buildHeaders() {
 export async function executeStreamingRequest(body, abortController) {
   const endpoint = `${getBaseUrl()}/responses`;
   const response = await fetch(endpoint, {
-    method: 'POST',
+    method: "POST",
     headers: buildHeaders(),
     body: JSON.stringify(body),
     signal: abortController ? abortController.signal : undefined,
   });
   if (!response.ok) {
-    const text = await response.text().catch(() => '');
+    const text = await response.text().catch(() => "");
     throw new Error(`Responses API error ${response.status}: ${text || response.statusText}`);
   }
   return response;
@@ -123,15 +123,15 @@ export async function executeStreamingRequest(body, abortController) {
 export async function executeNonStreamingRequest(body, abortController) {
   const endpoint = `${getBaseUrl()}/responses`;
   const headers = buildHeaders();
-  headers.Accept = 'application/json';
+  headers.Accept = "application/json";
   const response = await fetch(endpoint, {
-    method: 'POST',
+    method: "POST",
     headers,
     body: JSON.stringify(body),
     signal: abortController ? abortController.signal : undefined,
   });
   if (!response.ok) {
-    const text = await response.text().catch(() => '');
+    const text = await response.text().catch(() => "");
     throw new Error(`Responses API error ${response.status}: ${text || response.statusText}`);
   }
   return response.json();
@@ -149,13 +149,13 @@ export async function runTurn({
   vectorStoreId,
 }) {
   const baseMessages = Array.isArray(inputMessages)
-    ? inputMessages.filter(msg => msg && msg.role !== 'developer' && msg.role !== 'system')
+    ? inputMessages.filter(msg => msg && msg.role !== "developer" && msg.role !== "system")
     : [];
   let previousResponseId = null;
   let previousAssistantHadImages = false;
   for (let i = baseMessages.length - 1; i >= 0; i -= 1) {
     const candidate = baseMessages[i];
-    if (candidate && candidate.role === 'assistant' && candidate.responseId) {
+    if (candidate && candidate.role === "assistant" && candidate.responseId) {
       previousResponseId = candidate.responseId;
       previousAssistantHadImages = Boolean(candidate.hasImages);
       break;
@@ -167,11 +167,11 @@ export async function runTurn({
   const developerContent = buildDeveloperMessage(resolvedModel);
   if (developerContent) {
     // xAI (Grok) requires 'system' role instead of 'developer'
-    const systemRole = serviceKey === 'xai' ? 'system' : 'developer';
+    const systemRole = serviceKey === "xai" ? "system" : "developer";
     workingMessages.unshift({
       role: systemRole,
       content: developerContent,
-      id: 'developer-message',
+      id: "developer-message",
     });
   }
   await refreshMcpAvailability(true);
@@ -195,7 +195,7 @@ export async function runTurn({
     const vectorStoreIds = Array.from(idsSet);
     if (vectorStoreIds.length > 0) {
       enabledTools = enabledTools.map(tool => {
-        if (tool && tool.type === 'file_search') {
+        if (tool && tool.type === "file_search") {
           return {
             ...tool,
             vector_store_ids: vectorStoreIds,
@@ -205,12 +205,12 @@ export async function runTurn({
       });
     } else {
       // Remove file_search tool if no vector stores are available
-      enabledTools = enabledTools.filter(tool => tool.type !== 'file_search');
+      enabledTools = enabledTools.filter(tool => tool.type !== "file_search");
     }
   }
   // Aggregate across multiple Responses API cycles (e.g., when tools are called)
-  let aggregateText = '';
-  let aggregateReasoning = '';
+  let aggregateText = "";
+  let aggregateReasoning = "";
 
   const MAX_TOOL_CALL_ITERATIONS = 20;
   let toolCallIteration = 0;
@@ -221,7 +221,7 @@ export async function runTurn({
     }
     const body = buildRequestBody({
       inputMessages: workingMessages,
-      instructions: typeof instructions === 'string' && instructions.trim() ? instructions : undefined,
+      instructions: typeof instructions === "string" && instructions.trim() ? instructions : undefined,
       tools: enabledTools,
       model: resolvedModel,
       verbosity,
@@ -231,55 +231,55 @@ export async function runTurn({
     });
 
     let responsePayload = null;
-    let streamedText = '';
-    let streamedReasoning = '';
+    let streamedText = "";
+    let streamedReasoning = "";
 
     try {
       if (stream) {
         const streamResponse = await executeStreamingRequest(body, abortController);
         const result = await handleStreamedResponse(streamResponse, loadingId);
         responsePayload = result.response;
-        streamedText = result.outputText || '';
-        streamedReasoning = result.reasoningText || '';
+        streamedText = result.outputText || "";
+        streamedReasoning = result.reasoningText || "";
       } else {
         responsePayload = await executeNonStreamingRequest(body, abortController);
-        streamedText = responsePayload.output_text || '';
+        streamedText = responsePayload.output_text || "";
         const flattenContent = (items) => items
           .map(item => {
-            if (typeof item === 'string') {
+            if (typeof item === "string") {
               return item;
             }
-            if (item && typeof item === 'object') {
-              if (typeof item.content === 'string') {
+            if (item && typeof item === "object") {
+              if (typeof item.content === "string") {
                 return item.content;
               }
-              if (typeof item.text === 'string') {
+              if (typeof item.text === "string") {
                 return item.text;
               }
             }
-            return '';
+            return "";
           })
-          .join('');
-        if (responsePayload.reasoning && typeof responsePayload.reasoning === 'string') {
+          .join("");
+        if (responsePayload.reasoning && typeof responsePayload.reasoning === "string") {
           streamedReasoning = responsePayload.reasoning;
         } else if (responsePayload.reasoning && Array.isArray(responsePayload.reasoning)) {
           streamedReasoning = flattenContent(responsePayload.reasoning);
         } else if (responsePayload.reasoning && Array.isArray(responsePayload.reasoning.output)) {
-          streamedReasoning = responsePayload.reasoning.output.map(item => item?.content || '').join('');
-        } else if (typeof responsePayload.reasoning_content === 'string') {
+          streamedReasoning = responsePayload.reasoning.output.map(item => item?.content || "").join("");
+        } else if (typeof responsePayload.reasoning_content === "string") {
           streamedReasoning = responsePayload.reasoning_content;
         } else if (Array.isArray(responsePayload.reasoning_content)) {
           streamedReasoning = flattenContent(responsePayload.reasoning_content);
-        } else if (responsePayload.reasoning && typeof responsePayload.reasoning === 'object' && typeof responsePayload.reasoning.content === 'string') {
+        } else if (responsePayload.reasoning && typeof responsePayload.reasoning === "object" && typeof responsePayload.reasoning.content === "string") {
           streamedReasoning = responsePayload.reasoning.content;
         }
       }
     } catch (error) {
-      const message = error && typeof error.message === 'string' ? error.message : '';
+      const message = error && typeof error.message === "string" ? error.message : "";
       const shouldRetryWithoutClientSideTools = clientSideToolsSupported === false
         && Array.isArray(enabledTools)
         && enabledTools.some(tool => isClientSideToolType(tool?.type))
-        && message.includes('Client side tool is not supported for multi-agent models');
+        && message.includes("Client side tool is not supported for multi-agent models");
       if (shouldRetryWithoutClientSideTools) {
         enabledTools = enabledTools.filter(tool => !isClientSideToolType(tool?.type));
         if (state.verboseLogging) {
@@ -292,19 +292,19 @@ export async function runTurn({
 
     // Accumulate text and reasoning across multiple response cycles
     if (streamedText) {
-      if (aggregateText) aggregateText += '\n\n';
+      if (aggregateText) aggregateText += "\n\n";
       aggregateText += streamedText;
     }
     if (streamedReasoning) {
-      if (aggregateReasoning) aggregateReasoning += '\n\n';
+      if (aggregateReasoning) aggregateReasoning += "\n\n";
       aggregateReasoning += streamedReasoning;
     }
 
     if (!responsePayload) {
       if ((abortController && abortController.signal && abortController.signal.aborted) || state.shouldStopGeneration) {
-        throw new DOMException('Request aborted', 'AbortError');
+        throw new DOMException("Request aborted", "AbortError");
       }
-      throw new Error('Responses API did not return a final payload.');
+      throw new Error("Responses API did not return a final payload.");
     }
 
     const rawCalls = collectFunctionCalls(responsePayload.output || []);
@@ -316,7 +316,7 @@ export async function runTurn({
         }
         if (!handler) {
           if (state.verboseLogging) {
-            console.info(`Skipping server-managed tool call '${call.name || '<unknown>'}'`);
+            console.info(`Skipping server-managed tool call '${call.name || "<unknown>"}'`);
           }
           return null;
         }
@@ -327,13 +327,13 @@ export async function runTurn({
     if (!actionableCalls.length) {
       return {
         response: responsePayload,
-        outputText: (aggregateText || streamedText || responsePayload.output_text || ''),
-        reasoningText: (aggregateReasoning || streamedReasoning || ''),
+        outputText: (aggregateText || streamedText || responsePayload.output_text || ""),
+        reasoningText: (aggregateReasoning || streamedReasoning || ""),
       };
     }
 
     const preferToolCallFor = (toolName) =>
-      serviceKey === 'xai' && (toolName === 'web_search' || toolName === 'x_search' || toolName === 'code_interpreter');
+      serviceKey === "xai" && (toolName === "web_search" || toolName === "x_search" || toolName === "code_interpreter");
 
     actionableCalls.forEach(call => {
       const resolvedCallId = call.callId || `call_${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 8)}`;
@@ -343,17 +343,17 @@ export async function runTurn({
           ? JSON.parse(JSON.stringify(call.toolCallInput))
           : null;
         const ensureArguments = (part) => {
-          if (!part.function || typeof part.function !== 'object') {
+          if (!part.function || typeof part.function !== "object") {
             part.function = {
               name: call.name,
-              arguments: (typeof call.argsJson === 'string' && call.argsJson.trim())
+              arguments: (typeof call.argsJson === "string" && call.argsJson.trim())
                 ? call.argsJson
                 : JSON.stringify(call.argsDict || {}),
             };
           } else {
             part.function.name = part.function.name || call.name;
             if (!part.function.arguments) {
-              part.function.arguments = (typeof call.argsJson === 'string' && call.argsJson.trim())
+              part.function.arguments = (typeof call.argsJson === "string" && call.argsJson.trim())
                 ? call.argsJson
                 : JSON.stringify(call.argsDict || {});
             }
@@ -361,11 +361,11 @@ export async function runTurn({
           return part;
         };
         const normalizedPart = ensureArguments(toolCallPart || {
-          type: 'tool_call',
+          type: "tool_call",
           id: resolvedCallId,
           function: {
             name: call.name,
-            arguments: (typeof call.argsJson === 'string' && call.argsJson.trim())
+            arguments: (typeof call.argsJson === "string" && call.argsJson.trim())
               ? call.argsJson
               : JSON.stringify(call.argsDict || {}),
           },
@@ -374,17 +374,17 @@ export async function runTurn({
           normalizedPart.id = resolvedCallId;
         }
         workingMessages.push({
-          role: 'assistant',
+          role: "assistant",
           content: [normalizedPart],
         });
         return;
       }
 
-      const serializedArgs = (typeof call.argsJson === 'string' && call.argsJson.trim())
+      const serializedArgs = (typeof call.argsJson === "string" && call.argsJson.trim())
         ? call.argsJson
         : JSON.stringify(call.argsDict || {});
       workingMessages.push({
-        type: 'function_call',
+        type: "function_call",
         name: call.name,
         arguments: serializedArgs,
         call_id: resolvedCallId,
@@ -396,27 +396,27 @@ export async function runTurn({
       try {
         result = await call.handler(call.argsDict || {});
       } catch (error) {
-        result = { error: error.message || 'Function execution failed' };
+        result = { error: error.message || "Function execution failed" };
       }
       const resolvedCallId = call.callId || `call_${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 8)}`;
-      const normalizedOutput = typeof result === 'string' ? result : JSON.stringify(result);
+      const normalizedOutput = typeof result === "string" ? result : JSON.stringify(result);
       if (preferToolCallFor(call.name)) {
         const resultPayload = {
-          type: 'tool_result',
+          type: "tool_result",
           tool_call_id: resolvedCallId,
           output: normalizedOutput,
         };
-        if (result && typeof result === 'object' && Object.prototype.hasOwnProperty.call(result, 'error')) {
+        if (result && typeof result === "object" && Object.prototype.hasOwnProperty.call(result, "error")) {
           resultPayload.is_error = true;
         }
         workingMessages.push({
-          role: 'tool',
+          role: "tool",
           tool_call_id: resolvedCallId,
           content: [resultPayload],
         });
       } else {
         workingMessages.push({
-          type: 'function_call_output',
+          type: "function_call_output",
           call_id: resolvedCallId,
           output: normalizedOutput,
         });

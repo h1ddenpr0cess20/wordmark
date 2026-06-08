@@ -5,15 +5,15 @@ import { updateHeaderInfo } from "../../components/settings.js";
 import { config } from "../../../config/config.js";
 
 export function updateBrowserHistory() {
-  let systemPromptValue = '';
-  let promptType = 'none';
+  let systemPromptValue = "";
+  let promptType = "none";
 
   if (elements.personalityPromptRadio?.checked) {
-    promptType = 'personality';
-    systemPromptValue = elements.personalityInput?.value?.trim() || '';
+    promptType = "personality";
+    systemPromptValue = elements.personalityInput?.value?.trim() || "";
   } else if (elements.customPromptRadio?.checked) {
-    promptType = 'custom';
-    systemPromptValue = elements.systemPromptCustom?.value || '';
+    promptType = "custom";
+    systemPromptValue = elements.systemPromptCustom?.value || "";
   }
 
   const newHistoryState = {
@@ -26,7 +26,7 @@ export function updateBrowserHistory() {
     systemPrompt: systemPromptValue,
   };
 
-  window.history.pushState(newHistoryState, 'Chat');
+  window.history.pushState(newHistoryState, "Chat");
 };
 
 export function loadFromUrl() {
@@ -36,16 +36,16 @@ export function loadFromUrl() {
 
   try {
     const urlParams = new URLSearchParams(window.location.search);
-    if (!urlParams.has('chat')) {
+    if (!urlParams.has("chat")) {
       return;
     }
 
-    const chatData = JSON.parse(decodeURIComponent(urlParams.get('chat')));
+    const chatData = JSON.parse(decodeURIComponent(urlParams.get("chat")));
     state.conversationHistory = chatData.messages || [];
 
     (chatData.messages || []).forEach((msg) => {
-      if (msg.role !== 'system') {
-        appendMessage(msg.role === 'user' ? 'You' : '  ', msg.content, msg.role);
+      if (msg.role !== "system") {
+        appendMessage(msg.role === "user" ? "You" : "  ", msg.content, msg.role);
       }
     });
 
@@ -67,11 +67,11 @@ export function loadFromUrl() {
       updated: now.toISOString(),
       messages: state.conversationHistory,
       images: chatData.images || [],
-      model: chatData.model || elements.modelSelector?.value || 'Unknown',
-      service: chatData.service || config?.defaultService || 'Unknown',
+      model: chatData.model || elements.modelSelector?.value || "Unknown",
+      service: chatData.service || config?.defaultService || "Unknown",
       systemPrompt: chatData.systemPrompt || {
-        type: 'none',
-        content: '',
+        type: "none",
+        content: "",
       },
     };
 
@@ -81,14 +81,14 @@ export function loadFromUrl() {
     saveConversationToDb?.(conversation)
       .then((id) => {
         if (state.verboseLogging) {
-          console.info('Saved URL-imported conversation to IndexedDB:', id);
+          console.info("Saved URL-imported conversation to IndexedDB:", id);
         }
       })
       .catch((err) => {
-        console.error('Failed to save URL-imported conversation to IndexedDB:', err);
+        console.error("Failed to save URL-imported conversation to IndexedDB:", err);
       });
   } catch (error) {
-    console.error('Error loading chat from URL:', error);
+    console.error("Error loading chat from URL:", error);
   }
 };
 

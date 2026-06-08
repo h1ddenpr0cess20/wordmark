@@ -8,13 +8,13 @@ import { sanitizeWithMedia } from "../../utils/sanitize.js";
 export function processMainContentMarkdown(mainText) {
   let html = mainText;
 
-  if (html.split('```').length % 2 === 0) {
-    html += '\n```';
+  if (html.split("```").length % 2 === 0) {
+    html += "\n```";
   }
 
   const backtickCount = (html.match(/`/g) || []).length;
-  if (backtickCount % 2 !== 0 && html.endsWith('`')) {
-    html += '`';
+  if (backtickCount % 2 !== 0 && html.endsWith("`")) {
+    html += "`";
   }
 
   let parsedContent = sanitizeWithMedia(marked.parse(html));
@@ -27,13 +27,13 @@ export function processMainContentMarkdown(mainText) {
 }
 
 export function separateThinkingSegments(text) {
-  if (typeof text !== 'string' || !text) {
-    return { content: text || '', reasoning: '' };
+  if (typeof text !== "string" || !text) {
+    return { content: text || "", reasoning: "" };
   }
 
   const lower = text.toLowerCase();
-  const openTag = '<think>';
-  const closeTag = '</think>';
+  const openTag = "<think>";
+  const closeTag = "</think>";
   const contentParts = [];
   const reasoningParts = [];
   let cursor = 0;
@@ -67,7 +67,7 @@ export function separateThinkingSegments(text) {
   }
 
   return {
-    content: contentParts.join(''),
-    reasoning: reasoningParts.join(''),
+    content: contentParts.join(""),
+    reasoning: reasoningParts.join(""),
   };
 }

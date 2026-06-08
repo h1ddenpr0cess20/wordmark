@@ -8,7 +8,7 @@ import { updateHeaderInfo } from "../../components/settings.js";
 
 function setupPromptRadioEventListeners() {
   if (elements.personalityPromptRadio) {
-    elements.personalityPromptRadio.addEventListener('change', () => {
+    elements.personalityPromptRadio.addEventListener("change", () => {
       if (elements.personalityPromptRadio.checked) {
         updatePromptVisibility();
       }
@@ -16,7 +16,7 @@ function setupPromptRadioEventListeners() {
   }
 
   if (elements.customPromptRadio) {
-    elements.customPromptRadio.addEventListener('change', () => {
+    elements.customPromptRadio.addEventListener("change", () => {
       if (elements.customPromptRadio.checked) {
         updatePromptVisibility();
       }
@@ -24,7 +24,7 @@ function setupPromptRadioEventListeners() {
   }
 
   if (elements.noPromptRadio) {
-    elements.noPromptRadio.addEventListener('change', () => {
+    elements.noPromptRadio.addEventListener("change", () => {
       if (elements.noPromptRadio.checked) {
         updatePromptVisibility();
       }
@@ -34,8 +34,8 @@ function setupPromptRadioEventListeners() {
 
 function setupInputFieldEventListeners() {
   if (elements.personalityInput) {
-    elements.personalityInput.addEventListener('keydown', (event) => {
-      if (event.key === 'Enter') {
+    elements.personalityInput.addEventListener("keydown", (event) => {
+      if (event.key === "Enter") {
         event.preventDefault();
         if (elements.setPersonalityButton) {
           elements.setPersonalityButton.click();
@@ -43,24 +43,24 @@ function setupInputFieldEventListeners() {
       }
     });
 
-    elements.personalityInput.addEventListener('input', debounce(() => {}, 1000));
+    elements.personalityInput.addEventListener("input", debounce(() => {}, 1000));
   }
 
   if (elements.systemPromptCustom) {
-    elements.systemPromptCustom.addEventListener('input', debounce(() => {}, 1000));
+    elements.systemPromptCustom.addEventListener("input", debounce(() => {}, 1000));
   }
 }
 
 function setupPersonalityPresetEventListeners(closeSettingsPanel) {
-  const presetButtons = document.querySelectorAll('.preset-button');
+  const presetButtons = document.querySelectorAll(".preset-button");
 
   presetButtons.forEach((button) => {
-    const personality = button.getAttribute('data-personality');
+    const personality = button.getAttribute("data-personality");
     if (personality) {
       button.title = personality;
     }
 
-    button.addEventListener('click', () => {
+    button.addEventListener("click", () => {
       if (!personality || !elements.personalityInput) {
         return;
       }
@@ -71,32 +71,32 @@ function setupPersonalityPresetEventListeners(closeSettingsPanel) {
       if (elements.personalityPromptRadio) {
         elements.personalityPromptRadio.checked = true;
       }
-      elements.personalityInput.setAttribute('data-explicitly-set', 'true');
+      elements.personalityInput.setAttribute("data-explicitly-set", "true");
 
       updatePromptVisibility();
 
-      if (typeof closeSettingsPanel === 'function') {
+      if (typeof closeSettingsPanel === "function") {
         closeSettingsPanel();
-      } else if (elements.settingsPanel && elements.settingsPanel.classList.contains('active')) {
-        elements.settingsPanel.classList.remove('active');
-        elements.settingsButton.setAttribute('aria-expanded', 'false');
-        elements.settingsPanel.setAttribute('aria-hidden', 'true');
-        elements.settingsPanel.setAttribute('inert', 'true');
-        elements.settingsButton.style.display = '';
+      } else if (elements.settingsPanel && elements.settingsPanel.classList.contains("active")) {
+        elements.settingsPanel.classList.remove("active");
+        elements.settingsButton.setAttribute("aria-expanded", "false");
+        elements.settingsPanel.setAttribute("aria-hidden", "true");
+        elements.settingsPanel.setAttribute("inert", "true");
+        elements.settingsButton.style.display = "";
         if (elements.historyButton) {
-          elements.historyButton.style.display = '';
+          elements.historyButton.style.display = "";
         }
         if (elements.galleryButton) {
-          elements.galleryButton.style.display = '';
+          elements.galleryButton.style.display = "";
         }
       }
 
-                  updateHeaderInfo();
-    
+      updateHeaderInfo();
+
       updateBrowserHistory();
 
-                  focusUserInputSafely();
-    
+      focusUserInputSafely();
+
     });
   });
 }

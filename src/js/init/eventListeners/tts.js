@@ -24,8 +24,8 @@ export function setupTtsEventListeners() {
         ttsConfig.enabled = false;
         stopTtsAudio();
       }
-                  updateFeatureStatus();
-    
+      updateFeatureStatus();
+
     });
   }
 

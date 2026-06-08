@@ -17,41 +17,41 @@ function processImageForStorage(img, savePromises) {
   const processedImg = { ...img };
   const mediaType = detectMediaType(processedImg);
   const mimeType = processedImg.mimeType
-    || (typeof processedImg.url === 'string' && processedImg.url.startsWith('data:')
-      ? processedImg.url.slice(5).split(';', 1)[0]
-      : (mediaType === 'video' ? 'video/mp4' : 'image/png'));
+    || (typeof processedImg.url === "string" && processedImg.url.startsWith("data:")
+      ? processedImg.url.slice(5).split(";", 1)[0]
+      : (mediaType === "video" ? "video/mp4" : "image/png"));
 
   if (processedImg.isStoredInDb && processedImg.filename) {
     return {
       filename: processedImg.filename,
-      prompt: processedImg.prompt || '',
-      tool: processedImg.tool || '',
+      prompt: processedImg.prompt || "",
+      tool: processedImg.tool || "",
       timestamp: processedImg.timestamp || new Date().toISOString(),
-      associatedMessageId: processedImg.associatedMessageId || '',
+      associatedMessageId: processedImg.associatedMessageId || "",
       isStoredInDb: true,
       mediaType,
       mimeType,
       uploaded: Boolean(processedImg.uploaded),
-      callId: processedImg.callId || '',
-      model: processedImg.model || '',
+      callId: processedImg.callId || "",
+      model: processedImg.model || "",
     };
   }
 
-  if ((processedImg.url && processedImg.url.startsWith('data:')) || processedImg.pendingStorageData instanceof Blob) {
+  if ((processedImg.url && processedImg.url.startsWith("data:")) || processedImg.pendingStorageData instanceof Blob) {
     try {
       if (!processedImg.filename) {
-        const extension = mimeType === 'image/jpeg'
-          ? 'jpg'
-          : mimeType === 'image/webp'
-            ? 'webp'
-            : mimeType === 'video/webm'
-              ? 'webm'
-              : mimeType === 'video/quicktime'
-                ? 'mov'
-                : mediaType === 'video'
-                  ? 'mp4'
-                  : 'png';
-        const prefix = mediaType === 'video' ? 'video' : 'image';
+        const extension = mimeType === "image/jpeg"
+          ? "jpg"
+          : mimeType === "image/webp"
+            ? "webp"
+            : mimeType === "video/webm"
+              ? "webm"
+              : mimeType === "video/quicktime"
+                ? "mov"
+                : mediaType === "video"
+                  ? "mp4"
+                  : "png";
+        const prefix = mediaType === "video" ? "video" : "image";
         processedImg.filename = `${prefix}-${Date.now()}-${Math.random().toString(36).substring(2, 10)}.${extension}`;
       }
 
@@ -59,16 +59,16 @@ function processImageForStorage(img, savePromises) {
         ? processedImg.pendingStorageData
         : processedImg.url;
       const savePromise = saveImageToDb?.(savePayload, processedImg.filename, {
-        prompt: processedImg.prompt || '',
-        tool: processedImg.tool || '',
-        associatedMessageId: processedImg.associatedMessageId || '',
+        prompt: processedImg.prompt || "",
+        tool: processedImg.tool || "",
+        associatedMessageId: processedImg.associatedMessageId || "",
         mediaType,
         mimeType,
         uploaded: Boolean(processedImg.uploaded),
-        callId: processedImg.callId || '',
-        model: processedImg.model || '',
+        callId: processedImg.callId || "",
+        model: processedImg.model || "",
       }).catch((err) => {
-        console.error('Failed to save image to IndexedDB:', err);
+        console.error("Failed to save image to IndexedDB:", err);
         return null;
       });
 
@@ -78,22 +78,22 @@ function processImageForStorage(img, savePromises) {
 
       return {
         filename: processedImg.filename,
-        prompt: processedImg.prompt || '',
-        tool: processedImg.tool || '',
+        prompt: processedImg.prompt || "",
+        tool: processedImg.tool || "",
         timestamp: processedImg.timestamp || new Date().toISOString(),
-        associatedMessageId: processedImg.associatedMessageId || '',
+        associatedMessageId: processedImg.associatedMessageId || "",
         isStoredInDb: true,
         mediaType,
         mimeType,
         uploaded: Boolean(processedImg.uploaded),
-        callId: processedImg.callId || '',
-        model: processedImg.model || '',
+        callId: processedImg.callId || "",
+        model: processedImg.model || "",
       };
     } catch (error) {
-      console.error('Error processing image for storage:', error);
+      console.error("Error processing image for storage:", error);
       return {
-        filename: processedImg.filename || `fallback-${Date.now()}.${mediaType === 'video' ? 'mp4' : 'png'}`,
-        prompt: processedImg.prompt || '',
+        filename: processedImg.filename || `fallback-${Date.now()}.${mediaType === "video" ? "mp4" : "png"}`,
+        prompt: processedImg.prompt || "",
         timestamp: new Date().toISOString(),
         imageUnavailable: true,
         error: error.message,
@@ -110,7 +110,7 @@ function markMessagesWithImages(baseHistory, processedImages) {
   return baseHistory.map((msg) => {
     const markedMsg = { ...msg };
 
-    if (markedMsg.role === 'assistant') {
+    if (markedMsg.role === "assistant") {
       const hasAssociatedImages = processedImages.some((img) => img.associatedMessageId === markedMsg.id);
       if (hasAssociatedImages) {
         markedMsg.hasImages = true;
@@ -125,18 +125,18 @@ function markMessagesWithImages(baseHistory, processedImages) {
 }
 
 function normalizePromptState() {
-  let promptType = 'none';
-  let promptContent = '';
+  let promptType = "none";
+  let promptContent = "";
 
   if (state.loadedSystemPrompt && state.currentConversationId) {
     promptType = state.loadedSystemPrompt.type;
     promptContent = state.loadedSystemPrompt.content;
   } else if (elements.personalityPromptRadio?.checked) {
-    promptType = 'personality';
-    promptContent = elements.personalityInput?.value || '';
+    promptType = "personality";
+    promptContent = elements.personalityInput?.value || "";
   } else if (elements.customPromptRadio?.checked) {
-    promptType = 'custom';
-    promptContent = elements.systemPromptCustom?.value || '';
+    promptType = "custom";
+    promptContent = elements.systemPromptCustom?.value || "";
   }
 
   return { promptType, promptContent };
@@ -174,7 +174,7 @@ function preloadImages(convo) {
   });
 
   return Promise.all(imageLoadPromises).then(() => imageCache).catch((err) => {
-    console.error('Error loading images from IndexedDB:', err);
+    console.error("Error loading images from IndexedDB:", err);
     return new Map();
   });
 }
@@ -204,7 +204,7 @@ export function saveCurrentConversation(meta = {}) {
 
   const now = new Date();
   const baseHistory = Array.isArray(state.conversationHistory)
-    ? state.conversationHistory.filter(msg => msg && msg.role !== 'developer')
+    ? state.conversationHistory.filter(msg => msg && msg.role !== "developer")
     : [];
 
   const { promptType, promptContent } = normalizePromptState();
@@ -219,8 +219,8 @@ export function saveCurrentConversation(meta = {}) {
     updated: now.toISOString(),
     messages: markedMessages,
     images: processedImages,
-    model: elements.modelSelector?.value || 'Unknown',
-    service: config?.defaultService || 'Unknown',
+    model: elements.modelSelector?.value || "Unknown",
+    service: config?.defaultService || "Unknown",
     systemPrompt: {
       type: promptType,
       content: promptContent,
@@ -237,17 +237,17 @@ export function saveCurrentConversation(meta = {}) {
       }
     })
     .catch((err) => {
-      console.error('Error saving images to IndexedDB:', err);
+      console.error("Error saving images to IndexedDB:", err);
     });
 
   saveConversationToDb?.(conversation)
     .then((id) => {
       if (state.verboseLogging) {
-        console.info('Saved conversation to IndexedDB:', id);
+        console.info("Saved conversation to IndexedDB:", id);
       }
     })
     .catch((err) => {
-      console.error('Failed to save conversation to IndexedDB:', err);
+      console.error("Failed to save conversation to IndexedDB:", err);
     });
 };
 
@@ -261,7 +261,7 @@ export function deleteConversation(id) {
       renderChatHistoryList();
     })
     .catch((err) => {
-      console.error('Failed to delete conversation from IndexedDB:', err);
+      console.error("Failed to delete conversation from IndexedDB:", err);
     });
 };
 
@@ -274,7 +274,7 @@ export function renameConversation(id, newName) {
       renderChatHistoryList();
     })
     .catch((err) => {
-      console.error('Failed to rename conversation in IndexedDB:', err);
+      console.error("Failed to rename conversation in IndexedDB:", err);
     });
 };
 
@@ -290,11 +290,11 @@ export function startNewConversation(name = null) {
   }
 
   if (elements.chatBox) {
-    elements.chatBox.innerHTML = '';
+    elements.chatBox.innerHTML = "";
   }
 
   if (state.verboseLogging) {
-    console.info('Started new conversation');
+    console.info("Started new conversation");
   }
 };
 
@@ -313,14 +313,14 @@ export function loadConversation(id) {
         }));
     })
     .catch((err) => {
-      console.error('Error loading conversation from IndexedDB:', err);
+      console.error("Error loading conversation from IndexedDB:", err);
       return false;
     });
 };
 
 function loadConversationIntoUI(convo, imageCache) {
   const filteredMessages = Array.isArray(convo.messages)
-    ? convo.messages.filter(msg => msg && msg.role !== 'developer')
+    ? convo.messages.filter(msg => msg && msg.role !== "developer")
     : [];
 
   state.conversationHistory = filteredMessages;
@@ -331,7 +331,7 @@ function loadConversationIntoUI(convo, imageCache) {
   state.userThinkingState = {};
 
   if (elements.chatBox) {
-    elements.chatBox.innerHTML = '';
+    elements.chatBox.innerHTML = "";
   }
 
   renderConversationMessages(convo, imageCache);

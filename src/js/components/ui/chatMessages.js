@@ -15,8 +15,8 @@ function renderAssistantIcon(senderElement) {
 
   const originalSelector = document.querySelector;
   document.querySelector = function(selector) {
-    if (selector === '#wordmark-logo g') {
-      return senderElement.querySelector('g');
+    if (selector === "#wordmark-logo g") {
+      return senderElement.querySelector("g");
     }
     return originalSelector.call(document, selector);
   };
@@ -29,8 +29,8 @@ function renderAssistantIcon(senderElement) {
 }
 
 export function appendMessage(sender, content, type, skipHistory = false) {
-  const messageElement = document.createElement('div');
-  messageElement.classList.add('message');
+  const messageElement = document.createElement("div");
+  messageElement.classList.add("message");
   if (type) {
     messageElement.classList.add(type);
   }
@@ -38,19 +38,19 @@ export function appendMessage(sender, content, type, skipHistory = false) {
   const messageId = `msg-${Date.now()}`;
   messageElement.id = messageId;
 
-  const senderElement = document.createElement('div');
-  senderElement.className = 'message-sender';
+  const senderElement = document.createElement("div");
+  senderElement.className = "message-sender";
 
-  if (sender === 'You') {
-    senderElement.innerHTML = icon('user', { width: 24, height: 24, color: 'var(--accent-color)', className: 'sender-icon user-icon' });
-  } else if (sender === 'Assistant') {
+  if (sender === "You") {
+    senderElement.innerHTML = icon("user", { width: 24, height: 24, color: "var(--accent-color)", className: "sender-icon user-icon" });
+  } else if (sender === "Assistant") {
     renderAssistantIcon(senderElement);
   } else {
     senderElement.textContent = sender;
   }
 
-  const contentElement = document.createElement('div');
-  contentElement.className = 'message-content';
+  const contentElement = document.createElement("div");
+  contentElement.className = "message-content";
 
   messageElement.appendChild(senderElement);
   messageElement.appendChild(contentElement);
@@ -70,20 +70,20 @@ export function appendMessage(sender, content, type, skipHistory = false) {
       try {
         highlightAndAddCopyButtons(messageElement);
       } catch (error) {
-        console.error('Error highlighting code:', error);
+        console.error("Error highlighting code:", error);
       }
 
       try {
         setupImageInteractions(messageElement);
       } catch (error) {
-        console.error('Error setting up image interactions:', error);
+        console.error("Error setting up image interactions:", error);
       }
 
       if (state.shouldAutoScroll) {
         elements.chatBox.scrollTop = elements.chatBox.scrollHeight;
       }
 
-      if ((type === 'user' || type === 'system') && !skipHistory) {
+      if ((type === "user" || type === "system") && !skipHistory) {
         state.shouldAutoScroll = true;
       }
     });
@@ -98,14 +98,14 @@ export function appendAssistantMessage(assistantMessage, skipHistory = false) {
     msgId = generateMessageId();
 
     state.conversationHistory.push({
-      role: 'assistant',
+      role: "assistant",
       content: assistantMessage,
       id: msgId,
       timestamp: new Date().toISOString(),
     });
   }
 
-  const messageElement = appendMessage('Assistant', assistantMessage, 'assistant', skipHistory);
+  const messageElement = appendMessage("Assistant", assistantMessage, "assistant", skipHistory);
   if (messageElement && msgId) {
     messageElement.id = msgId;
   }

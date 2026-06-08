@@ -9,25 +9,23 @@ export function setupToolCallingEventListeners() {
     return;
   }
 
-  elements.toolCallingToggle.addEventListener('change', (event) => {
+  elements.toolCallingToggle.addEventListener("change", (event) => {
     const enabled = event.target.checked;
     config.enableFunctionCalling = enabled;
-    localStorage.setItem('enableFunctionCalling', enabled ? 'true' : 'false');
+    localStorage.setItem("enableFunctionCalling", enabled ? "true" : "false");
 
-            updateMasterToolCallingStatus(enabled);
-  
+    updateMasterToolCallingStatus(enabled);
 
     if (enabled) {
       loadToolScripts().catch((error) => {
-        console.error('Failed to load tool scripts:', error);
+        console.error("Failed to load tool scripts:", error);
       });
     }
 
-            updateFeatureStatus();
-  
+    updateFeatureStatus();
 
-            showInfo(enabled ? 'Tool calling enabled.' : 'Tool calling disabled.');
-  
+    showInfo(enabled ? "Tool calling enabled." : "Tool calling disabled.");
+
   });
 }
 

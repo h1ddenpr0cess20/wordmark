@@ -5,7 +5,7 @@
 import { state } from "../../init/state.js";
 import { registerGeneratedMedia } from "../mediaTools.js";
 
-export const IMAGE_GENERATION_CALL_TYPE = 'image_generation_call';
+export const IMAGE_GENERATION_CALL_TYPE = "image_generation_call";
 
 export function ensureImagesHaveMessageIds() {
   if (!state.generatedImages || !state.conversationHistory) {
@@ -20,7 +20,7 @@ export function ensureImagesHaveMessageIds() {
   }
 
   const assistantMessages = state.conversationHistory
-    .filter(msg => msg.role === 'assistant' && msg.id)
+    .filter(msg => msg.role === "assistant" && msg.id)
     .sort((a, b) => {
       const timeA = a.timestamp ? new Date(a.timestamp).getTime() : 0;
       const timeB = b.timestamp ? new Date(b.timestamp).getTime() : 0;
@@ -74,10 +74,10 @@ export function ensureImagesHaveMessageIds() {
 }
 
 function isProbablyBase64(value) {
-  if (typeof value !== 'string') {
+  if (typeof value !== "string") {
     return false;
   }
-  const sanitized = value.replace(/\s+/g, '');
+  const sanitized = value.replace(/\s+/g, "");
   if (sanitized.length < 120) {
     return false;
   }
@@ -88,14 +88,13 @@ function isProbablyBase64(value) {
 }
 
 export function imageDebugLog(...args) {
-  if (typeof window !== 'undefined' && state.verboseLogging) {
-    console.info('[image-debug]', ...args);
+  if (typeof window !== "undefined" && state.verboseLogging) {
+    console.info("[image-debug]", ...args);
   }
 }
 
-
 function extractMimeFromDataUrl(dataUrl) {
-  if (typeof dataUrl !== 'string') {
+  if (typeof dataUrl !== "string") {
     return null;
   }
   const match = /^data:([^;]+);/i.exec(dataUrl);
@@ -103,14 +102,14 @@ function extractMimeFromDataUrl(dataUrl) {
 }
 
 function normaliseMimeType(mimeType) {
-  if (typeof mimeType === 'string' && mimeType.trim()) {
+  if (typeof mimeType === "string" && mimeType.trim()) {
     return mimeType.trim().toLowerCase();
   }
-  return 'image/png';
+  return "image/png";
 }
 
 function coerceImageDataUrl(rawValue, mimeTypeHint) {
-  if (typeof rawValue !== 'string') {
+  if (typeof rawValue !== "string") {
     return null;
   }
   const trimmed = rawValue.trim();
@@ -120,12 +119,12 @@ function coerceImageDataUrl(rawValue, mimeTypeHint) {
   if (/^data:image\//i.test(trimmed) || /^https?:\/\//i.test(trimmed)) {
     return trimmed;
   }
-  const cleaned = trimmed.replace(/\s+/g, '');
+  const cleaned = trimmed.replace(/\s+/g, "");
   if (!isProbablyBase64(cleaned)) {
     return null;
   }
   const mimeType = normaliseMimeType(mimeTypeHint);
-  const base64 = cleaned.replace(/^base64,?/i, '');
+  const base64 = cleaned.replace(/^base64,?/i, "");
   return `data:${mimeType};base64,${base64}`;
 }
 
@@ -134,7 +133,7 @@ export function collectImageCandidates(value, accumulator, defaultMime, seen, vi
     return;
   }
 
-  if (typeof value === 'object' && value !== null) {
+  if (typeof value === "object" && value !== null) {
     if (visited) {
       try {
         if (visited.has(value)) {
@@ -158,7 +157,7 @@ export function collectImageCandidates(value, accumulator, defaultMime, seen, vi
     seen.add(dataUrl);
     accumulator.push({
       dataUrl,
-      mimeType: extractMimeFromDataUrl(dataUrl) || mimeType || defaultMime || 'image/png',
+      mimeType: extractMimeFromDataUrl(dataUrl) || mimeType || defaultMime || "image/png",
     });
   };
 
@@ -167,26 +166,26 @@ export function collectImageCandidates(value, accumulator, defaultMime, seen, vi
     return;
   }
 
-  if (typeof value === 'string') {
+  if (typeof value === "string") {
     pushCandidate(value, defaultMime);
     return;
   }
 
-  if (typeof value === 'object') {
+  if (typeof value === "object") {
     const candidateMime = value.mime_type || value.media_type || value.content_type || defaultMime;
     const candidateKeys = [
-      'b64_json',
-      'base64',
-      'image_base64',
-      'data',
-      'image',
-      'result',
-      'content',
-      'image_base64_json',
-      'image_url',
-      'data_url',
-      'image_data',
-      'image_base64_data',
+      "b64_json",
+      "base64",
+      "image_base64",
+      "data",
+      "image",
+      "result",
+      "content",
+      "image_base64_json",
+      "image_url",
+      "data_url",
+      "image_data",
+      "image_base64_data",
     ];
 
     candidateKeys.forEach(key => {
@@ -194,21 +193,21 @@ export function collectImageCandidates(value, accumulator, defaultMime, seen, vi
         return;
       }
       const candidateValue = value[key];
-      if (typeof candidateValue === 'string') {
+      if (typeof candidateValue === "string") {
         pushCandidate(candidateValue, candidateMime);
-      } else if (candidateValue && typeof candidateValue === 'object') {
+      } else if (candidateValue && typeof candidateValue === "object") {
         collectImageCandidates(candidateValue, accumulator, candidateMime, seen, visited);
       }
     });
 
-    if (typeof value.url === 'string') {
+    if (typeof value.url === "string") {
       pushCandidate(value.url, candidateMime);
-    } else if (value.url && typeof value.url === 'object') {
+    } else if (value.url && typeof value.url === "object") {
       collectImageCandidates(value.url, accumulator, candidateMime, seen, visited);
     }
 
     Object.keys(value).forEach(key => {
-      if (candidateKeys.includes(key) || key === 'url') {
+      if (candidateKeys.includes(key) || key === "url") {
         return;
       }
       collectImageCandidates(value[key], accumulator, candidateMime, seen, visited);
@@ -217,43 +216,43 @@ export function collectImageCandidates(value, accumulator, defaultMime, seen, vi
 }
 
 function extractPromptFromImageCall(call) {
-  if (!call || typeof call !== 'object') {
-    return '';
+  if (!call || typeof call !== "object") {
+    return "";
   }
-  if (typeof call.revised_prompt === 'string' && call.revised_prompt.trim()) {
+  if (typeof call.revised_prompt === "string" && call.revised_prompt.trim()) {
     return call.revised_prompt.trim();
   }
-  if (typeof call.prompt === 'string' && call.prompt.trim()) {
+  if (typeof call.prompt === "string" && call.prompt.trim()) {
     return call.prompt.trim();
   }
   let argumentsSource = call.arguments;
-  if (typeof argumentsSource === 'string') {
+  if (typeof argumentsSource === "string") {
     try {
       argumentsSource = JSON.parse(argumentsSource);
     } catch (error) {
       argumentsSource = null;
     }
   }
-  if (argumentsSource && typeof argumentsSource === 'object') {
-    if (typeof argumentsSource.prompt === 'string' && argumentsSource.prompt.trim()) {
+  if (argumentsSource && typeof argumentsSource === "object") {
+    if (typeof argumentsSource.prompt === "string" && argumentsSource.prompt.trim()) {
       return argumentsSource.prompt.trim();
     }
-    if (typeof argumentsSource.input === 'string' && argumentsSource.input.trim()) {
+    if (typeof argumentsSource.input === "string" && argumentsSource.input.trim()) {
       return argumentsSource.input.trim();
     }
-    if (typeof argumentsSource.description === 'string' && argumentsSource.description.trim()) {
+    if (typeof argumentsSource.description === "string" && argumentsSource.description.trim()) {
       return argumentsSource.description.trim();
     }
   }
-  if (call.metadata && typeof call.metadata === 'object') {
-    const keys = ['prompt', 'description', 'request'];
+  if (call.metadata && typeof call.metadata === "object") {
+    const keys = ["prompt", "description", "request"];
     for (const key of keys) {
-      if (typeof call.metadata[key] === 'string' && call.metadata[key].trim()) {
+      if (typeof call.metadata[key] === "string" && call.metadata[key].trim()) {
         return call.metadata[key].trim();
       }
     }
   }
-  return '';
+  return "";
 }
 
 function detectImageCallMode(call) {
@@ -262,57 +261,57 @@ function detectImageCallMode(call) {
     call?.metadata?.mode,
   ];
   const args = call?.arguments;
-  if (args && typeof args === 'object') {
-    if (typeof args.mode === 'string') {
+  if (args && typeof args === "object") {
+    if (typeof args.mode === "string") {
       candidates.push(args.mode);
     }
-    if (typeof args.purpose === 'string') {
+    if (typeof args.purpose === "string") {
       candidates.push(args.purpose);
     }
   }
-  if (typeof args === 'string') {
+  if (typeof args === "string") {
     try {
       const parsed = JSON.parse(args);
-      if (parsed && typeof parsed === 'object' && typeof parsed.mode === 'string') {
+      if (parsed && typeof parsed === "object" && typeof parsed.mode === "string") {
         candidates.push(parsed.mode);
       }
     } catch {
       /* ignore parse */
     }
   }
-  const found = candidates.find(value => typeof value === 'string' && value.trim());
-  return found ? found.trim().toLowerCase() : '';
+  const found = candidates.find(value => typeof value === "string" && value.trim());
+  return found ? found.trim().toLowerCase() : "";
 }
 
 function determineSourceLabel(node, mode) {
   if (mode) {
-    if (mode.includes('edit')) {
-      return 'image_edit';
+    if (mode.includes("edit")) {
+      return "image_edit";
     }
-    if (mode.includes('variation')) {
-      return 'image_variation';
+    if (mode.includes("variation")) {
+      return "image_variation";
     }
   }
-  if (node && typeof node.type === 'string') {
+  if (node && typeof node.type === "string") {
     const lowered = node.type.toLowerCase();
-    if (lowered.includes('edit')) {
-      return 'image_edit';
+    if (lowered.includes("edit")) {
+      return "image_edit";
     }
-    if (lowered.includes('variation')) {
-      return 'image_variation';
+    if (lowered.includes("variation")) {
+      return "image_variation";
     }
   }
-  return 'image_generation';
+  return "image_generation";
 }
 
 export function processImageGenerationOutputs(responsePayload) {
-  if (!responsePayload || typeof responsePayload !== 'object') {
-    imageDebugLog('Skipping image extraction: response payload missing or invalid.');
+  if (!responsePayload || typeof responsePayload !== "object") {
+    imageDebugLog("Skipping image extraction: response payload missing or invalid.");
     return;
   }
 
   const outputs = Array.isArray(responsePayload.output) ? responsePayload.output : [];
-  imageDebugLog('Scanning response payload for image calls.', {
+  imageDebugLog("Scanning response payload for image calls.", {
     outputLength: outputs.length,
     rawOutputKeys: outputs.map(item => item && item.type),
   });
@@ -327,17 +326,17 @@ export function processImageGenerationOutputs(responsePayload) {
   const globalSeen = new Set();
 
   const imageGenerationOutputs = outputs.filter(entry => {
-    if (!entry || typeof entry !== 'object') {
+    if (!entry || typeof entry !== "object") {
       return false;
     }
-    const entryType = entry.type || '';
+    const entryType = entry.type || "";
     return entryType === IMAGE_GENERATION_CALL_TYPE ||
-           entryType === 'image_generation' ||
-           entryType === 'image_edit' ||
-           entryType === 'image_variation';
+           entryType === "image_generation" ||
+           entryType === "image_edit" ||
+           entryType === "image_variation";
   });
 
-  imageDebugLog('Filtered to image generation outputs only.', {
+  imageDebugLog("Filtered to image generation outputs only.", {
     totalOutputs: outputs.length,
     imageGenerationOutputs: imageGenerationOutputs.length,
     types: imageGenerationOutputs.map(item => item.type),
@@ -346,14 +345,14 @@ export function processImageGenerationOutputs(responsePayload) {
   const candidateEntries = imageGenerationOutputs.length ? imageGenerationOutputs : [];
 
   candidateEntries.forEach((entry, idx) => {
-    if (!entry || typeof entry !== 'object') {
+    if (!entry || typeof entry !== "object") {
       return;
     }
     const entrySeen = new Set();
-    const localVisited = typeof WeakSet !== 'undefined' ? new WeakSet() : null;
+    const localVisited = typeof WeakSet !== "undefined" ? new WeakSet() : null;
     const collected = [];
 
-    imageDebugLog('Inspecting response output entry', {
+    imageDebugLog("Inspecting response output entry", {
       index: idx,
       type: entry.type || null,
       keys: Object.keys(entry || {}),
@@ -364,19 +363,19 @@ export function processImageGenerationOutputs(responsePayload) {
     collectImageCandidates(entry.output, collected, entry.mime_type || entry.media_type, entrySeen, localVisited);
     collectImageCandidates(entry.images, collected, entry.mime_type || entry.media_type, entrySeen, localVisited);
 
-    imageDebugLog('Collected image candidates from entry', {
+    imageDebugLog("Collected image candidates from entry", {
       index: idx,
       candidateCount: collected.length,
       entryType: entry.type,
     });
 
-    imageDebugLog('Collected image candidates', {
+    imageDebugLog("Collected image candidates", {
       index: idx,
       candidateCount: collected.length,
       candidatesPreview: collected.map((candidate, candidateIdx) => ({
         index: candidateIdx,
         mimeType: candidate.mimeType,
-        prefix: typeof candidate.dataUrl === 'string' ? candidate.dataUrl.substring(0, 32) : null,
+        prefix: typeof candidate.dataUrl === "string" ? candidate.dataUrl.substring(0, 32) : null,
       })),
     });
 
@@ -396,16 +395,16 @@ export function processImageGenerationOutputs(responsePayload) {
       globalSeen.add(image.dataUrl);
 
       const mimeType = normaliseMimeType(image.mimeType);
-      const extension = mimeType === 'image/jpeg' || mimeType === 'image/jpg'
-        ? 'jpg'
-        : (mimeType === 'image/webp' ? 'webp' : 'png');
+      const extension = mimeType === "image/jpeg" || mimeType === "image/jpg"
+        ? "jpg"
+        : (mimeType === "image/webp" ? "webp" : "png");
       const randomChunk = Math.random().toString(36).substring(2, 10);
-      const filenameBase = sourceLabel === 'image_edit' ? 'edited' : 'generated';
+      const filenameBase = sourceLabel === "image_edit" ? "edited" : "generated";
       const filename = `${filenameBase}-${Date.now()}-${randomChunk}-${index + 1}.${extension}`;
       registerGeneratedMedia({
-        mediaType: 'image',
+        mediaType: "image",
         sourceData: image.dataUrl,
-        prompt: prompt || '',
+        prompt: prompt || "",
         tool: sourceLabel,
         filename,
         mimeType,
@@ -415,6 +414,6 @@ export function processImageGenerationOutputs(responsePayload) {
     });
   });
 
-  imageDebugLog('currentGeneratedImageHtml snapshot', state.currentGeneratedImageHtml);
-  imageDebugLog('generatedImages snapshot count', Array.isArray(state.generatedImages) ? state.generatedImages.length : 0);
+  imageDebugLog("currentGeneratedImageHtml snapshot", state.currentGeneratedImageHtml);
+  imageDebugLog("generatedImages snapshot count", Array.isArray(state.generatedImages) ? state.generatedImages.length : 0);
 }

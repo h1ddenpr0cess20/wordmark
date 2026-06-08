@@ -3,8 +3,8 @@ import {
   IMAGE_GENERATION_CALL_TYPE,
   collectImageCandidates,
   imageDebugLog,
-} from './imageGeneration.js';
-import { processMainContentMarkdown, separateThinkingSegments } from './thinkingUtils.js';
+} from "./imageGeneration.js";
+import { processMainContentMarkdown, separateThinkingSegments } from "./thinkingUtils.js";
 import { highlightAndAddCopyButtons } from "../../components/messages.js";
 import { fastScroll } from "../../utils/mobileHandling.js";
 
@@ -31,8 +31,8 @@ export function createStreamingRuntime({
   const accumulatedImageOutputs = [];
   const accumulatedImageSeen = new Set();
   let placeholderCleared = !placeholderElement;
-  let accumulatedContent = '';
-  let accumulatedReasoning = '';
+  let accumulatedContent = "";
+  let accumulatedReasoning = "";
   let thinkingContainer = existingThinkingContainer || null;
 
   if (existingThinkingContainer && existingThinkingContainer.dataset.accumulatedReasoning) {
@@ -46,7 +46,7 @@ export function createStreamingRuntime({
       placeholderElement.remove();
     }
     if (mainContentContainer) {
-      mainContentContainer.style.removeProperty('display');
+      mainContentContainer.style.removeProperty("display");
     }
   }
 
@@ -59,14 +59,14 @@ export function createStreamingRuntime({
          <div class="thinking-title">Reasoning</div>
          <div class="thinking-content"></div>
        </div>`;
-    mainContentContainer.insertAdjacentHTML('beforebegin', containerHTML);
+    mainContentContainer.insertAdjacentHTML("beforebegin", containerHTML);
     thinkingContainer = document.getElementById(thinkingId);
     if (thinkingContainer && accumulatedReasoning) {
       thinkingContainer.dataset.accumulatedReasoning = accumulatedReasoning;
       if (hasPersisted && !persistedExpanded) {
-        thinkingContainer.classList.add('collapsed');
+        thinkingContainer.classList.add("collapsed");
       } else if (!priorWasCollapsed) {
-        thinkingContainer.classList.remove('collapsed');
+        thinkingContainer.classList.remove("collapsed");
       }
     }
     return thinkingContainer;
@@ -79,7 +79,7 @@ export function createStreamingRuntime({
 
     if (parsedThinking.reasoning) {
       thinkingContent = thinkingContent
-        ? `${thinkingContent}${thinkingContent.endsWith('\n') ? '' : '\n'}${parsedThinking.reasoning}`
+        ? `${thinkingContent}${thinkingContent.endsWith("\n") ? "" : "\n"}${parsedThinking.reasoning}`
         : parsedThinking.reasoning;
     }
     const hasThinking = Boolean(thinkingContent);
@@ -89,19 +89,19 @@ export function createStreamingRuntime({
         thinkingContainer = document.getElementById(thinkingId) || null;
       }
       const persistedExpanded = (state.userThinkingState && state.userThinkingState[thinkingId] === true);
-      const hasPersisted = !!(state.userThinkingState && Object.prototype.hasOwnProperty.call(state.userThinkingState, thinkingId));
-      const priorWasCollapsed = thinkingContainer ? thinkingContainer.classList.contains('collapsed') : true;
+      const hasPersisted = Boolean(state.userThinkingState && Object.prototype.hasOwnProperty.call(state.userThinkingState, thinkingId));
+      const priorWasCollapsed = thinkingContainer ? thinkingContainer.classList.contains("collapsed") : true;
       thinkingContainer = ensureThinkingContainer(persistedExpanded, hasPersisted, priorWasCollapsed);
 
       if (thinkingContainer) {
-        const contentDiv = thinkingContainer.querySelector('.thinking-content');
+        const contentDiv = thinkingContainer.querySelector(".thinking-content");
         if (contentDiv) {
           contentDiv.innerHTML = processMainContentMarkdown(thinkingContent);
           const shouldCollapse = hasPersisted ? !persistedExpanded : priorWasCollapsed;
           if (shouldCollapse) {
-            thinkingContainer.classList.add('collapsed');
+            thinkingContainer.classList.add("collapsed");
           } else {
-            thinkingContainer.classList.remove('collapsed');
+            thinkingContainer.classList.remove("collapsed");
             contentDiv.scrollTop = contentDiv.scrollHeight;
           }
         }
@@ -121,7 +121,7 @@ export function createStreamingRuntime({
     try {
       highlightAndAddCopyButtons(loadingMessage);
     } catch (err) {
-      console.warn('Error highlighting code during streaming:', err);
+      console.warn("Error highlighting code during streaming:", err);
     }
 
     if (state.shouldAutoScroll) {
@@ -131,26 +131,26 @@ export function createStreamingRuntime({
 
   function appendReasoningLine(text, indent = 0) {
     if (!text) return;
-    if (accumulatedReasoning && !accumulatedReasoning.endsWith('\n')) {
-      accumulatedReasoning += '\n';
+    if (accumulatedReasoning && !accumulatedReasoning.endsWith("\n")) {
+      accumulatedReasoning += "\n";
     }
-    const indentation = '  '.repeat(indent);
-    accumulatedReasoning += indentation + text + '\n';
+    const indentation = "  ".repeat(indent);
+    accumulatedReasoning += indentation + text + "\n";
     render();
   }
 
   function updateLastReasoningLine(newText, indent = 0) {
     if (!newText) return;
-    const lines = accumulatedReasoning.split('\n');
-    if (lines.length > 0 && lines[lines.length - 1] === '') {
+    const lines = accumulatedReasoning.split("\n");
+    if (lines.length > 0 && lines[lines.length - 1] === "") {
       lines.pop();
     }
     if (lines.length > 0) {
-      lines[lines.length - 1] = '  '.repeat(indent) + newText;
+      lines[lines.length - 1] = "  ".repeat(indent) + newText;
     } else {
-      lines.push('  '.repeat(indent) + newText);
+      lines.push("  ".repeat(indent) + newText);
     }
-    accumulatedReasoning = lines.join('\n') + '\n\n';
+    accumulatedReasoning = lines.join("\n") + "\n\n";
     render();
   }
 
@@ -162,8 +162,8 @@ export function createStreamingRuntime({
 
   function ensureReasoningTrailingNewline() {
     if (!accumulatedReasoning) return;
-    if (!accumulatedReasoning.endsWith('\n')) {
-      accumulatedReasoning += '\n';
+    if (!accumulatedReasoning.endsWith("\n")) {
+      accumulatedReasoning += "\n";
     }
     render();
   }
@@ -180,18 +180,18 @@ export function createStreamingRuntime({
   }
 
   function collectImagesFromSource(source, label) {
-    if (!source || typeof source !== 'object') {
+    if (!source || typeof source !== "object") {
       return;
     }
     const localSeen = new Set();
-    const visited = typeof WeakSet !== 'undefined' ? new WeakSet() : null;
+    const visited = typeof WeakSet !== "undefined" ? new WeakSet() : null;
     const buffer = [];
-    collectImageCandidates(source, buffer, 'image/png', localSeen, visited);
+    collectImageCandidates(source, buffer, "image/png", localSeen, visited);
     if (!buffer.length) {
       return;
     }
     buffer.forEach(item => {
-      if (!item || typeof item.dataUrl !== 'string') {
+      if (!item || typeof item.dataUrl !== "string") {
         return;
       }
       if (accumulatedImageSeen.has(item.dataUrl)) {
@@ -200,12 +200,12 @@ export function createStreamingRuntime({
       accumulatedImageSeen.add(item.dataUrl);
       accumulatedImageOutputs.push({
         dataUrl: item.dataUrl,
-        mimeType: item.mimeType || 'image/png',
+        mimeType: item.mimeType || "image/png",
         sourceLabel: label,
       });
-      imageDebugLog('Captured image data from stream event.', {
+      imageDebugLog("Captured image data from stream event.", {
         sourceLabel: label,
-        mimeType: item.mimeType || 'image/png',
+        mimeType: item.mimeType || "image/png",
         preview: item.dataUrl.substring(0, 48),
       });
     });
@@ -223,12 +223,12 @@ export function createStreamingRuntime({
       const outputEntry = {
         id: `image-output-${Date.now()}-${index}-${Math.random().toString(36).slice(2, 8)}`,
         type: IMAGE_GENERATION_CALL_TYPE,
-        mime_type: img.mimeType || 'image/png',
-        source: img.sourceLabel || 'stream',
+        mime_type: img.mimeType || "image/png",
+        source: img.sourceLabel || "stream",
       };
-      if (typeof img.dataUrl === 'string' && img.dataUrl.startsWith('data:')) {
-        outputEntry.result = img.dataUrl.split(',')[1];
-      } else if (typeof img.dataUrl === 'string' && img.dataUrl.startsWith('http')) {
+      if (typeof img.dataUrl === "string" && img.dataUrl.startsWith("data:")) {
+        outputEntry.result = img.dataUrl.split(",")[1];
+      } else if (typeof img.dataUrl === "string" && img.dataUrl.startsWith("http")) {
         outputEntry.image_url = img.dataUrl;
       } else {
         return;

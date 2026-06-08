@@ -14,16 +14,16 @@ export async function generateTtsForMessage(text, messageId) {
   try {
     if (ttsRuntime.activeTtsAudio && ttsRuntime.activeTtsAudio.paused) {
       if (state.verboseLogging) {
-        console.info('Active TTS audio is paused; treating as stopped before queuing next message.');
+        console.info("Active TTS audio is paused; treating as stopped before queuing next message.");
       }
       stopTtsAudio();
     }
 
     const lowerText = text.toLowerCase();
-    const keywordsToFilter = ['voice playback stopped', 'tts test', 'testing tts', 'stop voice'];
+    const keywordsToFilter = ["voice playback stopped", "tts test", "testing tts", "stop voice"];
 
     if (keywordsToFilter.some((keyword) => lowerText.includes(keyword))) {
-      console.info('Skipping TTS for system message or message with trigger keywords');
+      console.info("Skipping TTS for system message or message with trigger keywords");
       return;
     }
 
@@ -34,22 +34,22 @@ export async function generateTtsForMessage(text, messageId) {
         addTtsControlsToMessage(audioData, messageId, text);
 
         if (!ttsMessageQueue.includes(messageId)) {
-          console.info('Adding message to TTS queue:', messageId);
+          console.info("Adding message to TTS queue:", messageId);
           ttsMessageQueue.push(messageId);
 
           if (!ttsRuntime.activeTtsAudio) {
-            console.info('No active audio, starting autoplay sequence');
+            console.info("No active audio, starting autoplay sequence");
             ttsRuntime.autoplayActive = true;
             playNextMessageInQueue();
           } else {
-            console.info('Audio already playing, message queued for later playback');
+            console.info("Audio already playing, message queued for later playback");
           }
         }
       } else {
         if (!ttsRuntime.errorShown) {
           ttsRuntime.errorShown = true;
           if (showError) {
-            showError('TTS failed. Please check your API key configuration.');
+            showError("TTS failed. Please check your API key configuration.");
           }
           setTimeout(() => {
             ttsRuntime.errorShown = false;
@@ -65,7 +65,7 @@ export async function generateTtsForMessage(text, messageId) {
       addPlaceholderTtsControls(messageId, text);
     }
   } catch (error) {
-    console.error('Failed to generate TTS for message:', error);
+    console.error("Failed to generate TTS for message:", error);
   }
 };
 
@@ -75,39 +75,39 @@ export function addPlaceholderTtsControls(messageId, text) {
     return;
   }
 
-  const existingControls = messageElement.querySelector('.tts-controls');
+  const existingControls = messageElement.querySelector(".tts-controls");
   if (existingControls) {
     try {
       existingControls.parentNode.removeChild(existingControls);
     } catch (error) {
-      console.error('Error removing existing TTS controls:', error);
+      console.error("Error removing existing TTS controls:", error);
     }
   }
 
-  const controlsContainer = document.createElement('div');
-  controlsContainer.className = 'tts-controls';
-  controlsContainer.setAttribute('data-original-text', text);
-  controlsContainer.setAttribute('data-voice', ttsConfig.voice);
-  controlsContainer.setAttribute('data-audio-generated', 'false');
+  const controlsContainer = document.createElement("div");
+  controlsContainer.className = "tts-controls";
+  controlsContainer.setAttribute("data-original-text", text);
+  controlsContainer.setAttribute("data-voice", ttsConfig.voice);
+  controlsContainer.setAttribute("data-audio-generated", "false");
 
-  const playButton = document.createElement('button');
-  playButton.className = 'tts-play-pause';
-  playButton.title = 'Generate and play voice';
-  playButton.setAttribute('aria-label', 'Generate and play voice');
+  const playButton = document.createElement("button");
+  playButton.className = "tts-play-pause";
+  playButton.title = "Generate and play voice";
+  playButton.setAttribute("aria-label", "Generate and play voice");
   playButton.innerHTML = ttsSvgIcons.play;
 
-  const statusText = document.createElement('span');
-  statusText.className = 'tts-status';
-  statusText.style.display = 'none';
+  const statusText = document.createElement("span");
+  statusText.className = "tts-status";
+  statusText.style.display = "none";
 
-  const loadingSpinner = document.createElement('div');
-  loadingSpinner.className = 'tts-loading-spinner';
+  const loadingSpinner = document.createElement("div");
+  loadingSpinner.className = "tts-loading-spinner";
 
-  playButton.addEventListener('click', async() => {
-    playButton.innerHTML = '';
+  playButton.addEventListener("click", async() => {
+    playButton.innerHTML = "";
     playButton.appendChild(loadingSpinner);
-    statusText.textContent = 'Generating...';
-    statusText.style.display = 'inline';
+    statusText.textContent = "Generating...";
+    statusText.style.display = "inline";
 
     try {
       const audioData = await generateSpeech(text);
@@ -115,26 +115,26 @@ export function addPlaceholderTtsControls(messageId, text) {
       if (audioData) {
         addTtsControlsToMessage(audioData, messageId, text);
         setTimeout(() => {
-          const newControls = document.getElementById(messageId)?.querySelector('.tts-controls');
-          const newPlayButton = newControls?.querySelector('.tts-play-pause');
+          const newControls = document.getElementById(messageId)?.querySelector(".tts-controls");
+          const newPlayButton = newControls?.querySelector(".tts-play-pause");
           if (newPlayButton) {
             newPlayButton.click();
           }
         }, 100);
       } else {
-        statusText.textContent = 'Failed to generate audio';
+        statusText.textContent = "Failed to generate audio";
         playButton.innerHTML = ttsSvgIcons.play;
         setTimeout(() => {
-          statusText.style.display = 'none';
+          statusText.style.display = "none";
         }, 3000);
       }
     } catch (error) {
-      console.error('Failed to generate audio on demand:', error);
+      console.error("Failed to generate audio on demand:", error);
       playButton.innerHTML = ttsSvgIcons.play;
-      statusText.textContent = 'Error';
-      statusText.style.display = 'inline';
+      statusText.textContent = "Error";
+      statusText.style.display = "inline";
       setTimeout(() => {
-        statusText.style.display = 'none';
+        statusText.style.display = "none";
       }, 3000);
     }
   });
@@ -142,7 +142,7 @@ export function addPlaceholderTtsControls(messageId, text) {
   controlsContainer.appendChild(playButton);
   controlsContainer.appendChild(statusText);
 
-  const contentElement = messageElement.querySelector('.message-content');
+  const contentElement = messageElement.querySelector(".message-content");
   if (contentElement) {
     contentElement.appendChild(controlsContainer);
   } else {
@@ -156,55 +156,55 @@ export function addTtsControlsToMessage(audioData, messageId, originalText) {
     return;
   }
 
-  const existingControls = messageElement.querySelector('.tts-controls');
+  const existingControls = messageElement.querySelector(".tts-controls");
   if (existingControls) {
     try {
       existingControls.parentNode.removeChild(existingControls);
     } catch (error) {
-      console.error('Error removing existing TTS controls:', error);
+      console.error("Error removing existing TTS controls:", error);
     }
   }
 
-  const audioBlob = new Blob([audioData], { type: 'audio/wav' });
+  const audioBlob = new Blob([audioData], { type: "audio/wav" });
   const audioUrl = URL.createObjectURL(audioBlob);
 
   ttsAudioResources.addUrl(audioUrl, messageId, audioData);
 
   const audio = new Audio(audioUrl);
   const playbackState = { isPlaying: false };
-  const controlsContainer = document.createElement('div');
-  controlsContainer.className = 'tts-controls';
-  controlsContainer.setAttribute('data-original-text', originalText);
-  controlsContainer.setAttribute('data-voice', ttsConfig.voice);
+  const controlsContainer = document.createElement("div");
+  controlsContainer.className = "tts-controls";
+  controlsContainer.setAttribute("data-original-text", originalText);
+  controlsContainer.setAttribute("data-voice", ttsConfig.voice);
 
-  const playPauseButton = document.createElement('button');
-  playPauseButton.className = 'tts-play-pause';
-  playPauseButton.title = 'Play voice';
-  playPauseButton.setAttribute('aria-label', 'Play voice');
+  const playPauseButton = document.createElement("button");
+  playPauseButton.className = "tts-play-pause";
+  playPauseButton.title = "Play voice";
+  playPauseButton.setAttribute("aria-label", "Play voice");
   playPauseButton.innerHTML = ttsSvgIcons.play;
 
-  const stopButton = document.createElement('button');
-  stopButton.className = 'tts-stop';
-  stopButton.title = 'Stop and reset voice';
-  stopButton.setAttribute('aria-label', 'Stop voice');
+  const stopButton = document.createElement("button");
+  stopButton.className = "tts-stop";
+  stopButton.title = "Stop and reset voice";
+  stopButton.setAttribute("aria-label", "Stop voice");
   stopButton.innerHTML = ttsSvgIcons.stop;
 
-  const downloadButton = document.createElement('button');
-  downloadButton.className = 'tts-download';
-  downloadButton.title = 'Download audio';
-  downloadButton.setAttribute('aria-label', 'Download audio');
+  const downloadButton = document.createElement("button");
+  downloadButton.className = "tts-download";
+  downloadButton.title = "Download audio";
+  downloadButton.setAttribute("aria-label", "Download audio");
   downloadButton.innerHTML = ttsSvgIcons.download;
 
-  const statusText = document.createElement('span');
-  statusText.className = 'tts-status';
-  statusText.style.display = 'none';
+  const statusText = document.createElement("span");
+  statusText.className = "tts-status";
+  statusText.style.display = "none";
 
-  const loadingSpinner = document.createElement('div');
-  loadingSpinner.className = 'tts-loading-spinner';
+  const loadingSpinner = document.createElement("div");
+  loadingSpinner.className = "tts-loading-spinner";
 
-  if (!document.getElementById('tts-spinner-style')) {
-    const style = document.createElement('style');
-    style.id = 'tts-spinner-style';
+  if (!document.getElementById("tts-spinner-style")) {
+    const style = document.createElement("style");
+    style.id = "tts-spinner-style";
     style.textContent = `
       @keyframes tts-spin {
         to { transform: rotate(360deg); }
@@ -216,12 +216,12 @@ export function addTtsControlsToMessage(audioData, messageId, originalText) {
   let isLoading = false;
   let isPlaying = false;
 
-  playPauseButton.addEventListener('click', async() => {
+  playPauseButton.addEventListener("click", async() => {
     if (isLoading) {
       return;
     }
 
-    const audioVoice = controlsContainer.getAttribute('data-voice');
+    const audioVoice = controlsContainer.getAttribute("data-voice");
     const currentVoice = ttsConfig.voice;
 
     if (audioVoice !== currentVoice) {
@@ -232,10 +232,10 @@ export function addTtsControlsToMessage(audioData, messageId, originalText) {
       }
 
       isLoading = true;
-      playPauseButton.innerHTML = '';
+      playPauseButton.innerHTML = "";
       playPauseButton.appendChild(loadingSpinner);
 
-      const messageText = controlsContainer.getAttribute('data-original-text');
+      const messageText = controlsContainer.getAttribute("data-original-text");
       if (messageText) {
         try {
           const newAudioData = await generateSpeech(messageText);
@@ -244,8 +244,8 @@ export function addTtsControlsToMessage(audioData, messageId, originalText) {
             URL.revokeObjectURL(audioUrl);
             addTtsControlsToMessage(newAudioData, messageId, messageText);
             setTimeout(() => {
-              const newControls = document.getElementById(messageId)?.querySelector('.tts-controls');
-              const newPlayButton = newControls?.querySelector('.tts-play-pause');
+              const newControls = document.getElementById(messageId)?.querySelector(".tts-controls");
+              const newPlayButton = newControls?.querySelector(".tts-play-pause");
               if (newPlayButton) {
                 newPlayButton.click();
               }
@@ -255,20 +255,20 @@ export function addTtsControlsToMessage(audioData, messageId, originalText) {
 
           isLoading = false;
           playPauseButton.innerHTML = ttsSvgIcons.play;
-          statusText.textContent = 'Voice change failed';
-          statusText.style.display = 'inline';
+          statusText.textContent = "Voice change failed";
+          statusText.style.display = "inline";
           setTimeout(() => {
-            statusText.style.display = 'none';
+            statusText.style.display = "none";
           }, 3000);
           return;
         } catch (error) {
-          console.error('Failed to regenerate audio:', error);
+          console.error("Failed to regenerate audio:", error);
           isLoading = false;
           playPauseButton.innerHTML = ttsSvgIcons.play;
-          statusText.textContent = 'Error';
-          statusText.style.display = 'inline';
+          statusText.textContent = "Error";
+          statusText.style.display = "inline";
           setTimeout(() => {
-            statusText.style.display = 'none';
+            statusText.style.display = "none";
           }, 3000);
           return;
         }
@@ -278,18 +278,18 @@ export function addTtsControlsToMessage(audioData, messageId, originalText) {
     if (audio.paused) {
       if (audio.readyState < 3 && !isPlaying) {
         isLoading = true;
-        playPauseButton.innerHTML = '';
+        playPauseButton.innerHTML = "";
         playPauseButton.appendChild(loadingSpinner);
 
         if (ttsRuntime.activeTtsAudio && ttsRuntime.activeTtsAudio !== audio) {
           ttsRuntime.activeTtsAudio.pause();
           ttsRuntime.activeTtsAudio.currentTime = 0;
 
-          document.querySelectorAll('.tts-play-pause').forEach((btn) => {
+          document.querySelectorAll(".tts-play-pause").forEach((btn) => {
             if (btn !== playPauseButton && !btn.contains(loadingSpinner)) {
               btn.innerHTML = ttsSvgIcons.play;
-              btn.title = 'Play voice';
-              btn.setAttribute('aria-label', 'Play voice');
+              btn.title = "Play voice";
+              btn.setAttribute("aria-label", "Play voice");
             }
           });
         }
@@ -300,18 +300,18 @@ export function addTtsControlsToMessage(audioData, messageId, originalText) {
             playbackState.isPlaying = true;
             isPlaying = true;
             playPauseButton.innerHTML = ttsSvgIcons.pause;
-            playPauseButton.title = 'Pause voice';
-            playPauseButton.setAttribute('aria-label', 'Pause voice');
-            statusText.textContent = 'Playing';
-            statusText.style.display = 'inline';
+            playPauseButton.title = "Pause voice";
+            playPauseButton.setAttribute("aria-label", "Pause voice");
+            statusText.textContent = "Playing";
+            statusText.style.display = "inline";
             ttsRuntime.activeTtsAudio = audio;
           }).catch((error) => {
-            console.error('Failed to play audio:', error);
+            console.error("Failed to play audio:", error);
             playPauseButton.innerHTML = ttsSvgIcons.play;
-            statusText.textContent = 'Failed';
-            statusText.style.display = 'inline';
+            statusText.textContent = "Failed";
+            statusText.style.display = "inline";
             setTimeout(() => {
-              statusText.style.display = 'none';
+              statusText.style.display = "none";
             }, 3000);
           });
         };
@@ -319,17 +319,17 @@ export function addTtsControlsToMessage(audioData, messageId, originalText) {
         if (audio.readyState >= 3) {
           canPlayHandler();
         } else {
-          audio.addEventListener('canplay', canPlayHandler, { once: true });
+          audio.addEventListener("canplay", canPlayHandler, { once: true });
         }
       } else {
         audio.play();
         playbackState.isPlaying = true;
         isPlaying = true;
         playPauseButton.innerHTML = ttsSvgIcons.pause;
-        playPauseButton.title = 'Pause voice';
-        playPauseButton.setAttribute('aria-label', 'Pause voice');
-        statusText.textContent = 'Playing';
-        statusText.style.display = 'inline';
+        playPauseButton.title = "Pause voice";
+        playPauseButton.setAttribute("aria-label", "Pause voice");
+        statusText.textContent = "Playing";
+        statusText.style.display = "inline";
         ttsRuntime.activeTtsAudio = audio;
       }
     } else {
@@ -337,32 +337,32 @@ export function addTtsControlsToMessage(audioData, messageId, originalText) {
       playbackState.isPlaying = false;
       isPlaying = false;
       playPauseButton.innerHTML = ttsSvgIcons.play;
-      playPauseButton.title = 'Play voice';
-      playPauseButton.setAttribute('aria-label', 'Play voice');
-      statusText.textContent = 'Paused';
-      statusText.style.display = 'inline';
+      playPauseButton.title = "Play voice";
+      playPauseButton.setAttribute("aria-label", "Play voice");
+      statusText.textContent = "Paused";
+      statusText.style.display = "inline";
       if (ttsRuntime.activeTtsAudio === audio) {
         ttsRuntime.activeTtsAudio = null;
       }
       setTimeout(() => {
         if (audio.paused) {
-          statusText.style.display = 'none';
+          statusText.style.display = "none";
         }
       }, 2000);
     }
   });
 
-  stopButton.addEventListener('click', () => {
+  stopButton.addEventListener("click", () => {
     audio.pause();
     audio.currentTime = 0;
     isPlaying = false;
     playPauseButton.innerHTML = ttsSvgIcons.play;
-    playPauseButton.title = 'Play voice';
-    playPauseButton.setAttribute('aria-label', 'Play voice');
-    statusText.textContent = 'Stopped';
-    statusText.style.display = 'inline';
+    playPauseButton.title = "Play voice";
+    playPauseButton.setAttribute("aria-label", "Play voice");
+    statusText.textContent = "Stopped";
+    statusText.style.display = "inline";
     setTimeout(() => {
-      statusText.style.display = 'none';
+      statusText.style.display = "none";
     }, 2000);
 
     if (ttsRuntime.activeTtsAudio === audio) {
@@ -370,62 +370,62 @@ export function addTtsControlsToMessage(audioData, messageId, originalText) {
     }
   });
 
-  downloadButton.addEventListener('click', () => {
-    statusText.textContent = 'Downloading...';
-    statusText.style.display = 'inline';
+  downloadButton.addEventListener("click", () => {
+    statusText.textContent = "Downloading...";
+    statusText.style.display = "inline";
 
     try {
       const now = new Date();
-      const timestamp = now.toISOString().replace(/[-:]/g, '').replace(/\..+/, '');
+      const timestamp = now.toISOString().replace(/[-:]/g, "").replace(/\..+/, "");
       const voiceName = ttsConfig.voice;
       const filename = `tts_${voiceName}_${timestamp}.wav`;
 
       const cachedAudioData = ttsAudioResources.getAudioData(messageId);
 
       if (cachedAudioData) {
-                        exportAudioForDownload(cachedAudioData, filename);
-                statusText.textContent = 'Downloaded';
-      
+        exportAudioForDownload(cachedAudioData, filename);
+        statusText.textContent = "Downloaded";
+
       } else {
-        const a = document.createElement('a');
+        const a = document.createElement("a");
         a.href = audioUrl;
         a.download = filename;
         document.body.appendChild(a);
         a.click();
         document.body.removeChild(a);
-        statusText.textContent = 'Downloaded';
+        statusText.textContent = "Downloaded";
       }
 
       setTimeout(() => {
-        statusText.style.display = 'none';
+        statusText.style.display = "none";
       }, 2000);
     } catch (error) {
-      console.error('Error downloading audio:', error);
-      statusText.textContent = 'Download failed';
+      console.error("Error downloading audio:", error);
+      statusText.textContent = "Download failed";
       setTimeout(() => {
-        statusText.style.display = 'none';
+        statusText.style.display = "none";
       }, 2000);
     }
   });
 
-  audio.addEventListener('ended', handleTtsAudioEnded(playPauseButton, statusText, audioUrl, playbackState));
+  audio.addEventListener("ended", handleTtsAudioEnded(playPauseButton, statusText, audioUrl, playbackState));
 
-  audio.addEventListener('error', (event) => {
-    console.error('Audio playback error:', event);
+  audio.addEventListener("error", (event) => {
+    console.error("Audio playback error:", event);
     isLoading = false;
     isPlaying = false;
     playbackState.isPlaying = false;
     playPauseButton.innerHTML = ttsSvgIcons.play;
-    statusText.textContent = 'Error';
-    statusText.style.display = 'inline';
+    statusText.textContent = "Error";
+    statusText.style.display = "inline";
     setTimeout(() => {
-      statusText.style.display = 'none';
+      statusText.style.display = "none";
     }, 3000);
 
     ttsAudioResources.removeUrl(audioUrl);
 
     if (ttsConfig.autoplay) {
-      console.info('Audio error, trying next message in queue');
+      console.info("Audio error, trying next message in queue");
       setTimeout(() => playNextMessageInQueue(), 500);
     }
   });
@@ -435,7 +435,7 @@ export function addTtsControlsToMessage(audioData, messageId, originalText) {
   controlsContainer.appendChild(downloadButton);
   controlsContainer.appendChild(statusText);
 
-  const contentElement = messageElement.querySelector('.message-content');
+  const contentElement = messageElement.querySelector(".message-content");
   if (contentElement) {
     contentElement.appendChild(controlsContainer);
   } else {
