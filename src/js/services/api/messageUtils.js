@@ -237,7 +237,7 @@ export function collectFunctionCalls(responseOutput = []) {
     }
     try {
       return JSON.stringify(value ?? {});
-    } catch (_) {
+    } catch {
       return "{}";
     }
   };
@@ -249,7 +249,7 @@ export function collectFunctionCalls(responseOutput = []) {
     if (typeof rawArgs === "string") {
       try {
         return rawArgs ? JSON.parse(rawArgs) : {};
-      } catch (_) {
+      } catch {
         return {};
       }
     }
@@ -263,7 +263,7 @@ export function collectFunctionCalls(responseOutput = []) {
     if (original && typeof original === "object") {
       try {
         return JSON.parse(JSON.stringify(original));
-      } catch (_) {
+      } catch {
         // fall through to manual construction
       }
     }
@@ -354,7 +354,7 @@ export function buildInstructions() {
   return `${basePrompt}${state.shortResponseGuideline || ""}`.trim();
 }
 
-export function buildDeveloperMessage(model) {
+export function buildDeveloperMessage() {
   const instructions = buildInstructions();
   if (!instructions) {
     return "";
@@ -364,7 +364,7 @@ export function buildDeveloperMessage(model) {
     try {
       return new Intl.DateTimeFormat(undefined, { dateStyle: "full", timeStyle: "short" })
         .format(new Date());
-    } catch (_) {
+    } catch {
       return new Date().toISOString();
     }
   })();
@@ -420,7 +420,7 @@ function buildTimestampString() {
   try {
     const options = { dateStyle: "full", timeStyle: "short" };
     return new Intl.DateTimeFormat(undefined, options).format(new Date());
-  } catch (_) {
+  } catch {
     return new Date().toISOString();
   }
 }

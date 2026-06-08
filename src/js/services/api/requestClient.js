@@ -164,7 +164,7 @@ export async function runTurn({
   const serviceKey = getActiveServiceKey();
   const resolvedModel = model || getActiveModel();
   const workingMessages = serializeMessagesForRequest(baseMessages);
-  const developerContent = buildDeveloperMessage(resolvedModel);
+  const developerContent = buildDeveloperMessage();
   if (developerContent) {
     // xAI (Grok) requires 'system' role instead of 'developer'
     const systemRole = serviceKey === "xai" ? "system" : "developer";
@@ -186,7 +186,7 @@ export async function runTurn({
       if (Array.isArray(activeIds)) {
         activeIds.forEach(id => { if (id) idsSet.add(id); });
       }
-    } catch (e) {
+    } catch {
       // non-fatal
     }
     if (vectorStoreId) {

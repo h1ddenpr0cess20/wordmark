@@ -19,7 +19,7 @@ export function processMainContentMarkdown(mainText) {
 
   let parsedContent = sanitizeWithMedia(marked.parse(html));
 
-  parsedContent = parsedContent.replace(/\[\[IMAGE: ([^\]]+)\]\]/g, (match, filename) => {
+  parsedContent = parsedContent.replace(/\[\[IMAGE: ([^\]]+)\]\]/g, (match) => {
     return `<span class="hidden-image-placeholder">${match}</span>`;
   });
 

@@ -617,7 +617,7 @@ function loadToolPreferences() {
     }
     const parsed = JSON.parse(raw);
     return parsed && typeof parsed === "object" ? parsed : {};
-  } catch (_) {
+  } catch {
     return {};
   }
 }
@@ -625,7 +625,7 @@ function loadToolPreferences() {
 function saveToolPreferences(prefs) {
   try {
     localStorage.setItem(TOOL_STORAGE_KEY, JSON.stringify(prefs));
-  } catch (_) {
+  } catch {
     /* Ignore storage errors */
   }
 }
@@ -649,7 +649,7 @@ function isLocalNetworkUrl(url) {
     if (hostname.match(/^172\.(1[6-9]|2[0-9]|3[01])\.\d+\.\d+$/)) return true;
     if (hostname.endsWith(".local")) return true;
     return false;
-  } catch (error) {
+  } catch {
     return false;
   }
 }

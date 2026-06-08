@@ -229,7 +229,7 @@ function extractPromptFromImageCall(call) {
   if (typeof argumentsSource === "string") {
     try {
       argumentsSource = JSON.parse(argumentsSource);
-    } catch (error) {
+    } catch {
       argumentsSource = null;
     }
   }

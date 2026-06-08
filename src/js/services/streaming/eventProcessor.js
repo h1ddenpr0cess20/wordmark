@@ -12,7 +12,7 @@ function safeTruncate(str, max = 800) {
   if (typeof str !== "string") {
     try {
       str = JSON.stringify(str, null, 2);
-    } catch (err) {
+    } catch {
       str = String(str);
     }
   }
@@ -25,7 +25,7 @@ function formatToolArgs(args, inline = false) {
   if (typeof args === "string") {
     try {
       parsed = JSON.parse(args);
-    } catch (err) {
+    } catch {
       return inline ? ` ${safeTruncate(args, 120)}` : `\n    ${safeTruncate(args, 400)}`;
     }
   } else if (typeof args === "object") {
@@ -46,7 +46,7 @@ function formatToolArgs(args, inline = false) {
     const formatted = JSON.stringify(parsed, null, 2);
     const indented = formatted.split("\n").map(line => `    ${line}`).join("\n");
     return formatted.length > 400 ? `\n${indented.slice(0, 400)}…` : `\n${indented}`;
-  } catch (err) {
+  } catch {
     return "";
   }
 }
@@ -58,7 +58,7 @@ function extractQueriesFromArgs(argsStr) {
   if (typeof argsStr === "string") {
     try {
       parsed = JSON.parse(argsStr);
-    } catch (err) {
+    } catch {
       parsed = null;
     }
   } else if (typeof argsStr === "object") {
@@ -525,7 +525,6 @@ export function createStreamingEventProcessor(runtime) {
     }
     case "response.web_search_call.completed": {
       const id = payload.item_id || "";
-      const q = webSearchById.get(id) || "";
       runtime.appendReasoningLine("  ✔️ _completed_");
       runtime.appendReasoningLine("");
       if (id) webSearchById.delete(id);
@@ -533,7 +532,6 @@ export function createStreamingEventProcessor(runtime) {
     }
     case "response.web_search_call.failed": {
       const id = payload.item_id || "";
-      const q = webSearchById.get(id) || "";
       const error = payload?.error?.message || "failed";
       runtime.appendReasoningLine(`  ❌ _failed: ${error}_`);
       runtime.appendReasoningLine("");
