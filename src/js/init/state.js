@@ -26,6 +26,28 @@ export const state = {
   currentReasoningEffort: "medium",
   currentVerbosity: "medium",
   imageDataCache: new Map(),
+
+  // Pending attachment uploads (cleared after a message is sent)
+  pendingUploads: [],
+  pendingDocuments: [],
+
+  // Per-message thinking/reasoning toggle state, keyed by message id
+  userThinkingState: {},
+
+  // Generated images rendered into messages, keyed by message id
+  messageImages: {},
+
+  // Gallery panel state
+  galleryImages: [],
+  galleryImagesLoaded: false,
+  galleryInitialized: false,
+  currentGalleryTab: "generated",
+
+  // Image slideshow / lightbox open flag
+  isSlideshowOpen: false,
+
+  // Active vector store id for file-search (in-memory; not persisted here)
+  activeVectorStore: null,
 };
 
 // DOM element references — populated by dom.js after panels load.

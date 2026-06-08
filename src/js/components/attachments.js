@@ -1,3 +1,4 @@
+import { state } from "../init/state.js";
 import { showInfo } from "../utils/notifications.js";
 /**
  * File upload and attachment handling (images and documents)
@@ -5,9 +6,9 @@ import { showInfo } from "../utils/notifications.js";
 
 import { filterSupportedFiles } from "../services/vectorStore.js";
 
-window.pendingUploads = [];
-window.pendingDocuments = [];
-window.activeVectorStore = null;
+state.pendingUploads = [];
+state.pendingDocuments = [];
+state.activeVectorStore = null;
 
 export function initImageUploads() {
   const uploadInput = document.getElementById("image-upload");
@@ -151,8 +152,8 @@ async function handleFiles(files, options = {}) {
   const { isDirectory = false } = options;
 
   // Ensure arrays exist
-  window.pendingUploads = window.pendingUploads || [];
-  window.pendingDocuments = window.pendingDocuments || [];
+  state.pendingUploads = state.pendingUploads || [];
+  state.pendingDocuments = state.pendingDocuments || [];
 
   if (isDirectory) {
     // Filter using vector store supported extensions
@@ -198,7 +199,7 @@ async function handleFiles(files, options = {}) {
 
     if (!hasStructure) {
       // Append as individual document attachments
-      window.pendingDocuments.push(...supported.map(file => ({
+      state.pendingDocuments.push(...supported.map(file => ({
         file,
         name: file.name,
         size: file.size,
@@ -207,7 +208,7 @@ async function handleFiles(files, options = {}) {
     } else {
       // Append grouped directories
       for (const [directoryName, fileList] of groups) {
-        window.pendingDocuments.push({
+        state.pendingDocuments.push({
           isDirectory: true,
           directoryName,
           files: fileList,
@@ -246,13 +247,13 @@ async function handleFiles(files, options = {}) {
     if (imageFiles.length > 0) {
       for (const file of imageFiles) {
         const dataUrl = await readFileAsDataURL(file);
-        window.pendingUploads.push({ file, dataUrl });
+        state.pendingUploads.push({ file, dataUrl });
       }
     }
 
     // Append documents
     if (documentFiles.length > 0) {
-      window.pendingDocuments.push(...documentFiles.map(file => ({
+      state.pendingDocuments.push(...documentFiles.map(file => ({
         file,
         name: file.name,
         size: file.size,
@@ -483,7 +484,7 @@ function showPendingUploadPreviews() {
   preview.innerHTML = "";
 
   // Show image previews
-  window.pendingUploads.forEach((up, index) => {
+  state.pendingUploads.forEach((up, index) => {
     const container = document.createElement("div");
     container.className = "upload-preview-container";
 
@@ -507,7 +508,7 @@ function showPendingUploadPreviews() {
   });
 
   // Show document previews
-  window.pendingDocuments.forEach((doc, index) => {
+  state.pendingDocuments.forEach((doc, index) => {
     if (doc.isDirectory) {
       // Directory preview
       const container = document.createElement("div");
@@ -601,8 +602,8 @@ function formatFileSize(bytes) {
  * Remove an image from pending uploads by index
  */
 function removeUploadPreview(index) {
-  if (index >= 0 && index < window.pendingUploads.length) {
-    window.pendingUploads.splice(index, 1);
+  if (index >= 0 && index < state.pendingUploads.length) {
+    state.pendingUploads.splice(index, 1);
     showPendingUploadPreviews();
   }
 }
@@ -611,8 +612,8 @@ function removeUploadPreview(index) {
  * Remove a document from pending uploads by index
  */
 function removeDocumentPreview(index) {
-  if (index >= 0 && index < window.pendingDocuments.length) {
-    window.pendingDocuments.splice(index, 1);
+  if (index >= 0 && index < state.pendingDocuments.length) {
+    state.pendingDocuments.splice(index, 1);
     showPendingUploadPreviews();
   }
 }

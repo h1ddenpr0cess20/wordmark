@@ -88,8 +88,8 @@ export function createStreamingRuntime({
       if (!thinkingContainer) {
         thinkingContainer = document.getElementById(thinkingId) || null;
       }
-      const persistedExpanded = (window.userThinkingState && window.userThinkingState[thinkingId] === true);
-      const hasPersisted = !!(window.userThinkingState && Object.prototype.hasOwnProperty.call(window.userThinkingState, thinkingId));
+      const persistedExpanded = (state.userThinkingState && state.userThinkingState[thinkingId] === true);
+      const hasPersisted = !!(state.userThinkingState && Object.prototype.hasOwnProperty.call(state.userThinkingState, thinkingId));
       const priorWasCollapsed = thinkingContainer ? thinkingContainer.classList.contains('collapsed') : true;
       thinkingContainer = ensureThinkingContainer(persistedExpanded, hasPersisted, priorWasCollapsed);
 

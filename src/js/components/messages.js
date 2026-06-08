@@ -141,9 +141,7 @@ export function addMessageCopyButton(messageElement, messageId) {
     if (!raw) {
       return;
     }
-    if (typeof window.copyToClipboard === "function") {
-      window.copyToClipboard(raw, btn);
-    } else if (navigator.clipboard && navigator.clipboard.writeText) {
+    if (navigator.clipboard && navigator.clipboard.writeText) {
       navigator.clipboard.writeText(raw);
     }
   });

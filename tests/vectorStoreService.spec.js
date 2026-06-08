@@ -1,5 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
+import { state } from '../src/js/init/state.js';
 
 const originalFetch = global.fetch;
 const originalWindow = global.window;
@@ -34,8 +35,8 @@ function setupEnvironment() {
     showInfo: (message) => {
       showInfoCalls.push(message);
     },
-    activeVectorStore: null,
   };
+  state.activeVectorStore = null;
   global.localStorage = createLocalStorage();
   return showInfoCalls;
 }
@@ -195,7 +196,7 @@ test('vector store metadata helpers persist to localStorage', async () => {
 
   global.localStorage.setItem('active_vector_store', 'vs-b');
   initializeVectorStore();
-  assert.equal(global.window.activeVectorStore, 'vs-b');
+  assert.equal(state.activeVectorStore, 'vs-b');
 
   removeVectorStoreMetadata('vs-a');
   const afterRemoval = getVectorStoreMetadata();

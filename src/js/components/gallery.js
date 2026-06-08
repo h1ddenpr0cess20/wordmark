@@ -1,3 +1,4 @@
+import { state } from "../init/state.js";
 import { icon } from "../utils/icons.js";
 /**
  * Media Gallery functionality for the chatbot application.
@@ -19,13 +20,13 @@ import { updatePanelOpenState } from "../init/eventListeners/settingsPanel.js";
 // -----------------------------------------------------
 
 // Global flag to track if slideshow is open
-window.isSlideshowOpen = false;
+state.isSlideshowOpen = false;
 
 /**
  * Initialize the gallery functionality
  */
 const initGallery = function() {
-  if (window.__GALLERY_INITIALIZED__) {
+  if (state.galleryInitialized) {
     return;
   }
 
@@ -41,10 +42,10 @@ const initGallery = function() {
     return;
   }
 
-  window.__GALLERY_INITIALIZED__ = true;
+  state.galleryInitialized = true;
 
   // Keep track of whether images have been loaded
-  window.galleryImagesLoaded = false;
+  state.galleryImagesLoaded = false;
   // Toggle gallery visibility when the gallery button is clicked
   galleryButton.addEventListener("click", () => {
     const isExpanded = galleryButton.getAttribute("aria-expanded") === "true";
@@ -106,13 +107,13 @@ const showGalleryPlaceholders = function() {
 
   // Create 8 placeholder items (or adjust based on typical gallery size)
   galleryGrid.innerHTML = "";
-  const count = window.galleryImages && window.galleryImages.length > 0 ?
-    window.galleryImages.length : 8;
+  const count = state.galleryImages && state.galleryImages.length > 0 ?
+    state.galleryImages.length : 8;
 
   // Show count from last load
   const galleryCount = document.getElementById("gallery-count");
-  if (galleryCount && window.galleryImages) {
-    galleryCount.textContent = window.galleryImages.length || "...";
+  if (galleryCount && state.galleryImages) {
+    galleryCount.textContent = state.galleryImages.length || "...";
   } else if (galleryCount) {
     galleryCount.textContent = "...";
   }
@@ -148,7 +149,7 @@ const loadGalleryImages = async function() {
     const images = await getAllImagesFromDb();
 
     // Filter images based on current tab
-    const currentTab = window.currentGalleryTab || "generated";
+    const currentTab = state.currentGalleryTab || "generated";
     let visibleImages;
 
     if (currentTab === "uploaded") {
@@ -196,8 +197,8 @@ const loadGalleryImages = async function() {
     });
 
     // Store images globally for slideshow access
-    window.galleryImages = visibleImages;
-    window.galleryImagesLoaded = true;
+    state.galleryImages = visibleImages;
+    state.galleryImagesLoaded = true;
 
     // Clear placeholders
     galleryGrid.innerHTML = "";
@@ -439,13 +440,13 @@ const downloadGalleryImage = function(imageData, filename) {
  * @param {number} startIndex - The index to start from
  */
 const startGallerySlideshow = function(startIndex) {
-  if (!window.galleryImages || window.galleryImages.length === 0) {
+  if (!state.galleryImages || state.galleryImages.length === 0) {
     console.error("No media available for viewer");
     return;
   }
 
   // Use the shared slideshow function, passing gallery mode as true
-  createImageSlideshow(window.galleryImages, startIndex, true);
+  createImageSlideshow(state.galleryImages, startIndex, true);
 };
 
 /**
@@ -505,7 +506,7 @@ const bulkDeleteSelectedImages = async function() {
  */
 function initializeGalleryTabs() {
   // Set the current active tab (default to 'generated')
-  window.currentGalleryTab = "generated";
+  state.currentGalleryTab = "generated";
 
   // Get tab elements
   const generatedTab = document.getElementById("gallery-tab-generated");
@@ -531,7 +532,7 @@ function initializeGalleryTabs() {
  * @param {string} tabName - 'generated' or 'uploaded'
  */
 const switchGalleryTab = function(tabName) {
-  window.currentGalleryTab = tabName;
+  state.currentGalleryTab = tabName;
 
   // Update tab active states
   const tabs = document.querySelectorAll(".gallery-tab");

@@ -205,10 +205,10 @@ export function finalizeStreamedResponse(loadingMessage, contentObj) {
     });
 
     const thisMessageImages = [...state.currentGeneratedImageHtml];
-    if (!window.messageImages) {
-      window.messageImages = {};
+    if (!state.messageImages) {
+      state.messageImages = {};
     }
-    window.messageImages[loadingMessage.id] = thisMessageImages;
+    state.messageImages[loadingMessage.id] = thisMessageImages;
 
     const filenamesForThisMessage = thisMessageImages
       .map(html => {
@@ -235,8 +235,8 @@ export function finalizeStreamedResponse(loadingMessage, contentObj) {
 
   if (hasThinking) {
     let finalThinkingContainer = existingThinkingContainer;
-    const persistedExpanded = (window.userThinkingState && window.userThinkingState[thinkingId] === true);
-    const hasPersisted = !!(window.userThinkingState && Object.prototype.hasOwnProperty.call(window.userThinkingState, thinkingId));
+    const persistedExpanded = (state.userThinkingState && state.userThinkingState[thinkingId] === true);
+    const hasPersisted = !!(state.userThinkingState && Object.prototype.hasOwnProperty.call(state.userThinkingState, thinkingId));
     const priorWasCollapsed = finalThinkingContainer ? finalThinkingContainer.classList.contains('collapsed') : true;
     const shouldCollapse = hasPersisted ? !persistedExpanded : priorWasCollapsed;
 
@@ -409,10 +409,10 @@ export function updateMessageContent(loadingMessage, assistantMessageObj) {
 
   contentWrapper.innerHTML = '';
 
-  if (window.messageImages && window.messageImages[loadingMessage.id]) {
+  if (state.messageImages && state.messageImages[loadingMessage.id]) {
     const imagesContainer = document.createElement('div');
     imagesContainer.className = 'generated-images';
-    imagesContainer.innerHTML = window.messageImages[loadingMessage.id].join('');
+    imagesContainer.innerHTML = state.messageImages[loadingMessage.id].join('');
     contentWrapper.appendChild(imagesContainer);
     setupImageInteractions(imagesContainer);
   }
@@ -426,8 +426,8 @@ export function updateMessageContent(loadingMessage, assistantMessageObj) {
     contentWrapper.insertAdjacentHTML('beforeend', containerHTML);
     const thinkingContainer = document.getElementById(thinkingId);
     if (thinkingContainer) {
-      const persistedExpanded = (window.userThinkingState && window.userThinkingState[thinkingId] === true);
-      const hasPersisted = !!(window.userThinkingState && Object.prototype.hasOwnProperty.call(window.userThinkingState, thinkingId));
+      const persistedExpanded = (state.userThinkingState && state.userThinkingState[thinkingId] === true);
+      const hasPersisted = !!(state.userThinkingState && Object.prototype.hasOwnProperty.call(state.userThinkingState, thinkingId));
       const shouldCollapse = hasPersisted ? !persistedExpanded : true;
 
       const contentDiv = thinkingContainer.querySelector('.thinking-content');

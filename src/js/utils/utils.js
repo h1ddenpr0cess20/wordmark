@@ -3,7 +3,6 @@
  */
 
 import { state } from "../init/state.js";
-
 /**
  * Debounces a function call
  * @param {Function} func - The function to debounce
@@ -52,11 +51,11 @@ export function toggleThinking(id, event) {
   thinkingContainer.classList.toggle("collapsed");
 
   // Persist user preference for this specific thinking container ID
-  if (!window.userThinkingState || typeof window.userThinkingState !== "object") {
-    window.userThinkingState = {};
+  if (!state.userThinkingState || typeof state.userThinkingState !== "object") {
+    state.userThinkingState = {};
   }
   // Store as 'expanded' boolean
-  window.userThinkingState[id] = wasCollapsed === true;
+  state.userThinkingState[id] = wasCollapsed === true;
 
   // Debug logging
   if (window.VERBOSE_LOGGING) {

@@ -191,7 +191,7 @@ function resetConversationState() {
   state.currentConversationId = null;
   state.currentConversationName = null;
   state.loadedSystemPrompt = null;
-  window.userThinkingState = {};
+  state.userThinkingState = {};
 }
 
 export function getAllConversations() {
@@ -334,7 +334,7 @@ function loadConversationIntoUI(convo, imageCache) {
   state.currentConversationId = convo.id;
   state.currentConversationName = convo.name;
   state.loadedSystemPrompt = convo.systemPrompt;
-  window.userThinkingState = {};
+  state.userThinkingState = {};
 
   if (elements.chatBox) {
     elements.chatBox.innerHTML = '';

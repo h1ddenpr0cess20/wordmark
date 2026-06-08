@@ -1,4 +1,4 @@
-import { elements } from "../state.js";
+import { elements, state } from "../state.js";
 import { switchToTab } from "../../components/ui/settingsTabs.js";
 import { updateHeaderInfo, organizeSettingsLayout } from "../../components/settings.js";
 
@@ -148,7 +148,7 @@ function setupOutsideClickHandler(state) {
     
     }
 
-    if (!window.isSlideshowOpen &&
+    if (!state.isSlideshowOpen &&
         elements.galleryPanel && elements.galleryPanel.getAttribute('aria-hidden') === 'false' &&
         !elements.galleryPanel.contains(event.target) && event.target !== elements.galleryButton) {
       elements.galleryPanel.setAttribute('aria-hidden', 'true');

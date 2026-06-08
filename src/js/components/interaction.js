@@ -25,8 +25,8 @@ import { getVerbosity, getReasoningEffort } from "../init/modelSettings.js";
  */
 export async function sendMessage() {
   const message = elements.userInput.value.trim();
-  const hasImages = window.pendingUploads && window.pendingUploads.length > 0;
-  const hasDocuments = window.pendingDocuments && window.pendingDocuments.length > 0;
+  const hasImages = state.pendingUploads && state.pendingUploads.length > 0;
+  const hasDocuments = state.pendingDocuments && state.pendingDocuments.length > 0;
 
   if (!message && !hasImages && !hasDocuments) {
     if (window.VERBOSE_LOGGING) {
@@ -50,7 +50,7 @@ export async function sendMessage() {
   elements.sendButton.addEventListener("click", stopGeneration);
 
   // Handle standalone image uploads (not part of a directory)
-  const uploads = window.pendingUploads || [];
+  const uploads = state.pendingUploads || [];
   let uploadHtml = "";
   const placeholders = [];
   const attachmentsForHistory = [];
@@ -83,7 +83,7 @@ export async function sendMessage() {
 
   // Add document attachments display and save for later upload
   let documentsHtml = "";
-  const documents = window.pendingDocuments || [];
+  const documents = state.pendingDocuments || [];
   const documentsToUpload = [...documents]; // Save copy before clearing
   const formatFileSize = (bytes) => {
     if (bytes < 1024) return bytes + " B";
@@ -187,11 +187,11 @@ export async function sendMessage() {
         }).catch(err => console.error("Failed to save upload image:", err));
       }
     }
-    window.pendingUploads = [];
+    state.pendingUploads = [];
   }
 
   // Clear documents and previews after processing
-  window.pendingDocuments = [];
+  state.pendingDocuments = [];
   const preview = document.querySelector(".upload-previews");
   if (preview) {
     preview.innerHTML = "";
@@ -219,7 +219,7 @@ export async function sendMessage() {
   state.isResponsePending = true;
 
   // Handle document uploads if present
-  let vectorStoreId = window.activeVectorStore || null;
+  let vectorStoreId = state.activeVectorStore || null;
   const activeServiceKey = elements.serviceSelector ? elements.serviceSelector.value : "openai";
   if (hasDocuments) {
     console.log("Has documents:", documentsToUpload.length);
@@ -292,7 +292,7 @@ export async function sendMessage() {
           console.log("Files to upload:", files.map(f => f.name));
           const result = await uploadAndAttachFiles(files, `Chat-${Date.now()}`);
           vectorStoreId = result.vectorStoreId;
-          window.activeVectorStore = vectorStoreId;
+          state.activeVectorStore = vectorStoreId;
 
           // Save vector store metadata
           saveVectorStoreMetadata(vectorStoreId, {

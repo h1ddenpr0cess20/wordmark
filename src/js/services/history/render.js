@@ -223,10 +223,10 @@ export function renderConversationMessages(convo, imageCache) {
 
       if (imagesContainer.childNodes.length > 0) {
         contentWrapper.appendChild(imagesContainer);
-        if (!window.messageImages) {
-          window.messageImages = {};
+        if (!state.messageImages) {
+          state.messageImages = {};
         }
-        window.messageImages[messageElement.id] = imgHtmlArray;
+        state.messageImages[messageElement.id] = imgHtmlArray;
       }
     }
 

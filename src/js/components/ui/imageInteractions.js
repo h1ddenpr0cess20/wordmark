@@ -1,3 +1,4 @@
+import { state } from "../../init/state.js";
 import { icon } from "../../utils/icons.js";
 import { deleteImageFromDb } from "../../utils/imageStorage.js";
 import { isMobileDevice } from "../../utils/mobileHandling.js";
@@ -109,11 +110,11 @@ export function setupImageInteractions(messageElement) {
     }
     img.dataset.viewerBound = 'true';
     img.addEventListener('click', () => {
-      if (window.isSlideshowOpen) {
+      if (state.isSlideshowOpen) {
         return;
       }
 
-      window.isSlideshowOpen = true;
+      state.isSlideshowOpen = true;
       const allMediaData = gatherAllConversationMedia(img);
       createImageSlideshow(allMediaData.images, allMediaData.clickedIndex);
     });
@@ -140,11 +141,11 @@ export function setupImageInteractions(messageElement) {
 
     expandBtn.addEventListener('click', (event) => {
       event.stopPropagation();
-      if (window.isSlideshowOpen) {
+      if (state.isSlideshowOpen) {
         return;
       }
 
-      window.isSlideshowOpen = true;
+      state.isSlideshowOpen = true;
       const allMediaData = gatherAllConversationMedia(video);
       createImageSlideshow(allMediaData.images, allMediaData.clickedIndex);
     });
@@ -217,7 +218,7 @@ export function createImageSlideshow(images, startIndex, isGalleryMode = false) 
     controlsBar.appendChild(deleteBtn);
 
     deleteBtn.addEventListener('click', () => {
-      const image = window.galleryImages[currentIndex];
+      const image = state.galleryImages[currentIndex];
       const mediaType = detectMediaType(image);
       if (!confirm(`Delete this ${mediaType}?`)) {
         return;
@@ -225,7 +226,7 @@ export function createImageSlideshow(images, startIndex, isGalleryMode = false) 
 
       deleteImageFromDb?.(image.filename)
         .then(() => {
-          window.galleryImages.splice(currentIndex, 1);
+          state.galleryImages.splice(currentIndex, 1);
 
           const galleryItem = document.querySelector(`.gallery-item[data-filename="${image.filename}"]`);
           if (galleryItem) {
@@ -238,14 +239,14 @@ export function createImageSlideshow(images, startIndex, isGalleryMode = false) 
             galleryCount.textContent = Math.max(0, currentCount - 1);
           }
 
-          if (!window.galleryImages.length) {
+          if (!state.galleryImages.length) {
             closeSlideshow();
             const galleryGrid = document.getElementById('gallery-grid');
             if (galleryGrid) {
               galleryGrid.innerHTML = '<div class="gallery-empty">No media found in gallery</div>';
             }
           } else {
-            showSlide(Math.min(currentIndex, window.galleryImages.length - 1));
+            showSlide(Math.min(currentIndex, state.galleryImages.length - 1));
           }
         })
         .catch((error) => {
@@ -266,7 +267,7 @@ export function createImageSlideshow(images, startIndex, isGalleryMode = false) 
   slideshow.appendChild(infoPanel);
   document.body.appendChild(slideshow);
 
-  window.isSlideshowOpen = true;
+  state.isSlideshowOpen = true;
 
   const closeSlideshow = () => {
     document.removeEventListener('keydown', handleKeydown);
@@ -275,7 +276,7 @@ export function createImageSlideshow(images, startIndex, isGalleryMode = false) 
     }
 
     setTimeout(() => {
-      window.isSlideshowOpen = false;
+      state.isSlideshowOpen = false;
     }, 50);
   };
 
