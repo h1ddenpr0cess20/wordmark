@@ -7,7 +7,7 @@ import {
 } from "../../utils/conversationStorage.js";
 import { saveImageToDb, loadImageFromDb } from "../../utils/imageStorage.js";
 import { loadHighlightJS } from "../../utils/highlight.js";
-import { loadMarkedLibrary } from "../../utils/lazyLoader.js";
+import { initializeMarked } from "../../init/marked.js";
 import { detectMediaType } from "../mediaTools.js";
 import { ensureImagesHaveMessageIds } from "../streaming/imageGeneration.js";
 import { renderChatHistoryList } from "./list.js";
@@ -147,7 +147,7 @@ function ensureLibrariesLoaded() {
     ? loadHighlightJS()
     : Promise.resolve();
   const ensureMarked = typeof marked === 'undefined'
-    ? loadMarkedLibrary()
+    ? Promise.resolve(initializeMarked())
     : Promise.resolve();
 
   return Promise.all([ensureHighlight, ensureMarked]);

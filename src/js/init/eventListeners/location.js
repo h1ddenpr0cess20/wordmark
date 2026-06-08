@@ -1,5 +1,4 @@
 import { showError } from "../../utils/notifications.js";
-import { loadLocationModule, lazyModulesLoaded } from "../../utils/lazyLoader.js";
 import { updateFeatureStatus } from "../../components/settings.js";
 import { requestLocation, disableLocation, updateLocationUI } from "../../services/location.js";
 export function setupLocationEventListeners() {
@@ -11,10 +10,6 @@ export function setupLocationEventListeners() {
     const isEnabled = event.target.checked;
 
     if (isEnabled) {
-      if (!lazyModulesLoaded?.location) {
-        await loadLocationModule();
-      }
-
       const result = await requestLocation();
       if (result.success) {
                         updateLocationUI();

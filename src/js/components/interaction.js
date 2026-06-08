@@ -10,6 +10,7 @@ import { finalizeStreamedResponse, removeLoadingIndicator } from "../services/st
 import { updateBrowserHistory } from "../services/history/state.js";
 import { saveCurrentConversation } from "../services/history/persistence.js";
 import { responsesClient } from "../services/api.js";
+import { uploadFile, uploadAndAttachFiles, saveVectorStoreMetadata } from "../services/vectorStore.js";
 import { generateMessageId, addMessageCopyButton } from "./messages.js";
 import { appendMessage } from "./ui/chatMessages.js";
 import { getVerbosity, getReasoningEffort } from "../init/modelSettings.js";
@@ -239,7 +240,6 @@ export async function sendMessage() {
           showInfo("Uploading files...");
         }
 
-        const { uploadFile } = await import("../services/vectorStore.js");
         const fileIds = [];
         for (const file of files) {
           const uploaded = await uploadFile(file);
@@ -287,8 +287,6 @@ export async function sendMessage() {
           if (showInfo) {
             showInfo("Creating vector store and uploading documents...");
           }
-
-          const { uploadAndAttachFiles, saveVectorStoreMetadata } = await import("../services/vectorStore.js");
 
           console.log("Files to upload:", files.map(f => f.name));
           const result = await uploadAndAttachFiles(files, `Chat-${Date.now()}`);

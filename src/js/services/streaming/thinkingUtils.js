@@ -2,7 +2,7 @@
  * Helpers for rendering reasoning/thinking content.
  */
 
-import { loadMarkedLibrary } from "../../utils/lazyLoader.js";
+import { initializeMarked } from "../../init/marked.js";
 import { sanitizeWithMedia } from "../../utils/sanitize.js";
 
 export function processMainContentMarkdown(mainText) {
@@ -18,7 +18,7 @@ export function processMainContentMarkdown(mainText) {
   }
 
   if (typeof marked === 'undefined') {
-    loadMarkedLibrary();
+    initializeMarked();
   }
   let parsedContent = typeof marked !== 'undefined'
     ? sanitizeWithMedia(marked.parse(html))

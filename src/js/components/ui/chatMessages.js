@@ -1,5 +1,5 @@
 import { icon } from "../../utils/icons.js";
-import { loadMarkedLibrary } from "../../utils/lazyLoader.js";
+import { initializeMarked } from "../../init/marked.js";
 import { fastScroll } from "../../utils/mobileHandling.js";
 import { renderWordmarkLogo } from "../logo.js";
 import { generateMessageId, highlightAndAddCopyButtons } from "../messages.js";
@@ -62,7 +62,7 @@ export function appendMessage(sender, content, type, skipHistory = false) {
 
   setTimeout(() => {
     const ensureMarked = typeof marked === 'undefined'
-      ? loadMarkedLibrary()
+      ? Promise.resolve(initializeMarked())
       : Promise.resolve();
 
     Promise.resolve(ensureMarked).then(() => {

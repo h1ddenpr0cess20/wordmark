@@ -2,7 +2,7 @@
  * Lazy loading utilities for optional modules to reduce initial page weight.
  */
 
-import { initializeMarked } from "../init/marked.js";
+import { initializeVectorStore } from "../services/vectorStore.js";
 
 export const lazyModulesLoaded = {};
 
@@ -19,39 +19,6 @@ export function loadGalleryModule() {
   });
 }
 
-export function loadHistoryModule() {
-  if (lazyModulesLoaded.history) {
-    return Promise.resolve();
-  }
-  return import("../services/history.js").then(() => {
-    lazyModulesLoaded.history = true;
-  });
-}
-
-export function loadLocationModule() {
-  if (lazyModulesLoaded.location) {
-    return Promise.resolve();
-  }
-  return import("../services/location.js").then(() => {
-    lazyModulesLoaded.location = true;
-  });
-}
-
-export function loadMobileHandling() {
-  if (lazyModulesLoaded.mobileHandling) {
-    return Promise.resolve();
-  }
-  return import("./mobileHandling.js").then(() => {
-    lazyModulesLoaded.mobileHandling = true;
-  });
-}
-
-export function loadMarkedLibrary() {
-  // Marked is bundled and imported in main.js; just ensure it's configured.
-  initializeMarked();
-  return Promise.resolve();
-}
-
 /**
  * Load vector store module and initialize related components
  */
@@ -59,27 +26,25 @@ export function loadVectorStoreModule() {
   if (lazyModulesLoaded.vectorStore) {
     return Promise.resolve();
   }
-  return import("../services/vectorStore.js").then(({
-    initializeVectorStore,
-  }) => {
-    // Initialize vector store from localStorage
-    initializeVectorStore();
+  // Initialize vector store from localStorage. The service itself is eagerly
+  // bundled (core upload code depends on it); only the manager UI panels below
+  // are code-split into separate chunks.
+  initializeVectorStore();
 
-    return import("../components/vectorStoreManager.js").then(({ initVectorStoreManager }) => {
-      return initVectorStoreManager().then(() => {
-        return import("../components/filesManager.js").then(({ initFilesManager }) => {
-          return initFilesManager().then(() => {
-            lazyModulesLoaded.vectorStore = true;
-          }).catch(fe => {
-            console.warn("Files manager initialization failed:", fe);
-            lazyModulesLoaded.vectorStore = true;
-            return Promise.resolve();
-          });
+  return import("../components/vectorStoreManager.js").then(({ initVectorStoreManager }) => {
+    return initVectorStoreManager().then(() => {
+      return import("../components/filesManager.js").then(({ initFilesManager }) => {
+        return initFilesManager().then(() => {
+          lazyModulesLoaded.vectorStore = true;
         }).catch(fe => {
-          console.warn("Files manager import failed:", fe);
+          console.warn("Files manager initialization failed:", fe);
           lazyModulesLoaded.vectorStore = true;
           return Promise.resolve();
         });
+      }).catch(fe => {
+        console.warn("Files manager import failed:", fe);
+        lazyModulesLoaded.vectorStore = true;
+        return Promise.resolve();
       });
     });
   }).catch(e => {

@@ -4,7 +4,6 @@
  */
 
 import { focusUserInputSafely } from "../utils/mobileHandling.js";
-import { loadLocationModule } from "../utils/lazyLoader.js";
 import { initializeLocationService } from "../services/location.js";
 import { initMCPServers } from "../services/mcpServers.js";
 import { ensureApiKeysLoaded } from "../services/apiKeys.js";
@@ -191,17 +190,10 @@ export async function initialize() {
 
     // Load location services if previously enabled
     if (localStorage.getItem("locationEnabled") === "true") {
-      loadLocationModule().then(() => {
-        initializeLocationService();
-
-        updateFeatureStatus();
-
-      }).catch(err => console.error("Failed to load location module", err));
-    } else {
-      // Ensure badges render at least once even if location is disabled
-      updateFeatureStatus();
-
+      initializeLocationService();
     }
+    // Ensure feature badges render at least once on startup
+    updateFeatureStatus();
 
     // Check if API keys are missing and auto-open the API keys tab if needed
     // Add a delay so users can see the chat interface before the API key menu appears

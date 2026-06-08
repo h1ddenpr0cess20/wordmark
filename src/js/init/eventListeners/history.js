@@ -1,12 +1,8 @@
-import { loadHistoryModule, lazyModulesLoaded } from "../../utils/lazyLoader.js";
 import { renderChatHistoryList } from "../../services/history/list.js";
 import { updatePanelOpenState } from "./settingsPanel.js";
 export function setupChatHistoryEventListeners() {
   if (window.historyButton && window.historyPanel) {
-    window.historyButton.addEventListener('click', async() => {
-      if (!lazyModulesLoaded?.history) {
-        await loadHistoryModule();
-      }
+    window.historyButton.addEventListener('click', () => {
       const isExpanded = window.historyButton.getAttribute('aria-expanded') === 'true';
       window.historyButton.setAttribute('aria-expanded', String(!isExpanded));
       window.historyPanel.setAttribute('aria-hidden', String(isExpanded));
