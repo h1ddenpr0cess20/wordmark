@@ -17,6 +17,7 @@ import { initMemorySettings } from "../components/memory.js";
 import { updateHeaderInfo, updateModelSelector, updateFeatureStatus, initializePersonalityInput, applyDataSettingsState } from "../components/settings.js";
 import { initToolsSettings } from "../components/tools.js";
 import { initImageUploads } from "../components/attachments.js";
+import { initializeModelSettings } from "./modelSettings.js";
 
 // Configure DOMPurify to allow YouTube iframes
 function configureDOMPurify() {

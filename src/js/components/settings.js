@@ -1,6 +1,7 @@
 import { getMemoryConfig, setMemoryEnabled } from "../utils/memoryStorage.js";
 import { locationState, requestLocation, disableLocation } from "../services/location.js";
 import { ttsConfig } from "../services/tts.js";
+import { updateReasoningAvailability } from "../init/modelSettings.js";
 /**
  * Settings panel related functionality
  */
@@ -135,9 +136,7 @@ export function updateHeaderInfo() {
   // Update feature status line as part of header refresh
   try { updateFeatureStatus(); } catch { /* noop */ }
 
-  if (typeof window.updateReasoningAvailability === "function") {
-    window.updateReasoningAvailability();
-  }
+  updateReasoningAvailability();
 }
 
 /**
@@ -433,9 +432,7 @@ export function updateModelSelector() {
 
     window.modelSelector.setAttribute("data-last-selected", window.modelSelector.value);
     updateHeaderInfo();
-    if (typeof window.updateReasoningAvailability === "function") {
-      window.updateReasoningAvailability();
-    }
+    updateReasoningAvailability();
   } catch (error) {
     console.error("Error updating model selector:", error);
     const option = document.createElement("option");

@@ -12,6 +12,7 @@ import { saveCurrentConversation } from "../services/history/persistence.js";
 import { responsesClient } from "../services/api.js";
 import { generateMessageId, addMessageCopyButton } from "./messages.js";
 import { appendMessage } from "./ui/chatMessages.js";
+import { getVerbosity, getReasoningEffort } from "../init/modelSettings.js";
 
 // -----------------------------------------------------
 // Message sending and related functionality
@@ -338,12 +339,8 @@ export async function sendMessage() {
     const result = await responsesClient.runTurn({
       inputMessages: requestMessages,
       model: window.modelSelector ? window.modelSelector.value : undefined,
-      verbosity: typeof window.getVerbosity === "function"
-        ? window.getVerbosity()
-        : undefined,
-      reasoningEffort: typeof window.getReasoningEffort === "function"
-        ? window.getReasoningEffort()
-        : undefined,
+      verbosity: getVerbosity(),
+      reasoningEffort: getReasoningEffort(),
       stream: true,
       loadingId,
       abortController,

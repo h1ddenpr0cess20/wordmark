@@ -4,6 +4,7 @@ import { responsesClient } from "../../services/api.js";
 import { updateParameterControls } from "../../components/ui/settingsControls.js";
 import { updateHeaderInfo, updateModelSelector } from "../../components/settings.js";
 import { refreshToolSettingsUI } from "../../components/tools.js";
+import { updateReasoningAvailability } from "../modelSettings.js";
 
 export function setupSelectorEventListeners() {
   if (window.modelSelector) {
@@ -12,9 +13,7 @@ export function setupSelectorEventListeners() {
       if (typeof updateHeaderInfo === 'function') {
         updateHeaderInfo();
       }
-      if (typeof window.updateReasoningAvailability === 'function') {
-        window.updateReasoningAvailability();
-      }
+      updateReasoningAvailability();
       updateBrowserHistory();
       if (typeof refreshToolSettingsUI === 'function') {
         refreshToolSettingsUI();
@@ -56,9 +55,7 @@ export function setupSelectorEventListeners() {
       if (typeof updateHeaderInfo === 'function') {
         updateHeaderInfo();
       }
-      if (typeof window.updateReasoningAvailability === 'function') {
-        window.updateReasoningAvailability();
-      }
+      updateReasoningAvailability();
       updateBrowserHistory();
 
       const refreshToolsUI = () => {

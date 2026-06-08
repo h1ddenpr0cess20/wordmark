@@ -5,6 +5,7 @@ import { updateBrowserHistory } from "../../services/history/state.js";
 import { startNewConversation } from "../../services/history/persistence.js";
 import { updatePromptVisibility } from "../../components/ui/settingsControls.js";
 import { updateHeaderInfo, updateModelSelector } from "../../components/settings.js";
+import { setReasoningEffort, DEFAULT_REASONING_EFFORT } from "../modelSettings.js";
 function closePanelIfActive(closeSettingsPanel) {
   if (typeof closeSettingsPanel === 'function' && window.settingsPanel && window.settingsPanel.classList.contains('active')) {
     closeSettingsPanel();
@@ -141,9 +142,7 @@ export function setupButtonEventListeners({ closeSettingsPanel } = {}) {
   const resetModelSettingsButton = document.getElementById('reset-model-settings');
   if (resetModelSettingsButton) {
     resetModelSettingsButton.addEventListener('click', () => {
-      if (typeof window.setReasoningEffort === 'function') {
-        window.setReasoningEffort(window.DEFAULT_REASONING_EFFORT || 'medium');
-      }
+      setReasoningEffort(DEFAULT_REASONING_EFFORT || 'medium');
     });
   }
 
