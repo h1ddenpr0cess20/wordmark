@@ -1,5 +1,6 @@
 import { loadHistoryModule, lazyModulesLoaded } from "../../utils/lazyLoader.js";
 import { renderChatHistoryList } from "../../services/history/list.js";
+import { updatePanelOpenState } from "./settingsPanel.js";
 export function setupChatHistoryEventListeners() {
   if (window.historyButton && window.historyPanel) {
     window.historyButton.addEventListener('click', async() => {
@@ -16,9 +17,7 @@ export function setupChatHistoryEventListeners() {
         window.historyPanel.setAttribute('inert', 'true');
       }
 
-      if (typeof window.updatePanelOpenState === 'function') {
-        window.updatePanelOpenState();
-      }
+      updatePanelOpenState();
     });
   }
 
@@ -28,9 +27,7 @@ export function setupChatHistoryEventListeners() {
       window.historyPanel.setAttribute('inert', 'true');
       window.historyButton.setAttribute('aria-expanded', 'false');
       window.historyButton.focus();
-      if (typeof window.updatePanelOpenState === 'function') {
-        window.updatePanelOpenState();
-      }
+      updatePanelOpenState();
     });
   }
 }

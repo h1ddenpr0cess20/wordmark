@@ -12,6 +12,7 @@ import {
 } from "../utils/imageStorage.js";
 import { detectMediaType, getMediaDisplayUrl, downloadMediaSource } from "../services/mediaTools.js";
 import { createImageSlideshow } from "./ui/imageInteractions.js";
+import { updatePanelOpenState } from "../init/eventListeners/settingsPanel.js";
 
 // -----------------------------------------------------
 // Gallery functionality
@@ -62,9 +63,7 @@ const initGallery = function() {
       galleryPanel.setAttribute("inert", "true"); // Make panel inert when closed
     }
 
-    if (typeof window.updatePanelOpenState === "function") {
-      window.updatePanelOpenState();
-    }
+    updatePanelOpenState();
   });
   // Close gallery when the close button is clicked
   closeGallery.addEventListener("click", () => {
@@ -72,9 +71,7 @@ const initGallery = function() {
     galleryPanel.setAttribute("inert", "true"); // Make panel inert when closed
     galleryButton.setAttribute("aria-expanded", "false");
     galleryButton.focus(); // Explicitly move focus
-    if (typeof window.updatePanelOpenState === "function") {
-      window.updatePanelOpenState();
-    }
+    updatePanelOpenState();
   });
 
   // Refresh gallery when the refresh button is clicked

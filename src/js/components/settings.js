@@ -2,6 +2,7 @@ import { getMemoryConfig, setMemoryEnabled } from "../utils/memoryStorage.js";
 import { locationState, requestLocation, disableLocation } from "../services/location.js";
 import { ttsConfig } from "../services/tts.js";
 import { updateReasoningAvailability } from "../init/modelSettings.js";
+import { openSettingsAndSwitch } from "../init/eventListeners/settingsPanel.js";
 /**
  * Settings panel related functionality
  */
@@ -332,11 +333,9 @@ export function updateFeatureStatus() {
 
     badge.addEventListener("click", (e) => {
       if (e.target === dot) return;
-      if (typeof window.openSettingsAndSwitch === "function") {
-        e.preventDefault();
-        e.stopPropagation();
-        window.openSettingsAndSwitch(tabId);
-      }
+      e.preventDefault();
+      e.stopPropagation();
+      openSettingsAndSwitch(tabId);
     });
 
     badge.appendChild(dot);

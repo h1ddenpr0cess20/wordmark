@@ -1,5 +1,5 @@
 import { getApiKey } from "../../services/apiKeys.js";
-import { organizeSettingsLayout } from "../settings.js";
+import { openSettingsAndSwitch } from "../../init/eventListeners/settingsPanel.js";
 export function initTabs() {
   const tabButtons = document.querySelectorAll('.tab-button');
   const tabContents = document.querySelectorAll('.tab-content');
@@ -75,38 +75,8 @@ export function openApiKeysTabIfNeeded() {
     return;
   }
 
-  if (typeof window.openSettingsAndSwitch === 'function') {
-    window.openSettingsAndSwitch('tab-apikeys');
-    if (window.VERBOSE_LOGGING) {
-      console.info('Automatically opened API keys tab via helper due to missing API key');
-    }
-    return;
-  }
-
-  if (!window.settingsPanel || !window.settingsButton) {
-    console.warn('Settings panel elements not found, cannot auto-open API keys tab');
-    return;
-  }
-
-  window.settingsPanel.classList.add('active');
-  window.settingsButton.setAttribute('aria-expanded', 'true');
-  window.settingsPanel.setAttribute('aria-hidden', 'false');
-  window.settingsPanel.removeAttribute('inert');
-  window.settingsButton.style.display = 'none';
-  if (window.historyButton) {
-    window.historyButton.style.display = 'none';
-  }
-  if (window.galleryButton) {
-    window.galleryButton.style.display = 'none';
-  }
-
-  switchToTab('tab-apikeys');
-
-  if (typeof organizeSettingsLayout === 'function') {
-    organizeSettingsLayout();
-  }
-
+  openSettingsAndSwitch('tab-apikeys');
   if (window.VERBOSE_LOGGING) {
-    console.info('Automatically opened API keys tab due to missing API key');
+    console.info('Automatically opened API keys tab via helper due to missing API key');
   }
 }

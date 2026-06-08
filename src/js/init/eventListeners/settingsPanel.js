@@ -1,7 +1,14 @@
 import { switchToTab } from "../../components/ui/settingsTabs.js";
 import { updateHeaderInfo, organizeSettingsLayout } from "../../components/settings.js";
 
-function updatePanelOpenState() {
+// Single settings panel — original prompt values are stashed here while the
+// panel is open so they can be restored if the user dismisses without saving.
+const panelState = {
+  originalPersonalityValue: '',
+  originalCustomPromptValue: '',
+};
+
+export function updatePanelOpenState() {
   const settingsOpen = Boolean(window.settingsPanel && window.settingsPanel.classList.contains('active'));
   const historyOpen = Boolean(window.historyPanel && window.historyPanel.getAttribute('aria-hidden') === 'false');
   const galleryOpen = Boolean(window.galleryPanel && window.galleryPanel.getAttribute('aria-hidden') === 'false');
@@ -163,39 +170,32 @@ function setupOutsideClickHandler(state) {
   });
 }
 
-export function initializeSettingsPanelControls() {
-  const state = {
-    originalPersonalityValue: '',
-    originalCustomPromptValue: '',
-  };
-
-  function openSettingsAndSwitch(tabId, attempt = 0) {
-    if (!window.settingsPanel || !window.settingsButton) {
-      if (attempt < 10) {
-        setTimeout(() => openSettingsAndSwitch(tabId, attempt + 1), 100);
-      } else {
-        console.warn('Settings panel not ready');
-      }
-      return;
+export function openSettingsAndSwitch(tabId, attempt = 0) {
+  if (!window.settingsPanel || !window.settingsButton) {
+    if (attempt < 10) {
+      setTimeout(() => openSettingsAndSwitch(tabId, attempt + 1), 100);
+    } else {
+      console.warn('Settings panel not ready');
     }
-
-    storeOriginalValues(state);
-    showSettingsPanel();
-
-    if (typeof organizeSettingsLayout === 'function') {
-      organizeSettingsLayout();
-    }
-
-    if (tabId) {
-      setTimeout(() => switchToTab(tabId), 0);
-    }
+    return;
   }
 
-  window.openSettingsAndSwitch = openSettingsAndSwitch;
+  storeOriginalValues(panelState);
+  showSettingsPanel();
 
+  if (typeof organizeSettingsLayout === 'function') {
+    organizeSettingsLayout();
+  }
+
+  if (tabId) {
+    setTimeout(() => switchToTab(tabId), 0);
+  }
+}
+
+export function initializeSettingsPanelControls() {
   if (window.settingsButton && window.settingsPanel) {
     window.settingsButton.addEventListener('click', () => {
-      storeOriginalValues(state);
+      storeOriginalValues(panelState);
       showSettingsPanel();
       if (typeof organizeSettingsLayout === 'function') {
         organizeSettingsLayout();
@@ -205,7 +205,7 @@ export function initializeSettingsPanelControls() {
 
   if (window.closeSettingsButton && window.settingsPanel) {
     window.closeSettingsButton.addEventListener('click', () => {
-      restoreOriginalValues(state);
+      restoreOriginalValues(panelState);
       hideSettingsPanel({ focusButton: true });
       if (typeof updateHeaderInfo === 'function') {
         updateHeaderInfo();
@@ -214,9 +214,7 @@ export function initializeSettingsPanelControls() {
   }
 
   setupQuickAccessTargets(openSettingsAndSwitch);
-  setupOutsideClickHandler(state);
-
-  window.updatePanelOpenState = updatePanelOpenState;
+  setupOutsideClickHandler(panelState);
 
   return {
     closeSettingsPanel: ({ focusButton = false } = {}) => hideSettingsPanel({ focusButton }),
