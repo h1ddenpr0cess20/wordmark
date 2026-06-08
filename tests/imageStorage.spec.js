@@ -1,6 +1,5 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { state } from "../src/js/init/state.js";
 
 // Fake FileReader to convert Blob to data URL deterministically
 class FakeFileReader {
@@ -73,7 +72,6 @@ const {
   saveImageToDb,
   getImageBlobForUpload,
   getImageDataForUpload,
-  debugImageLoading,
 } = await import("../src/js/utils/imageStorage.js");
 
 await initImageDb();
@@ -120,15 +118,3 @@ test("getImageDataForUpload formats plain base64 to data URL", async () => {
   assert.equal(out, "data:image/png;base64,QUJD");
 });
 
-test("debugImageLoading summarizes image placeholders in assistant messages", async () => {
-  state.conversationHistory = [
-    { id: "u1", role: "user", content: "no images here" },
-    { id: "a1", role: "assistant", content: "Here [[IMAGE: a.png]] and [[IMAGE: b.png]]" },
-    { id: "a2", role: "assistant", content: "Another [[IMAGE: c.jpg]]" },
-  ];
-
-  const diag = debugImageLoading(false);
-  assert.equal(diag.messagesWithImages, 2);
-  assert.equal(diag.totalImagePlaceholders, 3);
-  assert.equal(diag.filenameSpecificPlaceholders, 3);
-});

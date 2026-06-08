@@ -74,21 +74,6 @@ export function toggleThinking(id, event) {
 }
 
 /**
- * Debug function to check thinking containers
- */
-export function debugThinkingContainers() {
-  const thinkingContainers = document.querySelectorAll(".thinking-container");
-
-  console.log("=== Thinking Container Debug ===");
-  console.log(`Found ${thinkingContainers.length} thinking containers`);
-
-  thinkingContainers.forEach((container, index) => {
-    const isCollapsed = container.classList.contains("collapsed");
-    console.log(`Thinking container ${index} (${container.id}): ${isCollapsed ? "collapsed" : "expanded"}`);
-  });
-}
-
-/**
  * Replace base64 image data URLs in a user message with filename placeholders.
  * This prevents large base64 strings from being stored in conversation history.
  * @param {string} messageId - ID of the user message
@@ -150,7 +135,6 @@ export function stripBase64FromHistory(messageId, placeholders = []) {
   sanitizeAttachments();
 }
 
-// Inline HTML handlers (onclick="toggleThinking(...)") and console debugging
-// invoke these by global name, so they remain on window.
+// Inline HTML handler (onclick="toggleThinking(...)") invokes this by global
+// name, so it remains on window.
 window.toggleThinking = toggleThinking;
-window.debugThinkingContainers = debugThinkingContainers;

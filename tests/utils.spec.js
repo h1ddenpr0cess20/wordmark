@@ -11,7 +11,7 @@ globalThis.document = globalThis.document || {
   querySelectorAll: () => [],
 };
 
-const { debounce, sanitizeInput, stripBase64FromHistory, toggleThinking, debugThinkingContainers } =
+const { debounce, sanitizeInput, stripBase64FromHistory, toggleThinking } =
   await import("../src/js/utils/utils.js");
 const { state } = await import("../src/js/init/state.js");
 
@@ -111,11 +111,3 @@ test("toggleThinking toggles collapsed state and scrolls on expand", async () =>
   assert.equal(node.classList.contains("collapsed"), true);
 });
 
-test("debugThinkingContainers handles no containers without throwing", () => {
-  globalThis.document = {
-    getElementById: () => null,
-    querySelector: () => null,
-    querySelectorAll: () => [],
-  };
-  debugThinkingContainers();
-});

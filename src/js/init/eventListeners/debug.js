@@ -1,5 +1,3 @@
-import { ensureImagesHaveMessageIds } from "../../services/streaming/imageGeneration.js";
-
 function showDebugToggleNotification(status) {
   const notification = document.createElement('div');
   notification.className = 'debug-toggle-notification';
@@ -70,35 +68,5 @@ function setupAboutTabDebugToggle() {
 
 export function setupDebugEventListeners() {
   setupAboutTabDebugToggle();
-
-  if (!window.debugImagesButton) {
-    return;
-  }
-
-  if (localStorage.getItem('developerMode') !== 'true') {
-    return;
-  }
-
-  window.debugImagesButton.style.display = 'block';
-  window.debugImagesButton.addEventListener('click', () => {
-    if (typeof window.debugImageLoading !== 'function') {
-      console.error('Debug image loading function not available');
-      alert('Debug image loading function not available');
-      return;
-    }
-
-    const diagnostics = window.debugImageLoading(true);
-    console.group('Image Loading Diagnostics Results');
-    console.table(diagnostics);
-
-    const summary = `Image Loading Diagnostics:\n- Messages with images: ${diagnostics.messagesWithImages}\n- Total image placeholders: ${diagnostics.totalImagePlaceholders}\n- Filename-specific placeholders: ${diagnostics.filenameSpecificPlaceholders}\n- Generic placeholders: ${diagnostics.genericPlaceholders}\n- Images missing message associations: ${diagnostics.imagesWithoutAssociatedMessage}`;
-    alert(summary);
-
-    const fixedCount = ensureImagesHaveMessageIds();
-    console.info(`Fixed ${fixedCount} image associations`);
-    if (fixedCount > 0) {
-      alert(`Fixed ${fixedCount} image associations. Save the conversation to preserve these changes.`);
-    }
-  });
 }
 

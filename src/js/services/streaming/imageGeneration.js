@@ -88,7 +88,7 @@ function isProbablyBase64(value) {
 }
 
 export function imageDebugLog(...args) {
-  if (typeof window !== 'undefined' && (window.DEBUG_IMAGE_STREAM === true || window.VERBOSE_LOGGING)) {
+  if (typeof window !== 'undefined' && window.VERBOSE_LOGGING) {
     console.info('[image-debug]', ...args);
   }
 }
