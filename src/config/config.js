@@ -136,9 +136,9 @@ export function applyConsoleLogging() {
 // Initial application of console behavior
 applyConsoleLogging();
 
-// Handle uncaught errors once (browser only).
-if (typeof window !== "undefined" && typeof window.addEventListener === "function" && !window.__ERROR_HANDLER_INSTALLED__) {
-  window.__ERROR_HANDLER_INSTALLED__ = true;
+// Handle uncaught errors. This module evaluates once, so the listener is
+// registered once — no idempotency flag needed.
+if (typeof window !== "undefined" && typeof window.addEventListener === "function") {
   window.addEventListener("error", function(event) {
     if (state.debug) {
       const err = event && (event.error || event.message || "Unknown error");
