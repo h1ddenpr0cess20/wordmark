@@ -1,3 +1,4 @@
+import { elements, state } from "../init/state.js";
 /**
  * Chat export functionality
  */
@@ -254,7 +255,7 @@ function persistExportFormatPreference(formatKey) {
 }
 
 function resolveSelectedExportFormat() {
-  const selectValue = window.exportFormatSelector ? window.exportFormatSelector.value : null;
+  const selectValue = elements.exportFormatSelector ? elements.exportFormatSelector.value : null;
   const normalised = normaliseExportFormat(selectValue);
   if (normalised && EXPORT_FORMATS[normalised]) {
     return normalised;
@@ -279,12 +280,12 @@ export function handleExportFormatChange(event) {
 }
 
 export function initializeExportControls() {
-  if (!window.exportFormatSelector) {
+  if (!elements.exportFormatSelector) {
     return;
   }
   const stored = getStoredExportFormat();
   const effective = EXPORT_FORMATS[stored] ? stored : "md";
-  window.exportFormatSelector.value = effective;
+  elements.exportFormatSelector.value = effective;
 }
 
 /**
@@ -303,7 +304,7 @@ export function exportChat() {
   const includeThinkingCheckbox = document.getElementById("include-thinking");
   const includeThinking = includeThinkingCheckbox ? includeThinkingCheckbox.checked : false;
 
-  const normalisedMessages = normaliseMessagesForExport(window.conversationHistory);
+  const normalisedMessages = normaliseMessagesForExport(state.conversationHistory);
   if (normalisedMessages.length === 0) {
     console.warn("Export skipped: no conversation history available yet.");
     return;

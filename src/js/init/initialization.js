@@ -3,6 +3,7 @@
  * This file loads all initialization modules and coordinates the startup process
  */
 
+import { elements, state } from "./state.js";
 import { focusUserInputSafely } from "../utils/mobileHandling.js";
 import { initializeLocationService } from "../services/location.js";
 import { initMCPServers } from "../services/mcpServers.js";
@@ -50,7 +51,7 @@ export async function initialize() {
     initializeTextareaHeight();
 
     // Check if essential elements are available
-    if (!window.modelSelector || !window.userInput) {
+    if (!elements.modelSelector || !elements.userInput) {
       console.error("Essential DOM elements not found. Check your HTML structure.");
       return;
     }
@@ -219,9 +220,9 @@ export async function initialize() {
  * Setup scroll tracking for auto-scroll functionality
  */
 function setupScrollTracking() {
-  window.chatBox.addEventListener("scroll", () => {
-    const wasAtBottom = window.chatBox.scrollHeight - window.chatBox.clientHeight - window.chatBox.scrollTop < 20;
-    window.shouldAutoScroll = wasAtBottom;
+  elements.chatBox.addEventListener("scroll", () => {
+    const wasAtBottom = elements.chatBox.scrollHeight - elements.chatBox.clientHeight - elements.chatBox.scrollTop < 20;
+    state.shouldAutoScroll = wasAtBottom;
   });
 }
 
@@ -236,9 +237,9 @@ function focusInputField() {
  * Initialize textarea height to prevent changing height when typing starts
  */
 function initializeTextareaHeight() {
-  if (window.userInput) {
+  if (elements.userInput) {
     // Set initial height to the default value from CSS
-    window.userInput.style.height = "56px";
+    elements.userInput.style.height = "56px";
   }
 }
 

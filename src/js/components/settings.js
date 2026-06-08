@@ -1,3 +1,4 @@
+import { elements } from "../init/state.js";
 import { getMemoryConfig, setMemoryEnabled } from "../utils/memoryStorage.js";
 import { locationState, requestLocation, disableLocation } from "../services/location.js";
 import { ttsConfig } from "../services/tts.js";
@@ -17,7 +18,7 @@ import { openSettingsAndSwitch } from "../init/eventListeners/settingsPanel.js";
  * @param {boolean} fetchError - Whether there was an error fetching models
  */
 function updateModelsDropdown(fetchError) {
-  const serviceKey = window.serviceSelector ? window.serviceSelector.value : "";
+  const serviceKey = elements.serviceSelector ? elements.serviceSelector.value : "";
   const serviceLabelMap = { lmstudio: "LM Studio", ollama: "Ollama", openai: "OpenAI", xai: "xAI" };
   const serviceLabel = serviceLabelMap[serviceKey] || serviceKey;
 
@@ -64,18 +65,18 @@ export function updateHeaderInfo() {
   const modelInfo = document.getElementById("model-info");
 
   // Check if required elements exist
-  if (!headerTitle || !modelInfo || !window.modelSelector) {
+  if (!headerTitle || !modelInfo || !elements.modelSelector) {
     console.warn("Header elements not found, skipping updateHeaderInfo");
     return;
   }
 
-  const model = window.modelSelector.value;
+  const model = elements.modelSelector.value;
 
   try {
     // Set model name as the main header title
     if (model && model !== "error" && model !== "no-models") {
       headerTitle.textContent = `${model}`;
-      window.modelSelector.setAttribute("data-last-selected", model);
+      elements.modelSelector.setAttribute("data-last-selected", model);
     } else {
       headerTitle.textContent = "AI Assistant";
     }
@@ -103,15 +104,15 @@ export function updateHeaderInfo() {
 
     // Show personality or prompt info in the modelInfo area
     let promptInfo = "";
-    if (window.personalityPromptRadio.checked && window.personalityInput.value.trim() !== "") {
+    if (elements.personalityPromptRadio.checked && elements.personalityInput.value.trim() !== "") {
       // Only show personality if the user has actively set it
-      if (window.personalityInput.hasAttribute("data-explicitly-set") &&
-          window.personalityInput.getAttribute("data-explicitly-set") === "true") {
-        promptInfo = `Personality: ${window.personalityInput.value.trim()}`;
+      if (elements.personalityInput.hasAttribute("data-explicitly-set") &&
+          elements.personalityInput.getAttribute("data-explicitly-set") === "true") {
+        promptInfo = `Personality: ${elements.personalityInput.value.trim()}`;
       }
-    } else if (window.customPromptRadio.checked && window.systemPromptCustom.value.trim() !== "") {
-      promptInfo = window.systemPromptCustom.value.trim();
-    } else if (window.noPromptRadio && window.noPromptRadio.checked) {
+    } else if (elements.customPromptRadio.checked && elements.systemPromptCustom.value.trim() !== "") {
+      promptInfo = elements.systemPromptCustom.value.trim();
+    } else if (elements.noPromptRadio && elements.noPromptRadio.checked) {
       promptInfo = "No system prompt";
     }
 
@@ -119,8 +120,8 @@ export function updateHeaderInfo() {
     if (!promptInfo) {
       // Only show default personality in the header if it's actually set in the input
       // Don't automatically override the personality input value here
-      if (window.DEFAULT_PERSONALITY && window.personalityInput && window.personalityInput.value.trim()) {
-        promptInfo = `Personality: ${window.personalityInput.value.trim()}`;
+      if (window.DEFAULT_PERSONALITY && elements.personalityInput && elements.personalityInput.value.trim()) {
+        promptInfo = `Personality: ${elements.personalityInput.value.trim()}`;
       } else if (window.DEFAULT_PERSONALITY) {
         promptInfo = `Personality: ${window.DEFAULT_PERSONALITY}`;
       }
@@ -158,7 +159,7 @@ export function setDataSettingsEnabled(enabled) {
   } catch { /* noop */ }
 
   // Reflect state in the Data tab toggle without re-triggering change handler
-  const toggle = window.dataSettingsToggle || document.getElementById("data-settings-toggle");
+  const toggle = elements.dataSettingsToggle || document.getElementById("data-settings-toggle");
   if (toggle) {
     toggle.checked = enabled;
   }
@@ -273,7 +274,7 @@ export function updateFeatureStatus() {
     const toggleFeature = async() => {
       switch (key) {
       case "tools": {
-        const toggle = window.toolCallingToggle || document.getElementById("tool-calling-toggle");
+        const toggle = elements.toolCallingToggle || document.getElementById("tool-calling-toggle");
         if (toggle) {
           toggle.checked = !isOn;
           toggle.dispatchEvent(new Event("change", { bubbles: true }));
@@ -358,15 +359,15 @@ export function updateFeatureStatus() {
  */
 export function updateModelSelector() {
   // Check if modelSelector exists
-  if (!window.modelSelector) {
+  if (!elements.modelSelector) {
     console.warn("Model selector not found, skipping updateModelSelector");
     return;
   }
 
-  const currentlySelectedModel = window.modelSelector.value;
-  const savedModel = window.modelSelector.getAttribute("data-last-selected");
+  const currentlySelectedModel = elements.modelSelector.value;
+  const savedModel = elements.modelSelector.getAttribute("data-last-selected");
 
-  window.modelSelector.innerHTML = "";
+  elements.modelSelector.innerHTML = "";
 
   try {
     const activeServiceKey = window.config?.defaultService;
@@ -377,7 +378,7 @@ export function updateModelSelector() {
       const option = document.createElement("option");
       option.value = "loading";
       option.textContent = "Loading models...";
-      window.modelSelector.appendChild(option);
+      elements.modelSelector.appendChild(option);
       return;
     }
 
@@ -387,7 +388,7 @@ export function updateModelSelector() {
       const option = document.createElement("option");
       option.value = "no-models";
       option.textContent = "No models available";
-      window.modelSelector.appendChild(option);
+      elements.modelSelector.appendChild(option);
       return;
     }
 
@@ -395,16 +396,16 @@ export function updateModelSelector() {
       const option = document.createElement("option");
       option.value = model;
       option.textContent = model;
-      window.modelSelector.appendChild(option);
+      elements.modelSelector.appendChild(option);
     });
 
     // First try to use the currently selected model
     if (currentlySelectedModel && models.includes(currentlySelectedModel)) {
-      window.modelSelector.value = currentlySelectedModel;
+      elements.modelSelector.value = currentlySelectedModel;
     }
     // Then try to use the saved model
     else if (savedModel && models.includes(savedModel)) {
-      window.modelSelector.value = savedModel;
+      elements.modelSelector.value = savedModel;
     }
     // Then try to use the default model from config
     else {
@@ -412,7 +413,7 @@ export function updateModelSelector() {
 
       // Try exact match first
       if (defaultModel && models.includes(defaultModel)) {
-        window.modelSelector.value = defaultModel;
+        elements.modelSelector.value = defaultModel;
       }
       // Try matching without the :latest suffix
       else if (defaultModel) {
@@ -423,16 +424,16 @@ export function updateModelSelector() {
         );
 
         if (matchingModel) {
-          window.modelSelector.value = matchingModel;
+          elements.modelSelector.value = matchingModel;
         } else if (models.length > 0) {
-          window.modelSelector.value = models[0];
+          elements.modelSelector.value = models[0];
         }
       } else if (models.length > 0) {
-        window.modelSelector.value = models[0];
+        elements.modelSelector.value = models[0];
       }
     }
 
-    window.modelSelector.setAttribute("data-last-selected", window.modelSelector.value);
+    elements.modelSelector.setAttribute("data-last-selected", elements.modelSelector.value);
     updateHeaderInfo();
     updateReasoningAvailability();
   } catch (error) {
@@ -440,7 +441,7 @@ export function updateModelSelector() {
     const option = document.createElement("option");
     option.value = "error";
     option.textContent = "Error loading models";
-    window.modelSelector.appendChild(option);
+    elements.modelSelector.appendChild(option);
   }
 }
 
@@ -448,13 +449,13 @@ export function updateModelSelector() {
  * Dynamically populates the service selector dropdown based on available services in config
  */
 export function populateServiceSelector() {
-  if (!window.serviceSelector || !window.config || !window.config.services) {
+  if (!elements.serviceSelector || !window.config || !window.config.services) {
     console.warn("Service selector or config not found, skipping populateServiceSelector");
     return;
   }
 
   // Clear existing options
-  window.serviceSelector.innerHTML = "";
+  elements.serviceSelector.innerHTML = "";
 
   // Create and append options for each service in config
   Object.keys(window.config.services).forEach(serviceKey => {
@@ -490,7 +491,7 @@ export function populateServiceSelector() {
     }
 
     option.textContent = displayName;
-    window.serviceSelector.appendChild(option);
+    elements.serviceSelector.appendChild(option);
   });
 
   if (typeof window.config.normalizeServiceKey === "function") {
@@ -502,9 +503,9 @@ export function populateServiceSelector() {
  * Explicitly initialize the personality input with the default personality
  */
 export function initializePersonalityInput() {
-  if (window.personalityInput && window.DEFAULT_PERSONALITY) {
-    window.personalityInput.value = window.DEFAULT_PERSONALITY;
-    window.personalityInput.setAttribute("data-explicitly-set", "true");
+  if (elements.personalityInput && window.DEFAULT_PERSONALITY) {
+    elements.personalityInput.value = window.DEFAULT_PERSONALITY;
+    elements.personalityInput.setAttribute("data-explicitly-set", "true");
     console.info("Default personality explicitly set in personality input box");
   } else {
     console.warn("Could not initialize personality input: element or default personality not available");

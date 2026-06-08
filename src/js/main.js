@@ -11,10 +11,8 @@ window.marked = marked;
 // Configuration (classic global side-effects: window.config, window.APP_VERSION, ...)
 import '../config/config.js';
 
-// Shared state + window-compat bridge. Imported early so the accessors are
-// installed before any module sets state at import time.
+// Shared application state and DOM element references.
 import './init/state.js';
-import './init/globals.js';
 
 // Utilities
 import './utils/utils.js';

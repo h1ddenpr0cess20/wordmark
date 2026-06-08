@@ -2,23 +2,24 @@
  * Image generation and attachment helpers used during streaming.
  */
 
+import { state } from "../../init/state.js";
 import { registerGeneratedMedia } from "../mediaTools.js";
 
 export const IMAGE_GENERATION_CALL_TYPE = 'image_generation_call';
 
 export function ensureImagesHaveMessageIds() {
-  if (!window.generatedImages || !window.conversationHistory) {
+  if (!state.generatedImages || !state.conversationHistory) {
     return 0;
   }
 
   let updatedCount = 0;
-  const unassociatedImages = window.generatedImages.filter(img => !img.associatedMessageId);
+  const unassociatedImages = state.generatedImages.filter(img => !img.associatedMessageId);
 
   if (unassociatedImages.length === 0) {
     return 0;
   }
 
-  const assistantMessages = window.conversationHistory
+  const assistantMessages = state.conversationHistory
     .filter(msg => msg.role === 'assistant' && msg.id)
     .sort((a, b) => {
       const timeA = a.timestamp ? new Date(a.timestamp).getTime() : 0;
@@ -316,11 +317,11 @@ export function processImageGenerationOutputs(responsePayload) {
     rawOutputKeys: outputs.map(item => item && item.type),
   });
 
-  if (!Array.isArray(window.currentGeneratedImageHtml)) {
-    window.currentGeneratedImageHtml = [];
+  if (!Array.isArray(state.currentGeneratedImageHtml)) {
+    state.currentGeneratedImageHtml = [];
   }
-  if (!Array.isArray(window.generatedImages)) {
-    window.generatedImages = [];
+  if (!Array.isArray(state.generatedImages)) {
+    state.generatedImages = [];
   }
 
   const globalSeen = new Set();
@@ -414,6 +415,6 @@ export function processImageGenerationOutputs(responsePayload) {
     });
   });
 
-  imageDebugLog('currentGeneratedImageHtml snapshot', window.currentGeneratedImageHtml);
-  imageDebugLog('generatedImages snapshot count', Array.isArray(window.generatedImages) ? window.generatedImages.length : 0);
+  imageDebugLog('currentGeneratedImageHtml snapshot', state.currentGeneratedImageHtml);
+  imageDebugLog('generatedImages snapshot count', Array.isArray(state.generatedImages) ? state.generatedImages.length : 0);
 }

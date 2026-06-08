@@ -2,6 +2,7 @@
  * Client-side media generation/display helpers for xAI Grok Imagine images.
  */
 
+import { state } from "../init/state.js";
 import { loadImageFromDb, saveImageToDb } from "../utils/imageStorage.js";
 import { toolImplementations } from "./toolImplementations.js";
 import { getApiKey } from "./apiKeys.js";
@@ -125,8 +126,8 @@ async function resolveStoredReference(record) {
   if (!record || !record.filename) {
     return null;
   }
-  if (window.imageDataCache?.has(record.filename)) {
-    const cached = window.imageDataCache.get(record.filename);
+  if (state.imageDataCache?.has(record.filename)) {
+    const cached = state.imageDataCache.get(record.filename);
     if (cached) {
       return cached;
     }
@@ -134,8 +135,8 @@ async function resolveStoredReference(record) {
   try {
     const stored = await loadImageFromDb(record.filename);
     const displayUrl = getMediaDisplayUrl(stored?.data, record.filename) || "";
-    if (displayUrl && window.imageDataCache?.set) {
-      window.imageDataCache.set(record.filename, displayUrl);
+    if (displayUrl && state.imageDataCache?.set) {
+      state.imageDataCache.set(record.filename, displayUrl);
     }
     return displayUrl || null;
   } catch (error) {
@@ -145,7 +146,7 @@ async function resolveStoredReference(record) {
 }
 
 async function findLatestConversationImage() {
-  const history = Array.isArray(window.conversationHistory) ? [...window.conversationHistory].reverse() : [];
+  const history = Array.isArray(state.conversationHistory) ? [...state.conversationHistory].reverse() : [];
   for (const message of history) {
     const attachments = Array.isArray(message?.attachments) ? message.attachments : [];
     for (let index = attachments.length - 1; index >= 0; index -= 1) {
@@ -171,7 +172,7 @@ async function findLatestConversationImage() {
 }
 
 async function findLatestGeneratedMedia(kind) {
-  const media = Array.isArray(window.generatedImages) ? [...window.generatedImages].reverse() : [];
+  const media = Array.isArray(state.generatedImages) ? [...state.generatedImages].reverse() : [];
   for (const item of media) {
     if (!item) {
       continue;
@@ -235,12 +236,12 @@ export function getMediaDisplayUrl(value, filename = "") {
   }
   if (value instanceof Blob) {
     const cacheKey = filename || `blob-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
-    if (window.imageDataCache?.has(cacheKey)) {
-      return window.imageDataCache.get(cacheKey);
+    if (state.imageDataCache?.has(cacheKey)) {
+      return state.imageDataCache.get(cacheKey);
     }
     const objectUrl = createObjectUrl(value);
-    if (window.imageDataCache?.set) {
-      window.imageDataCache.set(cacheKey, objectUrl);
+    if (state.imageDataCache?.set) {
+      state.imageDataCache.set(cacheKey, objectUrl);
     }
     return objectUrl;
   }
@@ -347,13 +348,13 @@ export function registerGeneratedMedia({
     pendingStorageData: sourceData,
   };
 
-  window.generatedImages = Array.isArray(window.generatedImages) ? window.generatedImages : [];
-  window.currentGeneratedImageHtml = Array.isArray(window.currentGeneratedImageHtml) ? window.currentGeneratedImageHtml : [];
-  window.generatedImages.push(record);
-  window.currentGeneratedImageHtml.push(buildMediaRecordHtml(record));
+  state.generatedImages = Array.isArray(state.generatedImages) ? state.generatedImages : [];
+  state.currentGeneratedImageHtml = Array.isArray(state.currentGeneratedImageHtml) ? state.currentGeneratedImageHtml : [];
+  state.generatedImages.push(record);
+  state.currentGeneratedImageHtml.push(buildMediaRecordHtml(record));
 
-  if (window.imageDataCache?.set && displayUrl) {
-    window.imageDataCache.set(effectiveFilename, displayUrl);
+  if (state.imageDataCache?.set && displayUrl) {
+    state.imageDataCache.set(effectiveFilename, displayUrl);
   }
 
   saveImageToDb(sourceData, effectiveFilename, {

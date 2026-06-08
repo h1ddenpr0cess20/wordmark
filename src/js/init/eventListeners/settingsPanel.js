@@ -1,3 +1,4 @@
+import { elements } from "../state.js";
 import { switchToTab } from "../../components/ui/settingsTabs.js";
 import { updateHeaderInfo, organizeSettingsLayout } from "../../components/settings.js";
 
@@ -9,9 +10,9 @@ const panelState = {
 };
 
 export function updatePanelOpenState() {
-  const settingsOpen = Boolean(window.settingsPanel && window.settingsPanel.classList.contains('active'));
-  const historyOpen = Boolean(window.historyPanel && window.historyPanel.getAttribute('aria-hidden') === 'false');
-  const galleryOpen = Boolean(window.galleryPanel && window.galleryPanel.getAttribute('aria-hidden') === 'false');
+  const settingsOpen = Boolean(elements.settingsPanel && elements.settingsPanel.classList.contains('active'));
+  const historyOpen = Boolean(elements.historyPanel && elements.historyPanel.getAttribute('aria-hidden') === 'false');
+  const galleryOpen = Boolean(elements.galleryPanel && elements.galleryPanel.getAttribute('aria-hidden') === 'false');
 
   if (typeof document !== 'undefined') {
     document.body.classList.toggle('panel-open', settingsOpen || historyOpen || galleryOpen);
@@ -19,59 +20,59 @@ export function updatePanelOpenState() {
 }
 
 function storeOriginalValues(state) {
-  state.originalPersonalityValue = window.personalityInput ? window.personalityInput.value : '';
-  state.originalCustomPromptValue = window.systemPromptCustom ? window.systemPromptCustom.value : '';
+  state.originalPersonalityValue = elements.personalityInput ? elements.personalityInput.value : '';
+  state.originalCustomPromptValue = elements.systemPromptCustom ? elements.systemPromptCustom.value : '';
 }
 
 function restoreOriginalValues(state) {
-  if (window.personalityPromptRadio && window.personalityPromptRadio.checked && window.personalityInput) {
-    window.personalityInput.value = state.originalPersonalityValue;
+  if (elements.personalityPromptRadio && elements.personalityPromptRadio.checked && elements.personalityInput) {
+    elements.personalityInput.value = state.originalPersonalityValue;
     if (state.originalPersonalityValue === window.DEFAULT_PERSONALITY) {
-      window.personalityInput.setAttribute('data-explicitly-set', 'true');
+      elements.personalityInput.setAttribute('data-explicitly-set', 'true');
     }
   }
 
-  if (window.customPromptRadio && window.customPromptRadio.checked && window.systemPromptCustom) {
-    window.systemPromptCustom.value = state.originalCustomPromptValue;
+  if (elements.customPromptRadio && elements.customPromptRadio.checked && elements.systemPromptCustom) {
+    elements.systemPromptCustom.value = state.originalCustomPromptValue;
   }
 }
 
 function showSettingsPanel() {
-  if (!window.settingsPanel || !window.settingsButton) {
+  if (!elements.settingsPanel || !elements.settingsButton) {
     return;
   }
-  window.settingsPanel.classList.add('active');
-  window.settingsButton.setAttribute('aria-expanded', 'true');
-  window.settingsPanel.setAttribute('aria-hidden', 'false');
-  window.settingsPanel.removeAttribute('inert');
-  window.settingsButton.style.display = 'none';
-  if (window.historyButton) {
-    window.historyButton.style.display = 'none';
+  elements.settingsPanel.classList.add('active');
+  elements.settingsButton.setAttribute('aria-expanded', 'true');
+  elements.settingsPanel.setAttribute('aria-hidden', 'false');
+  elements.settingsPanel.removeAttribute('inert');
+  elements.settingsButton.style.display = 'none';
+  if (elements.historyButton) {
+    elements.historyButton.style.display = 'none';
   }
-  if (window.galleryButton) {
-    window.galleryButton.style.display = 'none';
+  if (elements.galleryButton) {
+    elements.galleryButton.style.display = 'none';
   }
 
   updatePanelOpenState();
 }
 
 function hideSettingsPanel({ focusButton = false } = {}) {
-  if (!window.settingsPanel || !window.settingsButton) {
+  if (!elements.settingsPanel || !elements.settingsButton) {
     return;
   }
-  window.settingsPanel.classList.remove('active');
-  window.settingsButton.setAttribute('aria-expanded', 'false');
-  window.settingsPanel.setAttribute('aria-hidden', 'true');
-  window.settingsPanel.setAttribute('inert', 'true');
-  window.settingsButton.style.display = '';
-  if (window.historyButton) {
-    window.historyButton.style.display = '';
+  elements.settingsPanel.classList.remove('active');
+  elements.settingsButton.setAttribute('aria-expanded', 'false');
+  elements.settingsPanel.setAttribute('aria-hidden', 'true');
+  elements.settingsPanel.setAttribute('inert', 'true');
+  elements.settingsButton.style.display = '';
+  if (elements.historyButton) {
+    elements.historyButton.style.display = '';
   }
-  if (window.galleryButton) {
-    window.galleryButton.style.display = '';
+  if (elements.galleryButton) {
+    elements.galleryButton.style.display = '';
   }
   if (focusButton) {
-    window.settingsButton.focus();
+    elements.settingsButton.focus();
   }
 
   updatePanelOpenState();
@@ -136,10 +137,10 @@ function setupOutsideClickHandler(state) {
       return;
     }
 
-    const isSettingsPanelElement = window.settingsPanel && window.settingsPanel.contains(event.target);
-    const isSettingsButton = event.target === window.settingsButton;
+    const isSettingsPanelElement = elements.settingsPanel && elements.settingsPanel.contains(event.target);
+    const isSettingsButton = event.target === elements.settingsButton;
 
-    if (window.settingsPanel && window.settingsPanel.classList.contains('active') &&
+    if (elements.settingsPanel && elements.settingsPanel.classList.contains('active') &&
         !isSettingsPanelElement && !isSettingsButton) {
       restoreOriginalValues(state);
       hideSettingsPanel({ focusButton: true });
@@ -148,29 +149,29 @@ function setupOutsideClickHandler(state) {
     }
 
     if (!window.isSlideshowOpen &&
-        window.galleryPanel && window.galleryPanel.getAttribute('aria-hidden') === 'false' &&
-        !window.galleryPanel.contains(event.target) && event.target !== window.galleryButton) {
-      window.galleryPanel.setAttribute('aria-hidden', 'true');
-      window.galleryPanel.setAttribute('inert', 'true');
-      window.galleryButton.setAttribute('aria-expanded', 'false');
-      window.galleryButton.focus();
+        elements.galleryPanel && elements.galleryPanel.getAttribute('aria-hidden') === 'false' &&
+        !elements.galleryPanel.contains(event.target) && event.target !== elements.galleryButton) {
+      elements.galleryPanel.setAttribute('aria-hidden', 'true');
+      elements.galleryPanel.setAttribute('inert', 'true');
+      elements.galleryButton.setAttribute('aria-expanded', 'false');
+      elements.galleryButton.focus();
       updatePanelOpenState();
     }
 
-    if (window.historyPanel && window.historyButton &&
-        window.historyPanel.getAttribute('aria-hidden') === 'false' &&
-        !window.historyPanel.contains(event.target) && event.target !== window.historyButton) {
-      window.historyPanel.setAttribute('aria-hidden', 'true');
-      window.historyPanel.setAttribute('inert', 'true');
-      window.historyButton.setAttribute('aria-expanded', 'false');
-      window.historyButton.focus();
+    if (elements.historyPanel && elements.historyButton &&
+        elements.historyPanel.getAttribute('aria-hidden') === 'false' &&
+        !elements.historyPanel.contains(event.target) && event.target !== elements.historyButton) {
+      elements.historyPanel.setAttribute('aria-hidden', 'true');
+      elements.historyPanel.setAttribute('inert', 'true');
+      elements.historyButton.setAttribute('aria-expanded', 'false');
+      elements.historyButton.focus();
       updatePanelOpenState();
     }
   });
 }
 
 export function openSettingsAndSwitch(tabId, attempt = 0) {
-  if (!window.settingsPanel || !window.settingsButton) {
+  if (!elements.settingsPanel || !elements.settingsButton) {
     if (attempt < 10) {
       setTimeout(() => openSettingsAndSwitch(tabId, attempt + 1), 100);
     } else {
@@ -190,8 +191,8 @@ export function openSettingsAndSwitch(tabId, attempt = 0) {
 }
 
 export function initializeSettingsPanelControls() {
-  if (window.settingsButton && window.settingsPanel) {
-    window.settingsButton.addEventListener('click', () => {
+  if (elements.settingsButton && elements.settingsPanel) {
+    elements.settingsButton.addEventListener('click', () => {
       storeOriginalValues(panelState);
       showSettingsPanel();
                   organizeSettingsLayout();
@@ -199,8 +200,8 @@ export function initializeSettingsPanelControls() {
     });
   }
 
-  if (window.closeSettingsButton && window.settingsPanel) {
-    window.closeSettingsButton.addEventListener('click', () => {
+  if (elements.closeSettingsButton && elements.settingsPanel) {
+    elements.closeSettingsButton.addEventListener('click', () => {
       restoreOriginalValues(panelState);
       hideSettingsPanel({ focusButton: true });
                   updateHeaderInfo();

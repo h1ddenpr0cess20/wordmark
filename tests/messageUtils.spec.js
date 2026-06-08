@@ -1,13 +1,14 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
+import { state } from '../src/js/init/state.js';
 
 globalThis.window = globalThis.window || {};
 
 const { serializeMessagesForRequest } = await import('../src/js/services/api/messageUtils.js');
 
 test('serializeMessagesForRequest includes input_image parts for inline attachments', () => {
-  window.imageDataCache = new Map();
-  window.generatedImages = [];
+  state.imageDataCache = new Map();
+  state.generatedImages = [];
 
   const attachments = [{
     filename: 'upload-123.png',
@@ -33,8 +34,8 @@ test('serializeMessagesForRequest includes input_image parts for inline attachme
 });
 
 test('serializeMessagesForRequest passes through input_file parts for xAI file attachments', () => {
-  window.imageDataCache = new Map();
-  window.generatedImages = [];
+  state.imageDataCache = new Map();
+  state.generatedImages = [];
 
   const [serialized] = serializeMessagesForRequest([{
     role: 'user',
@@ -59,8 +60,8 @@ test('serializeMessagesForRequest passes through input_file parts for xAI file a
 });
 
 test('serializeMessagesForRequest resolves gallery placeholders to input_image parts', () => {
-  window.imageDataCache = new Map();
-  window.generatedImages = [{
+  state.imageDataCache = new Map();
+  state.generatedImages = [{
     filename: 'generated-456.png',
     url: 'data:image/png;base64,SElK',
   }];

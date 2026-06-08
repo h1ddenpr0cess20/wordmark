@@ -1,13 +1,14 @@
+import { elements } from "../state.js";
 import { showInfo } from "../../utils/notifications.js";
 import { loadToolScripts } from "../../utils/toolLoader.js";
 import { updateFeatureStatus } from "../../components/settings.js";
 import { updateMasterToolCallingStatus } from "../../components/tools.js";
 export function setupToolCallingEventListeners() {
-  if (!window.toolCallingToggle) {
+  if (!elements.toolCallingToggle) {
     return;
   }
 
-  window.toolCallingToggle.addEventListener('change', (event) => {
+  elements.toolCallingToggle.addEventListener('change', (event) => {
     const enabled = event.target.checked;
     window.config.enableFunctionCalling = enabled;
     localStorage.setItem('enableFunctionCalling', enabled ? 'true' : 'false');

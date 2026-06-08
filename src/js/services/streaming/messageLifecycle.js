@@ -1,3 +1,4 @@
+import { elements, state } from "../../init/state.js";
 import { showError } from "../../utils/notifications.js";
 import { updateBrowserHistory } from "../history/state.js";
 import { saveCurrentConversation } from "../history/persistence.js";
@@ -126,8 +127,8 @@ export function finalizeStreamedResponse(loadingMessage, contentObj) {
     }
   }
 
-  const hasPendingMedia = Array.isArray(window.currentGeneratedImageHtml)
-    ? window.currentGeneratedImageHtml.length > 0
+  const hasPendingMedia = Array.isArray(state.currentGeneratedImageHtml)
+    ? state.currentGeneratedImageHtml.length > 0
     : false;
 
   if (!hasPendingMedia && !content.trim() && !reasoning.trim()) {
@@ -149,20 +150,20 @@ export function finalizeStreamedResponse(loadingMessage, contentObj) {
     loadingMessage.id = generateMessageId();
   }
 
-  if (window.currentGeneratedImageHtml && window.currentGeneratedImageHtml.length > 0) {
+  if (state.currentGeneratedImageHtml && state.currentGeneratedImageHtml.length > 0) {
     imageDebugLog('Detected pending generated images before rendering message.', {
-      count: window.currentGeneratedImageHtml.length,
+      count: state.currentGeneratedImageHtml.length,
     });
   }
 
   let fullContent = content;
   const hasExistingImagePlaceholders = /\[\[(?:IMAGE|MEDIA): [^\]]+\]\]/.test(fullContent);
   const willHaveImages = !hasExistingImagePlaceholders &&
-                         window.currentGeneratedImageHtml &&
-                         window.currentGeneratedImageHtml.length > 0;
+                         state.currentGeneratedImageHtml &&
+                         state.currentGeneratedImageHtml.length > 0;
 
   if (willHaveImages) {
-    const imageList = window.currentGeneratedImageHtml
+    const imageList = state.currentGeneratedImageHtml
       .map(html => {
         const match = html.match(/data-filename="([^"]+)"/);
         return match ? `[[MEDIA: ${match[1]}]]` : null;
@@ -174,7 +175,7 @@ export function finalizeStreamedResponse(loadingMessage, contentObj) {
     }
   }
 
-  window.conversationHistory.push({
+  state.conversationHistory.push({
     role: 'assistant',
     content: fullContent,
     reasoning,
@@ -189,21 +190,21 @@ export function finalizeStreamedResponse(loadingMessage, contentObj) {
   let existingMainContentContainer = contentWrapper.querySelector('.main-response-content');
   let existingImagesContainer = contentWrapper.querySelector('.generated-images');
 
-  if (window.currentGeneratedImageHtml && window.currentGeneratedImageHtml.length > 0) {
+  if (state.currentGeneratedImageHtml && state.currentGeneratedImageHtml.length > 0) {
     let imagesContainer = existingImagesContainer;
     if (!imagesContainer) {
       imagesContainer = document.createElement('div');
       imagesContainer.className = 'generated-images';
       contentWrapper.appendChild(imagesContainer);
     }
-    imagesContainer.innerHTML = window.currentGeneratedImageHtml.join('');
+    imagesContainer.innerHTML = state.currentGeneratedImageHtml.join('');
     setupImageInteractions(imagesContainer);
     imageDebugLog('Injected generated images into chat bubble.', {
-      imageCount: window.currentGeneratedImageHtml.length,
+      imageCount: state.currentGeneratedImageHtml.length,
       messageId: loadingMessage.id,
     });
 
-    const thisMessageImages = [...window.currentGeneratedImageHtml];
+    const thisMessageImages = [...state.currentGeneratedImageHtml];
     if (!window.messageImages) {
       window.messageImages = {};
     }
@@ -215,15 +216,15 @@ export function finalizeStreamedResponse(loadingMessage, contentObj) {
         return match ? match[1] : null;
       })
       .filter(Boolean);
-    if (Array.isArray(window.generatedImages)) {
-      window.generatedImages.forEach(img => {
+    if (Array.isArray(state.generatedImages)) {
+      state.generatedImages.forEach(img => {
         if (!img.associatedMessageId && filenamesForThisMessage.includes(img.filename)) {
           img.associatedMessageId = loadingMessage.id;
         }
       });
     }
 
-    const historyEntry = window.conversationHistory.find(entry => entry.id === loadingMessage.id);
+    const historyEntry = state.conversationHistory.find(entry => entry.id === loadingMessage.id);
     if (historyEntry) {
       historyEntry.hasImages = true;
       imageDebugLog('Marked conversation history entry as having images.', {
@@ -282,12 +283,12 @@ export function finalizeStreamedResponse(loadingMessage, contentObj) {
 
   saveCurrentConversation();
 
-  if (window.currentGeneratedImageHtml && window.currentGeneratedImageHtml.length > 0) {
+  if (state.currentGeneratedImageHtml && state.currentGeneratedImageHtml.length > 0) {
     imageDebugLog('Resetting currentGeneratedImageHtml; pending images should now be associated.', {
       messageId: loadingMessage.id,
     });
   }
-  window.currentGeneratedImageHtml = [];
+  state.currentGeneratedImageHtml = [];
 }
 
 export function updateFinalMessage(loadingMessage) {
@@ -351,7 +352,7 @@ export function hasValidAssistantMessage(data) {
 export function addToConversationHistory(assistantMessage, reasoning) {
   const msgId = generateMessageId();
 
-  window.conversationHistory.push({
+  state.conversationHistory.push({
     role: 'assistant',
     content: assistantMessage,
     reasoning: reasoning || '',
@@ -457,7 +458,7 @@ export function updateMessageContent(loadingMessage, assistantMessageObj) {
 export function removeLoadingIndicator(loadingId) {
   const loadingMessage = document.getElementById(loadingId);
   if (loadingMessage) {
-    window.chatBox.removeChild(loadingMessage);
+    elements.chatBox.removeChild(loadingMessage);
   }
 }
 

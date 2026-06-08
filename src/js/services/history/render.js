@@ -1,3 +1,4 @@
+import { elements, state } from "../../init/state.js";
 import { detectMediaType, getMediaDisplayUrl } from "../mediaTools.js";
 import { updateMessageContent } from "../streaming/messageLifecycle.js";
 import { updatePromptVisibility } from "../../components/ui/settingsControls.js";
@@ -95,8 +96,8 @@ function replaceImagePlaceholders(content, convo, imageCache) {
     if (!img.url) {
       img.url = src;
     }
-    if (window.imageDataCache?.set) {
-      window.imageDataCache.set(trimmed, src);
+    if (state.imageDataCache?.set) {
+      state.imageDataCache.set(trimmed, src);
     }
 
     return `<img src="${src}" alt="${img.prompt || 'Generated Image'}" class="generated-image-thumbnail" data-media-type="image" data-filename="${trimmed}" data-prompt="${img.prompt || ''}" data-timestamp="${img.timestamp || ''}" style="max-width:160px;max-height:160px;border-radius:8px;margin:8px 0;cursor:pointer;" />`;
@@ -104,7 +105,7 @@ function replaceImagePlaceholders(content, convo, imageCache) {
 }
 
 export function renderConversationMessages(convo, imageCache) {
-  if (!window.chatBox) {
+  if (!elements.chatBox) {
     return;
   }
 
@@ -162,7 +163,7 @@ export function renderConversationMessages(convo, imageCache) {
     const contentWrapper = document.createElement('div');
     contentWrapper.className = 'message-content';
     messageElement.appendChild(contentWrapper);
-    window.chatBox.appendChild(messageElement);
+    elements.chatBox.appendChild(messageElement);
 
     let displayContent = msg.content || '';
     const imageFilenames = [];
@@ -212,8 +213,8 @@ export function renderConversationMessages(convo, imageCache) {
         if (!img.url) {
           img.url = src;
         }
-        if (window.imageDataCache?.set) {
-          window.imageDataCache.set(filename, src);
+        if (state.imageDataCache?.set) {
+          state.imageDataCache.set(filename, src);
         }
 
         imagesContainer.appendChild(imgEl);
@@ -244,34 +245,34 @@ export function renderConversationMessages(convo, imageCache) {
 
   if (convo.systemPrompt) {
     const systemPrompt = convo.systemPrompt;
-    window.loadedSystemPrompt = systemPrompt;
+    state.loadedSystemPrompt = systemPrompt;
 
-    if (systemPrompt.type === 'personality' && window.personalityPromptRadio) {
-      window.personalityPromptRadio.checked = true;
-      if (window.personalityInput) {
-        window.personalityInput.value = systemPrompt.content || '';
-        window.personalityInput.setAttribute('data-explicitly-set', 'true');
+    if (systemPrompt.type === 'personality' && elements.personalityPromptRadio) {
+      elements.personalityPromptRadio.checked = true;
+      if (elements.personalityInput) {
+        elements.personalityInput.value = systemPrompt.content || '';
+        elements.personalityInput.setAttribute('data-explicitly-set', 'true');
       }
-    } else if (systemPrompt.type === 'custom' && window.customPromptRadio) {
-      window.customPromptRadio.checked = true;
-      if (window.systemPromptCustom) {
-        window.systemPromptCustom.value = systemPrompt.content || '';
+    } else if (systemPrompt.type === 'custom' && elements.customPromptRadio) {
+      elements.customPromptRadio.checked = true;
+      if (elements.systemPromptCustom) {
+        elements.systemPromptCustom.value = systemPrompt.content || '';
       }
-    } else if (systemPrompt.type === 'none' && window.noPromptRadio) {
-      window.noPromptRadio.checked = true;
+    } else if (systemPrompt.type === 'none' && elements.noPromptRadio) {
+      elements.noPromptRadio.checked = true;
     }
 
     updatePromptVisibility();
   }
 
-  if (convo.service && window.serviceSelector && window.config) {
-    const serviceOption = Array.from(window.serviceSelector.options || []).find(
+  if (convo.service && elements.serviceSelector && window.config) {
+    const serviceOption = Array.from(elements.serviceSelector.options || []).find(
       option => option.value === convo.service,
     );
 
     if (serviceOption && !serviceOption.disabled) {
       window.config.defaultService = convo.service;
-      window.serviceSelector.value = convo.service;
+      elements.serviceSelector.value = convo.service;
 
       const serviceConfig = window.config.services?.[convo.service];
       if (serviceConfig && typeof serviceConfig.fetchAndUpdateModels === 'function') {
@@ -283,10 +284,10 @@ export function renderConversationMessages(convo, imageCache) {
         serviceConfig.fetchAndUpdateModels()
           .then(() => {
             updateModelSelector?.();
-            if (convo.model && window.modelSelector) {
-              const modelOption = Array.from(window.modelSelector.options || []).find(opt => opt.value === convo.model);
+            if (convo.model && elements.modelSelector) {
+              const modelOption = Array.from(elements.modelSelector.options || []).find(opt => opt.value === convo.model);
               if (modelOption) {
-                window.modelSelector.value = convo.model;
+                elements.modelSelector.value = convo.model;
                 updateHeaderInfo?.();
               }
             }
@@ -294,20 +295,20 @@ export function renderConversationMessages(convo, imageCache) {
           .catch((err) => {
             console.error(`Failed to refresh ${serviceLabel} models:`, err);
             updateModelSelector?.();
-            if (convo.model && window.modelSelector) {
-              const modelOption = Array.from(window.modelSelector.options || []).find(opt => opt.value === convo.model);
+            if (convo.model && elements.modelSelector) {
+              const modelOption = Array.from(elements.modelSelector.options || []).find(opt => opt.value === convo.model);
               if (modelOption) {
-                window.modelSelector.value = convo.model;
+                elements.modelSelector.value = convo.model;
                 updateHeaderInfo?.();
               }
             }
           });
       } else {
         updateModelSelector?.();
-        if (convo.model && window.modelSelector) {
-          const modelOption = Array.from(window.modelSelector.options || []).find(opt => opt.value === convo.model);
+        if (convo.model && elements.modelSelector) {
+          const modelOption = Array.from(elements.modelSelector.options || []).find(opt => opt.value === convo.model);
           if (modelOption) {
-            window.modelSelector.value = convo.model;
+            elements.modelSelector.value = convo.model;
             updateHeaderInfo?.();
           }
         }
@@ -315,10 +316,10 @@ export function renderConversationMessages(convo, imageCache) {
     }
   }
 
-  if (convo.model && window.modelSelector) {
-    const modelOption = Array.from(window.modelSelector.options || []).find(option => option.value === convo.model);
+  if (convo.model && elements.modelSelector) {
+    const modelOption = Array.from(elements.modelSelector.options || []).find(option => option.value === convo.model);
     if (modelOption) {
-      window.modelSelector.value = convo.model;
+      elements.modelSelector.value = convo.model;
       updateHeaderInfo?.();
     }
   }
@@ -326,6 +327,6 @@ export function renderConversationMessages(convo, imageCache) {
   updateHeaderInfo?.();
 
   if (!convo.id) {
-    window.loadedSystemPrompt = null;
+    state.loadedSystemPrompt = null;
   }
 };

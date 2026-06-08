@@ -1,3 +1,4 @@
+import { elements } from "../state.js";
 import { icon } from "../../utils/icons.js";
 import { isMobileDevice, focusUserInputSafely } from "../../utils/mobileHandling.js";
 import { exportChat, handleExportFormatChange } from "../../services/export.js";
@@ -7,45 +8,45 @@ import { updatePromptVisibility } from "../../components/ui/settingsControls.js"
 import { updateHeaderInfo, updateModelSelector } from "../../components/settings.js";
 import { setReasoningEffort, DEFAULT_REASONING_EFFORT } from "../modelSettings.js";
 function closePanelIfActive(closeSettingsPanel) {
-  if (typeof closeSettingsPanel === 'function' && window.settingsPanel && window.settingsPanel.classList.contains('active')) {
+  if (typeof closeSettingsPanel === 'function' && elements.settingsPanel && elements.settingsPanel.classList.contains('active')) {
     closeSettingsPanel();
-  } else if (window.settingsPanel && window.settingsButton) {
-    window.settingsPanel.classList.remove('active');
-    window.settingsButton.setAttribute('aria-expanded', 'false');
-    window.settingsPanel.setAttribute('aria-hidden', 'true');
-    window.settingsPanel.setAttribute('inert', 'true');
-    window.settingsButton.style.display = '';
-    if (window.historyButton) {
-      window.historyButton.style.display = '';
+  } else if (elements.settingsPanel && elements.settingsButton) {
+    elements.settingsPanel.classList.remove('active');
+    elements.settingsButton.setAttribute('aria-expanded', 'false');
+    elements.settingsPanel.setAttribute('aria-hidden', 'true');
+    elements.settingsPanel.setAttribute('inert', 'true');
+    elements.settingsButton.style.display = '';
+    if (elements.historyButton) {
+      elements.historyButton.style.display = '';
     }
-    if (window.galleryButton) {
-      window.galleryButton.style.display = '';
+    if (elements.galleryButton) {
+      elements.galleryButton.style.display = '';
     }
   }
 }
 
 export function setupButtonEventListeners({ closeSettingsPanel } = {}) {
-  if (window.clearMemoryButton) {
-    window.clearMemoryButton.addEventListener('click', () => {
+  if (elements.clearMemoryButton) {
+    elements.clearMemoryButton.addEventListener('click', () => {
       startNewConversation('New Conversation');
       updateHeaderInfo();
       updateBrowserHistory();
-      if (!isMobileDevice() && window.userInput) {
-        window.userInput.focus();
+      if (!isMobileDevice() && elements.userInput) {
+        elements.userInput.focus();
       }
     });
   }
 
-  if (window.setPersonalityButton) {
-    window.setPersonalityButton.addEventListener('click', () => {
-      const personalityName = window.personalityInput ? window.personalityInput.value.trim() : '';
+  if (elements.setPersonalityButton) {
+    elements.setPersonalityButton.addEventListener('click', () => {
+      const personalityName = elements.personalityInput ? elements.personalityInput.value.trim() : '';
       startNewConversation(`Personality: ${personalityName}`);
 
-      if (window.personalityPromptRadio) {
-        window.personalityPromptRadio.checked = true;
+      if (elements.personalityPromptRadio) {
+        elements.personalityPromptRadio.checked = true;
       }
-      if (window.personalityInput) {
-        window.personalityInput.setAttribute('data-explicitly-set', 'true');
+      if (elements.personalityInput) {
+        elements.personalityInput.setAttribute('data-explicitly-set', 'true');
       }
 
       updatePromptVisibility();
@@ -60,23 +61,23 @@ export function setupButtonEventListeners({ closeSettingsPanel } = {}) {
     });
   }
 
-  if (window.exportChatButton) {
-    window.exportChatButton.addEventListener('click', exportChat);
+  if (elements.exportChatButton) {
+    elements.exportChatButton.addEventListener('click', exportChat);
   }
-  if (window.exportFormatSelector) {
-    window.exportFormatSelector.addEventListener('change', handleExportFormatChange);
+  if (elements.exportFormatSelector) {
+    elements.exportFormatSelector.addEventListener('change', handleExportFormatChange);
   }
 
-  if (window.resetPersonalityButton) {
-    window.resetPersonalityButton.addEventListener('click', () => {
+  if (elements.resetPersonalityButton) {
+    elements.resetPersonalityButton.addEventListener('click', () => {
       startNewConversation('Default Personality');
 
-      if (window.personalityInput) {
-        window.personalityInput.value = window.DEFAULT_PERSONALITY;
-        window.personalityInput.setAttribute('data-explicitly-set', 'true');
+      if (elements.personalityInput) {
+        elements.personalityInput.value = window.DEFAULT_PERSONALITY;
+        elements.personalityInput.setAttribute('data-explicitly-set', 'true');
       }
-      if (window.personalityPromptRadio) {
-        window.personalityPromptRadio.checked = true;
+      if (elements.personalityPromptRadio) {
+        elements.personalityPromptRadio.checked = true;
       }
 
       updatePromptVisibility();
@@ -91,14 +92,14 @@ export function setupButtonEventListeners({ closeSettingsPanel } = {}) {
     });
   }
 
-  if (window.setCustomPromptButton) {
-    window.setCustomPromptButton.addEventListener('click', () => {
-      const customPrompt = window.systemPromptCustom ? window.systemPromptCustom.value.trim().substring(0, 30) : '';
+  if (elements.setCustomPromptButton) {
+    elements.setCustomPromptButton.addEventListener('click', () => {
+      const customPrompt = elements.systemPromptCustom ? elements.systemPromptCustom.value.trim().substring(0, 30) : '';
       const conversationName = `Custom: ${customPrompt || 'Prompt'}`;
       startNewConversation(conversationName);
 
-      if (window.customPromptRadio) {
-        window.customPromptRadio.checked = true;
+      if (elements.customPromptRadio) {
+        elements.customPromptRadio.checked = true;
       }
       updatePromptVisibility();
 
@@ -107,18 +108,18 @@ export function setupButtonEventListeners({ closeSettingsPanel } = {}) {
                   updateHeaderInfo();
     
       updateBrowserHistory();
-      if (window.userInput) {
-        window.userInput.focus();
+      if (elements.userInput) {
+        elements.userInput.focus();
       }
     });
   }
 
-  if (window.setNoPromptButton) {
-    window.setNoPromptButton.addEventListener('click', () => {
+  if (elements.setNoPromptButton) {
+    elements.setNoPromptButton.addEventListener('click', () => {
       startNewConversation('No System Prompt');
 
-      if (window.noPromptRadio) {
-        window.noPromptRadio.checked = true;
+      if (elements.noPromptRadio) {
+        elements.noPromptRadio.checked = true;
       }
       updatePromptVisibility();
 
@@ -127,8 +128,8 @@ export function setupButtonEventListeners({ closeSettingsPanel } = {}) {
                   updateHeaderInfo();
     
       updateBrowserHistory();
-      if (window.userInput) {
-        window.userInput.focus();
+      if (elements.userInput) {
+        elements.userInput.focus();
       }
     });
   }

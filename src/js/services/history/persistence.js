@@ -1,3 +1,4 @@
+import { elements, state } from "../../init/state.js";
 import {
   getAllConversationsFromDb,
   saveConversationToDb,
@@ -128,15 +129,15 @@ function normalizePromptState() {
   let promptType = 'none';
   let promptContent = '';
 
-  if (window.loadedSystemPrompt && window.currentConversationId) {
-    promptType = window.loadedSystemPrompt.type;
-    promptContent = window.loadedSystemPrompt.content;
-  } else if (window.personalityPromptRadio?.checked) {
+  if (state.loadedSystemPrompt && state.currentConversationId) {
+    promptType = state.loadedSystemPrompt.type;
+    promptContent = state.loadedSystemPrompt.content;
+  } else if (elements.personalityPromptRadio?.checked) {
     promptType = 'personality';
-    promptContent = window.personalityInput?.value || '';
-  } else if (window.customPromptRadio?.checked) {
+    promptContent = elements.personalityInput?.value || '';
+  } else if (elements.customPromptRadio?.checked) {
     promptType = 'custom';
-    promptContent = window.systemPromptCustom?.value || '';
+    promptContent = elements.systemPromptCustom?.value || '';
   }
 
   return { promptType, promptContent };
@@ -185,11 +186,11 @@ function preloadImages(convo) {
 }
 
 function resetConversationState() {
-  window.conversationHistory = [];
-  window.generatedImages = [];
-  window.currentConversationId = null;
-  window.currentConversationName = null;
-  window.loadedSystemPrompt = null;
+  state.conversationHistory = [];
+  state.generatedImages = [];
+  state.currentConversationId = null;
+  state.currentConversationName = null;
+  state.loadedSystemPrompt = null;
   window.userThinkingState = {};
 }
 
@@ -198,8 +199,8 @@ export function getAllConversations() {
 };
 
 export function saveCurrentConversation(meta = {}) {
-  if (!window.generatedImages) {
-    window.generatedImages = [];
+  if (!state.generatedImages) {
+    state.generatedImages = [];
   }
 
   const updatedCount = ensureImagesHaveMessageIds();
@@ -208,23 +209,23 @@ export function saveCurrentConversation(meta = {}) {
   }
 
   const now = new Date();
-  const baseHistory = Array.isArray(window.conversationHistory)
-    ? window.conversationHistory.filter(msg => msg && msg.role !== 'developer')
+  const baseHistory = Array.isArray(state.conversationHistory)
+    ? state.conversationHistory.filter(msg => msg && msg.role !== 'developer')
     : [];
 
   const { promptType, promptContent } = normalizePromptState();
   const savePromises = [];
-  const processedImages = (window.generatedImages || []).map(img => processImageForStorage(img, savePromises));
+  const processedImages = (state.generatedImages || []).map(img => processImageForStorage(img, savePromises));
   const markedMessages = markMessagesWithImages(baseHistory, processedImages);
 
   const conversation = {
-    id: window.currentConversationId || `${now.getTime()}`,
-    name: meta.name || window.currentConversationName || `Conversation ${now.toLocaleString()}`,
+    id: state.currentConversationId || `${now.getTime()}`,
+    name: meta.name || state.currentConversationName || `Conversation ${now.toLocaleString()}`,
     created: meta.created || now.toISOString(),
     updated: now.toISOString(),
     messages: markedMessages,
     images: processedImages,
-    model: window.modelSelector?.value || 'Unknown',
+    model: elements.modelSelector?.value || 'Unknown',
     service: window.config?.defaultService || 'Unknown',
     systemPrompt: {
       type: promptType,
@@ -232,8 +233,8 @@ export function saveCurrentConversation(meta = {}) {
     },
   };
 
-  window.currentConversationId = conversation.id;
-  window.currentConversationName = conversation.name;
+  state.currentConversationId = conversation.id;
+  state.currentConversationName = conversation.name;
 
   Promise.all(savePromises)
     .then((results) => {
@@ -259,9 +260,9 @@ export function saveCurrentConversation(meta = {}) {
 export function deleteConversation(id) {
   deleteConversationFromDb?.(id)
     .then(() => {
-      if (window.currentConversationId === id) {
-        window.currentConversationId = null;
-        window.currentConversationName = null;
+      if (state.currentConversationId === id) {
+        state.currentConversationId = null;
+        state.currentConversationName = null;
       }
       renderChatHistoryList();
     })
@@ -273,8 +274,8 @@ export function deleteConversation(id) {
 export function renameConversation(id, newName) {
   renameConversationInDb?.(id, newName)
     .then(() => {
-      if (window.currentConversationId === id) {
-        window.currentConversationName = newName;
+      if (state.currentConversationId === id) {
+        state.currentConversationName = newName;
       }
       renderChatHistoryList();
     })
@@ -284,18 +285,18 @@ export function renameConversation(id, newName) {
 };
 
 export function startNewConversation(name = null) {
-  if (window.conversationHistory?.length > 0 && window.currentConversationId) {
+  if (state.conversationHistory?.length > 0 && state.currentConversationId) {
     saveCurrentConversation();
   }
 
   resetConversationState();
 
   if (name) {
-    window.currentConversationName = name;
+    state.currentConversationName = name;
   }
 
-  if (window.chatBox) {
-    window.chatBox.innerHTML = '';
+  if (elements.chatBox) {
+    elements.chatBox.innerHTML = '';
   }
 
   if (window.VERBOSE_LOGGING) {
@@ -328,15 +329,15 @@ function loadConversationIntoUI(convo, imageCache) {
     ? convo.messages.filter(msg => msg && msg.role !== 'developer')
     : [];
 
-  window.conversationHistory = filteredMessages;
-  window.generatedImages = convo.images || [];
-  window.currentConversationId = convo.id;
-  window.currentConversationName = convo.name;
-  window.loadedSystemPrompt = convo.systemPrompt;
+  state.conversationHistory = filteredMessages;
+  state.generatedImages = convo.images || [];
+  state.currentConversationId = convo.id;
+  state.currentConversationName = convo.name;
+  state.loadedSystemPrompt = convo.systemPrompt;
   window.userThinkingState = {};
 
-  if (window.chatBox) {
-    window.chatBox.innerHTML = '';
+  if (elements.chatBox) {
+    elements.chatBox.innerHTML = '';
   }
 
   renderConversationMessages(convo, imageCache);

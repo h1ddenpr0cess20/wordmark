@@ -1,9 +1,10 @@
+import { elements } from "../../init/state.js";
 export function updatePromptVisibility() {
   const personalityContainer = document.getElementById("personality-container");
   const customPromptContainer = document.getElementById("custom-prompt-container");
   const noPromptContainer = document.getElementById("no-prompt-container");
 
-  if (window.personalityPromptRadio?.checked) {
+  if (elements.personalityPromptRadio?.checked) {
     if (personalityContainer) {
       personalityContainer.style.display = "block";
     }
@@ -13,7 +14,7 @@ export function updatePromptVisibility() {
     if (noPromptContainer) {
       noPromptContainer.style.display = "none";
     }
-  } else if (window.customPromptRadio?.checked) {
+  } else if (elements.customPromptRadio?.checked) {
     if (personalityContainer) {
       personalityContainer.style.display = "none";
     }
@@ -23,7 +24,7 @@ export function updatePromptVisibility() {
     if (noPromptContainer) {
       noPromptContainer.style.display = "none";
     }
-  } else if (window.noPromptRadio?.checked) {
+  } else if (elements.noPromptRadio?.checked) {
     if (personalityContainer) {
       personalityContainer.style.display = "none";
     }

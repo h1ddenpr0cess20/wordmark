@@ -1,3 +1,4 @@
+import { elements } from "../state.js";
 import {
   ttsConfig,
   availableTtsVoices,
@@ -13,8 +14,8 @@ import { initializeTts, populateTtsVoiceSelector } from "../ttsInitialization.js
 import { updateFeatureStatus } from "../../components/settings.js";
 
 export function setupTtsEventListeners() {
-  if (window.ttsToggle) {
-    window.ttsToggle.addEventListener("change", (event) => {
+  if (elements.ttsToggle) {
+    elements.ttsToggle.addEventListener("change", (event) => {
       if (event.target.checked) {
         ttsConfig.enabled = true;
         initializeTts();
@@ -27,8 +28,8 @@ export function setupTtsEventListeners() {
     });
   }
 
-  if (window.ttsAutoplayToggle) {
-    window.ttsAutoplayToggle.addEventListener("change", (event) => {
+  if (elements.ttsAutoplayToggle) {
+    elements.ttsAutoplayToggle.addEventListener("change", (event) => {
       ttsConfig.autoplay = event.target.checked;
       if (event.target.checked && ttsMessageQueue.length > 0 && !ttsRuntime.activeTtsAudio) {
         ttsRuntime.autoplayActive = true;
@@ -37,33 +38,33 @@ export function setupTtsEventListeners() {
     });
   }
 
-  if (window.ttsProviderSelector) {
-    window.ttsProviderSelector.addEventListener("change", (event) => {
+  if (elements.ttsProviderSelector) {
+    elements.ttsProviderSelector.addEventListener("change", (event) => {
       ttsConfig.provider = availableTtsVoices?.[event.target.value] ? event.target.value : "openai";
       event.target.value = ttsConfig.provider;
       populateTtsVoiceSelector();
       // xAI TTS doesn't support voice instructions
-      const instructionsItem = window.ttsInstructionsInput?.closest(".setting-item");
+      const instructionsItem = elements.ttsInstructionsInput?.closest(".setting-item");
       if (instructionsItem) {
         instructionsItem.style.display = ttsConfig.provider === "xai" ? "none" : "";
       }
     });
   }
 
-  if (window.ttsVoiceSelector) {
-    window.ttsVoiceSelector.addEventListener("change", (event) => {
+  if (elements.ttsVoiceSelector) {
+    elements.ttsVoiceSelector.addEventListener("change", (event) => {
       ttsConfig.voice = event.target.value;
     });
   }
 
-  if (window.ttsInstructionsInput) {
-    window.ttsInstructionsInput.addEventListener("change", (event) => {
+  if (elements.ttsInstructionsInput) {
+    elements.ttsInstructionsInput.addEventListener("change", (event) => {
       ttsConfig.instructions = event.target.value;
     });
   }
 
-  if (window.testTtsButton) {
-    window.testTtsButton.addEventListener("click", () => {
+  if (elements.testTtsButton) {
+    elements.testTtsButton.addEventListener("click", () => {
       if (!ttsConfig.enabled) {
         console.warn("TTS is disabled. Enable it first to test.");
         return;
@@ -89,14 +90,14 @@ export function setupTtsEventListeners() {
     });
   }
 
-  if (window.stopTtsButton) {
-    window.stopTtsButton.addEventListener("click", () => {
+  if (elements.stopTtsButton) {
+    elements.stopTtsButton.addEventListener("click", () => {
       stopTtsAudio();
     });
   }
 
-  if (window.clearTtsCacheButton) {
-    window.clearTtsCacheButton.addEventListener("click", () => {
+  if (elements.clearTtsCacheButton) {
+    elements.clearTtsCacheButton.addEventListener("click", () => {
       clearTtsAudioResources();
     });
   }

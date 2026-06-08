@@ -1,3 +1,4 @@
+import { elements } from "../init/state.js";
 /**
  * Utility functions to handle mobile keyboard behavior and scrolling optimization
  */
@@ -19,15 +20,15 @@ export function setupMobileKeyboardHandling() {
   if (window.visualViewport) {
     // Use visualViewport API to detect keyboard appearance
     window.visualViewport.addEventListener("resize", () => {
-      if (document.activeElement === window.userInput) {
+      if (document.activeElement === elements.userInput) {
         scrollInputIntoView();
       }
     });
   }
 
   // Add focus event to scroll input into view when focused
-  if (window.userInput) {
-    window.userInput.addEventListener("focus", scrollInputIntoView);
+  if (elements.userInput) {
+    elements.userInput.addEventListener("focus", scrollInputIntoView);
   }
 }
 
@@ -58,7 +59,7 @@ export function scrollInputIntoView() {
  * Safely focuses the user input field, handling mobile differences
  */
 export function focusUserInputSafely() {
-  if (!window.userInput) {
+  if (!elements.userInput) {
     return;
   }
 
@@ -66,7 +67,7 @@ export function focusUserInputSafely() {
 
   if (!isMobile) {
     // On desktop, focus immediately
-    window.userInput.focus();
+    elements.userInput.focus();
   } else {
     // On mobile we intentionally avoid forcing focus to prevent unwanted keyboard popups.
   }

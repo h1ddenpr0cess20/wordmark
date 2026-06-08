@@ -1,3 +1,4 @@
+import { elements } from "../../init/state.js";
 import { showError } from "../../utils/notifications.js";
 import { exportAudioForDownload } from "../../utils/audioStorage.js";
 import { ttsConfig, ttsRuntime, ttsSvgIcons, ttsMessageQueue } from "./config.js";
@@ -55,8 +56,8 @@ export async function generateTtsForMessage(text, messageId) {
           }, 30000);
         }
 
-        if (window.ttsToggle) {
-          window.ttsToggle.checked = false;
+        if (elements.ttsToggle) {
+          elements.ttsToggle.checked = false;
           ttsConfig.enabled = false;
         }
       }

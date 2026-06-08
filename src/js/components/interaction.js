@@ -1,3 +1,4 @@
+import { elements, state } from "../init/state.js";
 import { showError,showInfo } from "../utils/notifications.js";
 /**
  * User interaction handling for the chatbot application
@@ -23,7 +24,7 @@ import { getVerbosity, getReasoningEffort } from "../init/modelSettings.js";
  * Sends a message to the API and handles the response
  */
 export async function sendMessage() {
-  const message = window.userInput.value.trim();
+  const message = elements.userInput.value.trim();
   const hasImages = window.pendingUploads && window.pendingUploads.length > 0;
   const hasDocuments = window.pendingDocuments && window.pendingDocuments.length > 0;
 
@@ -34,19 +35,19 @@ export async function sendMessage() {
     return;
   }
 
-  window.shouldStopGeneration = false;
+  state.shouldStopGeneration = false;
 
   if (window.VERBOSE_LOGGING) {
     console.info("New message send initiated:", message);
   }
 
   // Transform send button into stop button
-  window.sendButton.classList.add("stop-mode");
-  window.sendButton.title = "Stop generation";
+  elements.sendButton.classList.add("stop-mode");
+  elements.sendButton.title = "Stop generation";
 
   // Change button action to stop generation
-  window.sendButton.removeEventListener("click", sendMessage);
-  window.sendButton.addEventListener("click", stopGeneration);
+  elements.sendButton.removeEventListener("click", sendMessage);
+  elements.sendButton.addEventListener("click", stopGeneration);
 
   // Handle standalone image uploads (not part of a directory)
   const uploads = window.pendingUploads || [];
@@ -75,8 +76,8 @@ export async function sendMessage() {
       uploaded: true,
       timestamp: up.timestamp,
     });
-    if (window.imageDataCache && typeof window.imageDataCache.set === "function" && filename && up.dataUrl) {
-      window.imageDataCache.set(filename, up.dataUrl);
+    if (state.imageDataCache && typeof state.imageDataCache.set === "function" && filename && up.dataUrl) {
+      state.imageDataCache.set(filename, up.dataUrl);
     }
   });
 
@@ -151,7 +152,7 @@ export async function sendMessage() {
   const userElement = appendMessage("You", userHtml, "user", true);
   const userId = userElement ? userElement.id : generateMessageId();
   const historyContent = placeholders.length > 0 ? `${placeholders.join("\n")}\n\n${message}` : message;
-  window.conversationHistory.push({
+  state.conversationHistory.push({
     role: "user",
     content: historyContent,
     id: userId,
@@ -160,9 +161,9 @@ export async function sendMessage() {
   });
   addMessageCopyButton(userElement, userId);
   if (uploads.length > 0) {
-    window.generatedImages = window.generatedImages || [];
+    state.generatedImages = state.generatedImages || [];
     for (const up of uploads) {
-      window.generatedImages.push({
+      state.generatedImages.push({
         url: up.dataUrl,
         tool: "upload",
         prompt: "",
@@ -200,26 +201,26 @@ export async function sendMessage() {
   saveCurrentConversation();
 
   // Clear input and adjust height
-  window.userInput.value = "";
-  window.userInput.style.height = "auto";
+  elements.userInput.value = "";
+  elements.userInput.style.height = "auto";
 
   // Create loading message with pure animation
   const loadingId = `loading-${Date.now()}`;
   const loadingHTML = "<div class=\"loading-animation\"><div class=\"loading-dot\"></div><div class=\"loading-dot\"></div><div class=\"loading-dot\"></div></div>";
   appendMessage("Assistant", loadingHTML, "assistant", true);
-  const loadingElement = window.chatBox.lastElementChild;
+  const loadingElement = elements.chatBox.lastElementChild;
   loadingElement.id = loadingId;
 
   // Update browser URL
   updateBrowserHistory();
   console.info("Browser history updated.");
 
-  window.activeLoadingMessageId = loadingId;
-  window.isResponsePending = true;
+  state.activeLoadingMessageId = loadingId;
+  state.isResponsePending = true;
 
   // Handle document uploads if present
   let vectorStoreId = window.activeVectorStore || null;
-  const activeServiceKey = window.serviceSelector ? window.serviceSelector.value : "openai";
+  const activeServiceKey = elements.serviceSelector ? elements.serviceSelector.value : "openai";
   if (hasDocuments) {
     console.log("Has documents:", documentsToUpload.length);
 
@@ -247,7 +248,7 @@ export async function sendMessage() {
         }
 
         // Inject input_file parts into the last user message in conversation history
-        const lastUserMsg = window.conversationHistory[window.conversationHistory.length - 1];
+        const lastUserMsg = state.conversationHistory[state.conversationHistory.length - 1];
         if (lastUserMsg && lastUserMsg.role === "user") {
           const fileParts = fileIds.map(id => ({ type: "input_file", file_id: id }));
           if (typeof lastUserMsg.content === "string") {
@@ -328,15 +329,15 @@ export async function sendMessage() {
     }
 
     const abortController = new AbortController();
-    window.activeAbortController = abortController;
+    state.activeAbortController = abortController;
 
-    const requestMessages = Array.isArray(window.conversationHistory)
-      ? [...window.conversationHistory]
+    const requestMessages = Array.isArray(state.conversationHistory)
+      ? [...state.conversationHistory]
       : [];
 
     const result = await responsesClient.runTurn({
       inputMessages: requestMessages,
-      model: window.modelSelector ? window.modelSelector.value : undefined,
+      model: elements.modelSelector ? elements.modelSelector.value : undefined,
       verbosity: getVerbosity(),
       reasoningEffort: getReasoningEffort(),
       stream: true,
@@ -345,7 +346,7 @@ export async function sendMessage() {
       vectorStoreId,
     });
 
-    if (window.shouldStopGeneration) {
+    if (state.shouldStopGeneration) {
       return;
     }
 
@@ -377,7 +378,7 @@ export async function sendMessage() {
     if (uploads.length > 0) {
       stripBase64FromHistory(userId, placeholders);
     }
-    window.activeAbortController = null;
+    state.activeAbortController = null;
     resetSendButton();
   }
 }
@@ -386,26 +387,26 @@ export async function sendMessage() {
  * Stops ongoing generation
  */
 export function stopGeneration() {
-  if (!window.isResponsePending) {
+  if (!state.isResponsePending) {
     return;
   }
 
-  window.sendButton.disabled = true;
-  window.sendButton.classList.add("stopping");
-  window.sendButton.classList.remove("stop-mode");
+  elements.sendButton.disabled = true;
+  elements.sendButton.classList.add("stopping");
+  elements.sendButton.classList.remove("stop-mode");
 
-  window.shouldStopGeneration = true;
+  state.shouldStopGeneration = true;
 
-  if (window.activeAbortController) {
+  if (state.activeAbortController) {
     try {
-      window.activeAbortController.abort();
+      state.activeAbortController.abort();
     } catch (abortError) {
       console.warn("Abort controller error:", abortError);
     }
   }
 
-  if (window.activeLoadingMessageId) {
-    removeLoadingIndicator(window.activeLoadingMessageId);
+  if (state.activeLoadingMessageId) {
+    removeLoadingIndicator(state.activeLoadingMessageId);
   }
 
   resetSendButton();
@@ -419,29 +420,29 @@ export function stopGeneration() {
  * Resets the send button to its original state
  */
 export function resetSendButton() {
-  window.sendButton.classList.remove("stop-mode", "stopping");
-  window.sendButton.title = "Send message";
-  window.sendButton.disabled = false;
+  elements.sendButton.classList.remove("stop-mode", "stopping");
+  elements.sendButton.title = "Send message";
+  elements.sendButton.disabled = false;
 
-  window.activeLoadingMessageId = null;
-  window.isResponsePending = false;
-  window.shouldStopGeneration = false;
-  window.activeAbortController = null;
+  state.activeLoadingMessageId = null;
+  state.isResponsePending = false;
+  state.shouldStopGeneration = false;
+  state.activeAbortController = null;
 
   // Reset both button and enter key handlers
-  window.sendButton.removeEventListener("click", stopGeneration);
-  window.sendButton.addEventListener("click", sendMessage);
+  elements.sendButton.removeEventListener("click", stopGeneration);
+  elements.sendButton.addEventListener("click", sendMessage);
 
   // Make sure userInput is properly enabled but don't focus on mobile
-  if (window.userInput) {
-    window.userInput.disabled = false;
+  if (elements.userInput) {
+    elements.userInput.disabled = false;
 
     // Only focus on desktop devices, skip on mobile to prevent keyboard popup
     const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) ||
                     window.innerWidth <= 768;
 
     if (!isMobile) {
-      window.userInput.focus();
+      elements.userInput.focus();
     } else {
       // For mobile, ensure the input is visible without forcing focus
       scrollInputIntoView();

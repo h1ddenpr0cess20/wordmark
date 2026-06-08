@@ -1,3 +1,4 @@
+import { state } from "../init/state.js";
 import { icon } from "../utils/icons.js";
 import { addCopyButton, loadHighlightJS } from "../utils/highlight.js";
 /**
@@ -39,7 +40,7 @@ export function highlightAndAddCopyButtons(messageElement) {
       }
       addCopyButton(codeBlock);
     });
-  } else if (window.hljsLoaded) {
+  } else if (state.hljsLoaded) {
     if (typeof hljs !== "undefined") {
       codeBlocks.forEach((codeBlock) => {
         // Check if code block has no language class or only has the default hljs class
@@ -96,10 +97,10 @@ export function generateMessageId() {
  * @returns {string} Raw text content
  */
 function getRawMessageContent(messageId) {
-  if (!window.conversationHistory) {
+  if (!state.conversationHistory) {
     return "";
   }
-  const entry = window.conversationHistory.find(msg => msg.id === messageId);
+  const entry = state.conversationHistory.find(msg => msg.id === messageId);
   if (entry) {
     return entry.content || "";
   }

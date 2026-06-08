@@ -1,3 +1,4 @@
+import { elements, state } from "../../init/state.js";
 import { icon } from "../../utils/icons.js";
 import { initializeMarked } from "../../init/marked.js";
 import { fastScroll } from "../../utils/mobileHandling.js";
@@ -53,11 +54,11 @@ export function appendMessage(sender, content, type, skipHistory = false) {
 
   messageElement.appendChild(senderElement);
   messageElement.appendChild(contentElement);
-  window.chatBox.appendChild(messageElement);
+  elements.chatBox.appendChild(messageElement);
 
   // Mobile/optimized fast-scroll once the message element is in the DOM.
-  if (window.shouldAutoScroll && window.chatBox) {
-    fastScroll(window.chatBox, window.chatBox.scrollHeight);
+  if (state.shouldAutoScroll && elements.chatBox) {
+    fastScroll(elements.chatBox, elements.chatBox.scrollHeight);
   }
 
   setTimeout(() => {
@@ -82,12 +83,12 @@ export function appendMessage(sender, content, type, skipHistory = false) {
         console.error('Error setting up image interactions:', error);
       }
 
-      if (window.shouldAutoScroll) {
-        window.chatBox.scrollTop = window.chatBox.scrollHeight;
+      if (state.shouldAutoScroll) {
+        elements.chatBox.scrollTop = elements.chatBox.scrollHeight;
       }
 
       if ((type === 'user' || type === 'system') && !skipHistory) {
-        window.shouldAutoScroll = true;
+        state.shouldAutoScroll = true;
       }
     });
   }, 0);
@@ -100,7 +101,7 @@ export function appendAssistantMessage(assistantMessage, skipHistory = false) {
   if (!skipHistory) {
     msgId = generateMessageId();
 
-    window.conversationHistory.push({
+    state.conversationHistory.push({
       role: 'assistant',
       content: assistantMessage,
       id: msgId,

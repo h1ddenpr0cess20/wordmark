@@ -10,6 +10,7 @@ import {
   getAllConversationsFromDb,
 } from "../src/js/utils/conversationStorage.js";
 import { saveImageToDb } from "../src/js/utils/imageStorage.js";
+import { state, elements } from "../src/js/init/state.js";
 
 // Minimal fake IndexedDB (mirrors conversationStorage.spec.js)
 function createFakeIndexedDB() {
@@ -140,13 +141,43 @@ function flush() {
   return new Promise((resolve) => setImmediate(resolve));
 }
 
-async function resetDb(extraWindow = {}) {
+// persistence.js reads shared state via the state.js singleton. Distribute the
+// per-test fixture keys into state/elements; everything else (config,
+// ensureImagesHaveMessageIds, indexedDB, ...) stays on the window stub.
+const STATE_KEYS = new Set([
+  "conversationHistory", "generatedImages", "currentConversationId",
+  "currentConversationName", "loadedSystemPrompt",
+]);
+const ELEMENT_KEYS = new Set([
+  "chatBox", "modelSelector", "personalityPromptRadio", "personalityInput",
+  "customPromptRadio", "systemPromptCustom", "noPromptRadio",
+]);
+
+async function resetDb(extra = {}) {
   globalThis.window = {
     addEventListener: () => {},
     indexedDB: createFakeIndexedDB(),
     VERBOSE_LOGGING: false,
-    ...extraWindow,
   };
+  Object.assign(state, {
+    conversationHistory: [],
+    generatedImages: [],
+    currentConversationId: null,
+    currentConversationName: null,
+    loadedSystemPrompt: null,
+  });
+  for (const key of Object.keys(elements)) {
+    elements[key] = null;
+  }
+  for (const [key, value] of Object.entries(extra)) {
+    if (STATE_KEYS.has(key)) {
+      state[key] = value;
+    } else if (ELEMENT_KEYS.has(key)) {
+      elements[key] = value;
+    } else {
+      globalThis.window[key] = value;
+    }
+  }
   await initConversationDb();
 }
 
@@ -197,7 +228,7 @@ test("saveCurrentConversation filters metadata, persists images, and marks messa
   assert.ok(storedImage.filename.endsWith(".png"));
   assert.equal(storedImage.prompt, "sunset");
   assert.equal(storedImage.associatedMessageId, "m-assistant");
-  assert.equal(globalThis.window.currentConversationName, "Manual Title");
+  assert.equal(state.currentConversationName, "Manual Title");
 });
 
 test("loadConversation hydrates UI, preloads images, and filters developer messages", async () => {
@@ -232,12 +263,12 @@ test("loadConversation hydrates UI, preloads images, and filters developer messa
   // stub), so assert the observable state hydration loadConversation performs.
   const result = await loadConversation("1");
   assert.equal(result, true);
-  assert.equal(globalThis.window.chatBox.innerHTML, "");
+  assert.equal(elements.chatBox.innerHTML, "");
 
-  assert.equal(globalThis.window.conversationHistory.length, 1);
-  assert.equal(globalThis.window.conversationHistory[0].role, "assistant");
-  assert.equal(globalThis.window.generatedImages.length, 2);
-  assert.equal(globalThis.window.currentConversationId, "1");
+  assert.equal(state.conversationHistory.length, 1);
+  assert.equal(state.conversationHistory[0].role, "assistant");
+  assert.equal(state.generatedImages.length, 2);
+  assert.equal(state.currentConversationId, "1");
 });
 
 test("startNewConversation saves existing session and resets state", async () => {
@@ -260,8 +291,8 @@ test("startNewConversation saves existing session and resets state", async () =>
   const saved = await getAllConversationsFromDb();
   assert.ok(saved.some(convo => convo.id === "existing"));
 
-  assert.equal(globalThis.window.conversationHistory.length, 0);
-  assert.equal(globalThis.window.currentConversationId, null);
-  assert.equal(globalThis.window.currentConversationName, "Fresh Chat");
-  assert.equal(globalThis.window.chatBox.innerHTML, "");
+  assert.equal(state.conversationHistory.length, 0);
+  assert.equal(state.currentConversationId, null);
+  assert.equal(state.currentConversationName, "Fresh Chat");
+  assert.equal(elements.chatBox.innerHTML, "");
 });

@@ -1,3 +1,4 @@
+import { elements, state } from "../../init/state.js";
 import {
   IMAGE_GENERATION_CALL_TYPE,
   collectImageCandidates,
@@ -123,8 +124,8 @@ export function createStreamingRuntime({
       console.warn('Error highlighting code during streaming:', err);
     }
 
-    if (window.shouldAutoScroll) {
-      fastScroll(window.chatBox, window.chatBox.scrollHeight);
+    if (state.shouldAutoScroll) {
+      fastScroll(elements.chatBox, elements.chatBox.scrollHeight);
     }
   }
 

@@ -1,3 +1,4 @@
+import { elements } from "../init/state.js";
 import { showInfo } from "../utils/notifications.js";
 import { getMemoryConfig } from "../utils/memoryStorage.js";
 import { updateFeatureStatus } from "./settings.js";
@@ -42,8 +43,8 @@ let getToolsDescription;
   }
 
   function getActiveModelName() {
-    if (window.modelSelector && window.modelSelector.value) {
-      return window.modelSelector.value;
+    if (elements.modelSelector && elements.modelSelector.value) {
+      return elements.modelSelector.value;
     }
     if (window.config && typeof window.config.getDefaultModel === "function") {
       try {
@@ -369,10 +370,10 @@ let getToolsDescription;
     enableAllButton = document.getElementById("enable-all-tools");
     disableAllButton = document.getElementById("disable-all-tools");
 
-    if (window.toolCallingToggle) {
-      window.toolCallingToggle.disabled = false;
-      window.toolCallingToggle.removeAttribute("aria-disabled");
-      window.toolCallingToggle.title = "";
+    if (elements.toolCallingToggle) {
+      elements.toolCallingToggle.disabled = false;
+      elements.toolCallingToggle.removeAttribute("aria-disabled");
+      elements.toolCallingToggle.title = "";
     }
 
     bindBulkActions();
@@ -397,8 +398,8 @@ let getToolsDescription;
   };
 
   updateMasterToolCallingStatus = function(enabled) {
-    if (window.toolCallingToggle) {
-      window.toolCallingToggle.checked = enabled;
+    if (elements.toolCallingToggle) {
+      elements.toolCallingToggle.checked = enabled;
     }
     if (window.config) {
       window.config.enableFunctionCalling = enabled;

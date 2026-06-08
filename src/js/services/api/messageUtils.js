@@ -1,3 +1,4 @@
+import { elements, state } from "../../init/state.js";
 import { getMemoriesForPrompt } from "../../utils/memoryStorage.js";
 import { getLocationForPrompt } from "../location.js";
 import { getMediaToolInstructions } from "../mediaTools.js";
@@ -59,16 +60,16 @@ function resolveImageUrl(filename, attachments = []) {
     }
   }
 
-  if (!candidate && typeof window !== 'undefined') {
+  if (!candidate) {
     try {
-      if (window.imageDataCache && typeof window.imageDataCache.get === 'function') {
-        const cached = window.imageDataCache.get(normalized);
+      if (state.imageDataCache && typeof state.imageDataCache.get === 'function') {
+        const cached = state.imageDataCache.get(normalized);
         if (cached) {
           candidate = cached;
         }
       }
-      if (!candidate && Array.isArray(window.generatedImages)) {
-        const galleryEntry = window.generatedImages.find(img =>
+      if (!candidate && Array.isArray(state.generatedImages)) {
+        const galleryEntry = state.generatedImages.find(img =>
           img && img.filename === normalized,
         );
         if (galleryEntry) {
@@ -336,16 +337,16 @@ export function collectFunctionCalls(responseOutput = []) {
 }
 
 export function buildInstructions() {
-  if (window.noPromptRadio && window.noPromptRadio.checked) {
+  if (elements.noPromptRadio && elements.noPromptRadio.checked) {
     return '';
   }
-  if (window.customPromptRadio && window.customPromptRadio.checked && window.systemPromptCustom) {
-    const custom = window.systemPromptCustom.value.trim();
+  if (elements.customPromptRadio && elements.customPromptRadio.checked && elements.systemPromptCustom) {
+    const custom = elements.systemPromptCustom.value.trim();
     if (custom) {
       return custom;
     }
   }
-  if (window.personalityPromptRadio && window.personalityPromptRadio.checked) {
+  if (elements.personalityPromptRadio && elements.personalityPromptRadio.checked) {
     return buildPersonalityInstruction();
   }
   const basePrompt = window.DEFAULT_SYSTEM_PROMPT || '';
@@ -394,7 +395,7 @@ export function buildDeveloperMessage(model) {
 }
 
 function buildPersonalityInstruction() {
-  const personality = (window.personalityInput && window.personalityInput.value.trim())
+  const personality = (elements.personalityInput && elements.personalityInput.value.trim())
     || window.DEFAULT_PERSONALITY
     || 'a helpful assistant';
   const template = window.PERSONALITY_PROMPT_TEMPLATE

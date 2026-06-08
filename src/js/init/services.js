@@ -2,6 +2,7 @@
  * Service and model initialization for the chatbot application
  */
 
+import { elements, state } from "./state.js";
 import { updateParameterControls } from "../components/ui/settingsControls.js";
 import { updateHeaderInfo, updateModelSelector, updateFeatureStatus, populateServiceSelector } from "../components/settings.js";
 import { updateMasterToolCallingStatus, refreshToolSettingsUI } from "../components/tools.js";
@@ -11,12 +12,12 @@ import { updateMasterToolCallingStatus, refreshToolSettingsUI } from "../compone
  */
 export function initializeServicesAndModels() {
   // Initialize the service selector
-  if (window.serviceSelector && window.config) {
+  if (elements.serviceSelector && window.config) {
     populateServiceSelector();
     if (typeof window.config.normalizeServiceKey === "function") {
       window.config.defaultService = window.config.normalizeServiceKey(window.config.defaultService);
     }
-    window.serviceSelector.value = window.config.defaultService;
+    elements.serviceSelector.value = window.config.defaultService;
     if (window.VERBOSE_LOGGING) {
       console.info("Service selector initialized.");
     }
@@ -71,8 +72,8 @@ export async function selectDefaultService() {
     }
     if (Array.isArray(svc.models) && svc.models.some(isUsableModel)) {
       window.config.defaultService = local;
-      if (window.serviceSelector) {
-        window.serviceSelector.value = local;
+      if (elements.serviceSelector) {
+        elements.serviceSelector.value = local;
       }
       updateModelSelector();
 
@@ -120,14 +121,14 @@ export function initializeServiceModels() {
  */
 export function initializeConversationName() {
   // Set initial conversation name based on personality/prompt type
-  if (window.personalityPromptRadio && window.personalityPromptRadio.checked && window.personalityInput) {
-    window.currentConversationName = `Personality: ${window.personalityInput.value.trim()}`;
-  } else if (window.customPromptRadio && window.customPromptRadio.checked) {
-    window.currentConversationName = "Custom Prompt";
-  } else if (window.noPromptRadio && window.noPromptRadio.checked) {
-    window.currentConversationName = "No System Prompt";
+  if (elements.personalityPromptRadio && elements.personalityPromptRadio.checked && elements.personalityInput) {
+    state.currentConversationName = `Personality: ${elements.personalityInput.value.trim()}`;
+  } else if (elements.customPromptRadio && elements.customPromptRadio.checked) {
+    state.currentConversationName = "Custom Prompt";
+  } else if (elements.noPromptRadio && elements.noPromptRadio.checked) {
+    state.currentConversationName = "No System Prompt";
   } else {
-    window.currentConversationName = `Personality: ${window.DEFAULT_PERSONALITY}`;
+    state.currentConversationName = `Personality: ${window.DEFAULT_PERSONALITY}`;
   }
 }
 
@@ -136,16 +137,16 @@ export function initializeConversationName() {
  */
 export function initializeDefaultValues() {
   // Initialize default values from config
-  if (window.systemPromptCustom) {
-    window.systemPromptCustom.value = window.DEFAULT_SYSTEM_PROMPT;
+  if (elements.systemPromptCustom) {
+    elements.systemPromptCustom.value = window.DEFAULT_SYSTEM_PROMPT;
     if (window.VERBOSE_LOGGING) {
       console.info("Default system prompt set.");
     }
   }
 
-  if (window.personalityInput) {
-    window.personalityInput.value = window.DEFAULT_PERSONALITY;
-    window.personalityInput.setAttribute("data-explicitly-set", "true");
+  if (elements.personalityInput) {
+    elements.personalityInput.value = window.DEFAULT_PERSONALITY;
+    elements.personalityInput.setAttribute("data-explicitly-set", "true");
     if (window.VERBOSE_LOGGING) {
       console.info("Default personality set.");
     }
@@ -166,11 +167,11 @@ export function initializeToolCalling() {
 
   window.config.enableFunctionCalling = enabled;
 
-  if (window.toolCallingToggle) {
-    window.toolCallingToggle.checked = enabled;
-    window.toolCallingToggle.disabled = false;
-    window.toolCallingToggle.removeAttribute("aria-disabled");
-    window.toolCallingToggle.title = enabled ? "Tool calling is enabled." : "Tool calling is disabled.";
+  if (elements.toolCallingToggle) {
+    elements.toolCallingToggle.checked = enabled;
+    elements.toolCallingToggle.disabled = false;
+    elements.toolCallingToggle.removeAttribute("aria-disabled");
+    elements.toolCallingToggle.title = enabled ? "Tool calling is enabled." : "Tool calling is disabled.";
   }
 
   updateMasterToolCallingStatus(enabled);
@@ -184,7 +185,7 @@ export function initializeToolCalling() {
  * Initialize Verbose Mode toggle
  */
 export function initializeVerboseMode() {
-  if (!window.verboseModeToggle) return;
+  if (!elements.verboseModeToggle) return;
 
   let enabled = false;
   const stored = localStorage.getItem("verboseModeEnabled");
@@ -192,7 +193,7 @@ export function initializeVerboseMode() {
     enabled = stored === "true";
   }
 
-  window.verboseModeToggle.checked = enabled;
+  elements.verboseModeToggle.checked = enabled;
   // Set the guideline string based on toggle
   if (enabled) {
     window.SHORT_RESPONSE_GUIDELINE = "";

@@ -1,3 +1,4 @@
+import { elements, state } from "../../init/state.js";
 import { saveConversationToDb } from "../../utils/conversationStorage.js";
 import { appendMessage } from "../../components/ui/chatMessages.js";
 import { updateHeaderInfo } from "../../components/settings.js";
@@ -6,21 +7,21 @@ export function updateBrowserHistory() {
   let systemPromptValue = '';
   let promptType = 'none';
 
-  if (window.personalityPromptRadio?.checked) {
+  if (elements.personalityPromptRadio?.checked) {
     promptType = 'personality';
-    systemPromptValue = window.personalityInput?.value?.trim() || '';
-  } else if (window.customPromptRadio?.checked) {
+    systemPromptValue = elements.personalityInput?.value?.trim() || '';
+  } else if (elements.customPromptRadio?.checked) {
     promptType = 'custom';
-    systemPromptValue = window.systemPromptCustom?.value || '';
+    systemPromptValue = elements.systemPromptCustom?.value || '';
   }
 
   const newHistoryState = {
-    conversationHistory: [...(window.conversationHistory || [])],
+    conversationHistory: [...(state.conversationHistory || [])],
     historyStateId: Date.now(),
-    modelSelection: window.modelSelector?.value,
-    serviceSelection: window.serviceSelector?.value,
+    modelSelection: elements.modelSelector?.value,
+    serviceSelection: elements.serviceSelector?.value,
     promptType,
-    personalityValue: window.personalityInput?.value,
+    personalityValue: elements.personalityInput?.value,
     systemPrompt: systemPromptValue,
   };
 
@@ -39,7 +40,7 @@ export function loadFromUrl() {
     }
 
     const chatData = JSON.parse(decodeURIComponent(urlParams.get('chat')));
-    window.conversationHistory = chatData.messages || [];
+    state.conversationHistory = chatData.messages || [];
 
     (chatData.messages || []).forEach((msg) => {
       if (msg.role !== 'system') {
@@ -47,12 +48,12 @@ export function loadFromUrl() {
       }
     });
 
-    if (chatData.model && window.modelSelector) {
-      const modelOption = Array.from(window.modelSelector.options || []).find(
+    if (chatData.model && elements.modelSelector) {
+      const modelOption = Array.from(elements.modelSelector.options || []).find(
         option => option.value === chatData.model,
       );
       if (modelOption) {
-        window.modelSelector.value = chatData.model;
+        elements.modelSelector.value = chatData.model;
         updateHeaderInfo?.();
       }
     }
@@ -63,9 +64,9 @@ export function loadFromUrl() {
       name: chatData.name || `Imported Conversation ${now.toLocaleString()}`,
       created: chatData.created || now.toISOString(),
       updated: now.toISOString(),
-      messages: window.conversationHistory,
+      messages: state.conversationHistory,
       images: chatData.images || [],
-      model: chatData.model || window.modelSelector?.value || 'Unknown',
+      model: chatData.model || elements.modelSelector?.value || 'Unknown',
       service: chatData.service || window.config?.defaultService || 'Unknown',
       systemPrompt: chatData.systemPrompt || {
         type: 'none',
@@ -73,8 +74,8 @@ export function loadFromUrl() {
       },
     };
 
-    window.currentConversationId = conversation.id;
-    window.currentConversationName = conversation.name;
+    state.currentConversationId = conversation.id;
+    state.currentConversationName = conversation.name;
 
     saveConversationToDb?.(conversation)
       .then((id) => {

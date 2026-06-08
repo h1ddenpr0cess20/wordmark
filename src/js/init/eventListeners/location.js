@@ -1,12 +1,13 @@
+import { elements } from "../state.js";
 import { showError } from "../../utils/notifications.js";
 import { updateFeatureStatus } from "../../components/settings.js";
 import { requestLocation, disableLocation, updateLocationUI } from "../../services/location.js";
 export function setupLocationEventListeners() {
-  if (!window.locationToggle) {
+  if (!elements.locationToggle) {
     return;
   }
 
-  window.locationToggle.addEventListener('change', async(event) => {
+  elements.locationToggle.addEventListener('change', async(event) => {
     const isEnabled = event.target.checked;
 
     if (isEnabled) {
@@ -18,7 +19,7 @@ export function setupLocationEventListeners() {
           console.info('Location enabled:', result.locationString);
         }
       } else {
-        window.locationToggle.checked = false;
+        elements.locationToggle.checked = false;
                         updateLocationUI();
       
                         showError(`Location request failed: ${result.error}`);

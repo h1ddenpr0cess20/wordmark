@@ -2,6 +2,7 @@
  * TTS initialization for the chatbot application
  */
 
+import { elements } from "./state.js";
 import { setupMobileKeyboardHandling } from "../utils/mobileHandling.js";
 import { ttsConfig, availableTtsVoices, initTtsReferences } from "../services/tts.js";
 
@@ -12,30 +13,30 @@ export function initializeTts() {
   if (!ttsConfig) return;
 
   // Initialize TTS provider selector
-  if (window.ttsProviderSelector) {
+  if (elements.ttsProviderSelector) {
     const provider = availableTtsVoices?.[ttsConfig.provider] ? ttsConfig.provider : "openai";
     ttsConfig.provider = provider;
-    window.ttsProviderSelector.value = provider;
+    elements.ttsProviderSelector.value = provider;
   }
 
   // Populate TTS voice selector
   populateTtsVoiceSelector();
 
   // Initialize TTS toggle state
-  if (window.ttsToggle) {
-    window.ttsToggle.checked = ttsConfig.enabled;
+  if (elements.ttsToggle) {
+    elements.ttsToggle.checked = ttsConfig.enabled;
   }
 
   // Initialize TTS autoplay toggle state
-  if (window.ttsAutoplayToggle) {
-    window.ttsAutoplayToggle.checked = ttsConfig.autoplay;
+  if (elements.ttsAutoplayToggle) {
+    elements.ttsAutoplayToggle.checked = ttsConfig.autoplay;
   }
 
   // Initialize TTS instructions
-  if (window.ttsInstructionsInput) {
-    window.ttsInstructionsInput.value = ttsConfig.instructions || "";
+  if (elements.ttsInstructionsInput) {
+    elements.ttsInstructionsInput.value = ttsConfig.instructions || "";
     // xAI TTS doesn't support voice instructions
-    const instructionsItem = window.ttsInstructionsInput.closest(".setting-item");
+    const instructionsItem = elements.ttsInstructionsInput.closest(".setting-item");
     if (instructionsItem) {
       instructionsItem.style.display = (ttsConfig.provider || "openai") === "xai" ? "none" : "";
     }
@@ -49,8 +50,8 @@ export function initializeTts() {
  * Populate the TTS voice selector with available voices
  */
 export function populateTtsVoiceSelector() {
-  if (window.ttsVoiceSelector && availableTtsVoices && ttsConfig) {
-    window.ttsVoiceSelector.innerHTML = "";
+  if (elements.ttsVoiceSelector && availableTtsVoices && ttsConfig) {
+    elements.ttsVoiceSelector.innerHTML = "";
 
     const provider = ttsConfig.provider || "openai";
     const voices = availableTtsVoices[provider];
@@ -69,7 +70,7 @@ export function populateTtsVoiceSelector() {
           option.textContent = voice.name;
           group.appendChild(option);
         });
-        window.ttsVoiceSelector.appendChild(group);
+        elements.ttsVoiceSelector.appendChild(group);
       }
     }
 
@@ -78,7 +79,7 @@ export function populateTtsVoiceSelector() {
     if (!allVoiceIds.includes(ttsConfig.voice)) {
       ttsConfig.voice = allVoiceIds[0] || "";
     }
-    window.ttsVoiceSelector.value = ttsConfig.voice;
+    elements.ttsVoiceSelector.value = ttsConfig.voice;
   }
 }
 

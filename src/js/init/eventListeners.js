@@ -1,3 +1,4 @@
+import { elements } from "./state.js";
 import { showError } from "../utils/notifications.js";
 import { getDataSettingsEnabled, setDataSettingsEnabled, updateFeatureStatus } from "../components/settings.js";
 import { loadVectorStoreModule, lazyModulesLoaded } from "../utils/lazyLoader.js";
@@ -17,7 +18,7 @@ export function setupEventListeners() {
     console.info("Setting up event listeners...");
   }
 
-  if (!window.userInput || !window.sendButton) {
+  if (!elements.userInput || !elements.sendButton) {
     console.error("Essential UI elements not found. Check your HTML structure.");
     return;
   }
@@ -34,8 +35,8 @@ export function setupEventListeners() {
   setupChatHistoryEventListeners();
   setupDebugEventListeners();
 
-  if (window.verboseModeToggle) {
-    window.verboseModeToggle.addEventListener("change", (e) => {
+  if (elements.verboseModeToggle) {
+    elements.verboseModeToggle.addEventListener("change", (e) => {
       const enabled = e.target.checked;
       if (enabled) {
         window.SHORT_RESPONSE_GUIDELINE = "";
@@ -46,13 +47,13 @@ export function setupEventListeners() {
     });
   }
 
-  if (window.dataSettingsToggle) {
+  if (elements.dataSettingsToggle) {
     try {
       const enabled = getDataSettingsEnabled();
-      window.dataSettingsToggle.checked = enabled;
+      elements.dataSettingsToggle.checked = enabled;
     } catch {}
 
-    window.dataSettingsToggle.addEventListener("change", (e) => {
+    elements.dataSettingsToggle.addEventListener("change", (e) => {
       const on = e.target.checked;
       setDataSettingsEnabled(on);
       updateFeatureStatus();
@@ -62,9 +63,9 @@ export function setupEventListeners() {
     if (dataToggleLabel) {
       dataToggleLabel.addEventListener("click", (ev) => {
         ev.preventDefault();
-        const newVal = !window.dataSettingsToggle.checked;
-        window.dataSettingsToggle.checked = newVal;
-        window.dataSettingsToggle.dispatchEvent(new Event("change", { bubbles: true }));
+        const newVal = !elements.dataSettingsToggle.checked;
+        elements.dataSettingsToggle.checked = newVal;
+        elements.dataSettingsToggle.dispatchEvent(new Event("change", { bubbles: true }));
       });
     }
   }

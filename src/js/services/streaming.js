@@ -1,3 +1,4 @@
+import { elements, state } from "../init/state.js";
 import { ensureImagesHaveMessageIds } from "./streaming/imageGeneration.js";
 import { createStreamingRuntime } from "./streaming/runtime.js";
 import { createStreamingEventProcessor } from "./streaming/eventProcessor.js";
@@ -31,10 +32,10 @@ export async function handleStreamedResponse(response, loadingId) {
     contentWrapper.appendChild(mainContentContainer);
   }
 
-  if (window.currentGeneratedImageHtml && window.currentGeneratedImageHtml.length > 0) {
+  if (state.currentGeneratedImageHtml && state.currentGeneratedImageHtml.length > 0) {
     const imagesContainer = document.createElement("div");
     imagesContainer.className = "generated-images";
-    imagesContainer.innerHTML = window.currentGeneratedImageHtml.join("");
+    imagesContainer.innerHTML = state.currentGeneratedImageHtml.join("");
     contentWrapper.appendChild(imagesContainer);
     setupImageInteractions(contentWrapper);
   }
@@ -55,8 +56,8 @@ export async function handleStreamedResponse(response, loadingId) {
   });
   const processor = createStreamingEventProcessor(runtime);
 
-  window.shouldAutoScroll = true;
-  window.chatBox.scrollTop = window.chatBox.scrollHeight;
+  state.shouldAutoScroll = true;
+  elements.chatBox.scrollTop = elements.chatBox.scrollHeight;
 
   const decoder = new TextDecoder();
   let buffer = "";
@@ -72,7 +73,7 @@ export async function handleStreamedResponse(response, loadingId) {
   }
 
   try {
-    while (!window.shouldStopGeneration) {
+    while (!state.shouldStopGeneration) {
       const { done, value } = await reader.read();
       if (done) {
         flushEvent();
@@ -104,7 +105,7 @@ export async function handleStreamedResponse(response, loadingId) {
       throw streamError;
     }
   } finally {
-    window.shouldStopGeneration = false;
+    state.shouldStopGeneration = false;
   }
 
   processor.finalize();

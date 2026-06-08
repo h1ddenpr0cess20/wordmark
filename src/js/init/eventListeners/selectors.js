@@ -1,3 +1,4 @@
+import { elements } from "../state.js";
 import { ensureApiKeysLoaded } from "../../services/apiKeys.js";
 import { updateBrowserHistory } from "../../services/history/state.js";
 import { responsesClient } from "../../services/api.js";
@@ -7,9 +8,9 @@ import { refreshToolSettingsUI } from "../../components/tools.js";
 import { updateReasoningAvailability } from "../modelSettings.js";
 
 export function setupSelectorEventListeners() {
-  if (window.modelSelector) {
-    window.modelSelector.addEventListener('change', () => {
-      window.modelSelector.setAttribute('data-last-selected', window.modelSelector.value);
+  if (elements.modelSelector) {
+    elements.modelSelector.addEventListener('change', () => {
+      elements.modelSelector.setAttribute('data-last-selected', elements.modelSelector.value);
                   updateHeaderInfo();
     
       updateReasoningAvailability();
@@ -19,11 +20,11 @@ export function setupSelectorEventListeners() {
     });
   }
 
-  if (window.serviceSelector) {
-    window.serviceSelector.addEventListener('change', async() => {
-      const selectedService = window.serviceSelector.value;
+  if (elements.serviceSelector) {
+    elements.serviceSelector.addEventListener('change', async() => {
+      const selectedService = elements.serviceSelector.value;
       if (window.config && typeof window.config.isServiceEnabled === 'function' && !window.config.isServiceEnabled(selectedService)) {
-        window.serviceSelector.value = window.config.normalizeServiceKey?.(window.config.defaultService) || 'openai';
+        elements.serviceSelector.value = window.config.normalizeServiceKey?.(window.config.defaultService) || 'openai';
         return;
       }
       window.config.defaultService = selectedService;

@@ -1,5 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
+import { state, elements } from '../src/js/init/state.js';
 
 function createLocalStorage(initial = {}) {
   const store = new Map(Object.entries(initial));
@@ -31,7 +32,7 @@ test('handleExportFormatChange normalises aliases and persists preference', () =
   const storage = createLocalStorage();
   globalThis.localStorage = storage;
   const exportFormatSelector = { value: 'markdown' };
-  globalThis.window = { exportFormatSelector };
+  elements.exportFormatSelector = exportFormatSelector;
 
   handleExportFormatChange({ target: exportFormatSelector });
 
@@ -42,7 +43,7 @@ test('handleExportFormatChange normalises aliases and persists preference', () =
 test('initializeExportControls applies stored preference aliases', () => {
   globalThis.localStorage = createLocalStorage({ chatExportFormat: 'plaintext' });
   const exportFormatSelector = { value: '' };
-  globalThis.window = { exportFormatSelector };
+  elements.exportFormatSelector = exportFormatSelector;
 
   initializeExportControls();
   assert.equal(exportFormatSelector.value, 'txt');
@@ -81,18 +82,17 @@ test('exportChat builds markdown export, dedupes reasoning, and triggers downloa
     revokeObjectURL(url) { urlCalls.revoke.push(url); },
   };
 
-  globalThis.window = {
-    exportFormatSelector,
-    conversationHistory: [
-      { role: 'user', content: 'Hello assistant', reasoning: [], timestamp: '2024-01-01T10:00:00Z' },
-      {
-        role: 'assistant',
-        content: 'Hi human!',
-        reasoning: ['First thought', 'First thought', 'Second thought'],
-        timestamp: '2024-01-01T10:00:05Z',
-      },
-    ],
-  };
+  globalThis.window = {};
+  elements.exportFormatSelector = exportFormatSelector;
+  state.conversationHistory = [
+    { role: 'user', content: 'Hello assistant', reasoning: [], timestamp: '2024-01-01T10:00:00Z' },
+    {
+      role: 'assistant',
+      content: 'Hi human!',
+      reasoning: ['First thought', 'First thought', 'Second thought'],
+      timestamp: '2024-01-01T10:00:05Z',
+    },
+  ];
 
   exportChat();
 

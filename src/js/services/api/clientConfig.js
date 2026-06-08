@@ -1,3 +1,4 @@
+import { elements } from "../../init/state.js";
 /**
  * Responses client configuration helpers.
  * Provides access to defaults and active service/model selectors.
@@ -30,8 +31,8 @@ function getFallbackServiceKey() {
 }
 
 export function getActiveModel() {
-  if (window.modelSelector && window.modelSelector.value) {
-    return window.modelSelector.value;
+  if (elements.modelSelector && elements.modelSelector.value) {
+    return elements.modelSelector.value;
   }
   if (window.config && typeof window.config.getDefaultModel === 'function') {
     return window.config.getDefaultModel();
@@ -40,7 +41,7 @@ export function getActiveModel() {
 }
 
 export function getActiveServiceKey() {
-  const selectedService = window.serviceSelector && window.serviceSelector.value;
+  const selectedService = elements.serviceSelector && elements.serviceSelector.value;
   if (isConfiguredServiceEnabled(selectedService)) {
     return selectedService;
   }

@@ -1,3 +1,4 @@
+import { elements, state } from "../../init/state.js";
 import {
   getAllConversationsFromDb,
   deleteConversationFromDb,
@@ -5,16 +6,16 @@ import {
 import { startNewConversation, loadConversation, renameConversation } from "./persistence.js";
 
 export function renderChatHistoryList() {
-  if (!window.historyList) {
+  if (!elements.historyList) {
     return;
   }
 
   getAllConversationsFromDb?.()
     .then((convos) => {
-      window.historyList.innerHTML = '';
+      elements.historyList.innerHTML = '';
 
       if (!convos || convos.length === 0) {
-        window.historyList.innerHTML = '<div class="history-empty">No saved conversations yet.</div>';
+        elements.historyList.innerHTML = '<div class="history-empty">No saved conversations yet.</div>';
         return;
       }
 
@@ -77,8 +78,8 @@ export function renderChatHistoryList() {
 
       newButton.onclick = () => {
         startNewConversation();
-        window.historyPanel?.setAttribute('aria-hidden', 'true');
-        window.historyButton?.setAttribute('aria-expanded', 'false');
+        elements.historyPanel?.setAttribute('aria-hidden', 'true');
+        elements.historyButton?.setAttribute('aria-expanded', 'false');
       };
 
       multiSelectCheckbox.onchange = () => {
@@ -115,8 +116,8 @@ export function renderChatHistoryList() {
         if (selectedRow) {
           const conversationId = selectedRow.dataset.conversationId;
           loadConversation(conversationId)?.then(() => {
-            window.historyPanel?.setAttribute('aria-hidden', 'true');
-            window.historyButton?.setAttribute('aria-expanded', 'false');
+            elements.historyPanel?.setAttribute('aria-hidden', 'true');
+            elements.historyButton?.setAttribute('aria-expanded', 'false');
           });
         }
       };
@@ -152,9 +153,9 @@ export function renderChatHistoryList() {
         Promise.all(conversationIds.map(id => deleteConversationFromDb?.(id)))
           .then(() => {
             conversationIds.forEach((id) => {
-              if (window.currentConversationId === id) {
-                window.currentConversationId = null;
-                window.currentConversationName = null;
+              if (state.currentConversationId === id) {
+                state.currentConversationId = null;
+                state.currentConversationName = null;
               }
             });
             renderChatHistoryList();
@@ -165,10 +166,10 @@ export function renderChatHistoryList() {
           });
       };
 
-      window.historyList.appendChild(toolbarDiv);
+      elements.historyList.appendChild(toolbarDiv);
 
       const handleKeydown = (e) => {
-        if (window.historyPanel?.getAttribute('aria-hidden') === 'true') {
+        if (elements.historyPanel?.getAttribute('aria-hidden') === 'true') {
           return;
         }
 
@@ -217,7 +218,7 @@ export function renderChatHistoryList() {
         row.className = 'history-row';
         row.dataset.conversationId = convo.id;
 
-        if (window.currentConversationId === convo.id) {
+        if (state.currentConversationId === convo.id) {
           row.classList.add('current-conversation');
         }
 
@@ -330,10 +331,10 @@ export function renderChatHistoryList() {
 
       table.appendChild(tbody);
       tableContainer.appendChild(table);
-      window.historyList.appendChild(tableContainer);
+      elements.historyList.appendChild(tableContainer);
     })
     .catch((err) => {
       console.error('Error loading conversations for history list:', err);
-      window.historyList.innerHTML = '<div class="history-error">Error loading conversation history.</div>';
+      elements.historyList.innerHTML = '<div class="history-error">Error loading conversation history.</div>';
     });
 };

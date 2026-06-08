@@ -1,3 +1,4 @@
+import { elements } from "../../init/state.js";
 import { ttsConfig } from "./config.js";
 
 export async function generateSpeech(text) {
@@ -28,10 +29,10 @@ async function generateSpeechOpenai(text) {
 
   let instructions = ttsConfig.instructions || "";
 
-  if (!instructions && window.personalityPromptRadio?.checked &&
-      window.personalityInput?.value.trim() !== "" &&
-      window.personalityInput?.getAttribute("data-explicitly-set") === "true") {
-    instructions = `Assume the personality of ${window.personalityInput.value.trim()}. Roleplay and never break character.  Do not read code blocks that appear between backticks or other non-speech content such as emotes which appear between asterisks in *italics* like that.`;
+  if (!instructions && elements.personalityPromptRadio?.checked &&
+      elements.personalityInput?.value.trim() !== "" &&
+      elements.personalityInput?.getAttribute("data-explicitly-set") === "true") {
+    instructions = `Assume the personality of ${elements.personalityInput.value.trim()}. Roleplay and never break character.  Do not read code blocks that appear between backticks or other non-speech content such as emotes which appear between asterisks in *italics* like that.`;
   }
 
   if (!instructions) {

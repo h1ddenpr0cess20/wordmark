@@ -3,6 +3,7 @@
  * Provides functions for storing and retrieving images from IndexedDB
  */
 
+import { state } from "../init/state.js";
 import { getMediaDisplayUrl } from "../services/mediaTools.js";
 
 // IndexedDB database configuration
@@ -107,8 +108,8 @@ export async function getStoredMediaDisplayUrl(filename) {
     throw new Error("A filename is required.");
   }
 
-  if (window.imageDataCache?.has(filename)) {
-    const cached = window.imageDataCache.get(filename);
+  if (state.imageDataCache?.has(filename)) {
+    const cached = state.imageDataCache.get(filename);
     if (cached) {
       return cached;
     }
@@ -119,8 +120,8 @@ export async function getStoredMediaDisplayUrl(filename) {
   if (!displayUrl) {
     throw new Error(`No display URL could be created for ${filename}`);
   }
-  if (window.imageDataCache?.set) {
-    window.imageDataCache.set(filename, displayUrl);
+  if (state.imageDataCache?.set) {
+    state.imageDataCache.set(filename, displayUrl);
   }
   return displayUrl;
 }
@@ -208,7 +209,7 @@ export function debugImageLoading(verbose = false) {
   console.log("Running image diagnostics...");
 
   // Check if conversation history exists
-  if (!window.conversationHistory || window.conversationHistory.length === 0) {
+  if (!state.conversationHistory || state.conversationHistory.length === 0) {
     console.warn("No conversation history found.");
     console.groupEnd();
     return { error: "No conversation history found" };
@@ -227,7 +228,7 @@ export function debugImageLoading(verbose = false) {
   };
 
   // Check each message for image references
-  window.conversationHistory.forEach((message, index) => {
+  state.conversationHistory.forEach((message, index) => {
     if (message.role !== "assistant" || !message.content) {
       return;
     }
@@ -273,13 +274,13 @@ export function debugImageLoading(verbose = false) {
   });
 
   // Check for generated images without message associations
-  if (window.generatedImages && window.generatedImages.length > 0) {
-    const unassociated = window.generatedImages.filter(img => !img.associatedMessageId).length;
+  if (state.generatedImages && state.generatedImages.length > 0) {
+    const unassociated = state.generatedImages.filter(img => !img.associatedMessageId).length;
     diagnostics.imagesWithoutAssociatedMessage = unassociated;
 
     if (verbose && unassociated > 0) {
       console.warn(`${unassociated} images don't have associated message IDs`);
-      window.generatedImages
+      state.generatedImages
         .filter(img => !img.associatedMessageId)
         .forEach(img => {
           console.log("Unassociated image:", img.filename, img.timestamp);

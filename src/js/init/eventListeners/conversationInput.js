@@ -1,14 +1,15 @@
+import { elements, state } from "../state.js";
 import { loadGalleryModule } from "../../utils/lazyLoader.js";
 import { sendMessage } from "../../components/interaction.js";
 export function initializeConversationInput() {
-  if (!window.userInput || !window.sendButton) {
+  if (!elements.userInput || !elements.sendButton) {
     return;
   }
 
-  window.userInput.addEventListener('keydown', (e) => {
+  elements.userInput.addEventListener('keydown', (e) => {
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault();
-      if (!window.activeAbortController && !window.isResponsePending) {
+      if (!state.activeAbortController && !state.isResponsePending) {
         sendMessage();
       } else {
         console.info('Message sending prevented - generation in progress');
@@ -16,7 +17,7 @@ export function initializeConversationInput() {
     }
   });
 
-  window.sendButton.addEventListener('click', sendMessage);
+  elements.sendButton.addEventListener('click', sendMessage);
 
   const svgSelectors = '#settings-button svg, #history-button svg, #gallery-button svg, .close-settings svg, .close-history svg, .close-gallery svg';
   document.querySelectorAll(svgSelectors).forEach((svg) => {
@@ -29,22 +30,22 @@ export function initializeConversationInput() {
     });
   });
 
-  window.userInput.addEventListener('input', () => {
-    window.userInput.style.height = '56px';
-    window.userInput.style.height = `${Math.max(56, window.userInput.scrollHeight)}px`;
+  elements.userInput.addEventListener('input', () => {
+    elements.userInput.style.height = '56px';
+    elements.userInput.style.height = `${Math.max(56, elements.userInput.scrollHeight)}px`;
   });
 
-  if (window.galleryButton) {
+  if (elements.galleryButton) {
     const firstGalleryClick = async(event) => {
       event.preventDefault();
       const mod = await loadGalleryModule();
       if (mod && typeof mod.initGallery === 'function') {
         mod.initGallery();
       }
-      window.galleryButton.removeEventListener('click', firstGalleryClick);
-      window.galleryButton.click();
+      elements.galleryButton.removeEventListener('click', firstGalleryClick);
+      elements.galleryButton.click();
     };
-    window.galleryButton.addEventListener('click', firstGalleryClick, { once: true });
+    elements.galleryButton.addEventListener('click', firstGalleryClick, { once: true });
   }
 }
 

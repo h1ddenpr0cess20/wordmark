@@ -1,3 +1,4 @@
+import { state } from "../init/state.js";
 import { icon } from "./icons.js";
 /**
  * Highlight.js integration and code formatting utilities
@@ -10,7 +11,7 @@ import hljs from "highlight.js";
 // as a no-op-friendly API for existing callers.
 if (typeof window !== "undefined") {
   window.hljs = hljs;
-  window.hljsLoaded = true;
+  state.hljsLoaded = true;
 }
 hljs.configure({
   ignoreUnescapedHTML: true,

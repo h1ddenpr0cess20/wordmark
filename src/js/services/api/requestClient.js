@@ -2,6 +2,7 @@
  * Network layer for the Responses API.
  */
 
+import { state } from "../../init/state.js";
 import {
   DEFAULT_VERBOSITY,
   DEFAULT_REASONING_EFFORT,
@@ -300,7 +301,7 @@ export async function runTurn({
     }
 
     if (!responsePayload) {
-      if ((abortController && abortController.signal && abortController.signal.aborted) || window.shouldStopGeneration) {
+      if ((abortController && abortController.signal && abortController.signal.aborted) || state.shouldStopGeneration) {
         throw new DOMException('Request aborted', 'AbortError');
       }
       throw new Error('Responses API did not return a final payload.');

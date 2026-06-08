@@ -1,5 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
+import { state } from "../src/js/init/state.js";
 
 // Fake FileReader to convert Blob to data URL deterministically
 class FakeFileReader {
@@ -120,7 +121,7 @@ test("getImageDataForUpload formats plain base64 to data URL", async () => {
 });
 
 test("debugImageLoading summarizes image placeholders in assistant messages", async () => {
-  globalThis.window.conversationHistory = [
+  state.conversationHistory = [
     { id: "u1", role: "user", content: "no images here" },
     { id: "a1", role: "assistant", content: "Here [[IMAGE: a.png]] and [[IMAGE: b.png]]" },
     { id: "a2", role: "assistant", content: "Another [[IMAGE: c.jpg]]" },
