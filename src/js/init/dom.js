@@ -22,6 +22,7 @@ export function initializeDOMReferences() {
   elements.serviceSelector = document.getElementById("service-selector");
   elements.reasoningEffortSelector = document.getElementById("reasoning-effort");
   elements.verbositySelector = document.getElementById("verbosity-level");
+  elements.historyTokenBudgetInput = document.getElementById("history-token-budget");
   elements.personalityPromptRadio = document.getElementById("personality-prompt");
   elements.customPromptRadio = document.getElementById("custom-prompt");
   elements.noPromptRadio = document.getElementById("no-prompt");

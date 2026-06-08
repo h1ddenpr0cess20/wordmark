@@ -16,6 +16,7 @@ import {
   buildDeveloperMessage,
   collectFunctionCalls,
   serializeMessagesForRequest,
+  windowMessagesByTokenBudget,
 } from "./messageUtils.js";
 import {
   getEnabledToolDefinitions,
@@ -147,6 +148,7 @@ export async function runTurn({
   loadingId,
   abortController,
   vectorStoreId,
+  historyTokenBudget = 0,
 }) {
   const baseMessages = Array.isArray(inputMessages)
     ? inputMessages.filter(msg => msg && msg.role !== "developer" && msg.role !== "system")
@@ -163,7 +165,10 @@ export async function runTurn({
   }
   const serviceKey = getActiveServiceKey();
   const resolvedModel = model || getActiveModel();
-  const workingMessages = serializeMessagesForRequest(baseMessages);
+  // Drop the oldest turns first when the conversation exceeds the token budget;
+  // the developer/system message (added below) and latest turn always survive.
+  const windowedMessages = windowMessagesByTokenBudget(baseMessages, historyTokenBudget);
+  const workingMessages = serializeMessagesForRequest(windowedMessages);
   const developerContent = buildDeveloperMessage();
   if (developerContent) {
     // xAI (Grok) requires 'system' role instead of 'developer'

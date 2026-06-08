@@ -13,6 +13,10 @@ const DISABLED_REASONING_HELP_TEXT = "Reasoning effort is unavailable for GPT-4/
 const VERBOSITY_STORAGE_KEY = "responseVerbosity";
 export const DEFAULT_VERBOSITY = "medium";
 const VALID_VERBOSITY_LEVELS = ["low", "medium", "high"];
+const HISTORY_TOKEN_BUDGET_STORAGE_KEY = "historyTokenBudget";
+// Balanced default: ~8k tokens of recent history keeps plenty of context
+// (~10-20 exchanges) while capping cost on long threads. 0 = no limit.
+export const DEFAULT_HISTORY_TOKEN_BUDGET = 8000;
 
 function normalizeReasoningEffort(value) {
   return VALID_REASONING_EFFORTS.includes(value) ? value : DEFAULT_REASONING_EFFORT;
@@ -105,6 +109,39 @@ function persistVerbosity(value) {
   }
 }
 
+function normalizeHistoryTokenBudget(value) {
+  const parsed = parseInt(value, 10);
+  // 0 is a valid, explicit "no limit". Blank/negative/invalid falls back to default.
+  if (!Number.isFinite(parsed) || parsed < 0) {
+    return DEFAULT_HISTORY_TOKEN_BUDGET;
+  }
+  return parsed;
+}
+
+function loadHistoryTokenBudgetFromStorage() {
+  try {
+    const stored = localStorage.getItem(HISTORY_TOKEN_BUDGET_STORAGE_KEY);
+    if (stored !== null) {
+      return normalizeHistoryTokenBudget(stored);
+    }
+  } catch (error) {
+    if (state.verboseLogging) {
+      console.warn("Unable to load history token budget from storage:", error);
+    }
+  }
+  return DEFAULT_HISTORY_TOKEN_BUDGET;
+}
+
+function persistHistoryTokenBudget(value) {
+  try {
+    localStorage.setItem(HISTORY_TOKEN_BUDGET_STORAGE_KEY, String(value));
+  } catch (error) {
+    if (state.verboseLogging) {
+      console.warn("Unable to save history token budget preference:", error);
+    }
+  }
+}
+
 /**
  * Initialize model settings controls with values from config
  */
@@ -114,6 +151,8 @@ export function initializeModelSettings() {
   state.currentReasoningEffort = storedEffort;
   const storedVerbosity = loadVerbosityFromStorage();
   state.currentVerbosity = storedVerbosity;
+  const storedBudget = loadHistoryTokenBudgetFromStorage();
+  state.historyTokenBudget = storedBudget;
 
   if (elements.reasoningEffortSelector) {
     elements.reasoningEffortSelector.value = storedEffort;
@@ -141,10 +180,25 @@ export function initializeModelSettings() {
     }
   }
 
+  if (elements.historyTokenBudgetInput) {
+    elements.historyTokenBudgetInput.value = String(storedBudget);
+
+    if (!elements.historyTokenBudgetInput.dataset.bound) {
+      elements.historyTokenBudgetInput.addEventListener("change", (event) => {
+        const budget = normalizeHistoryTokenBudget(event.target.value);
+        state.historyTokenBudget = budget;
+        persistHistoryTokenBudget(budget);
+        event.target.value = String(budget);
+      });
+      elements.historyTokenBudgetInput.dataset.bound = "true";
+    }
+  }
+
   if (state.verboseLogging) {
     console.info("Model settings initialized from config with reasoning effort and verbosity:", {
       reasoning: state.currentReasoningEffort,
       verbosity: state.currentVerbosity,
+      historyTokenBudget: state.historyTokenBudget,
     });
   }
 
@@ -166,6 +220,19 @@ export function setReasoningEffort(value) {
   persistReasoningEffort(normalized);
   if (elements.reasoningEffortSelector) {
     elements.reasoningEffortSelector.value = normalized;
+  }
+}
+
+export function getHistoryTokenBudget() {
+  return normalizeHistoryTokenBudget(state.historyTokenBudget);
+}
+
+export function setHistoryTokenBudget(value) {
+  const normalized = normalizeHistoryTokenBudget(value);
+  state.historyTokenBudget = normalized;
+  persistHistoryTokenBudget(normalized);
+  if (elements.historyTokenBudgetInput) {
+    elements.historyTokenBudgetInput.value = String(normalized);
   }
 }
 

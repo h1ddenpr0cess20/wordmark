@@ -14,7 +14,7 @@ import { responsesClient } from "../services/api.js";
 import { uploadFile, uploadAndAttachFiles, saveVectorStoreMetadata } from "../services/vectorStore.js";
 import { generateMessageId, addMessageCopyButton } from "./messages.js";
 import { appendMessage } from "./ui/chatMessages.js";
-import { getVerbosity, getReasoningEffort } from "../init/modelSettings.js";
+import { getVerbosity, getReasoningEffort, getHistoryTokenBudget } from "../init/modelSettings.js";
 
 // -----------------------------------------------------
 // Message sending and related functionality
@@ -344,6 +344,7 @@ export async function sendMessage() {
       loadingId,
       abortController,
       vectorStoreId,
+      historyTokenBudget: getHistoryTokenBudget(),
     });
 
     if (state.shouldStopGeneration) {
