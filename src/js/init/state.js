@@ -55,10 +55,13 @@ export const elements = {
   // Action buttons
   clearMemoryButton: null,
   exportChatButton: null,
+  exportFormatSelector: null,
   resetPersonalityButton: null,
   setPersonalityButton: null,
   setCustomPromptButton: null,
   setNoPromptButton: null,
+  verboseModeToggle: null,
+  dataSettingsToggle: null,
 
   // TTS-related references
   ttsToggle: null,

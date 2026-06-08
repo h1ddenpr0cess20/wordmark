@@ -18,6 +18,8 @@ import { updateHeaderInfo, updateModelSelector, updateFeatureStatus, initializeP
 import { initToolsSettings } from "../components/tools.js";
 import { initImageUploads } from "../components/attachments.js";
 import { initializeModelSettings } from "./modelSettings.js";
+import { setupEventListeners } from "./eventListeners.js";
+import { initializeDOMReferences } from "./dom.js";
 import { initializeAboutTab } from "./aboutTab.js";
 import { initializeMarked } from "./marked.js";
 import {

@@ -12,7 +12,7 @@ import { setupLocationEventListeners } from "./eventListeners/location.js";
 import { setupChatHistoryEventListeners } from "./eventListeners/history.js";
 import { setupDebugEventListeners } from "./eventListeners/debug.js";
 
-function setupEventListeners() {
+export function setupEventListeners() {
   if (window.VERBOSE_LOGGING) {
     console.info("Setting up event listeners...");
   }
@@ -143,5 +143,3 @@ function setupEventListeners() {
     });
   }
 }
-
-window.setupEventListeners = setupEventListeners;
