@@ -103,28 +103,28 @@ export function optimizeScrolling() {
   // Use passive event listeners for touch events to prevent scrolling jank
   document.addEventListener("touchstart", () => {}, { passive: true });
   document.addEventListener("touchmove", () => {}, { passive: true });
+}
 
-  // Override default scroll behavior for mobile
-  if (window.chatBox) {
-    // Use this technique to make scrolling more immediate on mobile
-    window.fastScroll = function(element, to) {
-      if (!element) {
-        return;
-      }
+/**
+ * Scroll an element to a position, instantly on mobile and on the next frame
+ * on desktop. Makes scrolling feel more immediate on touch devices.
+ */
+export function fastScroll(element, to) {
+  if (!element) {
+    return;
+  }
 
-      // Check if we're on a mobile device where animations can be jerky
-      const isMobile = document.body.classList.contains("mobile-device");
+  // Check if we're on a mobile device where animations can be jerky
+  const isMobile = document.body.classList.contains("mobile-device");
 
-      if (isMobile) {
-        // On mobile, scroll instantly for better performance
-        element.scrollTop = to;
-      } else {
-        // On desktop, we can use smooth scrolling with a small timeout
-        requestAnimationFrame(() => {
-          element.scrollTop = to;
-        });
-      }
-    };
+  if (isMobile) {
+    // On mobile, scroll instantly for better performance
+    element.scrollTop = to;
+  } else {
+    // On desktop, we can use smooth scrolling with a small timeout
+    requestAnimationFrame(() => {
+      element.scrollTop = to;
+    });
   }
 }
 

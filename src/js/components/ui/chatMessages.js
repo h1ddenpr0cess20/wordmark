@@ -1,5 +1,6 @@
 import { icon } from "../../utils/icons.js";
 import { loadMarkedLibrary } from "../../utils/lazyLoader.js";
+import { fastScroll } from "../../utils/mobileHandling.js";
 import { renderWordmarkLogo } from "../logo.js";
 import { generateMessageId, highlightAndAddCopyButtons } from "../messages.js";
 import { setupImageInteractions } from "./imageInteractions.js";
@@ -55,8 +56,8 @@ export function appendMessage(sender, content, type, skipHistory = false) {
   window.chatBox.appendChild(messageElement);
 
   // Mobile/optimized fast-scroll once the message element is in the DOM.
-  if (window.shouldAutoScroll && window.chatBox && typeof window.fastScroll === "function") {
-    window.fastScroll(window.chatBox, window.chatBox.scrollHeight);
+  if (window.shouldAutoScroll && window.chatBox) {
+    fastScroll(window.chatBox, window.chatBox.scrollHeight);
   }
 
   setTimeout(() => {

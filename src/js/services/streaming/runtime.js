@@ -5,6 +5,7 @@ import {
 } from './imageGeneration.js';
 import { processMainContentMarkdown, separateThinkingSegments } from './thinkingUtils.js';
 import { highlightAndAddCopyButtons } from "../../components/messages.js";
+import { fastScroll } from "../../utils/mobileHandling.js";
 
 /**
  * Builds the runtime helpers responsible for tracking streaming state and
@@ -123,13 +124,7 @@ export function createStreamingRuntime({
     }
 
     if (window.shouldAutoScroll) {
-      if (typeof window.fastScroll === 'function') {
-        window.fastScroll(window.chatBox, window.chatBox.scrollHeight);
-      } else {
-        requestAnimationFrame(() => {
-          window.chatBox.scrollTop = window.chatBox.scrollHeight;
-        });
-      }
+      fastScroll(window.chatBox, window.chatBox.scrollHeight);
     }
   }
 
