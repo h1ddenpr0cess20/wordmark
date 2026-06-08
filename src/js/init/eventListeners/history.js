@@ -1,36 +1,30 @@
+import { elements } from "../state.js";
+import { renderChatHistoryList } from "../../services/history/list.js";
+import { updatePanelOpenState } from "./settingsPanel.js";
 export function setupChatHistoryEventListeners() {
-  if (window.historyButton && window.historyPanel) {
-    window.historyButton.addEventListener('click', async() => {
-      if (typeof window.loadHistoryModule === 'function' && !window.lazyModulesLoaded?.history) {
-        await window.loadHistoryModule();
-      }
-      const isExpanded = window.historyButton.getAttribute('aria-expanded') === 'true';
-      window.historyButton.setAttribute('aria-expanded', String(!isExpanded));
-      window.historyPanel.setAttribute('aria-hidden', String(isExpanded));
+  if (elements.historyButton && elements.historyPanel) {
+    elements.historyButton.addEventListener("click", () => {
+      const isExpanded = elements.historyButton.getAttribute("aria-expanded") === "true";
+      elements.historyButton.setAttribute("aria-expanded", String(!isExpanded));
+      elements.historyPanel.setAttribute("aria-hidden", String(isExpanded));
       if (!isExpanded) {
-        window.historyPanel.removeAttribute('inert');
-        if (typeof window.renderChatHistoryList === 'function') {
-          window.renderChatHistoryList();
-        }
+        elements.historyPanel.removeAttribute("inert");
+        renderChatHistoryList();
       } else {
-        window.historyPanel.setAttribute('inert', 'true');
+        elements.historyPanel.setAttribute("inert", "true");
       }
 
-      if (typeof window.updatePanelOpenState === 'function') {
-        window.updatePanelOpenState();
-      }
+      updatePanelOpenState();
     });
   }
 
-  if (window.closeHistoryButton && window.historyPanel) {
-    window.closeHistoryButton.addEventListener('click', () => {
-      window.historyPanel.setAttribute('aria-hidden', 'true');
-      window.historyPanel.setAttribute('inert', 'true');
-      window.historyButton.setAttribute('aria-expanded', 'false');
-      window.historyButton.focus();
-      if (typeof window.updatePanelOpenState === 'function') {
-        window.updatePanelOpenState();
-      }
+  if (elements.closeHistoryButton && elements.historyPanel) {
+    elements.closeHistoryButton.addEventListener("click", () => {
+      elements.historyPanel.setAttribute("aria-hidden", "true");
+      elements.historyPanel.setAttribute("inert", "true");
+      elements.historyButton.setAttribute("aria-expanded", "false");
+      elements.historyButton.focus();
+      updatePanelOpenState();
     });
   }
 }

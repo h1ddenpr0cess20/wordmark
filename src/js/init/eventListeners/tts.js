@@ -1,115 +1,109 @@
+import { elements } from "../state.js";
+import {
+  ttsConfig,
+  availableTtsVoices,
+  ttsRuntime,
+  ttsMessageQueue,
+  generateSpeech,
+  playTtsAudio,
+  stopTtsAudio,
+  clearTtsAudioResources,
+  playNextMessageInQueue,
+} from "../../services/tts.js";
+import { config } from "../../../config/config.js";
+import { initializeTts, populateTtsVoiceSelector } from "../ttsInitialization.js";
+import { updateFeatureStatus } from "../../components/settings.js";
+
 export function setupTtsEventListeners() {
-  if (window.ttsToggle) {
-    window.ttsToggle.addEventListener('change', async(event) => {
+  if (elements.ttsToggle) {
+    elements.ttsToggle.addEventListener("change", (event) => {
       if (event.target.checked) {
-        if (typeof window.loadTtsModule === 'function' && !window.lazyModulesLoaded?.tts) {
-          await window.loadTtsModule();
-        }
-        window.ttsConfig = window.ttsConfig || { enabled: false, voice: 'leo', instructions: '', autoplay: true };
-        window.ttsConfig.enabled = true;
-        if (typeof window.initializeTts === 'function') {
-          window.initializeTts();
-        }
+        ttsConfig.enabled = true;
+        initializeTts();
       } else {
-        if (window.ttsConfig) {
-          window.ttsConfig.enabled = false;
-        }
-        if (typeof window.stopTtsAudio === 'function') {
-          window.stopTtsAudio();
-        }
+        ttsConfig.enabled = false;
+        stopTtsAudio();
       }
-      if (typeof window.updateFeatureStatus === 'function') {
-        window.updateFeatureStatus();
+      updateFeatureStatus();
+
+    });
+  }
+
+  if (elements.ttsAutoplayToggle) {
+    elements.ttsAutoplayToggle.addEventListener("change", (event) => {
+      ttsConfig.autoplay = event.target.checked;
+      if (event.target.checked && ttsMessageQueue.length > 0 && !ttsRuntime.activeTtsAudio) {
+        ttsRuntime.autoplayActive = true;
+        playNextMessageInQueue();
       }
     });
   }
 
-  if (window.ttsAutoplayToggle) {
-    window.ttsAutoplayToggle.addEventListener('change', (event) => {
-      window.ttsConfig = window.ttsConfig || { enabled: false, voice: 'leo', instructions: '', autoplay: true };
-      window.ttsConfig.autoplay = event.target.checked;
-      if (event.target.checked && window.ttsMessageQueue && window.ttsMessageQueue.length > 0 && !window.activeTtsAudio) {
-        window.ttsAutoplayActive = true;
-        if (typeof window.playNextMessageInQueue === 'function') {
-          window.playNextMessageInQueue();
-        }
-      }
-    });
-  }
-
-  if (window.ttsProviderSelector) {
-    window.ttsProviderSelector.addEventListener('change', (event) => {
-      window.ttsConfig = window.ttsConfig || { enabled: false, provider: 'xai', voice: 'leo', instructions: '', autoplay: true };
-      window.ttsConfig.provider = event.target.value;
-      if (typeof window.populateTtsVoiceSelector === 'function') {
-        window.populateTtsVoiceSelector();
-      }
+  if (elements.ttsProviderSelector) {
+    elements.ttsProviderSelector.addEventListener("change", (event) => {
+      ttsConfig.provider = availableTtsVoices?.[event.target.value] ? event.target.value : "openai";
+      event.target.value = ttsConfig.provider;
+      populateTtsVoiceSelector();
       // xAI TTS doesn't support voice instructions
-      const instructionsItem = window.ttsInstructionsInput?.closest('.setting-item');
+      const instructionsItem = elements.ttsInstructionsInput?.closest(".setting-item");
       if (instructionsItem) {
-        instructionsItem.style.display = event.target.value === 'xai' ? 'none' : '';
+        instructionsItem.style.display = ttsConfig.provider === "xai" ? "none" : "";
       }
     });
   }
 
-  if (window.ttsVoiceSelector) {
-    window.ttsVoiceSelector.addEventListener('change', (event) => {
-      window.ttsConfig = window.ttsConfig || { enabled: false, provider: 'xai', voice: 'leo', instructions: '', autoplay: true };
-      window.ttsConfig.voice = event.target.value;
+  if (elements.ttsVoiceSelector) {
+    elements.ttsVoiceSelector.addEventListener("change", (event) => {
+      ttsConfig.voice = event.target.value;
     });
   }
 
-  if (window.ttsInstructionsInput) {
-    window.ttsInstructionsInput.addEventListener('change', (event) => {
-      window.ttsConfig = window.ttsConfig || { enabled: false, voice: 'leo', instructions: '', autoplay: true };
-      window.ttsConfig.instructions = event.target.value;
+  if (elements.ttsInstructionsInput) {
+    elements.ttsInstructionsInput.addEventListener("change", (event) => {
+      ttsConfig.instructions = event.target.value;
     });
   }
 
-  if (window.testTtsButton) {
-    window.testTtsButton.addEventListener('click', () => {
-      window.ttsConfig = window.ttsConfig || { enabled: false, voice: 'leo', instructions: '', autoplay: true };
-      if (!window.ttsConfig.enabled) {
-        console.warn('TTS is disabled. Enable it first to test.');
+  if (elements.testTtsButton) {
+    elements.testTtsButton.addEventListener("click", () => {
+      if (!ttsConfig.enabled) {
+        console.warn("TTS is disabled. Enable it first to test.");
         return;
       }
 
-      const apiKey = window.config.services.xai?.apiKey;
+      const provider = availableTtsVoices?.[ttsConfig.provider] ? ttsConfig.provider : "openai";
+      ttsConfig.provider = provider;
+      const apiKey = provider === "xai"
+        ? config.services.xai?.apiKey
+        : config.services.openai?.apiKey;
       if (!apiKey) {
         return;
       }
 
-      const testMessage = 'This is a test of the text-to-speech feature. How does this voice sound?';
-      window.generateSpeech(testMessage).then((audioData) => {
-        if (audioData && typeof window.playTtsAudio === 'function') {
-          window.playTtsAudio(audioData);
+      const testMessage = "This is a test of the text-to-speech feature. How does this voice sound?";
+      generateSpeech(testMessage).then((audioData) => {
+        if (audioData) {
+          playTtsAudio(audioData);
         } else {
-          console.error('TTS test failed. Check console for details.');
+          console.error("TTS test failed. Check console for details.");
         }
       });
     });
   }
 
-  if (window.stopTtsButton) {
-    window.stopTtsButton.addEventListener('click', () => {
-      if (typeof window.stopTtsAudio === 'function') {
-        window.stopTtsAudio();
-      }
+  if (elements.stopTtsButton) {
+    elements.stopTtsButton.addEventListener("click", () => {
+      stopTtsAudio();
     });
   }
 
-  if (window.clearTtsCacheButton) {
-    window.clearTtsCacheButton.addEventListener('click', () => {
-      if (typeof window.clearTtsAudioResources === 'function') {
-        window.clearTtsAudioResources();
-      }
+  if (elements.clearTtsCacheButton) {
+    elements.clearTtsCacheButton.addEventListener("click", () => {
+      clearTtsAudioResources();
     });
   }
 
-  window.addEventListener('beforeunload', () => {
-    if (typeof window.clearTtsAudioResources === 'function') {
-      window.clearTtsAudioResources();
-    }
+  window.addEventListener("beforeunload", () => {
+    clearTtsAudioResources();
   });
 }
-

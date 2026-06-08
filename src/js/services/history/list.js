@@ -1,21 +1,29 @@
-window.renderChatHistoryList = function() {
-  if (!window.historyList) {
+import { elements, state } from "../../init/state.js";
+import {
+  getAllConversationsFromDb,
+  deleteConversationFromDb,
+} from "../../utils/conversationStorage.js";
+import { DEFAULT_PERSONALITY } from "../../../config/config.js";
+import { startNewConversation, loadConversation, renameConversation } from "./persistence.js";
+
+export function renderChatHistoryList() {
+  if (!elements.historyList) {
     return;
   }
 
-  window.getAllConversationsFromDb?.()
+  getAllConversationsFromDb?.()
     .then((convos) => {
-      window.historyList.innerHTML = '';
+      elements.historyList.innerHTML = "";
 
       if (!convos || convos.length === 0) {
-        window.historyList.innerHTML = '<div class="history-empty">No saved conversations yet.</div>';
+        elements.historyList.innerHTML = "<div class=\"history-empty\">No saved conversations yet.</div>";
         return;
       }
 
       convos.sort((a, b) => new Date(b.updated) - new Date(a.updated));
 
-      const toolbarDiv = document.createElement('div');
-      toolbarDiv.className = 'history-toolbar';
+      const toolbarDiv = document.createElement("div");
+      toolbarDiv.className = "history-toolbar";
       toolbarDiv.innerHTML = `
         <div class="history-toolbar-left">
           <button class="history-new-button">
@@ -37,25 +45,25 @@ window.renderChatHistoryList = function() {
         </div>
       `;
 
-      const newButton = toolbarDiv.querySelector('.history-new-button');
-      const multiSelectCheckbox = toolbarDiv.querySelector('#multi-select-mode');
-      const selectionStatus = toolbarDiv.querySelector('.selection-status');
-      const selectedCountSpan = toolbarDiv.querySelector('.selected-count');
-      const selectAllButton = toolbarDiv.querySelector('.history-select-all-btn');
-      const clearSelectionButton = toolbarDiv.querySelector('.history-clear-selection-btn');
-      const loadButton = toolbarDiv.querySelector('.history-load-btn');
-      const renameButton = toolbarDiv.querySelector('.history-rename-btn');
-      const deleteButton = toolbarDiv.querySelector('.history-delete-btn');
-      const deleteCountSpan = toolbarDiv.querySelector('.delete-count');
+      const newButton = toolbarDiv.querySelector(".history-new-button");
+      const multiSelectCheckbox = toolbarDiv.querySelector("#multi-select-mode");
+      const selectionStatus = toolbarDiv.querySelector(".selection-status");
+      const selectedCountSpan = toolbarDiv.querySelector(".selected-count");
+      const selectAllButton = toolbarDiv.querySelector(".history-select-all-btn");
+      const clearSelectionButton = toolbarDiv.querySelector(".history-clear-selection-btn");
+      const loadButton = toolbarDiv.querySelector(".history-load-btn");
+      const renameButton = toolbarDiv.querySelector(".history-rename-btn");
+      const deleteButton = toolbarDiv.querySelector(".history-delete-btn");
+      const deleteCountSpan = toolbarDiv.querySelector(".delete-count");
 
       const updateButtonStates = () => {
-        const selectedRows = document.querySelectorAll('.history-row.selected');
+        const selectedRows = document.querySelectorAll(".history-row.selected");
         const isMultiSelect = multiSelectCheckbox.checked;
         const selectedCount = selectedRows.length;
 
-        selectAllButton.style.display = isMultiSelect ? 'inline-block' : 'none';
-        clearSelectionButton.style.display = isMultiSelect ? 'inline-block' : 'none';
-        selectionStatus.style.display = isMultiSelect && selectedCount > 0 ? 'inline-block' : 'none';
+        selectAllButton.style.display = isMultiSelect ? "inline-block" : "none";
+        clearSelectionButton.style.display = isMultiSelect ? "inline-block" : "none";
+        selectionStatus.style.display = isMultiSelect && selectedCount > 0 ? "inline-block" : "none";
 
         selectedCountSpan.textContent = selectedCount;
         deleteCountSpan.textContent = selectedCount;
@@ -66,133 +74,133 @@ window.renderChatHistoryList = function() {
 
         deleteButton.title = selectedCount > 1
           ? `Delete ${selectedCount} selected conversations`
-          : 'Delete selected conversation';
+          : "Delete selected conversation";
       };
 
       newButton.onclick = () => {
-        window.startNewConversation?.();
-        window.historyPanel?.setAttribute('aria-hidden', 'true');
-        window.historyButton?.setAttribute('aria-expanded', 'false');
+        startNewConversation();
+        elements.historyPanel?.setAttribute("aria-hidden", "true");
+        elements.historyButton?.setAttribute("aria-expanded", "false");
       };
 
       multiSelectCheckbox.onchange = () => {
         const isMultiSelect = multiSelectCheckbox.checked;
 
-        document.querySelectorAll('.history-row').forEach((row) => {
-          row.classList.remove('selected');
+        document.querySelectorAll(".history-row").forEach((row) => {
+          row.classList.remove("selected");
         });
 
-        const table = document.querySelector('.history-table');
+        const table = document.querySelector(".history-table");
         if (table) {
-          table.classList.toggle('multi-select-mode', isMultiSelect);
+          table.classList.toggle("multi-select-mode", isMultiSelect);
         }
 
         updateButtonStates();
       };
 
       selectAllButton.onclick = () => {
-        document.querySelectorAll('.history-row').forEach((row) => {
-          row.classList.add('selected');
+        document.querySelectorAll(".history-row").forEach((row) => {
+          row.classList.add("selected");
         });
         updateButtonStates();
       };
 
       clearSelectionButton.onclick = () => {
-        document.querySelectorAll('.history-row').forEach((row) => {
-          row.classList.remove('selected');
+        document.querySelectorAll(".history-row").forEach((row) => {
+          row.classList.remove("selected");
         });
         updateButtonStates();
       };
 
       loadButton.onclick = () => {
-        const selectedRow = document.querySelector('.history-row.selected');
+        const selectedRow = document.querySelector(".history-row.selected");
         if (selectedRow) {
           const conversationId = selectedRow.dataset.conversationId;
-          window.loadConversation?.(conversationId)?.then(() => {
-            window.historyPanel?.setAttribute('aria-hidden', 'true');
-            window.historyButton?.setAttribute('aria-expanded', 'false');
+          loadConversation(conversationId)?.then(() => {
+            elements.historyPanel?.setAttribute("aria-hidden", "true");
+            elements.historyButton?.setAttribute("aria-expanded", "false");
           });
         }
       };
 
       renameButton.onclick = () => {
-        const selectedRow = document.querySelector('.history-row.selected');
+        const selectedRow = document.querySelector(".history-row.selected");
         if (!selectedRow) {
           return;
         }
         const conversationId = selectedRow.dataset.conversationId;
-        const currentTitle = selectedRow.querySelector('.history-title')?.textContent || '';
-        const newName = prompt('Rename conversation:', currentTitle);
+        const currentTitle = selectedRow.querySelector(".history-title")?.textContent || "";
+        const newName = prompt("Rename conversation:", currentTitle);
         if (newName && newName.trim()) {
-          window.renameConversation?.(conversationId, newName.trim());
+          renameConversation(conversationId, newName.trim());
         }
       };
 
       deleteButton.onclick = () => {
-        const selectedRows = document.querySelectorAll('.history-row.selected');
+        const selectedRows = document.querySelectorAll(".history-row.selected");
         if (!selectedRows.length) {
           return;
         }
 
         const conversationIds = Array.from(selectedRows).map(row => row.dataset.conversationId);
         const confirmMessage = conversationIds.length === 1
-          ? 'Delete this conversation?'
+          ? "Delete this conversation?"
           : `Delete ${conversationIds.length} conversations?`;
 
         if (!confirm(confirmMessage)) {
           return;
         }
 
-        Promise.all(conversationIds.map(id => window.deleteConversationFromDb?.(id)))
+        Promise.all(conversationIds.map(id => deleteConversationFromDb?.(id)))
           .then(() => {
             conversationIds.forEach((id) => {
-              if (window.currentConversationId === id) {
-                window.currentConversationId = null;
-                window.currentConversationName = null;
+              if (state.currentConversationId === id) {
+                state.currentConversationId = null;
+                state.currentConversationName = null;
               }
             });
-            window.renderChatHistoryList?.();
+            renderChatHistoryList();
           })
           .catch((err) => {
-            console.error('Failed to delete conversations:', err);
-            alert('Error deleting conversations. Please try again.');
+            console.error("Failed to delete conversations:", err);
+            alert("Error deleting conversations. Please try again.");
           });
       };
 
-      window.historyList.appendChild(toolbarDiv);
+      elements.historyList.appendChild(toolbarDiv);
 
       const handleKeydown = (e) => {
-        if (window.historyPanel?.getAttribute('aria-hidden') === 'true') {
+        if (elements.historyPanel?.getAttribute("aria-hidden") === "true") {
           return;
         }
 
-        if ((e.key === 'Delete' || e.key === 'Backspace')) {
-          if (document.querySelectorAll('.history-row.selected').length > 0) {
+        if ((e.key === "Delete" || e.key === "Backspace")) {
+          if (document.querySelectorAll(".history-row.selected").length > 0) {
             deleteButton.click();
           }
-        } else if (e.key === 'Enter') {
-          if (document.querySelectorAll('.history-row.selected').length === 1) {
+        } else if (e.key === "Enter") {
+          if (document.querySelectorAll(".history-row.selected").length === 1) {
             loadButton.click();
           }
-        } else if (e.key === 'a' && (e.ctrlKey || e.metaKey)) {
+        } else if (e.key === "a" && (e.ctrlKey || e.metaKey)) {
           e.preventDefault();
           if (multiSelectCheckbox.checked) {
             selectAllButton.click();
           }
-        } else if (e.key === 'Escape') {
+        } else if (e.key === "Escape") {
           clearSelectionButton.click();
         }
       };
 
-      document.addEventListener('keydown', handleKeydown);
+      document.addEventListener("keydown", handleKeydown);
 
-      const tableContainer = document.createElement('div');
-      tableContainer.className = 'history-table-container';
+      const tableContainer = document.createElement("div");
+      tableContainer.className = "history-table-container";
 
-      const table = document.createElement('table');
-      table.className = 'history-table';
+      const table = document.createElement("table");
+      table.className = "history-table";
 
-      const thead = document.createElement('thead');
+      const thead = document.createElement("thead");
       thead.innerHTML = `
         <tr>
           <th class="col-title">Conversation</th>
@@ -204,29 +212,29 @@ window.renderChatHistoryList = function() {
       `;
       table.appendChild(thead);
 
-      const tbody = document.createElement('tbody');
+      const tbody = document.createElement("tbody");
 
       convos.forEach((convo) => {
-        const row = document.createElement('tr');
-        row.className = 'history-row';
+        const row = document.createElement("tr");
+        row.className = "history-row";
         row.dataset.conversationId = convo.id;
 
-        if (window.currentConversationId === convo.id) {
-          row.classList.add('current-conversation');
+        if (state.currentConversationId === convo.id) {
+          row.classList.add("current-conversation");
         }
 
-        let title = '';
-        const userMsg = (convo.messages || []).find(m => m.role === 'user');
+        let title = "";
+        const userMsg = (convo.messages || []).find(m => m.role === "user");
         if (userMsg) {
           let text = userMsg.content;
           if (Array.isArray(text)) {
-            const part = text.find(p => p.type === 'input_text' || p.type === 'text');
-            text = part ? (part.text || part.content || '') : '';
+            const part = text.find(p => p.type === "input_text" || p.type === "text");
+            text = part ? (part.text || part.content || "") : "";
           }
-          text = typeof text === 'string' ? text : '';
-          title = text.substring(0, 50) + (text.length > 50 ? '...' : '');
+          text = typeof text === "string" ? text : "";
+          title = text.substring(0, 50) + (text.length > 50 ? "..." : "");
         } else {
-          title = '(No user message)';
+          title = "(No user message)";
         }
 
         const date = new Date(convo.updated);
@@ -236,31 +244,31 @@ window.renderChatHistoryList = function() {
 
         let formatted;
         if (date.toDateString() === now.toDateString()) {
-          formatted = date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+          formatted = date.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
         } else if (date.toDateString() === yesterday.toDateString()) {
-          formatted = 'Yesterday';
+          formatted = "Yesterday";
         } else {
-          formatted = date.toLocaleDateString([], { month: 'short', day: 'numeric' });
+          formatted = date.toLocaleDateString([], { month: "short", day: "numeric" });
         }
 
-        let promptInfo = '';
-        let promptClass = 'none';
+        let promptInfo = "";
+        let promptClass = "none";
         if (convo.systemPrompt) {
-          if (convo.systemPrompt.type === 'personality') {
-            promptInfo = convo.systemPrompt.content || window.DEFAULT_PERSONALITY || 'Default';
-            promptClass = 'personality';
-          } else if (convo.systemPrompt.type === 'custom') {
-            const content = convo.systemPrompt.content || '';
-            promptInfo = content.substring(0, 30) + (content.length > 30 ? '...' : '');
-            promptClass = 'custom';
+          if (convo.systemPrompt.type === "personality") {
+            promptInfo = convo.systemPrompt.content || DEFAULT_PERSONALITY || "Default";
+            promptClass = "personality";
+          } else if (convo.systemPrompt.type === "custom") {
+            const content = convo.systemPrompt.content || "";
+            promptInfo = content.substring(0, 30) + (content.length > 30 ? "..." : "");
+            promptClass = "custom";
           } else {
-            promptInfo = 'None';
-            promptClass = 'none';
+            promptInfo = "None";
+            promptClass = "none";
           }
         }
 
-        const modelInfo = convo.model || 'Unknown';
-        const serviceInfo = convo.service || 'Unknown';
+        const modelInfo = convo.model || "Unknown";
+        const serviceInfo = convo.service || "Unknown";
         const messageCount = (convo.messages || []).length;
         const imageCount = (convo.images || []).length;
 
@@ -280,7 +288,7 @@ window.renderChatHistoryList = function() {
           <td class="col-stats">
             <div class="stats-info">
               <span class="message-count">${messageCount} msg</span>
-              ${imageCount > 0 ? `<span class="image-count">${imageCount} media</span>` : ''}
+              ${imageCount > 0 ? `<span class="image-count">${imageCount} media</span>` : ""}
             </div>
           </td>
           <td class="col-date">
@@ -293,27 +301,27 @@ window.renderChatHistoryList = function() {
 
           if (isMultiSelect) {
             if (e.ctrlKey || e.metaKey) {
-              row.classList.toggle('selected');
+              row.classList.toggle("selected");
             } else if (e.shiftKey) {
-              const allRows = Array.from(document.querySelectorAll('.history-row'));
-              const lastSelected = document.querySelector('.history-row.selected:last-of-type');
+              const allRows = Array.from(document.querySelectorAll(".history-row"));
+              const lastSelected = document.querySelector(".history-row.selected:last-of-type");
 
               if (lastSelected) {
                 const startIndex = allRows.indexOf(lastSelected);
                 const endIndex = allRows.indexOf(row);
                 const [minIndex, maxIndex] = [Math.min(startIndex, endIndex), Math.max(startIndex, endIndex)];
                 for (let i = minIndex; i <= maxIndex; i += 1) {
-                  allRows[i].classList.add('selected');
+                  allRows[i].classList.add("selected");
                 }
               } else {
-                row.classList.add('selected');
+                row.classList.add("selected");
               }
             } else {
-              row.classList.toggle('selected');
+              row.classList.toggle("selected");
             }
           } else {
-            document.querySelectorAll('.history-row').forEach((r) => r.classList.remove('selected'));
-            row.classList.add('selected');
+            document.querySelectorAll(".history-row").forEach((r) => r.classList.remove("selected"));
+            row.classList.add("selected");
           }
 
           updateButtonStates();
@@ -324,10 +332,10 @@ window.renderChatHistoryList = function() {
 
       table.appendChild(tbody);
       tableContainer.appendChild(table);
-      window.historyList.appendChild(tableContainer);
+      elements.historyList.appendChild(tableContainer);
     })
     .catch((err) => {
-      console.error('Error loading conversations for history list:', err);
-      window.historyList.innerHTML = '<div class="history-error">Error loading conversation history.</div>';
+      console.error("Error loading conversations for history list:", err);
+      elements.historyList.innerHTML = "<div class=\"history-error\">Error loading conversation history.</div>";
     });
 };

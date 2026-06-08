@@ -1,14 +1,16 @@
+import { state } from "../init/state.js";
+import { showInfo } from "../utils/notifications.js";
 /**
  * File upload and attachment handling (images and documents)
  */
 
 import { filterSupportedFiles } from "../services/vectorStore.js";
 
-window.pendingUploads = [];
-window.pendingDocuments = [];
-window.activeVectorStore = null;
+state.pendingUploads = [];
+state.pendingDocuments = [];
+state.activeVectorStore = null;
 
-window.initImageUploads = function() {
+export function initImageUploads() {
   const uploadInput = document.getElementById("image-upload");
   const directoryInput = document.getElementById("directory-upload");
   const uploadButton = document.getElementById("upload-button");
@@ -43,7 +45,7 @@ window.initImageUploads = function() {
 
   // Paste functionality
   setupPasteHandler(userInput);
-};
+}
 
 /**
  * Show upload menu to choose between files or directory
@@ -119,7 +121,7 @@ function readFileAsDataURL(file) {
 }
 
 /**
- * Supported document extensions for file uploads
+ * Supported document extensions for OpenAI file uploads
  */
 const SUPPORTED_DOCUMENT_EXTENSIONS = [
   ".c", ".cpp", ".cs", ".css", ".doc", ".docx", ".go", ".html",
@@ -150,8 +152,8 @@ async function handleFiles(files, options = {}) {
   const { isDirectory = false } = options;
 
   // Ensure arrays exist
-  window.pendingUploads = window.pendingUploads || [];
-  window.pendingDocuments = window.pendingDocuments || [];
+  state.pendingUploads = state.pendingUploads || [];
+  state.pendingDocuments = state.pendingDocuments || [];
 
   if (isDirectory) {
     // Filter using vector store supported extensions
@@ -163,8 +165,8 @@ async function handleFiles(files, options = {}) {
       const message = unsupported.length === 1
         ? `File "${unsupportedNames[0]}" is not supported and was skipped.`
         : `${unsupported.length} files were skipped (unsupported format): ${unsupportedNames.slice(0, 3).join(", ")}${unsupported.length > 3 ? "..." : ""}`;
-      if (window.showInfo) {
-        window.showInfo(message);
+      if (showInfo) {
+        showInfo(message);
       } else {
         console.warn("Unsupported files skipped:", unsupportedNames);
       }
@@ -197,7 +199,7 @@ async function handleFiles(files, options = {}) {
 
     if (!hasStructure) {
       // Append as individual document attachments
-      window.pendingDocuments.push(...supported.map(file => ({
+      state.pendingDocuments.push(...supported.map(file => ({
         file,
         name: file.name,
         size: file.size,
@@ -206,7 +208,7 @@ async function handleFiles(files, options = {}) {
     } else {
       // Append grouped directories
       for (const [directoryName, fileList] of groups) {
-        window.pendingDocuments.push({
+        state.pendingDocuments.push({
           isDirectory: true,
           directoryName,
           files: fileList,
@@ -234,8 +236,8 @@ async function handleFiles(files, options = {}) {
       const message = unsupportedFiles.length === 1
         ? `File "${unsupportedFiles[0]}" is not supported and was skipped.`
         : `${unsupportedFiles.length} files were skipped (unsupported format): ${unsupportedFiles.slice(0, 3).join(", ")}${unsupportedFiles.length > 3 ? "..." : ""}`;
-      if (window.showInfo) {
-        window.showInfo(message);
+      if (showInfo) {
+        showInfo(message);
       } else {
         console.warn("Unsupported files skipped:", unsupportedFiles);
       }
@@ -245,13 +247,13 @@ async function handleFiles(files, options = {}) {
     if (imageFiles.length > 0) {
       for (const file of imageFiles) {
         const dataUrl = await readFileAsDataURL(file);
-        window.pendingUploads.push({ file, dataUrl });
+        state.pendingUploads.push({ file, dataUrl });
       }
     }
 
     // Append documents
     if (documentFiles.length > 0) {
-      window.pendingDocuments.push(...documentFiles.map(file => ({
+      state.pendingDocuments.push(...documentFiles.map(file => ({
         file,
         name: file.name,
         size: file.size,
@@ -260,9 +262,7 @@ async function handleFiles(files, options = {}) {
     }
   }
 
-  if (typeof window.showPendingUploadPreviews === "function") {
-    window.showPendingUploadPreviews();
-  }
+  showPendingUploadPreviews();
 }
 
 /**
@@ -470,7 +470,7 @@ function setupPasteHandler(userInput) {
   });
 }
 
-window.showPendingUploadPreviews = function() {
+function showPendingUploadPreviews() {
   const wrapper = document.querySelector(".input-wrapper");
   if (!wrapper) {
     return;
@@ -484,7 +484,7 @@ window.showPendingUploadPreviews = function() {
   preview.innerHTML = "";
 
   // Show image previews
-  window.pendingUploads.forEach((up, index) => {
+  state.pendingUploads.forEach((up, index) => {
     const container = document.createElement("div");
     container.className = "upload-preview-container";
 
@@ -508,7 +508,7 @@ window.showPendingUploadPreviews = function() {
   });
 
   // Show document previews
-  window.pendingDocuments.forEach((doc, index) => {
+  state.pendingDocuments.forEach((doc, index) => {
     if (doc.isDirectory) {
       // Directory preview
       const container = document.createElement("div");
@@ -590,7 +590,7 @@ window.showPendingUploadPreviews = function() {
       preview.appendChild(container);
     }
   });
-};
+}
 
 function formatFileSize(bytes) {
   if (bytes < 1024) return bytes + " B";
@@ -602,9 +602,9 @@ function formatFileSize(bytes) {
  * Remove an image from pending uploads by index
  */
 function removeUploadPreview(index) {
-  if (index >= 0 && index < window.pendingUploads.length) {
-    window.pendingUploads.splice(index, 1);
-    window.showPendingUploadPreviews();
+  if (index >= 0 && index < state.pendingUploads.length) {
+    state.pendingUploads.splice(index, 1);
+    showPendingUploadPreviews();
   }
 }
 
@@ -612,8 +612,8 @@ function removeUploadPreview(index) {
  * Remove a document from pending uploads by index
  */
 function removeDocumentPreview(index) {
-  if (index >= 0 && index < window.pendingDocuments.length) {
-    window.pendingDocuments.splice(index, 1);
-    window.showPendingUploadPreviews();
+  if (index >= 0 && index < state.pendingDocuments.length) {
+    state.pendingDocuments.splice(index, 1);
+    showPendingUploadPreviews();
   }
 }

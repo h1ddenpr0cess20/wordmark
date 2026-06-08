@@ -1,5 +1,16 @@
-function createMissingMediaPlaceholder(filename, mediaType = 'image') {
-  const label = mediaType === 'video' ? 'Video' : 'Image';
+import { elements, state } from "../../init/state.js";
+import { detectMediaType, getMediaDisplayUrl } from "../mediaTools.js";
+import { updateMessageContent } from "../streaming/messageLifecycle.js";
+import { updatePromptVisibility } from "../../components/ui/settingsControls.js";
+import { highlightAndAddCopyButtons, addMessageCopyButton } from "../../components/messages.js";
+import { appendMessage } from "../../components/ui/chatMessages.js";
+import { renderWordmarkLogo } from "../../components/logo.js";
+import { setupImageInteractions } from "../../components/ui/imageInteractions.js";
+import { updateHeaderInfo, updateModelSelector } from "../../components/settings.js";
+import { config } from "../../../config/config.js";
+
+function createMissingMediaPlaceholder(filename, mediaType = "image") {
+  const label = mediaType === "video" ? "Video" : "Image";
   return `<div class='image-placeholder' style='padding:40px;background:#f1f1f1;border-radius:8px;margin:8px 0;text-align:center;font-style:italic;color:#666;'>${label} could not be loaded: ${filename}</div>`;
 }
 
@@ -9,127 +20,125 @@ function findMediaRecord(convo, filename) {
 
 function resolveMediaSource(mediaRecord, filename, imageCache) {
   if (!mediaRecord) {
-    return '';
+    return "";
   }
 
-  if (typeof mediaRecord.url === 'string' && mediaRecord.url.trim()) {
+  if (typeof mediaRecord.url === "string" && mediaRecord.url.trim()) {
     return mediaRecord.url;
   }
 
   if (mediaRecord.isStoredInDb && imageCache?.has(filename)) {
-    return window.getMediaDisplayUrl?.(imageCache.get(filename), filename) || imageCache.get(filename);
+    return getMediaDisplayUrl(imageCache.get(filename), filename) || imageCache.get(filename);
   }
 
-  return '';
+  return "";
 }
 
-function createMediaElement(mediaRecord, src, messageId = '') {
-  const mediaType = typeof window.detectMediaType === 'function'
-    ? window.detectMediaType(mediaRecord)
-    : ((mediaRecord?.mimeType || '').startsWith('video/') ? 'video' : 'image');
+function createMediaElement(mediaRecord, src, messageId = "") {
+  const mediaType = detectMediaType(mediaRecord);
 
-  if (mediaType === 'video') {
-    const videoEl = document.createElement('video');
+  if (mediaType === "video") {
+    const videoEl = document.createElement("video");
     videoEl.src = src;
-    videoEl.className = 'generated-video-thumbnail';
+    videoEl.className = "generated-video-thumbnail";
     videoEl.controls = true;
     videoEl.playsInline = true;
-    videoEl.preload = 'metadata';
-    videoEl.dataset.mediaType = 'video';
-    videoEl.dataset.filename = mediaRecord.filename || '';
+    videoEl.preload = "metadata";
+    videoEl.dataset.mediaType = "video";
+    videoEl.dataset.filename = mediaRecord.filename || "";
     videoEl.dataset.messageId = messageId;
-    videoEl.dataset.prompt = mediaRecord.prompt || '';
-    videoEl.dataset.timestamp = mediaRecord.timestamp || '';
+    videoEl.dataset.prompt = mediaRecord.prompt || "";
+    videoEl.dataset.timestamp = mediaRecord.timestamp || "";
     return videoEl;
   }
 
-  const imgEl = document.createElement('img');
+  const imgEl = document.createElement("img");
   imgEl.src = src;
-  imgEl.alt = mediaRecord.prompt || 'Generated Image';
-  imgEl.className = 'generated-image-thumbnail';
-  imgEl.dataset.mediaType = 'image';
-  imgEl.dataset.filename = mediaRecord.filename || '';
+  imgEl.alt = mediaRecord.prompt || "Generated Image";
+  imgEl.className = "generated-image-thumbnail";
+  imgEl.dataset.mediaType = "image";
+  imgEl.dataset.filename = mediaRecord.filename || "";
   imgEl.dataset.messageId = messageId;
-  imgEl.dataset.prompt = mediaRecord.prompt || '';
-  imgEl.dataset.timestamp = mediaRecord.timestamp || '';
+  imgEl.dataset.prompt = mediaRecord.prompt || "";
+  imgEl.dataset.timestamp = mediaRecord.timestamp || "";
   return imgEl;
 }
 
 function extractTextContent(content) {
-  if (typeof content === 'string') {
+  if (typeof content === "string") {
     return content;
   }
   if (Array.isArray(content)) {
-    const part = content.find(p => p.type === 'input_text' || p.type === 'text');
-    return part ? (part.text || part.content || '') : '';
+    const part = content.find(p => p.type === "input_text" || p.type === "text");
+    return part ? (part.text || part.content || "") : "";
   }
-  return '';
+  return "";
 }
 
 function replaceImagePlaceholders(content, convo, imageCache) {
   const text = extractTextContent(content);
   if (!text) {
-    return '';
+    return "";
   }
 
   return text.replace(/\[\[IMAGE: ([^\]]+)\]\]/g, (match, filename) => {
     const trimmed = filename.trim();
     const img = findMediaRecord(convo, trimmed);
     if (!img) {
-      return createMissingMediaPlaceholder(trimmed, 'image');
+      return createMissingMediaPlaceholder(trimmed, "image");
     }
 
     const src = resolveMediaSource(img, trimmed, imageCache);
 
     if (!src) {
-      return createMissingMediaPlaceholder(trimmed, 'image');
+      return createMissingMediaPlaceholder(trimmed, "image");
     }
 
     if (!img.url) {
       img.url = src;
     }
-    if (window.imageDataCache?.set) {
-      window.imageDataCache.set(trimmed, src);
+    if (state.imageDataCache?.set) {
+      state.imageDataCache.set(trimmed, src);
     }
 
-    return `<img src="${src}" alt="${img.prompt || 'Generated Image'}" class="generated-image-thumbnail" data-media-type="image" data-filename="${trimmed}" data-prompt="${img.prompt || ''}" data-timestamp="${img.timestamp || ''}" style="max-width:160px;max-height:160px;border-radius:8px;margin:8px 0;cursor:pointer;" />`;
+    return `<img src="${src}" alt="${img.prompt || "Generated Image"}" class="generated-image-thumbnail" data-media-type="image" data-filename="${trimmed}" data-prompt="${img.prompt || ""}" data-timestamp="${img.timestamp || ""}" style="max-width:160px;max-height:160px;border-radius:8px;margin:8px 0;cursor:pointer;" />`;
   });
 }
 
-window.renderConversationMessages = function(convo, imageCache) {
-  if (!window.appendMessage || !window.chatBox) {
+export function renderConversationMessages(convo, imageCache) {
+  if (!elements.chatBox) {
     return;
   }
 
   (convo.messages || []).forEach((msg) => {
-    if (msg.role === 'system' || msg.role === 'developer') {
+    if (msg.role === "system" || msg.role === "developer") {
       return;
     }
 
-    if (msg.role === 'user') {
+    if (msg.role === "user") {
       const processed = replaceImagePlaceholders(msg.content, convo, imageCache);
-      const userElement = window.appendMessage('You', processed, 'user', true);
-      if (userElement && window.addMessageCopyButton) {
+      const userElement = appendMessage("You", processed, "user", true);
+      if (userElement) {
         const messageId = msg.id || userElement.id;
         if (msg.id) {
           userElement.id = msg.id;
         }
-        window.addMessageCopyButton(userElement, messageId);
+        addMessageCopyButton(userElement, messageId);
       }
       return;
     }
 
-    if (msg.role !== 'assistant') {
+    if (msg.role !== "assistant") {
       return;
     }
 
-    const messageElement = document.createElement('div');
-    messageElement.classList.add('message', 'assistant');
+    const messageElement = document.createElement("div");
+    messageElement.classList.add("message", "assistant");
     const messageId = msg.id || `msg-history-${Date.now()}`;
     messageElement.id = messageId;
 
-    const sender = document.createElement('div');
-    sender.className = 'message-sender';
+    const sender = document.createElement("div");
+    sender.className = "message-sender";
     sender.innerHTML = `
       <svg class="sender-icon assistant-icon" width="32" height="32" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
         <g stroke="var(--accent-color)" stroke-width="1"></g>
@@ -138,29 +147,29 @@ window.renderConversationMessages = function(convo, imageCache) {
 
     const originalSelector = document.querySelector;
     document.querySelector = function(selector) {
-      if (selector === '#wordmark-logo g') {
-        return sender.querySelector('g');
+      if (selector === "#wordmark-logo g") {
+        return sender.querySelector("g");
       }
       return originalSelector.call(document, selector);
     };
 
     try {
-      window.renderWordmarkLogo?.();
+      renderWordmarkLogo();
     } finally {
       document.querySelector = originalSelector;
     }
 
     messageElement.appendChild(sender);
 
-    const contentWrapper = document.createElement('div');
-    contentWrapper.className = 'message-content';
+    const contentWrapper = document.createElement("div");
+    contentWrapper.className = "message-content";
     messageElement.appendChild(contentWrapper);
-    window.chatBox.appendChild(messageElement);
+    elements.chatBox.appendChild(messageElement);
 
-    let displayContent = msg.content || '';
+    let displayContent = msg.content || "";
     const imageFilenames = [];
     const seenFilenames = new Set();
-    const extractRegex = new RegExp('\\[\\[(?:MEDIA|IMAGE): ([^\\]]+)\\]\\]', 'g');
+    const extractRegex = new RegExp("\\[\\[(?:MEDIA|IMAGE): ([^\\]]+)\\]\\]", "g");
     let match;
 
     while ((match = extractRegex.exec(displayContent)) !== null) {
@@ -171,20 +180,20 @@ window.renderConversationMessages = function(convo, imageCache) {
       }
     }
 
-    displayContent = displayContent.replace(new RegExp('\\[\\[(?:MEDIA|IMAGE): ([^\\]]+)\\]\\]', 'g'), (placeholder) => `
+    displayContent = displayContent.replace(new RegExp("\\[\\[(?:MEDIA|IMAGE): ([^\\]]+)\\]\\]", "g"), (placeholder) => `
       <span class="hidden-image-placeholder">${placeholder}</span>
     `);
 
     if (imageFilenames.length > 0) {
-      const imagesContainer = document.createElement('div');
-      imagesContainer.className = 'generated-images';
+      const imagesContainer = document.createElement("div");
+      imagesContainer.className = "generated-images";
       const imgHtmlArray = [];
 
       imageFilenames.forEach((filename) => {
         const img = findMediaRecord(convo, filename);
         if (!img) {
-          const placeholder = document.createElement('div');
-          placeholder.className = 'image-placeholder';
+          const placeholder = document.createElement("div");
+          placeholder.className = "image-placeholder";
           placeholder.textContent = `Media could not be loaded: ${filename}`;
           imagesContainer.appendChild(placeholder);
           return;
@@ -193,8 +202,8 @@ window.renderConversationMessages = function(convo, imageCache) {
         const src = resolveMediaSource(img, filename, imageCache);
 
         if (!src) {
-          const placeholder = document.createElement('div');
-          placeholder.className = 'image-placeholder';
+          const placeholder = document.createElement("div");
+          placeholder.className = "image-placeholder";
           placeholder.textContent = `Media could not be loaded: ${filename}`;
           imagesContainer.appendChild(placeholder);
           return;
@@ -205,8 +214,8 @@ window.renderConversationMessages = function(convo, imageCache) {
         if (!img.url) {
           img.url = src;
         }
-        if (window.imageDataCache?.set) {
-          window.imageDataCache.set(filename, src);
+        if (state.imageDataCache?.set) {
+          state.imageDataCache.set(filename, src);
         }
 
         imagesContainer.appendChild(imgEl);
@@ -215,110 +224,110 @@ window.renderConversationMessages = function(convo, imageCache) {
 
       if (imagesContainer.childNodes.length > 0) {
         contentWrapper.appendChild(imagesContainer);
-        if (!window.messageImages) {
-          window.messageImages = {};
+        if (!state.messageImages) {
+          state.messageImages = {};
         }
-        window.messageImages[messageElement.id] = imgHtmlArray;
+        state.messageImages[messageElement.id] = imgHtmlArray;
       }
     }
 
-    const reasoning = msg.reasoning || '';
+    const reasoning = msg.reasoning || "";
     const contentObj = {
       content: displayContent,
       reasoning,
       codeInterpreterOutputs: msg.codeInterpreterOutputs || null,
     };
 
-    window.updateMessageContent?.(messageElement, contentObj);
-    window.highlightAndAddCopyButtons?.(messageElement);
-    window.addMessageCopyButton?.(messageElement, messageId);
-    window.setupImageInteractions?.(contentWrapper);
+    updateMessageContent(messageElement, contentObj);
+    highlightAndAddCopyButtons(messageElement);
+    addMessageCopyButton(messageElement, messageId);
+    setupImageInteractions(contentWrapper);
   });
 
   if (convo.systemPrompt) {
     const systemPrompt = convo.systemPrompt;
-    window.loadedSystemPrompt = systemPrompt;
+    state.loadedSystemPrompt = systemPrompt;
 
-    if (systemPrompt.type === 'personality' && window.personalityPromptRadio) {
-      window.personalityPromptRadio.checked = true;
-      if (window.personalityInput) {
-        window.personalityInput.value = systemPrompt.content || '';
-        window.personalityInput.setAttribute('data-explicitly-set', 'true');
+    if (systemPrompt.type === "personality" && elements.personalityPromptRadio) {
+      elements.personalityPromptRadio.checked = true;
+      if (elements.personalityInput) {
+        elements.personalityInput.value = systemPrompt.content || "";
+        elements.personalityInput.setAttribute("data-explicitly-set", "true");
       }
-    } else if (systemPrompt.type === 'custom' && window.customPromptRadio) {
-      window.customPromptRadio.checked = true;
-      if (window.systemPromptCustom) {
-        window.systemPromptCustom.value = systemPrompt.content || '';
+    } else if (systemPrompt.type === "custom" && elements.customPromptRadio) {
+      elements.customPromptRadio.checked = true;
+      if (elements.systemPromptCustom) {
+        elements.systemPromptCustom.value = systemPrompt.content || "";
       }
-    } else if (systemPrompt.type === 'none' && window.noPromptRadio) {
-      window.noPromptRadio.checked = true;
+    } else if (systemPrompt.type === "none" && elements.noPromptRadio) {
+      elements.noPromptRadio.checked = true;
     }
 
-    window.updatePromptVisibility?.();
+    updatePromptVisibility();
   }
 
-  if (convo.service && window.serviceSelector && window.config) {
-    const serviceOption = Array.from(window.serviceSelector.options || []).find(
+  if (convo.service && elements.serviceSelector && config) {
+    const serviceOption = Array.from(elements.serviceSelector.options || []).find(
       option => option.value === convo.service,
     );
 
-    if (serviceOption) {
-      window.config.defaultService = convo.service;
-      window.serviceSelector.value = convo.service;
+    if (serviceOption && !serviceOption.disabled) {
+      config.defaultService = convo.service;
+      elements.serviceSelector.value = convo.service;
 
-      const serviceConfig = window.config.services?.[convo.service];
-      if (serviceConfig && typeof serviceConfig.fetchAndUpdateModels === 'function') {
-        const serviceLabel = convo.service === 'lmstudio'
-          ? 'LM Studio'
-          : convo.service === 'ollama'
-            ? 'Ollama'
+      const serviceConfig = config.services?.[convo.service];
+      if (serviceConfig && typeof serviceConfig.fetchAndUpdateModels === "function") {
+        const serviceLabel = convo.service === "lmstudio"
+          ? "LM Studio"
+          : convo.service === "ollama"
+            ? "Ollama"
             : convo.service;
         serviceConfig.fetchAndUpdateModels()
           .then(() => {
-            window.updateModelSelector?.();
-            if (convo.model && window.modelSelector) {
-              const modelOption = Array.from(window.modelSelector.options || []).find(opt => opt.value === convo.model);
+            updateModelSelector?.();
+            if (convo.model && elements.modelSelector) {
+              const modelOption = Array.from(elements.modelSelector.options || []).find(opt => opt.value === convo.model);
               if (modelOption) {
-                window.modelSelector.value = convo.model;
-                window.updateHeaderInfo?.();
+                elements.modelSelector.value = convo.model;
+                updateHeaderInfo?.();
               }
             }
           })
           .catch((err) => {
             console.error(`Failed to refresh ${serviceLabel} models:`, err);
-            window.updateModelSelector?.();
-            if (convo.model && window.modelSelector) {
-              const modelOption = Array.from(window.modelSelector.options || []).find(opt => opt.value === convo.model);
+            updateModelSelector?.();
+            if (convo.model && elements.modelSelector) {
+              const modelOption = Array.from(elements.modelSelector.options || []).find(opt => opt.value === convo.model);
               if (modelOption) {
-                window.modelSelector.value = convo.model;
-                window.updateHeaderInfo?.();
+                elements.modelSelector.value = convo.model;
+                updateHeaderInfo?.();
               }
             }
           });
       } else {
-        window.updateModelSelector?.();
-        if (convo.model && window.modelSelector) {
-          const modelOption = Array.from(window.modelSelector.options || []).find(opt => opt.value === convo.model);
+        updateModelSelector?.();
+        if (convo.model && elements.modelSelector) {
+          const modelOption = Array.from(elements.modelSelector.options || []).find(opt => opt.value === convo.model);
           if (modelOption) {
-            window.modelSelector.value = convo.model;
-            window.updateHeaderInfo?.();
+            elements.modelSelector.value = convo.model;
+            updateHeaderInfo?.();
           }
         }
       }
     }
   }
 
-  if (convo.model && window.modelSelector) {
-    const modelOption = Array.from(window.modelSelector.options || []).find(option => option.value === convo.model);
+  if (convo.model && elements.modelSelector) {
+    const modelOption = Array.from(elements.modelSelector.options || []).find(option => option.value === convo.model);
     if (modelOption) {
-      window.modelSelector.value = convo.model;
-      window.updateHeaderInfo?.();
+      elements.modelSelector.value = convo.model;
+      updateHeaderInfo?.();
     }
   }
 
-  window.updateHeaderInfo?.();
+  updateHeaderInfo?.();
 
   if (!convo.id) {
-    window.loadedSystemPrompt = null;
+    state.loadedSystemPrompt = null;
   }
 };

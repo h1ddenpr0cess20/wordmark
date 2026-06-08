@@ -1,3 +1,5 @@
+import { state } from "../init/state.js";
+import { showInfo } from "../utils/notifications.js";
 /**
  * Vector Store and File Management Service
  */
@@ -152,8 +154,8 @@ export async function uploadAndAttachFiles(files, vectorStoreName = "Chat Docume
       const unsupportedNames = unsupported.map(f => f.name).join(", ");
       console.warn(`Skipping ${unsupported.length} unsupported file(s): ${unsupportedNames}`);
 
-      if (window.showInfo) {
-        window.showInfo(`Skipped ${unsupported.length} unsupported file(s). Supported formats: ${SUPPORTED_FILE_EXTENSIONS.join(", ")}`);
+      if (showInfo) {
+        showInfo(`Skipped ${unsupported.length} unsupported file(s). Supported formats: ${SUPPORTED_FILE_EXTENSIONS.join(", ")}`);
       }
     }
 
@@ -415,10 +417,10 @@ export function removeVectorStoreMetadata(vectorStoreId) {
  */
 export function getActiveVectorStoreId() {
   try {
-    return window.activeVectorStore || localStorage.getItem("active_vector_store") || null;
+    return state.activeVectorStore || localStorage.getItem("active_vector_store") || null;
   } catch {
     // Fallback if localStorage is unavailable (e.g., restricted environments)
-    return window.activeVectorStore || null;
+    return state.activeVectorStore || null;
   }
 }
 
@@ -426,7 +428,7 @@ export function getActiveVectorStoreId() {
  * Set the active vector store ID
  */
 export function setActiveVectorStoreId(vectorStoreId) {
-  window.activeVectorStore = vectorStoreId;
+  state.activeVectorStore = vectorStoreId;
   if (vectorStoreId) {
     localStorage.setItem("active_vector_store", vectorStoreId);
   } else {
@@ -438,7 +440,7 @@ export function setActiveVectorStoreId(vectorStoreId) {
  * Clear the active vector store
  */
 export function clearActiveVectorStore() {
-  window.activeVectorStore = null;
+  state.activeVectorStore = null;
   localStorage.removeItem("active_vector_store");
 }
 
@@ -448,6 +450,6 @@ export function clearActiveVectorStore() {
 export function initializeVectorStore() {
   const stored = localStorage.getItem("active_vector_store");
   if (stored) {
-    window.activeVectorStore = stored;
+    state.activeVectorStore = stored;
   }
 }

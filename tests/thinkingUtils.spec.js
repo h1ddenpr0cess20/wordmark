@@ -1,18 +1,20 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 
-// Mock global dependencies
-globalThis.window = {
-  loadMarkedLibrary: () => {},
-  sanitizeWithYouTube: null,
-};
+// thinkingUtils imports `marked` (real, works in Node) and sanitizeWithMedia
+// (DOMPurify is stubbed by the test loader). Just provide a window + document.
+globalThis.window = {};
 
-globalThis.marked = {
-  parse: (text) => `<p>${text}</p>`,
-};
-
-globalThis.DOMPurify = {
-  sanitize: (html) => html,
+// Minimal document stub so sanitizeWithMedia's DOM post-processing works.
+globalThis.document = {
+  createElement: () => {
+    let html = "";
+    return {
+      set innerHTML(value) { html = value; },
+      get innerHTML() { return html; },
+      querySelectorAll: () => [],
+    };
+  },
 };
 
 const { processMainContentMarkdown } = await import('../src/js/services/streaming/thinkingUtils.js');
@@ -25,9 +27,10 @@ test('processMainContentMarkdown handles basic text', () => {
 test('processMainContentMarkdown closes unclosed code blocks', () => {
   const input = 'Some text\n```javascript\nconst x = 1;';
   const result = processMainContentMarkdown(input);
-  
-  // Should have added closing backticks
-  assert.ok(result.includes('```'), 'should handle code blocks');
+
+  // The unclosed fence is balanced and rendered as a real code block.
+  assert.ok(result.includes('<pre>') || result.includes('<code'), 'should render a code block');
+  assert.ok(result.includes('const x = 1;'), 'should preserve code content');
 });
 
 test('processMainContentMarkdown closes unclosed inline code', () => {

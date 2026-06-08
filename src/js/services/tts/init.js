@@ -1,18 +1,14 @@
-window.initTtsReferences = function(refs) {
-  this.ttsToggle = refs.ttsToggle;
-  this.ttsAutoplayToggle = refs.ttsAutoplayToggle;
-  this.ttsProviderSelector = refs.ttsProviderSelector;
-  this.ttsVoiceSelector = refs.ttsVoiceSelector;
-  this.ttsInstructionsInput = refs.ttsInstructionsInput;
-  this.personalityInput = refs.personalityInput;
-  this.personalityPromptRadio = refs.personalityPromptRadio;
+import { elements } from "../../init/state.js";
+import { ttsConfig } from "./config.js";
 
-  if (this.ttsVoiceSelector) {
-    this.ttsVoiceSelector.addEventListener('change', (event) => {
-      window.ttsConfig.voice = event.target.value;
+// DOM references (ttsVoiceSelector, ttsToggle, ...) are owned by init/dom.js and
+// read off window where needed; this only wires the voice-change listener.
+export function initTtsReferences() {
+  if (elements.ttsVoiceSelector) {
+    elements.ttsVoiceSelector.addEventListener("change", (event) => {
+      ttsConfig.voice = event.target.value;
     });
   } else {
-    console.warn('ttsVoiceSelector not found during initialization');
+    console.warn("ttsVoiceSelector not found during initialization");
   }
-};
-
+}

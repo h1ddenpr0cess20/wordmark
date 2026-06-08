@@ -1,35 +1,31 @@
+import { elements } from "../state.js";
+import { showInfo } from "../../utils/notifications.js";
+import { loadToolScripts } from "../../utils/toolLoader.js";
+import { updateFeatureStatus } from "../../components/settings.js";
+import { updateMasterToolCallingStatus } from "../../components/tools.js";
+import { config } from "../../../config/config.js";
 export function setupToolCallingEventListeners() {
-  if (!window.toolCallingToggle) {
+  if (!elements.toolCallingToggle) {
     return;
   }
 
-  window.toolCallingToggle.addEventListener('change', (event) => {
+  elements.toolCallingToggle.addEventListener("change", (event) => {
     const enabled = event.target.checked;
-    window.config.enableFunctionCalling = enabled;
-    localStorage.setItem('enableFunctionCalling', enabled ? 'true' : 'false');
+    config.enableFunctionCalling = enabled;
+    localStorage.setItem("enableFunctionCalling", enabled ? "true" : "false");
 
-    if (typeof window.updateMasterToolCallingStatus === 'function') {
-      window.updateMasterToolCallingStatus(enabled);
-    } else if (window.individualToolsContainer) {
-      const toggles = window.individualToolsContainer.querySelectorAll('input[type="checkbox"]');
-      toggles.forEach((toggle) => {
-        toggle.disabled = !enabled;
+    updateMasterToolCallingStatus(enabled);
+
+    if (enabled) {
+      loadToolScripts().catch((error) => {
+        console.error("Failed to load tool scripts:", error);
       });
     }
 
-    if (enabled && typeof window.loadToolScripts === 'function') {
-      window.loadToolScripts().catch((error) => {
-        console.error('Failed to load tool scripts:', error);
-      });
-    }
+    updateFeatureStatus();
 
-    if (typeof window.updateFeatureStatus === 'function') {
-      window.updateFeatureStatus();
-    }
+    showInfo(enabled ? "Tool calling enabled." : "Tool calling disabled.");
 
-    if (typeof window.showInfo === 'function') {
-      window.showInfo(enabled ? 'Tool calling enabled.' : 'Tool calling disabled.');
-    }
   });
 }
 

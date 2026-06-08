@@ -2,26 +2,24 @@
  * Helpers for rendering reasoning/thinking content.
  */
 
+import { marked } from "marked";
+import { sanitizeWithMedia } from "../../utils/sanitize.js";
+
 export function processMainContentMarkdown(mainText) {
   let html = mainText;
 
-  if (html.split('```').length % 2 === 0) {
-    html += '\n```';
+  if (html.split("```").length % 2 === 0) {
+    html += "\n```";
   }
 
   const backtickCount = (html.match(/`/g) || []).length;
-  if (backtickCount % 2 !== 0 && html.endsWith('`')) {
-    html += '`';
+  if (backtickCount % 2 !== 0 && html.endsWith("`")) {
+    html += "`";
   }
 
-  if (typeof marked === 'undefined' && typeof window.loadMarkedLibrary === 'function') {
-    window.loadMarkedLibrary();
-  }
-  let parsedContent = typeof marked !== 'undefined'
-    ? (window.sanitizeWithYouTube ? window.sanitizeWithYouTube(marked.parse(html)) : DOMPurify.sanitize(marked.parse(html)))
-    : DOMPurify.sanitize(html);
+  let parsedContent = sanitizeWithMedia(marked.parse(html));
 
-  parsedContent = parsedContent.replace(/\[\[IMAGE: ([^\]]+)\]\]/g, (match, filename) => {
+  parsedContent = parsedContent.replace(/\[\[IMAGE: ([^\]]+)\]\]/g, (match) => {
     return `<span class="hidden-image-placeholder">${match}</span>`;
   });
 
@@ -29,13 +27,13 @@ export function processMainContentMarkdown(mainText) {
 }
 
 export function separateThinkingSegments(text) {
-  if (typeof text !== 'string' || !text) {
-    return { content: text || '', reasoning: '' };
+  if (typeof text !== "string" || !text) {
+    return { content: text || "", reasoning: "" };
   }
 
   const lower = text.toLowerCase();
-  const openTag = '<think>';
-  const closeTag = '</think>';
+  const openTag = "<think>";
+  const closeTag = "</think>";
   const contentParts = [];
   const reasoningParts = [];
   let cursor = 0;
@@ -69,7 +67,7 @@ export function separateThinkingSegments(text) {
   }
 
   return {
-    content: contentParts.join(''),
-    reasoning: reasoningParts.join(''),
+    content: contentParts.join(""),
+    reasoning: reasoningParts.join(""),
   };
 }

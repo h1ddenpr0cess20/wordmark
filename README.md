@@ -6,7 +6,7 @@
 
 **An open source AI assistant platform**
 
-[![Version](https://img.shields.io/badge/version-v1.6.0-blue.svg)](https://github.com/h1ddenpr0cess20/Wordmark)
+[![Version](https://img.shields.io/github/package-json/v/h1ddenpr0cess20/Wordmark?label=version&color=blue)](https://github.com/h1ddenpr0cess20/Wordmark)
 [![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
 [![JavaScript](https://img.shields.io/badge/javascript-ES6+-yellow.svg)](https://developer.mozilla.org/en-US/docs/Web/JavaScript)
 
@@ -50,9 +50,12 @@ Wordmark is a client-side AI chat for OpenAI/xAI Responses APIs and local LM Stu
 ```bash
 git clone https://github.com/h1ddenpr0cess20/Wordmark.git
 cd Wordmark
+npm install
+npm run dev          # dev server on http://localhost:3000
+# npm run dev:https  # HTTPS — needed for some APIs, TTS, and geolocation
 ```
 
-Open `index.html` directly, or serve over HTTPS for APIs, TTS, and geolocation (see [Getting Started](docs/getting-started.md)).
+Wordmark builds with [Vite](https://vite.dev). Use `npm run dev` for development or `npm run build` to produce a static bundle in `dist/` (serve it with `npm run preview`). Opening `index.html` straight from the filesystem no longer works — the app must be served by the dev server or built first. See [Getting Started](docs/getting-started.md).
 
 1. In **Settings → API Keys**, add your OpenAI/xAI keys. Keys and URLs are stored locally.
 2. Choose a provider and model in **Settings → Model**.

@@ -1,186 +1,125 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import path from 'node:path';
-import { loadWindowScript } from './helpers/loadWindowScript.js';
 
 function createLocalStorage(initial = {}) {
   const store = new Map(Object.entries(initial));
   return {
-    getItem(key) {
-      return store.has(key) ? store.get(key) : null;
-    },
-    setItem(key, value) {
-      store.set(key, String(value));
-    },
-    removeItem(key) {
-      store.delete(key);
-    },
-    clear() {
-      store.clear();
-    },
+    getItem(key) { return store.has(key) ? store.get(key) : null; },
+    setItem(key, value) { store.set(key, String(value)); },
+    removeItem(key) { store.delete(key); },
+    clear() { store.clear(); },
   };
 }
 
-function loadLocationModule({ storage, navigator, document, fetchImpl, windowOverrides = {}, globals = {} }) {
-  const modulePath = path.resolve('src/js/services/location.js');
-  return loadWindowScript(modulePath, {
-    window: { ...windowOverrides },
-    navigator,
-    document: document || {
-      getElementById() {
-        return null;
-      },
-    },
-    globals: {
-      localStorage: storage,
-      fetch: fetchImpl,
-      AbortSignal,
-      ...globals,
-    },
-  });
+const nullDocument = { getElementById() { return null; } };
+
+// globalThis.navigator is a read-only getter in Node; make it writable for stubbing.
+Object.defineProperty(globalThis, "navigator", { value: undefined, configurable: true, writable: true });
+
+globalThis.window = {};
+globalThis.document = nullDocument;
+globalThis.localStorage = createLocalStorage();
+
+const {
+  locationState,
+  requestLocation,
+  formatLocationString,
+  initializeLocationService,
+  disableLocation,
+} = await import('../src/js/services/location.js');
+
+function resetLocationState() {
+  locationState.enabled = false;
+  locationState.position = null;
+  locationState.locationString = "";
+  locationState.lastFetched = null;
+  locationState.error = null;
 }
 
 test('requestLocation returns error when geolocation unsupported', async () => {
+  resetLocationState();
   const storage = createLocalStorage();
-  const navigatorStub = {};
+  globalThis.localStorage = storage;
+  globalThis.navigator = {};
+  globalThis.document = nullDocument;
 
-  const windowObj = loadLocationModule({
-    storage,
-    navigator: navigatorStub,
-  });
-
-  const result = await windowObj.requestLocation();
+  const result = await requestLocation();
   assert.equal(result.error, 'Geolocation is not supported by this browser');
-  assert.equal(windowObj.locationState.enabled, false);
+  assert.equal(locationState.enabled, false);
   assert.equal(storage.getItem('locationEnabled'), null);
 });
 
-test('requestLocation stores formatted location on success', async () => {
+test('requestLocation stores formatted location on success (via reverse geocode)', async () => {
+  resetLocationState();
   const storage = createLocalStorage();
-  const position = {
-    coords: { latitude: 51.5, longitude: -0.12 },
-    timestamp: Date.now(),
+  globalThis.localStorage = storage;
+  globalThis.document = nullDocument;
+  const position = { coords: { latitude: 51.5, longitude: -0.12 }, timestamp: Date.now() };
+  globalThis.navigator = {
+    geolocation: { getCurrentPosition(success) { setImmediate(() => success(position)); } },
   };
-
-  const navigatorStub = {
-    geolocation: {
-      getCurrentPosition(success) {
-        setImmediate(() => success(position));
-      },
-    },
-  };
-
-  const windowObj = loadLocationModule({
-    storage,
-    navigator: navigatorStub,
+  globalThis.fetch = async () => ({
+    ok: true,
+    json: async () => ({ city: 'London', principalSubdivision: 'England', countryName: 'UK' }),
   });
 
-  const formatted = 'Location: London, UK (51.5000, -0.1200, Europe/London)';
-  windowObj.formatLocationString = async () => formatted;
-
-  const result = await windowObj.requestLocation();
+  const result = await requestLocation();
   assert.equal(result.success, true);
-  assert.equal(result.locationString, formatted);
-  assert.equal(windowObj.locationState.enabled, true);
-  assert.equal(windowObj.locationState.locationString, formatted);
+  assert.ok(result.locationString.includes('London'));
+  assert.equal(locationState.enabled, true);
+  assert.ok(locationState.locationString.includes('London'));
   assert.equal(storage.getItem('locationEnabled'), 'true');
 
   const stored = JSON.parse(storage.getItem('lastKnownLocation'));
-  assert.equal(stored.locationString, formatted);
+  assert.ok(stored.locationString.includes('London'));
   assert.equal(stored.coords.latitude, position.coords.latitude);
 });
 
-test('requestLocation falls back to coordinates when formatter fails', async () => {
+test('requestLocation falls back to coordinates when reverse geocode fails', async () => {
+  resetLocationState();
   const storage = createLocalStorage();
-  const position = {
-    coords: { latitude: 40.7128, longitude: -74.006 },
-    timestamp: Date.now(),
+  globalThis.localStorage = storage;
+  globalThis.document = nullDocument;
+  const position = { coords: { latitude: 40.7128, longitude: -74.006 }, timestamp: Date.now() };
+  globalThis.navigator = {
+    geolocation: { getCurrentPosition(success) { setImmediate(() => success(position)); } },
   };
+  globalThis.fetch = async () => { throw new Error('network down'); };
 
-  const navigatorStub = {
-    geolocation: {
-      getCurrentPosition(success) {
-        setImmediate(() => success(position));
-      },
-    },
-  };
-
-  const windowObj = loadLocationModule({
-    storage,
-    navigator: navigatorStub,
-  });
-
-  windowObj.formatLocationString = async () => {
-    throw new Error('reverse geocode failed');
-  };
-
-  const result = await windowObj.requestLocation();
+  const result = await requestLocation();
   assert.equal(result.success, true);
   assert.ok(result.locationString.includes('40.7128'));
   assert.ok(result.locationString.includes('-74.0060'));
-  assert.equal(windowObj.locationState.enabled, true);
+  assert.equal(locationState.enabled, true);
 });
 
 test('requestLocation maps geolocation errors to friendly message', async () => {
+  resetLocationState();
   const storage = createLocalStorage();
-  const errorObj = {
-    code: 1,
-    PERMISSION_DENIED: 1,
-    POSITION_UNAVAILABLE: 2,
-    TIMEOUT: 3,
+  globalThis.localStorage = storage;
+  globalThis.document = nullDocument;
+  const errorObj = { code: 1, PERMISSION_DENIED: 1, POSITION_UNAVAILABLE: 2, TIMEOUT: 3 };
+  globalThis.navigator = {
+    geolocation: { getCurrentPosition(_success, failure) { setImmediate(() => failure(errorObj)); } },
   };
 
-  const navigatorStub = {
-    geolocation: {
-      getCurrentPosition(_success, failure) {
-        setImmediate(() => failure(errorObj));
-      },
-    },
-  };
-
-  const windowObj = loadLocationModule({
-    storage,
-    navigator: navigatorStub,
-  });
-
-  const result = await windowObj.requestLocation();
+  const result = await requestLocation();
   assert.equal(result.error, 'Location access denied by user');
-  assert.equal(windowObj.locationState.enabled, false);
+  assert.equal(locationState.enabled, false);
   assert.equal(storage.getItem('locationEnabled'), 'false');
 });
 
 test('formatLocationString uses reverse geocoding when available', async () => {
-  const storage = createLocalStorage();
-  const navigatorStub = {
-    geolocation: {
-      getCurrentPosition() {},
-    },
-  };
-
   const fetchCalls = [];
-  const fetchImpl = async (url) => {
+  globalThis.fetch = async (url) => {
     fetchCalls.push(url);
     return {
       ok: true,
-      json: async () => ({
-        city: 'Paris',
-        principalSubdivision: 'Île-de-France',
-        countryName: 'France',
-      }),
+      json: async () => ({ city: 'Paris', principalSubdivision: 'Île-de-France', countryName: 'France' }),
     };
   };
 
-  const windowObj = loadLocationModule({
-    storage,
-    navigator: navigatorStub,
-    fetchImpl,
-  });
-
-  const position = {
-    coords: { latitude: 48.8566, longitude: 2.3522 },
-  };
-
-  const result = await windowObj.formatLocationString(position);
+  const result = await formatLocationString({ coords: { latitude: 48.8566, longitude: 2.3522 } });
   assert.ok(fetchCalls[0].includes('latitude=48.8566'));
   assert.ok(result.includes('Paris'));
   assert.ok(result.includes('Île-de-France'));
@@ -188,35 +127,17 @@ test('formatLocationString uses reverse geocoding when available', async () => {
 });
 
 test('formatLocationString falls back when fetch fails', async () => {
-  const storage = createLocalStorage();
-  const navigatorStub = {
-    geolocation: {
-      getCurrentPosition() {},
-    },
-  };
+  globalThis.fetch = async () => { throw new Error('network down'); };
 
-  const fetchImpl = async () => {
-    throw new Error('network down');
-  };
-
-  const windowObj = loadLocationModule({
-    storage,
-    navigator: navigatorStub,
-    fetchImpl,
-  });
-
-  const position = {
-    coords: { latitude: 34.05, longitude: -118.25 },
-  };
-
-  const result = await windowObj.formatLocationString(position);
+  const result = await formatLocationString({ coords: { latitude: 34.05, longitude: -118.25 } });
   assert.ok(result.includes('34.0500'));
   assert.ok(result.includes('-118.2500'));
 });
 
 test('initializeLocationService restores recent stored location', () => {
+  resetLocationState();
   const recentTimestamp = Date.now() - 30 * 60 * 1000;
-  const storage = createLocalStorage({
+  globalThis.localStorage = createLocalStorage({
     locationEnabled: 'true',
     lastKnownLocation: JSON.stringify({
       coords: { latitude: 10, longitude: 20 },
@@ -224,30 +145,20 @@ test('initializeLocationService restores recent stored location', () => {
       locationString: 'Stored Place',
     }),
   });
+  globalThis.document = nullDocument;
+  let geoCalls = 0;
+  globalThis.navigator = { geolocation: { getCurrentPosition() { geoCalls += 1; } } };
 
-  let updateCount = 0;
-  const windowObj = loadLocationModule({
-    storage,
-    navigator: {
-      geolocation: {
-        getCurrentPosition() {},
-      },
-    },
-  });
-
-  windowObj.updateLocationUI = () => {
-    updateCount += 1;
-  };
-
-  windowObj.initializeLocationService();
-  assert.equal(windowObj.locationState.enabled, true);
-  assert.equal(windowObj.locationState.locationString, 'Stored Place');
-  assert.equal(updateCount, 1);
+  initializeLocationService();
+  assert.equal(locationState.enabled, true);
+  assert.equal(locationState.locationString, 'Stored Place');
+  assert.equal(geoCalls, 0); // recent location => no fresh request
 });
 
 test('initializeLocationService requests fresh location when stored expires', () => {
+  resetLocationState();
   const oldTimestamp = Date.now() - 2 * 3600000;
-  const storage = createLocalStorage({
+  globalThis.localStorage = createLocalStorage({
     locationEnabled: 'true',
     lastKnownLocation: JSON.stringify({
       coords: { latitude: 1, longitude: 2 },
@@ -255,61 +166,34 @@ test('initializeLocationService requests fresh location when stored expires', ()
       locationString: 'Old Place',
     }),
   });
+  globalThis.document = nullDocument;
+  let geoCalls = 0;
+  globalThis.navigator = { geolocation: { getCurrentPosition() { geoCalls += 1; } } };
 
-  let requestCount = 0;
-  const windowObj = loadLocationModule({
-    storage,
-    navigator: {
-      geolocation: {
-        getCurrentPosition() {},
-      },
-    },
-  });
-
-  windowObj.updateLocationUI = () => {};
-  windowObj.requestLocation = () => {
-    requestCount += 1;
-  };
-
-  windowObj.initializeLocationService();
-  assert.equal(requestCount, 1);
+  initializeLocationService();
+  assert.equal(geoCalls, 1); // expired => requestLocation() triggers getCurrentPosition
 });
 
 test('disableLocation clears state and updates UI', () => {
-  const storage = createLocalStorage({
-    locationEnabled: 'true',
-    lastKnownLocation: JSON.stringify({}),
-  });
-
+  resetLocationState();
+  const storage = createLocalStorage({ locationEnabled: 'true', lastKnownLocation: JSON.stringify({}) });
+  globalThis.localStorage = storage;
   const statusNode = { textContent: '', className: '' };
   const toggleNode = { checked: true };
-  const documentStub = {
+  globalThis.document = {
     getElementById(id) {
-      if (id === 'location-toggle') {
-        return toggleNode;
-      }
-      if (id === 'location-status') {
-        return statusNode;
-      }
+      if (id === 'location-toggle') return toggleNode;
+      if (id === 'location-status') return statusNode;
       return null;
     },
   };
+  globalThis.navigator = { geolocation: { getCurrentPosition() {} } };
 
-  const windowObj = loadLocationModule({
-    storage,
-    document: documentStub,
-    navigator: {
-      geolocation: {
-        getCurrentPosition() {},
-      },
-    },
-  });
+  locationState.enabled = true;
+  locationState.locationString = 'Somewhere';
 
-  windowObj.locationState.enabled = true;
-  windowObj.locationState.locationString = 'Somewhere';
-
-  windowObj.disableLocation();
-  assert.equal(windowObj.locationState.enabled, false);
+  disableLocation();
+  assert.equal(locationState.enabled, false);
   assert.equal(storage.getItem('locationEnabled'), 'false');
   assert.equal(toggleNode.checked, false);
   assert.equal(statusNode.textContent, 'Location services disabled');

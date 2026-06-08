@@ -1,11 +1,25 @@
 // About Tab Popup Functions
 
+import privacyPolicyHtml from "../../html/privacy-policy.html?raw";
+import contactHtml from "../../html/contact.html?raw";
+import termsOfServiceHtml from "../../html/terms-of-service.html?raw";
+import helpGuideHtml from "../../html/help-guide.html?raw";
+import { state } from "../init/state.js";
+
+// Bundled standalone page markup keyed by their source path.
+const ABOUT_PAGE_HTML = {
+  "src/html/privacy-policy.html": privacyPolicyHtml,
+  "src/html/contact.html": contactHtml,
+  "src/html/terms-of-service.html": termsOfServiceHtml,
+  "src/html/help-guide.html": helpGuideHtml,
+};
+
 const ABOUT_FALLBACKS = {
   "privacy-content-container": `
     <div class="popup-default">
       <p><strong>Effective Date:</strong> June 14, 2025</p>
       <p>Wordmark is designed for privacy-first AI experimentation. All conversations, images, API keys, and settings stay in your browser; nothing is uploaded to a Wordmark server.</p>
-      <p>When you connect to third-party AI services (such as xAI) your requests go straight from your device to that provider in accordance with their privacy policy. When you run local models (LM Studio, Ollama) the data never leaves your machine.</p>
+      <p>When you connect to third-party AI services (such as OpenAI or Anthropic) your requests go straight from your device to that provider in accordance with their privacy policy. When you run local models (LM Studio, Ollama) the data never leaves your machine.</p>
       <p>You can clear every stored item at any time via Settings → History, Settings → Tools → Images, and Settings → Memory.</p>
     </div>
   `,
@@ -55,17 +69,16 @@ async function loadContentIntoContainer(url, containerId) {
     return;
   }
 
-  if (!url) {
+  const html = ABOUT_PAGE_HTML[url];
+  if (typeof html !== "string") {
+    if (state.verboseLogging) {
+      console.warn("No bundled content registered for", url);
+    }
+    // Keep fallback content visible
     return;
   }
 
   try {
-    const response = await fetch(url);
-    if (!response.ok) {
-      throw new Error(`Failed to load content (${response.status})`);
-    }
-    const html = await response.text();
-
     // Create a temporary DOM to extract just the main content
     const tempDiv = document.createElement("div");
     tempDiv.innerHTML = html;
@@ -78,14 +91,12 @@ async function loadContentIntoContainer(url, containerId) {
     if (mainContent) {
       container.innerHTML = mainContent.innerHTML;
       container.dataset.loaded = "true";
-    } else {
-      if (window.VERBOSE_LOGGING) {
-        console.warn("No main content found in", url);
-      }
+    } else if (state.verboseLogging) {
+      console.warn("No main content found in", url);
     }
   } catch (error) {
-    if (window.VERBOSE_LOGGING) {
-      console.warn("About popup content fetch failed:", error);
+    if (state.verboseLogging) {
+      console.warn("About popup content parse failed:", error);
     }
     // Keep fallback content visible
   }
@@ -211,12 +222,31 @@ function hideHelpPopup() {
   }
 }
 
-// Expose popup functions to global window scope
-window.showPrivacyPopup = showPrivacyPopup;
-window.hidePrivacyPopup = hidePrivacyPopup;
-window.showContactPopup = showContactPopup;
-window.hideContactPopup = hideContactPopup;
-window.showTermsPopup = showTermsPopup;
-window.hideTermsPopup = hideTermsPopup;
-window.showHelpPopup = showHelpPopup;
-window.hideHelpPopup = hideHelpPopup;
+// Map the About tab's data-popup-action triggers to their handlers. The About
+// panel is loaded as an HTML fragment after this module evaluates, so bind a
+// single delegated click listener on the document rather than per-element
+// inline onclick handlers.
+const POPUP_ACTIONS = {
+  "show-privacy": showPrivacyPopup,
+  "hide-privacy": hidePrivacyPopup,
+  "show-contact": showContactPopup,
+  "hide-contact": hideContactPopup,
+  "show-terms": showTermsPopup,
+  "hide-terms": hideTermsPopup,
+  "show-help": showHelpPopup,
+  "hide-help": hideHelpPopup,
+};
+
+if (typeof document !== "undefined" && typeof document.addEventListener === "function") {
+  document.addEventListener("click", (event) => {
+    const trigger = event.target.closest("[data-popup-action]");
+    if (!trigger) {
+      return;
+    }
+    const handler = POPUP_ACTIONS[trigger.getAttribute("data-popup-action")];
+    if (handler) {
+      event.preventDefault();
+      handler();
+    }
+  });
+}

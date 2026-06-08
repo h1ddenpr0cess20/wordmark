@@ -1,7 +1,5 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import path from 'node:path';
-import { loadWindowScript } from './helpers/loadWindowScript.js';
 
 // Fake IndexedDB with simple index support on 'timestamp'
 function createFakeIndexedDB() {
@@ -96,21 +94,23 @@ function makeDom() {
   };
 }
 
-const audioPath = path.resolve('src/js/utils/audioStorage.js');
+// Set up browser-ish globals before importing the ES module.
+const dom = makeDom();
+globalThis.document = dom.document;
+globalThis.URL = { createObjectURL: () => 'blob://fake-url', revokeObjectURL: () => {} };
+globalThis.window = { addEventListener: () => {}, indexedDB: createFakeIndexedDB() };
+
+const {
+  initAudioDb,
+  saveAudioToDb,
+  loadAudioForMessage,
+  cleanupOldAudio,
+  exportAudioForDownload,
+} = await import('../src/js/utils/audioStorage.js');
 
 test('exportAudioForDownload creates anchor and triggers click', () => {
-  const dom = makeDom();
-  const windowObj = loadWindowScript(audioPath, {
-    window: { addEventListener: () => {} },
-    document: dom.document,
-    URL: {
-      createObjectURL: () => 'blob://fake-url',
-      revokeObjectURL: () => {},
-    },
-  });
-
   const buffer = new ArrayBuffer(4);
-  const ok = windowObj.exportAudioForDownload(buffer, 'voice.wav');
+  const ok = exportAudioForDownload(buffer, 'voice.wav');
   assert.equal(ok, true);
   // Last appended element is the anchor
   const anchor = dom.document.body.appended.at(-1);
@@ -120,32 +120,24 @@ test('exportAudioForDownload creates anchor and triggers click', () => {
 });
 
 test('audio cleanupOldAudio enforces max and is idempotent', async () => {
-  const fakeIDB = createFakeIndexedDB();
-  const dom = makeDom();
-  const win = loadWindowScript(audioPath, {
-    window: { addEventListener: (ev, cb) => { if (ev === 'DOMContentLoaded') cb(); }, indexedDB: fakeIDB },
-    document: dom.document,
-    globals: { URL: { createObjectURL: ()=>'blob://x', revokeObjectURL:()=>{} } },
-  });
-
-  await win.initAudioDb();
+  await initAudioDb();
 
   // Save more than MAX_STORED_AUDIO (15)
   const total = 22;
-  for (let i=0; i<total; i++) {
-    await win.saveAudioToDb(new ArrayBuffer(1), 'msg', 't', 'v');
+  for (let i = 0; i < total; i++) {
+    await saveAudioToDb(new ArrayBuffer(1), 'msg', 't', 'v');
   }
 
   // Now run cleanup explicitly; may already be clean due to auto-clean in save
-  const deleted = await win.cleanupOldAudio();
+  const deleted = await cleanupOldAudio();
   assert.equal(typeof deleted, 'number');
   assert.ok(deleted >= 0);
 
   // Loading by message should return a record
-  const rec = await win.loadAudioForMessage('msg');
+  const rec = await loadAudioForMessage('msg');
   assert.equal(rec.messageId, 'msg');
 
   // Running cleanup again should result in zero deletions
-  const deleted2 = await win.cleanupOldAudio();
+  const deleted2 = await cleanupOldAudio();
   assert.equal(deleted2, 0);
 });

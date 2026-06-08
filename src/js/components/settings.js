@@ -1,3 +1,11 @@
+import { elements } from "../init/state.js";
+import { uiHooks } from "../init/uiHooks.js";
+import { DEFAULT_PERSONALITY, config } from "../../config/config.js";
+import { getMemoryConfig, setMemoryEnabled } from "../utils/memoryStorage.js";
+import { locationState, requestLocation, disableLocation } from "../services/location.js";
+import { ttsConfig } from "../services/tts.js";
+import { updateReasoningAvailability } from "../init/modelSettings.js";
+import { openSettingsAndSwitch } from "../init/eventListeners/settingsPanel.js";
 /**
  * Settings panel related functionality
  */
@@ -6,19 +14,18 @@
 // Settings panel functions
 // -----------------------------------------------------
 
-// UI hooks for updating model lists
-window.uiHooks = window.uiHooks || {};
-
 /**
- * Updates the local models dropdown when models are refreshed
+ * Updates the local models dropdown when models are refreshed.
+ * Registered on the uiHooks registry so config.js can call it after fetching
+ * provider models without importing the component graph.
  * @param {boolean} fetchError - Whether there was an error fetching models
  */
-window.uiHooks.updateModelsDropdown = function(fetchError) {
-  const serviceKey = window.serviceSelector ? window.serviceSelector.value : "";
-  const serviceLabelMap = { lmstudio: "LM Studio", ollama: "Ollama", xai: "xAI" };
+export function updateModelsDropdown(fetchError) {
+  const serviceKey = elements.serviceSelector ? elements.serviceSelector.value : "";
+  const serviceLabelMap = { lmstudio: "LM Studio", ollama: "Ollama", openai: "OpenAI", xai: "xAI" };
   const serviceLabel = serviceLabelMap[serviceKey] || serviceKey;
 
-  window.updateModelSelector();
+  updateModelSelector();
 
   // Show status message if there was an error
   if (fetchError) {
@@ -44,39 +51,44 @@ window.uiHooks.updateModelsDropdown = function(fetchError) {
       }, 5000);
     }
   }
-};
+}
+
+// Register on the uiHooks registry so config.js can trigger dropdown refreshes
+// after fetching provider models without importing the component graph.
+uiHooks.updateModelsDropdown = updateModelsDropdown;
 
 /**
  * Updates the header information
  */
-window.updateHeaderInfo = function() {
+export function updateHeaderInfo() {
   const headerTitle = document.getElementById("header-title");
   const modelInfo = document.getElementById("model-info");
-  const featureStatus = document.getElementById("feature-status");
 
   // Check if required elements exist
-  if (!headerTitle || !modelInfo || !window.modelSelector) {
+  if (!headerTitle || !modelInfo || !elements.modelSelector) {
     console.warn("Header elements not found, skipping updateHeaderInfo");
     return;
   }
 
-  const model = window.modelSelector.value;
+  const model = elements.modelSelector.value;
 
   try {
     // Set model name as the main header title
     if (model && model !== "error" && model !== "no-models") {
       headerTitle.textContent = `${model}`;
-      window.modelSelector.setAttribute("data-last-selected", model);
+      elements.modelSelector.setAttribute("data-last-selected", model);
     } else {
       headerTitle.textContent = "AI Assistant";
     }
 
     // Update native title on the model name with provider display name
     try {
-      const serviceKey = (window.config && window.config.defaultService) ? window.config.defaultService : "";
+      const serviceKey = (config && config.defaultService) ? config.defaultService : "";
       let displayName = "";
       switch (serviceKey) {
+      case "openai": displayName = "OpenAI"; break;
       case "xai": displayName = "xAI (Grok)"; break;
+      // case "huggingface": displayName = "Hugging Face"; break;
       case "lmstudio": displayName = "LM Studio (Local)"; break;
       case "ollama": displayName = "Ollama (Local)"; break;
       default: displayName = serviceKey ? (serviceKey.charAt(0).toUpperCase() + serviceKey.slice(1)) : "";
@@ -92,15 +104,15 @@ window.updateHeaderInfo = function() {
 
     // Show personality or prompt info in the modelInfo area
     let promptInfo = "";
-    if (window.personalityPromptRadio.checked && window.personalityInput.value.trim() !== "") {
+    if (elements.personalityPromptRadio.checked && elements.personalityInput.value.trim() !== "") {
       // Only show personality if the user has actively set it
-      if (window.personalityInput.hasAttribute("data-explicitly-set") &&
-          window.personalityInput.getAttribute("data-explicitly-set") === "true") {
-        promptInfo = `Personality: ${window.personalityInput.value.trim()}`;
+      if (elements.personalityInput.hasAttribute("data-explicitly-set") &&
+          elements.personalityInput.getAttribute("data-explicitly-set") === "true") {
+        promptInfo = `Personality: ${elements.personalityInput.value.trim()}`;
       }
-    } else if (window.customPromptRadio.checked && window.systemPromptCustom.value.trim() !== "") {
-      promptInfo = window.systemPromptCustom.value.trim();
-    } else if (window.noPromptRadio && window.noPromptRadio.checked) {
+    } else if (elements.customPromptRadio.checked && elements.systemPromptCustom.value.trim() !== "") {
+      promptInfo = elements.systemPromptCustom.value.trim();
+    } else if (elements.noPromptRadio && elements.noPromptRadio.checked) {
       promptInfo = "No system prompt";
     }
 
@@ -108,10 +120,10 @@ window.updateHeaderInfo = function() {
     if (!promptInfo) {
       // Only show default personality in the header if it's actually set in the input
       // Don't automatically override the personality input value here
-      if (window.DEFAULT_PERSONALITY && window.personalityInput && window.personalityInput.value.trim()) {
-        promptInfo = `Personality: ${window.personalityInput.value.trim()}`;
-      } else if (window.DEFAULT_PERSONALITY) {
-        promptInfo = `Personality: ${window.DEFAULT_PERSONALITY}`;
+      if (DEFAULT_PERSONALITY && elements.personalityInput && elements.personalityInput.value.trim()) {
+        promptInfo = `Personality: ${elements.personalityInput.value.trim()}`;
+      } else if (DEFAULT_PERSONALITY) {
+        promptInfo = `Personality: ${DEFAULT_PERSONALITY}`;
       }
     }
 
@@ -124,65 +136,44 @@ window.updateHeaderInfo = function() {
   }
 
   // Update feature status line as part of header refresh
-  if (typeof window.updateFeatureStatus === "function") {
-    try { window.updateFeatureStatus(); } catch { /* noop */ }
-  } else if (featureStatus) {
-    // Minimal fallback if function is unavailable
-    const on = label => `<span class="feature-badge" data-state="on"><span class="dot"></span>${label}</span>`;
-    const off = label => `<span class="feature-badge" data-state="off"><span class="dot"></span>${label}</span>`;
-    const locOn = Boolean(window.locationState && window.locationState.enabled);
-    let memOn = false;
-    try { memOn = Boolean(window.getMemoryConfig && window.getMemoryConfig().enabled); } catch {}
-    const toolsOn = Boolean(window.config && window.config.enableFunctionCalling);
-    featureStatus.innerHTML = [
-      locOn ? on("Location") : off("Location"),
-      memOn ? on("Memory") : off("Memory"),
-      toolsOn ? on("Tools") : off("Tools"),
-    ].join(" ");
-  }
+  try { updateFeatureStatus(); } catch { /* noop */ }
 
-  if (typeof window.updateReasoningAvailability === "function") {
-    window.updateReasoningAvailability();
-  }
-};
+  updateReasoningAvailability();
+}
 
 /**
  * Data settings enable/disable control (persisted in localStorage)
  */
-window.getDataSettingsEnabled = function() {
+export function getDataSettingsEnabled() {
   try {
     const v = localStorage.getItem("dataSettingsEnabled");
     return v === null ? true : v === "true";
   } catch {
     return true;
   }
-};
+}
 
-window.setDataSettingsEnabled = function(enabled) {
+export function setDataSettingsEnabled(enabled) {
   try {
     localStorage.setItem("dataSettingsEnabled", enabled ? "true" : "false");
   } catch { /* noop */ }
 
   // Reflect state in the Data tab toggle without re-triggering change handler
-  const toggle = window.dataSettingsToggle || document.getElementById("data-settings-toggle");
+  const toggle = elements.dataSettingsToggle || document.getElementById("data-settings-toggle");
   if (toggle) {
     toggle.checked = enabled;
   }
 
-  if (typeof window.applyDataSettingsState === "function") {
-    try { window.applyDataSettingsState(); } catch { /* noop */ }
-  }
+  try { applyDataSettingsState(); } catch { /* noop */ }
 
   // Keep header feature badges in sync
-  if (typeof window.updateFeatureStatus === "function") {
-    try { window.updateFeatureStatus(); } catch { /* noop */ }
-  }
-};
+  try { updateFeatureStatus(); } catch { /* noop */ }
+}
 
-window.applyDataSettingsState = function() {
+export function applyDataSettingsState() {
   const content = document.getElementById("content-data");
   if (!content) return;
-  const enabled = (typeof window.getDataSettingsEnabled === "function") ? window.getDataSettingsEnabled() : true;
+  const enabled = getDataSettingsEnabled();
 
   if (enabled) {
     // Re-enable tab UI
@@ -242,21 +233,21 @@ window.applyDataSettingsState = function() {
       }
     });
   }
-};
+}
 
 /**
  * Updates the small feature status line under the header.
  */
-window.updateFeatureStatus = function() {
+export function updateFeatureStatus() {
   const el = document.getElementById("feature-status");
   if (!el) return;
 
   const state = {
-    location: Boolean(window.locationState && window.locationState.enabled),
-    memory: (() => { try { return Boolean(window.getMemoryConfig && window.getMemoryConfig().enabled); } catch { return false; } })(),
-    tools: Boolean(window.config && window.config.enableFunctionCalling !== false),
-    data: Boolean(typeof window.getDataSettingsEnabled === "function" ? window.getDataSettingsEnabled() : (localStorage.getItem("dataSettingsEnabled") !== "false")),
-    tts: Boolean(window.ttsConfig?.enabled),
+    location: Boolean(locationState && locationState.enabled),
+    memory: (() => { try { return Boolean(getMemoryConfig && getMemoryConfig().enabled); } catch { return false; } })(),
+    tools: Boolean(config && config.enableFunctionCalling !== false),
+    data: getDataSettingsEnabled(),
+    tts: Boolean(ttsConfig.enabled),
   };
 
   // Rebuild to bind handlers
@@ -283,13 +274,12 @@ window.updateFeatureStatus = function() {
     const toggleFeature = async() => {
       switch (key) {
       case "tools": {
-        const toggle = window.toolCallingToggle || document.getElementById("tool-calling-toggle");
+        const toggle = elements.toolCallingToggle || document.getElementById("tool-calling-toggle");
         if (toggle) {
           toggle.checked = !isOn;
           toggle.dispatchEvent(new Event("change", { bubbles: true }));
         } else {
-          window.config = window.config || {};
-          window.config.enableFunctionCalling = !isOn;
+          config.enableFunctionCalling = !isOn;
         }
         break;
       }
@@ -298,8 +288,9 @@ window.updateFeatureStatus = function() {
         if (toggle) {
           toggle.checked = !isOn;
           toggle.dispatchEvent(new Event("change", { bubbles: true }));
-        } else if (typeof window.setMemoryEnabled === "function") {
-          window.setMemoryEnabled(!isOn);
+        } else {
+          setMemoryEnabled(!isOn);
+
         }
         break;
       }
@@ -309,28 +300,23 @@ window.updateFeatureStatus = function() {
           if (toggle) {
             toggle.checked = true;
             toggle.dispatchEvent(new Event("change", { bubbles: true }));
-          } else if (typeof window.requestLocation === "function") {
-            await window.requestLocation();
+          } else {
+            await requestLocation();
+
           }
         } else {
           if (toggle) {
             toggle.checked = false;
             toggle.dispatchEvent(new Event("change", { bubbles: true }));
-          } else if (typeof window.disableLocation === "function") {
-            window.disableLocation();
+          } else {
+            disableLocation();
+
           }
         }
         break;
       }
       case "data": {
-        if (typeof window.setDataSettingsEnabled === "function") {
-          window.setDataSettingsEnabled(!isOn);
-        } else {
-          localStorage.setItem("dataSettingsEnabled", (!isOn).toString());
-          if (typeof window.applyDataSettingsState === "function") {
-            window.applyDataSettingsState();
-          }
-        }
+        setDataSettingsEnabled(!isOn);
         break;
       }
       case "tts": {
@@ -342,7 +328,7 @@ window.updateFeatureStatus = function() {
         break;
       }
       }
-      setTimeout(() => window.updateFeatureStatus(), 50);
+      setTimeout(() => updateFeatureStatus(), 50);
     };
 
     dot.addEventListener("click", () => { toggleFeature(); });
@@ -350,11 +336,9 @@ window.updateFeatureStatus = function() {
 
     badge.addEventListener("click", (e) => {
       if (e.target === dot) return;
-      if (typeof window.openSettingsAndSwitch === "function") {
-        e.preventDefault();
-        e.stopPropagation();
-        window.openSettingsAndSwitch(tabId);
-      }
+      e.preventDefault();
+      e.stopPropagation();
+      openSettingsAndSwitch(tabId);
     });
 
     badge.appendChild(dot);
@@ -367,43 +351,43 @@ window.updateFeatureStatus = function() {
   el.appendChild(makeBadge("Tools", "tools", state.tools, "tab-tools"));
   el.appendChild(makeBadge("Data", "data", state.data, "tab-data"));
   el.appendChild(makeBadge("TTS", "tts", state.tts, "tab-tts"));
-};
+}
 
 /**
  * Updates model selector with available models for the current service
  */
-window.updateModelSelector = function() {
+export function updateModelSelector() {
   // Check if modelSelector exists
-  if (!window.modelSelector) {
+  if (!elements.modelSelector) {
     console.warn("Model selector not found, skipping updateModelSelector");
     return;
   }
 
-  const currentlySelectedModel = window.modelSelector.value;
-  const savedModel = window.modelSelector.getAttribute("data-last-selected");
+  const currentlySelectedModel = elements.modelSelector.value;
+  const savedModel = elements.modelSelector.getAttribute("data-last-selected");
 
-  window.modelSelector.innerHTML = "";
+  elements.modelSelector.innerHTML = "";
 
   try {
-    const activeServiceKey = window.config?.defaultService;
-    const activeService = activeServiceKey ? window.config?.services?.[activeServiceKey] : null;
+    const activeServiceKey = config?.defaultService;
+    const activeService = activeServiceKey ? config?.services?.[activeServiceKey] : null;
     const isLocalLoading = Boolean(activeService && activeService.modelsFetching === true);
 
     if (isLocalLoading) {
       const option = document.createElement("option");
       option.value = "loading";
       option.textContent = "Loading models...";
-      window.modelSelector.appendChild(option);
+      elements.modelSelector.appendChild(option);
       return;
     }
 
-    const models = window.config.getAvailableModels();
+    const models = config.getAvailableModels();
     if (!Array.isArray(models) || models.length === 0) {
       console.error("No models available for the selected service");
       const option = document.createElement("option");
       option.value = "no-models";
       option.textContent = "No models available";
-      window.modelSelector.appendChild(option);
+      elements.modelSelector.appendChild(option);
       return;
     }
 
@@ -411,24 +395,24 @@ window.updateModelSelector = function() {
       const option = document.createElement("option");
       option.value = model;
       option.textContent = model;
-      window.modelSelector.appendChild(option);
+      elements.modelSelector.appendChild(option);
     });
 
     // First try to use the currently selected model
     if (currentlySelectedModel && models.includes(currentlySelectedModel)) {
-      window.modelSelector.value = currentlySelectedModel;
+      elements.modelSelector.value = currentlySelectedModel;
     }
     // Then try to use the saved model
     else if (savedModel && models.includes(savedModel)) {
-      window.modelSelector.value = savedModel;
+      elements.modelSelector.value = savedModel;
     }
     // Then try to use the default model from config
     else {
-      const defaultModel = window.config.getDefaultModel();
+      const defaultModel = config.getDefaultModel();
 
       // Try exact match first
       if (defaultModel && models.includes(defaultModel)) {
-        window.modelSelector.value = defaultModel;
+        elements.modelSelector.value = defaultModel;
       }
       // Try matching without the :latest suffix
       else if (defaultModel) {
@@ -439,43 +423,45 @@ window.updateModelSelector = function() {
         );
 
         if (matchingModel) {
-          window.modelSelector.value = matchingModel;
+          elements.modelSelector.value = matchingModel;
         } else if (models.length > 0) {
-          window.modelSelector.value = models[0];
+          elements.modelSelector.value = models[0];
         }
       } else if (models.length > 0) {
-        window.modelSelector.value = models[0];
+        elements.modelSelector.value = models[0];
       }
     }
 
-    window.modelSelector.setAttribute("data-last-selected", window.modelSelector.value);
-    window.updateHeaderInfo();
-    if (typeof window.updateReasoningAvailability === "function") {
-      window.updateReasoningAvailability();
-    }
+    elements.modelSelector.setAttribute("data-last-selected", elements.modelSelector.value);
+    updateHeaderInfo();
+    updateReasoningAvailability();
   } catch (error) {
     console.error("Error updating model selector:", error);
     const option = document.createElement("option");
     option.value = "error";
     option.textContent = "Error loading models";
-    window.modelSelector.appendChild(option);
+    elements.modelSelector.appendChild(option);
   }
-};
+}
 
 /**
  * Dynamically populates the service selector dropdown based on available services in config
  */
-window.populateServiceSelector = function() {
-  if (!window.serviceSelector || !window.config || !window.config.services) {
+export function populateServiceSelector() {
+  if (!elements.serviceSelector || !config || !config.services) {
     console.warn("Service selector or config not found, skipping populateServiceSelector");
     return;
   }
 
   // Clear existing options
-  window.serviceSelector.innerHTML = "";
+  elements.serviceSelector.innerHTML = "";
 
   // Create and append options for each service in config
-  Object.keys(window.config.services).forEach(serviceKey => {
+  Object.keys(config.services).forEach(serviceKey => {
+    const serviceConfig = config.services[serviceKey];
+    if (serviceConfig?.enabled === false) {
+      return;
+    }
     const option = document.createElement("option");
     option.value = serviceKey;
 
@@ -484,9 +470,15 @@ window.populateServiceSelector = function() {
 
     // Add specific labels for known services
     switch (serviceKey) {
+    case "openai":
+      displayName = "OpenAI";
+      break;
     case "xai":
       displayName = "xAI (Grok)";
       break;
+    // case "huggingface":
+    //   displayName = "Hugging Face";
+    //   break;
     case "lmstudio":
       displayName = "LM Studio (Local)";
       break;
@@ -498,27 +490,31 @@ window.populateServiceSelector = function() {
     }
 
     option.textContent = displayName;
-    window.serviceSelector.appendChild(option);
+    elements.serviceSelector.appendChild(option);
   });
-};
+
+  if (typeof config.normalizeServiceKey === "function") {
+    config.defaultService = config.normalizeServiceKey(config.defaultService);
+  }
+}
 
 /**
  * Explicitly initialize the personality input with the default personality
  */
-window.initializePersonalityInput = function() {
-  if (window.personalityInput && window.DEFAULT_PERSONALITY) {
-    window.personalityInput.value = window.DEFAULT_PERSONALITY;
-    window.personalityInput.setAttribute("data-explicitly-set", "true");
+export function initializePersonalityInput() {
+  if (elements.personalityInput && DEFAULT_PERSONALITY) {
+    elements.personalityInput.value = DEFAULT_PERSONALITY;
+    elements.personalityInput.setAttribute("data-explicitly-set", "true");
     console.info("Default personality explicitly set in personality input box");
   } else {
     console.warn("Could not initialize personality input: element or default personality not available");
   }
-};
+}
 
 /**
  * Organizes settings content into columns for wider panel layout
  */
-window.organizeSettingsLayout = function() {
+export function organizeSettingsLayout() {
   // Apply to the Model tab
   const modelTab = document.getElementById("model-settings");
   if (modelTab) {
@@ -559,4 +555,4 @@ window.organizeSettingsLayout = function() {
       }
     }
   }
-};
+}

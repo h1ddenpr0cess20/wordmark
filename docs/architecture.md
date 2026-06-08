@@ -2,9 +2,10 @@
 
 High-level
 
-- Entrypoint: `index.html`
-- Config: `src/config/config.js` (globals, service endpoints, defaults)
-- App code: `src/js/**` using small modules that attach to `window.*`
+- Build: [Vite](https://vite.dev) (rolldown). `npm run dev` serves the app; `npm run build` bundles to `dist/`. The browser no longer loads raw source files.
+- Entrypoint: `index.html` → `src/js/main.js` (single ES module entry that imports everything else)
+- Config: `src/config/config.js` (service endpoints, defaults; exports `config`, `APP_VERSION`, prompt templates, `applyConsoleLogging`)
+- App code: `src/js/**` — pure ES modules using explicit `import`/`export`. There are no `window.*` app globals; only genuine browser APIs (`window.addEventListener`, `indexedDB`, etc.) touch `window`.
 - Styles: `src/css/**` (global, components, themes)
 - Templates: `src/html/**` (panels and fragments loaded by the menu system)
 - Assets: `src/assets/**`
@@ -12,9 +13,10 @@ High-level
 JS Modules
 
 - `init/`: startup sequence and wiring
-  - `globals.js`: declares global state/refs
-  - `dom.js`: assigns DOM refs (selectors) to globals
-  - `initialization.js`: coordinates startup (DOMPurify config, services/models, events, TTS, location, header info)
+  - `state.js`: the shared runtime store — exports `state` (app state) and `elements` (cached DOM refs); replaces the old `globals.js` window bridge
+  - `uiHooks.js`: exports `uiHooks`, a small registry of UI callbacks (e.g. `updateModelsDropdown`) that lower-level modules invoke without importing UI code
+  - `dom.js`: queries interactive elements and assigns them onto `elements`
+  - `initialization.js`: exports `initialize()`, which coordinates startup (DOMPurify config, services/models, events, TTS, location, header info)
   - `services.js`: populates service/model selectors; triggers local model fetches (LM Studio/Ollama); sets initial conversation name; tool-calling toggle init
   - `eventListeners.js`: keyboard, buttons, settings/history/gallery panels, textarea auto-size, etc.
   - `modelSettings.js`: model control helpers (loaded; kept minimal here)
@@ -46,12 +48,13 @@ JS Modules
 
 Render & Security
 
-- Markdown: `marked.min.js` (when available) + DOMPurify sanitization
+- Vendor libraries (`marked`, `dompurify`, `highlight.js`) are npm dependencies imported directly by the modules that use them and bundled by Vite — there is no `src/js/lib/` and no classic `<script>` tags.
+- Markdown: `marked` + DOMPurify sanitization
 - Sanitization: `initialization.js` configures DOMPurify to allow only safe iframes (YouTube) and secures external images
-- Syntax highlighting: `highlight.min.js` loaded via helpers; copy buttons added per-code block
+- Syntax highlighting: `highlight.js` loaded via helpers; copy buttons added per-code block
 
 App Start
 
-- `index.html` loads `src/config/config.js`, then module entry `src/js/main.js`
-- `main.js` imports utilities → components → services → init modules
-- Panels (`src/html/**`) are loaded by the menu system; once ready, it calls `window.initialize()` to kick off the sequence
+- `index.html` loads the single module entry `src/js/main.js`
+- `main.js` imports config → state → utilities → components → services → init modules (config first so its console-logging setup runs before the rest evaluates)
+- Panels (`src/html/**`) are loaded by the menu system; once ready, `main.js` calls the imported `initialize()` to kick off the sequence

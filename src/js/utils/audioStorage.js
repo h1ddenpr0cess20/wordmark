@@ -9,13 +9,16 @@ const AUDIO_DB_VERSION = 1;
 const AUDIO_STORE_NAME = "tts-audio";
 const MAX_STORED_AUDIO = 15;
 
+// Module-level handle to the open database (was window.audioDb)
+let audioDb = null;
+
 /**
  * Initialize the IndexedDB database for audio storage
  * @returns {Promise} - Promise that resolves when the database is ready
  */
-window.initAudioDb = function() {
+export function initAudioDb() {
   return new Promise((resolve, reject) => {
-    if (window.indexedDB === undefined) {
+    if (typeof window === "undefined" || window.indexedDB === undefined) {
       console.error("IndexedDB is not supported in this browser");
       reject(new Error("IndexedDB not supported"));
       return;
@@ -43,12 +46,12 @@ window.initAudioDb = function() {
     };
 
     request.onsuccess = (event) => {
-      window.audioDb = event.target.result;
+      audioDb = event.target.result;
       console.info("IndexedDB initialized for TTS audio storage");
       resolve();
     };
   });
-};
+}
 
 /**
  * Save TTS audio to IndexedDB
@@ -58,19 +61,19 @@ window.initAudioDb = function() {
  * @param {string} voice - Voice used for TTS
  * @returns {Promise<Object>} - Promise that resolves with the stored audio record
  */
-window.saveAudioToDb = function(audioData, messageId, text, voice) {
+export function saveAudioToDb(audioData, messageId, text, voice) {
   return new Promise((resolve, reject) => {
-    if (!window.audioDb) {
+    if (!audioDb) {
       console.error("Audio IndexedDB not initialized");
       // Try to initialize it now
-      window.initAudioDb().then(() => {
+      initAudioDb().then(() => {
         // Retry after initialization
-        window.saveAudioToDb(audioData, messageId, text, voice).then(resolve).catch(reject);
+        saveAudioToDb(audioData, messageId, text, voice).then(resolve).catch(reject);
       }).catch(reject);
       return;
     }
     // Start a transaction
-    const transaction = window.audioDb.transaction([AUDIO_STORE_NAME], "readwrite");
+    const transaction = audioDb.transaction([AUDIO_STORE_NAME], "readwrite");
     const store = transaction.objectStore(AUDIO_STORE_NAME);
 
     // Create a record with the audio data
@@ -95,33 +98,33 @@ window.saveAudioToDb = function(audioData, messageId, text, voice) {
       console.info("Audio saved to IndexedDB for message:", messageId);
 
       // Check if we need to clean up old audio files
-      window.cleanupOldAudio().catch(err => {
+      cleanupOldAudio().catch(err => {
         console.warn("Error during audio cleanup:", err);
       });
 
       resolve(record);
     };
   });
-};
+}
 
 /**
  * Load audio for a specific message from IndexedDB
  * @param {string} messageId - The message ID to retrieve audio for
  * @returns {Promise<Object>} - Promise that resolves with the audio record
  */
-window.loadAudioForMessage = function(messageId) {
+export function loadAudioForMessage(messageId) {
   return new Promise((resolve, reject) => {
-    if (!window.audioDb) {
+    if (!audioDb) {
       console.error("Audio IndexedDB not initialized");
       // Try to initialize it now
-      window.initAudioDb().then(() => {
+      initAudioDb().then(() => {
         // Retry after initialization
-        window.loadAudioForMessage(messageId).then(resolve).catch(reject);
+        loadAudioForMessage(messageId).then(resolve).catch(reject);
       }).catch(reject);
       return;
     }
     // Start a transaction
-    const transaction = window.audioDb.transaction([AUDIO_STORE_NAME], "readonly");
+    const transaction = audioDb.transaction([AUDIO_STORE_NAME], "readonly");
     const store = transaction.objectStore(AUDIO_STORE_NAME);
     const index = store.index("messageId");
 
@@ -147,22 +150,22 @@ window.loadAudioForMessage = function(messageId) {
       }
     };
   });
-};
+}
 
 /**
  * Delete audio from IndexedDB
  * @param {string} id - The ID of the audio record to delete
  * @returns {Promise<boolean>} - Promise that resolves when deleted
  */
-window.deleteAudioFromDb = function(id) {
+export function deleteAudioFromDb(id) {
   return new Promise((resolve, reject) => {
-    if (!window.audioDb) {
+    if (!audioDb) {
       console.error("Audio IndexedDB not initialized");
       reject(new Error("Audio IndexedDB not initialized"));
       return;
     }
     // Start a transaction
-    const transaction = window.audioDb.transaction([AUDIO_STORE_NAME], "readwrite");
+    const transaction = audioDb.transaction([AUDIO_STORE_NAME], "readwrite");
     const store = transaction.objectStore(AUDIO_STORE_NAME);
 
     // Delete the record
@@ -178,21 +181,21 @@ window.deleteAudioFromDb = function(id) {
       resolve(true);
     };
   });
-};
+}
 
 /**
  * Clean up old audio files, keeping only the most recent MAX_STORED_AUDIO files
  * @returns {Promise<number>} - Promise that resolves with the number of deleted files
  */
-window.cleanupOldAudio = function() {
+export function cleanupOldAudio() {
   return new Promise((resolve, reject) => {
-    if (!window.audioDb) {
+    if (!audioDb) {
       console.error("Audio IndexedDB not initialized");
       reject(new Error("Audio IndexedDB not initialized"));
       return;
     }
     // Start a transaction
-    const transaction = window.audioDb.transaction([AUDIO_STORE_NAME], "readonly");
+    const transaction = audioDb.transaction([AUDIO_STORE_NAME], "readonly");
     const store = transaction.objectStore(AUDIO_STORE_NAME);
 
     // Get all audio records sorted by timestamp
@@ -220,7 +223,8 @@ window.cleanupOldAudio = function() {
         if (allAudioRecords.length > MAX_STORED_AUDIO) {
           const recordsToDelete = allAudioRecords.slice(MAX_STORED_AUDIO);
 
-          // Start a delete transaction          const deleteTransaction = window.audioDb.transaction([AUDIO_STORE_NAME], 'readwrite');
+          // Start a delete transaction
+          const deleteTransaction = audioDb.transaction([AUDIO_STORE_NAME], "readwrite");
           const deleteStore = deleteTransaction.objectStore(AUDIO_STORE_NAME);
 
           // Track deletions
@@ -257,14 +261,14 @@ window.cleanupOldAudio = function() {
       }
     };
   });
-};
+}
 
 /**
  * Exports an audio file for download
  * @param {ArrayBuffer} audioData - The audio data to download
  * @param {string} filename - Suggested filename for the download
  */
-window.exportAudioForDownload = function(audioData, filename) {
+export function exportAudioForDownload(audioData, filename) {
   try {
     // Create a blob from the audio data
     const blob = new Blob([audioData], { type: "audio/wav" });
@@ -289,12 +293,12 @@ window.exportAudioForDownload = function(audioData, filename) {
     console.error("Error exporting audio for download:", error);
     return false;
   }
-};
+}
 
 // Initialize the audio database when this script loads
-if (typeof window !== "undefined") {
+if (typeof window !== "undefined" && typeof window.addEventListener === "function") {
   window.addEventListener("DOMContentLoaded", () => {
-    window.initAudioDb().catch(err => {
+    initAudioDb().catch(err => {
       console.error("Failed to initialize audio database:", err);
     });
   });

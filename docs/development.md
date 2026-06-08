@@ -2,32 +2,33 @@
 
 Local Dev
 
-- No build step is required. Open `index.html` or serve via HTTPS.
-- Module entry is `src/js/main.js`; most modules attach to `window.*` for global access.
+- Built with [Vite](https://vite.dev). Install once with `npm install`, then `npm run dev` (port 3000) or `npm run dev:https` for a secure context.
+- `npm run build` produces a static bundle in `dist/`; `npm run preview` serves it on port 8080.
+- Module entry is `src/js/main.js`. The app is pure ES modules — code uses explicit `import`/`export`, not `window.*` globals. Shared runtime state lives in `src/js/init/state.js` (`state`, `elements`); UI callbacks register on `src/js/init/uiHooks.js`.
 
 Debug Mode (Triple‑Click About)
 
 - Toggle on/off by triple‑clicking the About tab header quickly (3 clicks within ~1s).
-- Effects: sets `window.DEBUG` and `window.VERBOSE_LOGGING` true/false together, adds timestamped console logs, and shows a brief on‑screen “Debug Mode Enabled/Disabled” toast.
+- Effects: flips `state.debug` and `state.verboseLogging` together, calls `applyConsoleLogging()`, adds timestamped console logs, and shows a brief on‑screen “Debug Mode Enabled/Disabled” toast.
 - Scope: in‑memory only (resets on reload). To avoid log suppression even when not in debug, set `localStorage.enableLogging = 'true'`.
 - Related: some debug UI (e.g., the image diagnostics button) is gated by `localStorage.developerMode === 'true'`. You can enable it via `localStorage.setItem('developerMode','true')` in the console.
 
 Coding Style
 
-- JavaScript ES6+, 2-space indent, semicolons, single quotes.
+- JavaScript ES6+, 2-space indent, semicolons, **double quotes** (enforced by ESLint — run `npm run lint`).
 - File names: `camelCase.js`; directories lowercase.
-- Keep changes modular under `src/js/**`; prefer small files.
+- Public APIs use ES module exports; keep changes modular under `src/js/**` and prefer small files.
 
 Panels & Fragments
 
-- UI panels and pages live in `src/html/**`. The menu system lazy-loads these into the DOM; `window.initialize()` runs once panels are ready.
+- UI panels and pages live in `src/html/**`. The menu system lazy-loads these into the DOM; `initialize()` runs once panels are ready.
 
 Adding a Service
 
 - Update `src/config/config.js`:
   - Add a service entry with `baseUrl`, `apiKey`, `models` (array or fetcher), and `defaultModel`.
   - If the model list is dynamic, add a `fetchAndUpdateModels()` method and a `uiHooks.updateXxxModelsDropdown()` callback.
-- Ensure `getBaseUrl()` and `getApiKey()` pick up your service (the default configuration includes OpenAI, LM Studio, and Ollama out of the box).
+- Ensure `getBaseUrl()` and `getApiKey()` pick up your service (the default configuration includes OpenAI, xAI, LM Studio, and Ollama out of the box).
 
 Adding a Tool
 

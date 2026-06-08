@@ -27,13 +27,16 @@ import {
   supportsClientSideTools,
 } from "./api/toolManager.js";
 
-window.responsesClient = {
+export const responsesClient = {
   buildInstructions,
   prepareInputMessages: serializeMessagesForRequest,
   collectFunctionCalls,
   runTurn,
-  toolDefinitions: TOOL_DEFINITIONS,
-  toolHandlers: TOOL_HANDLERS,
+  // Getters defer reading these toolManager consts until runtime so that an
+  // import cycle (toolManager → apiKeys → tools → api → toolManager) does not
+  // hit them in the temporal dead zone during module evaluation.
+  get toolDefinitions() { return TOOL_DEFINITIONS; },
+  get toolHandlers() { return TOOL_HANDLERS; },
   getToolCatalog,
   isToolEnabled,
   isClientSideToolType,
@@ -46,9 +49,3 @@ window.responsesClient = {
   refreshMcpAvailability,
   supportsClientSideTools,
 };
-
-if (typeof window.initApiReferences !== "function") {
-  window.initApiReferences = function(refs) {
-    window.apiReferences = refs || {};
-  };
-}

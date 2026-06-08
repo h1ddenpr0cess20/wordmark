@@ -1,5 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
+import { state } from '../src/js/init/state.js';
 
 globalThis.window = globalThis.window || {};
 
@@ -41,7 +42,7 @@ test('collectImageCandidates gathers nested data URLs and deduplicates', () => {
 test('ensureImagesHaveMessageIds matches placeholders and timestamps', () => {
   const now = new Date().toISOString();
 
-  window.conversationHistory = [
+  state.conversationHistory = [
     {
       id: 'assistant-1',
       role: 'assistant',
@@ -56,7 +57,7 @@ test('ensureImagesHaveMessageIds matches placeholders and timestamps', () => {
     },
   ];
 
-  window.generatedImages = [
+  state.generatedImages = [
     { filename: 'latest.png', timestamp: now },
     { filename: 'orphan.png', timestamp: new Date(Date.now() - 1000).toISOString() },
   ];
@@ -64,9 +65,9 @@ test('ensureImagesHaveMessageIds matches placeholders and timestamps', () => {
   const updated = ensureImagesHaveMessageIds();
 
   assert.equal(updated, 2);
-  const byFilename = Object.fromEntries(window.generatedImages.map(img => [img.filename, img.associatedMessageId]));
+  const byFilename = Object.fromEntries(state.generatedImages.map(img => [img.filename, img.associatedMessageId]));
 
   assert.equal(byFilename['latest.png'], 'assistant-1');
   assert.equal(byFilename['orphan.png'], 'assistant-2'); // falls back to closest assistant message by timestamp
-  assert.ok(window.conversationHistory[0].hasImages);
+  assert.ok(state.conversationHistory[0].hasImages);
 });

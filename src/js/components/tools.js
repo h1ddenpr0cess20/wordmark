@@ -1,8 +1,23 @@
+import { elements } from "../init/state.js";
+import { showInfo } from "../utils/notifications.js";
+import { getMemoryConfig } from "../utils/memoryStorage.js";
+import { updateFeatureStatus } from "./settings.js";
+import { requestMcpServerRemoval } from "../services/mcpServers.js";
+import { responsesClient } from "../services/api.js";
+import { config } from "../../config/config.js";
 /**
  * Tool settings management for Responses API integrations.
  * Renders the tool list, persists toggle state, and synchronises with the
  * Responses client so only enabled tools are sent with each request.
  */
+// Public API is assigned by the IIFE below and re-exported; the IIFE form is
+// kept to preserve the module's private state/closure without re-indenting.
+let initToolsSettings;
+let updateMasterToolCallingStatus;
+let refreshToolSettingsUI;
+let updateToolDefinitions;
+let getToolsDescription;
+
 (function() {
   let toolsContainer = null;
   let enableAllButton = null;
@@ -10,7 +25,7 @@
   let bulkActionsBound = false;
 
   function ensureClient() {
-    if (!window.responsesClient) {
+    if (!responsesClient) {
       console.warn("Responses client unavailable; tool settings cannot be initialised yet.");
       return false;
     }
@@ -19,29 +34,29 @@
 
   function getActiveServiceKey() {
     if (!ensureClient()) {
-      return "xai";
+      return "openai";
     }
-    return window.responsesClient.getActiveServiceKey();
+    return responsesClient.getActiveServiceKey();
   }
 
   function isMasterEnabled() {
-    return !(window.config && window.config.enableFunctionCalling === false);
+    return !(config && config.enableFunctionCalling === false);
   }
 
   function getActiveModelName() {
-    if (window.modelSelector && window.modelSelector.value) {
-      return window.modelSelector.value;
+    if (elements.modelSelector && elements.modelSelector.value) {
+      return elements.modelSelector.value;
     }
-    if (window.config && typeof window.config.getDefaultModel === "function") {
+    if (config && typeof config.getDefaultModel === "function") {
       try {
-        return window.config.getDefaultModel();
+        return config.getDefaultModel();
       } catch {
         /* ignore */
       }
     }
-    const activeKey = window.config && window.config.defaultService;
-    if (activeKey && window.config?.services?.[activeKey]?.defaultModel) {
-      return window.config.services[activeKey].defaultModel;
+    const activeKey = config && config.defaultService;
+    if (activeKey && config?.services?.[activeKey]?.defaultModel) {
+      return config.services[activeKey].defaultModel;
     }
     return "";
   }
@@ -51,18 +66,18 @@
   }
 
   function supportsClientSideToolsForCurrentModel(serviceKey, modelName) {
-    if (!window.responsesClient || typeof window.responsesClient.supportsClientSideTools !== "function") {
+    if (!responsesClient || typeof responsesClient.supportsClientSideTools !== "function") {
       return true;
     }
-    return window.responsesClient.supportsClientSideTools(serviceKey, modelName);
+    return responsesClient.supportsClientSideTools(serviceKey, modelName);
   }
 
   function isClientSideTool(tool) {
     if (!tool) {
       return false;
     }
-    if (window.responsesClient && typeof window.responsesClient.isClientSideToolType === "function") {
-      return window.responsesClient.isClientSideToolType(tool.type);
+    if (responsesClient && typeof responsesClient.isClientSideToolType === "function") {
+      return responsesClient.isClientSideToolType(tool.type);
     }
     return tool.type === "function" || tool.type === "mcp";
   }
@@ -87,23 +102,26 @@
     if (tool.requiresApiKeyService && tool.hasRequiredApiKey === false) {
       const note = document.createElement("div");
       note.className = "tool-note";
-      note.textContent = `Add your ${tool.requiresApiKeyService === "xai" ? "xAI" : tool.requiresApiKeyService} API key in Settings → API Keys to enable this tool.`;
+      note.textContent = `Add your ${tool.requiresApiKeyService === "xai" ? "xAI" : "OpenAI"} API key in Settings → API Keys to enable this tool.`;
       return note;
     }
 
     if (!isAvailable) {
       const note = document.createElement("div");
       note.className = "tool-note";
+      if (tool.key === "builtin:image_generation" && serviceKey === "openai" && codexModelActive) {
+        note.textContent = "Image generation is unavailable for Codex models.";
+        return note;
+      }
       if (!clientSideToolsSupported && isClientSideTool(tool)) {
         note.textContent = "This xAI multi-agent model does not support client-side tools.";
         return note;
       }
       if (tool.onlyServices && tool.onlyServices.length) {
         const friendlyServices = tool.onlyServices
-          .map(service => {
-            if (service === "xai") return "xAI (Grok)";
-            return service.charAt(0).toUpperCase() + service.slice(1);
-          })
+          .map(service => (service === "openai"
+            ? "OpenAI"
+            : service.charAt(0).toUpperCase() + service.slice(1)))
           .join(", ");
         note.textContent = `Available when ${friendlyServices} is selected.`;
       } else {
@@ -136,13 +154,11 @@
       return;
     }
     const enabled = checkbox.checked;
-    window.responsesClient.setToolEnabled(toolKey, enabled);
-    if (typeof window.updateFeatureStatus === "function") {
-      window.updateFeatureStatus();
-    }
-    if (typeof window.showInfo === "function") {
-      window.showInfo(`${enabled ? "Enabled" : "Disabled"} ${checkbox.getAttribute("data-tool-name") || "tool"}.`);
-    }
+    responsesClient.setToolEnabled(toolKey, enabled);
+    updateFeatureStatus();
+
+    showInfo(`${enabled ? "Enabled" : "Disabled"} ${checkbox.getAttribute("data-tool-name") || "tool"}.`);
+
   }
 
   function handleMcpDelete(tool) {
@@ -150,11 +166,8 @@
       return;
     }
     const label = tool.key.replace(/^mcp:/, "");
-    if (typeof window.requestMcpServerRemoval === "function") {
-      window.requestMcpServerRemoval(label, tool.displayName);
-    } else {
-      console.warn("MCP removal helper unavailable; unable to delete server from UI.");
-    }
+    requestMcpServerRemoval(label, tool.displayName);
+
   }
 
   function renderToolList() {
@@ -172,7 +185,7 @@
       return;
     }
 
-    const catalog = window.responsesClient.getToolCatalog();
+    const catalog = responsesClient.getToolCatalog();
     const serviceKey = getActiveServiceKey();
     const masterEnabled = isMasterEnabled();
     const activeModelName = getActiveModelName();
@@ -200,11 +213,14 @@
       if (tool.requiresApiKeyService && tool.hasRequiredApiKey === false) {
         isAvailable = false;
       }
+      if (tool.key === "builtin:image_generation" && serviceKey === "openai" && codexModelActive) {
+        isAvailable = false;
+      }
       if (!clientSideToolsSupported && isClientSideTool(tool)) {
         isAvailable = false;
       }
       const isOnline = tool.type !== "mcp" ? true : tool.isOnline !== false;
-      const preferenceEnabled = window.responsesClient.isToolEnabled(tool.key);
+      const preferenceEnabled = responsesClient.isToolEnabled(tool.key);
       const item = document.createElement("div");
       item.className = "tool-toggle-item";
       if (!masterEnabled) {
@@ -287,7 +303,7 @@
 
         deleteButton.innerHTML = `
           <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">
-            <use href="src/assets/icons.svg#trash"></use>
+            <use href="/icons.svg#trash"></use>
           </svg>
         `;
 
@@ -311,9 +327,8 @@
       toolsContainer.appendChild(item);
     });
 
-    if (typeof window.updateFeatureStatus === "function") {
-      window.updateFeatureStatus();
-    }
+    updateFeatureStatus();
+
   }
 
   function bindBulkActions() {
@@ -327,14 +342,12 @@
         if (!ensureClient()) {
           return;
         }
-        window.responsesClient.setAllToolsEnabled(true);
+        responsesClient.setAllToolsEnabled(true);
         renderToolList();
-        if (typeof window.updateFeatureStatus === "function") {
-          window.updateFeatureStatus();
-        }
-        if (typeof window.showInfo === "function") {
-          window.showInfo("All tools enabled.");
-        }
+        updateFeatureStatus();
+
+        showInfo("All tools enabled.");
+
       });
     }
 
@@ -343,35 +356,33 @@
         if (!ensureClient()) {
           return;
         }
-        window.responsesClient.setAllToolsEnabled(false);
+        responsesClient.setAllToolsEnabled(false);
         renderToolList();
-        if (typeof window.updateFeatureStatus === "function") {
-          window.updateFeatureStatus();
-        }
-        if (typeof window.showInfo === "function") {
-          window.showInfo("All tools disabled.");
-        }
+        updateFeatureStatus();
+
+        showInfo("All tools disabled.");
+
       });
     }
   }
 
-  window.initToolsSettings = function() {
+  initToolsSettings = function() {
     toolsContainer = document.getElementById("individual-tools-container");
     enableAllButton = document.getElementById("enable-all-tools");
     disableAllButton = document.getElementById("disable-all-tools");
 
-    if (window.toolCallingToggle) {
-      window.toolCallingToggle.disabled = false;
-      window.toolCallingToggle.removeAttribute("aria-disabled");
-      window.toolCallingToggle.title = "";
+    if (elements.toolCallingToggle) {
+      elements.toolCallingToggle.disabled = false;
+      elements.toolCallingToggle.removeAttribute("aria-disabled");
+      elements.toolCallingToggle.title = "";
     }
 
     bindBulkActions();
     renderToolList();
 
-    if (window.responsesClient && typeof window.responsesClient.refreshMcpAvailability === "function") {
+    if (responsesClient && typeof responsesClient.refreshMcpAvailability === "function") {
       try {
-        const maybePromise = window.responsesClient.refreshMcpAvailability();
+        const maybePromise = responsesClient.refreshMcpAvailability();
         if (maybePromise && typeof maybePromise.then === "function") {
           maybePromise.then(() => {
             renderToolList();
@@ -387,24 +398,22 @@
     }
   };
 
-  window.updateMasterToolCallingStatus = function(enabled) {
-    if (window.toolCallingToggle) {
-      window.toolCallingToggle.checked = enabled;
+  updateMasterToolCallingStatus = function(enabled) {
+    if (elements.toolCallingToggle) {
+      elements.toolCallingToggle.checked = enabled;
     }
-    if (window.config) {
-      window.config.enableFunctionCalling = enabled;
+    if (config) {
+      config.enableFunctionCalling = enabled;
     }
     renderToolList();
   };
 
-  window.refreshToolSettingsUI = function() {
+  refreshToolSettingsUI = function() {
     renderToolList();
   };
 
-  window.updateToolDefinitions = function() {
-    if (typeof window.refreshToolSettingsUI === "function") {
-      window.refreshToolSettingsUI();
-    }
+  updateToolDefinitions = function() {
+    refreshToolSettingsUI();
   };
 
   function isLocalNetworkUrl(url) {
@@ -426,26 +435,27 @@
     }
   }
 
-  window.getToolsDescription = function() {
-    if (!window.config || window.config.enableFunctionCalling === false) {
+  getToolsDescription = function() {
+    if (!config || config.enableFunctionCalling === false) {
       return "";
     }
-    if (!window.responsesClient) {
+    if (!responsesClient) {
       return "";
     }
 
-    const serviceKey = typeof window.responsesClient.getActiveServiceKey === "function"
-      ? window.responsesClient.getActiveServiceKey()
-      : (window.config.defaultService || "xai");
+    const serviceKey = typeof responsesClient.getActiveServiceKey === "function"
+      ? responsesClient.getActiveServiceKey()
+      : (config.defaultService || "openai");
     const activeModelName = getActiveModelName();
+    const codexModelActive = isCodexModel(activeModelName);
     const clientSideToolsSupported = supportsClientSideToolsForCurrentModel(serviceKey, activeModelName);
 
     // Check if this is a local AI service
     const isLocalService = serviceKey === "lmstudio" || serviceKey === "ollama";
 
     let catalog = [];
-    if (typeof window.responsesClient.getToolCatalog === "function") {
-      catalog = window.responsesClient.getToolCatalog();
+    if (typeof responsesClient.getToolCatalog === "function") {
+      catalog = responsesClient.getToolCatalog();
     }
 
     const items = [];
@@ -460,7 +470,7 @@
       // Skip MCP servers on local network when using cloud AI services
       if (tool.type === "mcp" && !isLocalService) {
         // Get server URL from the tool definition
-        const toolDef = window.responsesClient?.toolDefinitions?.find(def =>
+        const toolDef = responsesClient?.toolDefinitions?.find(def =>
           def.type === "mcp" && def.server_label === tool.key.replace("mcp:", ""),
         );
         const serverUrl = toolDef?.server_url;
@@ -472,10 +482,13 @@
       if (tool.type === "mcp" && tool.isOnline === false) {
         return;
       }
+      if (tool.key === "builtin:image_generation" && serviceKey === "openai" && codexModelActive) {
+        return;
+      }
       if (!clientSideToolsSupported && isClientSideTool(tool)) {
         return;
       }
-      if (typeof window.responsesClient.isToolEnabled === "function" && !window.responsesClient.isToolEnabled(tool.key)) {
+      if (typeof responsesClient.isToolEnabled === "function" && !responsesClient.isToolEnabled(tool.key)) {
         return;
       }
       const description = tool.description ? `: ${tool.description}` : "";
@@ -485,8 +498,8 @@
     try {
       if (
         clientSideToolsSupported
-        && typeof window.getMemoryConfig === "function"
-        && window.getMemoryConfig().enabled
+
+        && getMemoryConfig().enabled
       ) {
         items.push("- Memory: The assistant can remember or forget short details when you ask it to.");
       }
@@ -500,3 +513,5 @@
     return `\nAvailable tools you can call when needed:\n${items.join("\n")}\n`;
   };
 })();
+
+export { initToolsSettings, updateMasterToolCallingStatus, refreshToolSettingsUI, updateToolDefinitions, getToolsDescription };

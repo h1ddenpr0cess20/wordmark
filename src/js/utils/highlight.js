@@ -1,74 +1,57 @@
+import { state } from "../init/state.js";
+import { icon } from "./icons.js";
 /**
  * Highlight.js integration and code formatting utilities
  */
 
-// -----------------------------------------------------
-// Lazy-load highlight.js and setup
-// -----------------------------------------------------
-window.loadHighlightJS = function() {
-  if (window.hljsLoaded) {
+import hljs from "highlight.js";
+
+// hljs is bundled and imported directly by its consumers. Configure it once on
+// load; `loadHighlightJS()` remains as the initial-DOM-highlight entry point.
+state.hljsLoaded = true;
+hljs.configure({
+  ignoreUnescapedHTML: true,
+});
+
+let hljsInitialHighlightDone = false;
+
+export function loadHighlightJS() {
+  if (hljsInitialHighlightDone) {
     return Promise.resolve();
   }
-  return new Promise((resolve, reject) => {
-    const script = document.createElement("script");
-    try {
-      const url = new URL("../lib/highlight.min.js", import.meta.url).href;
-      script.src = url;
-    } catch {
-      // Fallback to previous absolute path if import.meta.url is unavailable
-      script.src = "/src/js/lib/highlight.min.js";
-    }
-    script.onload = () => {
-      window.hljsLoaded = true;
-      console.info("Highlight.js loaded successfully");
+  hljsInitialHighlightDone = true;
 
-      // Configure highlight.js with security and broad language autodetect.
-      // Avoid restricting the language list so common formats (bash, json, yaml, etc.) highlight correctly.
-      hljs.configure({
-        ignoreUnescapedHTML: true,
+  // Highlight any code blocks already present in the DOM.
+  try {
+    const codeBlocks = document.querySelectorAll("pre code");
+    if (codeBlocks.length > 0) {
+      codeBlocks.forEach((block) => {
+        // Store original content for copying
+        const originalContent = block.textContent;
+        block.setAttribute("data-original-code", originalContent);
+
+        hljs.highlightElement(block);
       });
+    } else {
+      hljs.highlightAll();
+    }
+  } catch (error) {
+    console.error("Error during initial highlighting:", error);
+  }
 
-      // Expose hljs globally
-      window.hljs = hljs;
-
-      // Highlight existing code blocks
-      try {
-        const codeBlocks = document.querySelectorAll("pre code");
-        if (codeBlocks.length > 0) {
-          codeBlocks.forEach((block) => {
-            // Store original content for copying
-            const originalContent = block.textContent;
-            block.setAttribute("data-original-code", originalContent);
-
-            hljs.highlightElement(block);
-          });
-        } else {
-          hljs.highlightAll();
-        }
-      } catch (error) {
-        console.error("Error during initial highlighting:", error);
-      }
-
-      resolve();
-    };
-    script.onerror = (err) => {
-      console.error("Failed to load highlight.js", err);
-      reject(err);
-    };
-    document.head.appendChild(script);
-  });
-};
+  return Promise.resolve();
+}
 
 /**
  * Adds a copy button to code blocks
  * @param {HTMLElement} codeBlock - The code block element to add a button to
  */
-window.addCopyButton = function(codeBlock) {
+export function addCopyButton(codeBlock) {
   if (!codeBlock.parentNode.querySelector(".copy-btn")) {
     const copyButton = document.createElement("button");
     copyButton.className = "copy-btn";
     copyButton.setAttribute("aria-label", "Copy code");
-    copyButton.innerHTML = window.icon("copy", { width: 16, height: 16 });
+    copyButton.innerHTML = icon("copy", { width: 16, height: 16 });
     copyButton.addEventListener("click", () => {
       // Define the copy function with proper error handling
       const copyText = function(text) {
@@ -104,7 +87,7 @@ window.addCopyButton = function(codeBlock) {
             // Store original SVG
             const originalSvg = copyButton.innerHTML;
             // Show check mark SVG for success feedback
-            copyButton.innerHTML = window.icon("check", { width: 16, height: 16 });
+            copyButton.innerHTML = icon("check", { width: 16, height: 16 });
             setTimeout(() => {
               // Revert back to copy icon
               copyButton.innerHTML = originalSvg;
@@ -113,7 +96,7 @@ window.addCopyButton = function(codeBlock) {
             // Store original SVG
             const originalSvg = copyButton.innerHTML;
             // Show X mark SVG for failure feedback
-            copyButton.innerHTML = window.icon("x", { width: 16, height: 16 });
+            copyButton.innerHTML = icon("x", { width: 16, height: 16 });
             setTimeout(() => {
               // Revert back to copy icon
               copyButton.innerHTML = originalSvg;
@@ -131,33 +114,7 @@ window.addCopyButton = function(codeBlock) {
       // document.body.appendChild(copyButton);
     }
   }
-};
+}
 
-// Ensure highlightCodeBlocks is accessible globally
-// window.highlightCodeBlocks = highlightCodeBlocks; // Already global
-
-// Optional: Function to rehighlight all code blocks (useful if theme changes)
-window.rehighlightCodeBlocks = function() {
-  if (window.hljsLoaded) {
-    const codeBlocks = document.querySelectorAll("pre code");
-    if (codeBlocks.length > 0) {
-      console.info(`Rehighlighting ${codeBlocks.length} code blocks with current theme`);
-      codeBlocks.forEach((block) => {
-        // Reset to original content before rehighlighting
-        const originalContent = block.getAttribute("data-original-code");
-        if (originalContent !== null) {
-          block.textContent = originalContent; // Use textContent to avoid parsing HTML inside code
-        }
-        hljs.highlightElement(block);
-      });
-    } else {
-      console.info("No code blocks found to rehighlight");
-    }
-  } else {
-    console.info("Highlight.js not loaded, attempting to load it");
-    window.loadHighlightJS().then(() => {
-      console.info("Highlight.js loaded, retrying rehighlight");
-      window.rehighlightCodeBlocks(); // Retry after loading
-    }).catch(err => console.error("Failed to load highlight.js for rehighlight", err));
-  }
-};
+// Note: rehighlightCodeBlocks (theme-change rehighlight) is defined in
+// components/theme.js, which owns the active implementation.

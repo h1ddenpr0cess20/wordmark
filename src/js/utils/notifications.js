@@ -8,7 +8,10 @@ let notificationContainer = null;
 /**
  * Initialize the notification system
  */
-window.initNotificationSystem = function() {
+export function initNotificationSystem() {
+  if (typeof document === "undefined") {
+    return;
+  }
   if (notificationContainer) {
     return;
   } // Already initialized
@@ -140,7 +143,7 @@ window.initNotificationSystem = function() {
     `;
     document.head.appendChild(style);
   }
-};
+}
 
 /**
  * Show a notification popup
@@ -148,10 +151,13 @@ window.initNotificationSystem = function() {
  * @param {string} type - The type of notification (error, warning, success, info)
  * @param {number} duration - How long to show the notification (ms), 0 for persistent
  */
-window.showNotification = function(message, type = "info", duration = 5000) {
+export function showNotification(message, type = "info", duration = 5000) {
+  if (typeof document === "undefined") {
+    return null;
+  }
   // Initialize if needed
   if (!notificationContainer) {
-    window.initNotificationSystem();
+    initNotificationSystem();
   }
 
   // Create notification element
@@ -199,7 +205,7 @@ window.showNotification = function(message, type = "info", duration = 5000) {
 
   // Return notification element for manual control if needed
   return notification;
-};
+}
 
 /**
  * Remove a notification with animation
@@ -223,47 +229,50 @@ function removeNotification(notification) {
  * Show an error notification
  * @param {string} message - Error message
  */
-window.showError = function(message) {
-  return window.showNotification(message, "error", 8000);
-};
+export function showError(message) {
+  return showNotification(message, "error", 8000);
+}
 
 /**
  * Show a warning notification
  * @param {string} message - Warning message
  */
-window.showWarning = function(message) {
-  return window.showNotification(message, "warning", 6000);
-};
+export function showWarning(message) {
+  return showNotification(message, "warning", 6000);
+}
 
 /**
  * Show a success notification
  * @param {string} message - Success message
  */
-window.showSuccess = function(message) {
-  return window.showNotification(message, "success", 4000);
-};
+export function showSuccess(message) {
+  return showNotification(message, "success", 4000);
+}
 
 /**
  * Show an info notification
  * @param {string} message - Info message
  */
-window.showInfo = function(message) {
-  return window.showNotification(message, "info", 5000);
-};
+export function showInfo(message) {
+  return showNotification(message, "info", 5000);
+}
 
 /**
  * Clear all notifications
  */
-window.clearAllNotifications = function() {
+export function clearAllNotifications() {
   if (notificationContainer) {
     const notifications = notificationContainer.querySelectorAll(".notification");
     notifications.forEach(removeNotification);
   }
-};
+}
 
-// Initialize when DOM is loaded
-if (document.readyState === "loading") {
-  document.addEventListener("DOMContentLoaded", window.initNotificationSystem);
-} else {
-  window.initNotificationSystem();
+// Initialize when DOM is loaded (guarded so importing in non-DOM contexts,
+// such as Node tests, does not throw).
+if (typeof document !== "undefined") {
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", initNotificationSystem);
+  } else {
+    initNotificationSystem();
+  }
 }

@@ -1,67 +1,79 @@
-function updatePanelOpenState() {
-  const settingsOpen = Boolean(window.settingsPanel && window.settingsPanel.classList.contains('active'));
-  const historyOpen = Boolean(window.historyPanel && window.historyPanel.getAttribute('aria-hidden') === 'false');
-  const galleryOpen = Boolean(window.galleryPanel && window.galleryPanel.getAttribute('aria-hidden') === 'false');
+import { elements, state } from "../state.js";
+import { switchToTab } from "../../components/ui/settingsTabs.js";
+import { updateHeaderInfo, organizeSettingsLayout } from "../../components/settings.js";
+import { DEFAULT_PERSONALITY } from "../../../config/config.js";
 
-  if (typeof document !== 'undefined') {
-    document.body.classList.toggle('panel-open', settingsOpen || historyOpen || galleryOpen);
+// Single settings panel — original prompt values are stashed here while the
+// panel is open so they can be restored if the user dismisses without saving.
+const panelState = {
+  originalPersonalityValue: "",
+  originalCustomPromptValue: "",
+};
+
+export function updatePanelOpenState() {
+  const settingsOpen = Boolean(elements.settingsPanel && elements.settingsPanel.classList.contains("active"));
+  const historyOpen = Boolean(elements.historyPanel && elements.historyPanel.getAttribute("aria-hidden") === "false");
+  const galleryOpen = Boolean(elements.galleryPanel && elements.galleryPanel.getAttribute("aria-hidden") === "false");
+
+  if (typeof document !== "undefined") {
+    document.body.classList.toggle("panel-open", settingsOpen || historyOpen || galleryOpen);
   }
 }
 
-function storeOriginalValues(state) {
-  state.originalPersonalityValue = window.personalityInput ? window.personalityInput.value : '';
-  state.originalCustomPromptValue = window.systemPromptCustom ? window.systemPromptCustom.value : '';
+function storeOriginalValues(panelState) {
+  panelState.originalPersonalityValue = elements.personalityInput ? elements.personalityInput.value : "";
+  panelState.originalCustomPromptValue = elements.systemPromptCustom ? elements.systemPromptCustom.value : "";
 }
 
-function restoreOriginalValues(state) {
-  if (window.personalityPromptRadio && window.personalityPromptRadio.checked && window.personalityInput) {
-    window.personalityInput.value = state.originalPersonalityValue;
-    if (state.originalPersonalityValue === window.DEFAULT_PERSONALITY) {
-      window.personalityInput.setAttribute('data-explicitly-set', 'true');
+function restoreOriginalValues(panelState) {
+  if (elements.personalityPromptRadio && elements.personalityPromptRadio.checked && elements.personalityInput) {
+    elements.personalityInput.value = panelState.originalPersonalityValue;
+    if (panelState.originalPersonalityValue === DEFAULT_PERSONALITY) {
+      elements.personalityInput.setAttribute("data-explicitly-set", "true");
     }
   }
 
-  if (window.customPromptRadio && window.customPromptRadio.checked && window.systemPromptCustom) {
-    window.systemPromptCustom.value = state.originalCustomPromptValue;
+  if (elements.customPromptRadio && elements.customPromptRadio.checked && elements.systemPromptCustom) {
+    elements.systemPromptCustom.value = panelState.originalCustomPromptValue;
   }
 }
 
 function showSettingsPanel() {
-  if (!window.settingsPanel || !window.settingsButton) {
+  if (!elements.settingsPanel || !elements.settingsButton) {
     return;
   }
-  window.settingsPanel.classList.add('active');
-  window.settingsButton.setAttribute('aria-expanded', 'true');
-  window.settingsPanel.setAttribute('aria-hidden', 'false');
-  window.settingsPanel.removeAttribute('inert');
-  window.settingsButton.style.display = 'none';
-  if (window.historyButton) {
-    window.historyButton.style.display = 'none';
+  elements.settingsPanel.classList.add("active");
+  elements.settingsButton.setAttribute("aria-expanded", "true");
+  elements.settingsPanel.setAttribute("aria-hidden", "false");
+  elements.settingsPanel.removeAttribute("inert");
+  elements.settingsButton.style.display = "none";
+  if (elements.historyButton) {
+    elements.historyButton.style.display = "none";
   }
-  if (window.galleryButton) {
-    window.galleryButton.style.display = 'none';
+  if (elements.galleryButton) {
+    elements.galleryButton.style.display = "none";
   }
 
   updatePanelOpenState();
 }
 
 function hideSettingsPanel({ focusButton = false } = {}) {
-  if (!window.settingsPanel || !window.settingsButton) {
+  if (!elements.settingsPanel || !elements.settingsButton) {
     return;
   }
-  window.settingsPanel.classList.remove('active');
-  window.settingsButton.setAttribute('aria-expanded', 'false');
-  window.settingsPanel.setAttribute('aria-hidden', 'true');
-  window.settingsPanel.setAttribute('inert', 'true');
-  window.settingsButton.style.display = '';
-  if (window.historyButton) {
-    window.historyButton.style.display = '';
+  elements.settingsPanel.classList.remove("active");
+  elements.settingsButton.setAttribute("aria-expanded", "false");
+  elements.settingsPanel.setAttribute("aria-hidden", "true");
+  elements.settingsPanel.setAttribute("inert", "true");
+  elements.settingsButton.style.display = "";
+  if (elements.historyButton) {
+    elements.historyButton.style.display = "";
   }
-  if (window.galleryButton) {
-    window.galleryButton.style.display = '';
+  if (elements.galleryButton) {
+    elements.galleryButton.style.display = "";
   }
   if (focusButton) {
-    window.settingsButton.focus();
+    elements.settingsButton.focus();
   }
 
   updatePanelOpenState();
@@ -69,16 +81,16 @@ function hideSettingsPanel({ focusButton = false } = {}) {
 
 function setupQuickAccessTargets(openSettingsAndSwitch) {
   const targets = [
-    { selector: '#wordmark-logo', tabId: 'tab-about' },
-    { selector: '#logo-wordmark', tabId: 'tab-about' },
-    { selector: '#header-title', tabId: 'tab-model' },
-    { selector: '#model-info', tabId: 'tab-personality' },
+    { selector: "#wordmark-logo", tabId: "tab-about" },
+    { selector: "#logo-wordmark", tabId: "tab-about" },
+    { selector: "#header-title", tabId: "tab-model" },
+    { selector: "#model-info", tabId: "tab-personality" },
   ];
 
   targets.forEach(({ selector, tabId }) => {
-    const element = document.getElementById(selector.replace('#', ''));
+    const element = document.getElementById(selector.replace("#", ""));
     if (element) {
-      element.addEventListener('click', (event) => {
+      element.addEventListener("click", (event) => {
         event.preventDefault();
         event.stopPropagation();
         event.handled = true;
@@ -87,7 +99,7 @@ function setupQuickAccessTargets(openSettingsAndSwitch) {
     }
   });
 
-  document.addEventListener('click', (event) => {
+  document.addEventListener("click", (event) => {
     const match = targets.find(({ selector }) => event.target.closest && event.target.closest(selector));
     if (!match) {
       return;
@@ -99,12 +111,12 @@ function setupQuickAccessTargets(openSettingsAndSwitch) {
   }, true);
 }
 
-function setupOutsideClickHandler(state) {
-  document.addEventListener('click', (event) => {
-    if (window.VERBOSE_LOGGING && event.target.closest('.copy-address')) {
-      console.info('Outside click handler - copy button detected:', {
+function setupOutsideClickHandler() {
+  document.addEventListener("click", (event) => {
+    if (state.verboseLogging && event.target.closest(".copy-address")) {
+      console.info("Outside click handler - copy button detected:", {
         target: event.target,
-        closest: event.target.closest('.copy-address'),
+        closest: event.target.closest(".copy-address"),
         defaultPrevented: event.defaultPrevented,
         cancelBubble: event.cancelBubble,
         handled: event.handled,
@@ -113,107 +125,93 @@ function setupOutsideClickHandler(state) {
     }
 
     if (event.defaultPrevented || event.cancelBubble || event.handled) {
-      if (window.VERBOSE_LOGGING) {
-        console.info('Outside click handler: event already handled/prevented');
+      if (state.verboseLogging) {
+        console.info("Outside click handler: event already handled/prevented");
       }
       return;
     }
 
-    if (event.target.closest('.copy-address')) {
-      if (window.VERBOSE_LOGGING) {
-        console.info('Outside click handler: ignoring copy button click');
+    if (event.target.closest(".copy-address")) {
+      if (state.verboseLogging) {
+        console.info("Outside click handler: ignoring copy button click");
       }
       return;
     }
 
-    const isSettingsPanelElement = window.settingsPanel && window.settingsPanel.contains(event.target);
-    const isSettingsButton = event.target === window.settingsButton;
+    const isSettingsPanelElement = elements.settingsPanel && elements.settingsPanel.contains(event.target);
+    const isSettingsButton = event.target === elements.settingsButton;
 
-    if (window.settingsPanel && window.settingsPanel.classList.contains('active') &&
+    if (elements.settingsPanel && elements.settingsPanel.classList.contains("active") &&
         !isSettingsPanelElement && !isSettingsButton) {
-      restoreOriginalValues(state);
+      restoreOriginalValues(panelState);
       hideSettingsPanel({ focusButton: true });
-      if (typeof window.updateHeaderInfo === 'function') {
-        window.updateHeaderInfo();
-      }
+      updateHeaderInfo();
+
     }
 
-    if (!window.isSlideshowOpen &&
-        window.galleryPanel && window.galleryPanel.getAttribute('aria-hidden') === 'false' &&
-        !window.galleryPanel.contains(event.target) && event.target !== window.galleryButton) {
-      window.galleryPanel.setAttribute('aria-hidden', 'true');
-      window.galleryPanel.setAttribute('inert', 'true');
-      window.galleryButton.setAttribute('aria-expanded', 'false');
-      window.galleryButton.focus();
+    if (!state.isSlideshowOpen &&
+        elements.galleryPanel && elements.galleryPanel.getAttribute("aria-hidden") === "false" &&
+        !elements.galleryPanel.contains(event.target) && event.target !== elements.galleryButton) {
+      elements.galleryPanel.setAttribute("aria-hidden", "true");
+      elements.galleryPanel.setAttribute("inert", "true");
+      elements.galleryButton.setAttribute("aria-expanded", "false");
+      elements.galleryButton.focus();
       updatePanelOpenState();
     }
 
-    if (window.historyPanel && window.historyButton &&
-        window.historyPanel.getAttribute('aria-hidden') === 'false' &&
-        !window.historyPanel.contains(event.target) && event.target !== window.historyButton) {
-      window.historyPanel.setAttribute('aria-hidden', 'true');
-      window.historyPanel.setAttribute('inert', 'true');
-      window.historyButton.setAttribute('aria-expanded', 'false');
-      window.historyButton.focus();
+    if (elements.historyPanel && elements.historyButton &&
+        elements.historyPanel.getAttribute("aria-hidden") === "false" &&
+        !elements.historyPanel.contains(event.target) && event.target !== elements.historyButton) {
+      elements.historyPanel.setAttribute("aria-hidden", "true");
+      elements.historyPanel.setAttribute("inert", "true");
+      elements.historyButton.setAttribute("aria-expanded", "false");
+      elements.historyButton.focus();
       updatePanelOpenState();
     }
   });
 }
 
-export function initializeSettingsPanelControls() {
-  const state = {
-    originalPersonalityValue: '',
-    originalCustomPromptValue: '',
-  };
-
-  function openSettingsAndSwitch(tabId, attempt = 0) {
-    if (!window.settingsPanel || !window.settingsButton) {
-      if (attempt < 10) {
-        setTimeout(() => openSettingsAndSwitch(tabId, attempt + 1), 100);
-      } else {
-        console.warn('Settings panel not ready');
-      }
-      return;
+export function openSettingsAndSwitch(tabId, attempt = 0) {
+  if (!elements.settingsPanel || !elements.settingsButton) {
+    if (attempt < 10) {
+      setTimeout(() => openSettingsAndSwitch(tabId, attempt + 1), 100);
+    } else {
+      console.warn("Settings panel not ready");
     }
-
-    storeOriginalValues(state);
-    showSettingsPanel();
-
-    if (typeof window.organizeSettingsLayout === 'function') {
-      window.organizeSettingsLayout();
-    }
-
-    if (typeof window.switchToTab === 'function' && tabId) {
-      setTimeout(() => window.switchToTab(tabId), 0);
-    }
+    return;
   }
 
-  window.openSettingsAndSwitch = openSettingsAndSwitch;
+  storeOriginalValues(panelState);
+  showSettingsPanel();
 
-  if (window.settingsButton && window.settingsPanel) {
-    window.settingsButton.addEventListener('click', () => {
-      storeOriginalValues(state);
+  organizeSettingsLayout();
+
+  if (tabId) {
+    setTimeout(() => switchToTab(tabId), 0);
+  }
+}
+
+export function initializeSettingsPanelControls() {
+  if (elements.settingsButton && elements.settingsPanel) {
+    elements.settingsButton.addEventListener("click", () => {
+      storeOriginalValues(panelState);
       showSettingsPanel();
-      if (typeof window.organizeSettingsLayout === 'function') {
-        window.organizeSettingsLayout();
-      }
+      organizeSettingsLayout();
+
     });
   }
 
-  if (window.closeSettingsButton && window.settingsPanel) {
-    window.closeSettingsButton.addEventListener('click', () => {
-      restoreOriginalValues(state);
+  if (elements.closeSettingsButton && elements.settingsPanel) {
+    elements.closeSettingsButton.addEventListener("click", () => {
+      restoreOriginalValues(panelState);
       hideSettingsPanel({ focusButton: true });
-      if (typeof window.updateHeaderInfo === 'function') {
-        window.updateHeaderInfo();
-      }
+      updateHeaderInfo();
+
     });
   }
 
   setupQuickAccessTargets(openSettingsAndSwitch);
-  setupOutsideClickHandler(state);
-
-  window.updatePanelOpenState = updatePanelOpenState;
+  setupOutsideClickHandler();
 
   return {
     closeSettingsPanel: ({ focusButton = false } = {}) => hideSettingsPanel({ focusButton }),

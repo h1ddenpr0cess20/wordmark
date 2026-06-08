@@ -12,9 +12,11 @@ Purpose: quick orientation to the current project layout, key entry points, and 
   - `config.js`: Provider list, API base URLs, default service/model, key getters, and role helpers.
 
 - `js/`
-  - `main.js`: Orchestrates imports; wires components, services, and init modules; triggers `window.initialize()` after fragments load.
+  - `main.js`: Single ES module entry. Orchestrates imports; wires config, state, components, services, and init modules; calls `initialize()` after fragments load.
   - `init/`
-    - `dom.js`: Caches DOM refs on `window.*` (chat box, inputs, toggles, panels).
+    - `state.js`: Shared runtime store — exports `state` (app state) and `elements` (cached DOM refs). Replaces the removed `globals.js` window bridge.
+    - `uiHooks.js`: Exports `uiHooks`, a registry of UI callbacks (e.g. `updateModelsDropdown`) invoked by lower-level modules.
+    - `dom.js`: Queries interactive elements (chat box, inputs, toggles, panels) and assigns them onto `elements`.
     - `marked.js`: Markdown setup.
     - `modelSettings.js`: Binds sliders/inputs to config defaults.
     - `ttsInitialization.js`: TTS toggle, voice selector, test/stop handlers.
@@ -28,7 +30,7 @@ Purpose: quick orientation to the current project layout, key entry points, and 
     - `ui.js`: Layout, tabs, panels, spinners.
     - `theme.js`: Theme switching and persistence.
     - `attachments.js`: Image/file uploads and previews.
-    - `tools.js`: Tool configuration UI hooked to `window.responsesClient`.
+    - `tools.js`: Tool configuration UI hooked to the Responses client (`services/api.js`).
     - `memory.js`: Memory tab UI (enable, limit, add/remove/clear).
     - `aboutPopups.js`, `logo.js`: Ancillary UI.
   - `services/`
@@ -53,8 +55,7 @@ Purpose: quick orientation to the current project layout, key entry points, and 
   - `utils/`
     - `memoryStorage.js`: Local storage for memory (enable/limit/list) and prompt formatting.
     - `toolLoader.js`, `tooltips.js`: Misc UI helpers.
-  - `lib/`
-    - Third‑party libs (e.g., `highlight.min.js`).
+  - Vendor libraries (`dompurify`, `marked`, `highlight.js`) are npm dependencies imported directly by the modules that use them and bundled by Vite — there is no `src/js/lib/` directory.
 
 - `css/`
   - `themes/` (base, code, fonts): Global look and code highlighting.
@@ -68,8 +69,8 @@ Purpose: quick orientation to the current project layout, key entry points, and 
 
 ## Features & Flows
 - Chat/Streaming: `services/api.js` + `services/streaming.js`; messages rendered in `components/messages.js`.
-- Services & Models: `config/config.js` defines OpenAI defaults plus local connectors for LM Studio and Ollama (dynamic model fetching described in `docs/services.md`).
-- Images: upload support remains; generation/edit helpers were removed in the current Responses build.
+- Services & Models: `config/config.js` defines the hosted OpenAI and xAI providers plus local connectors for LM Studio and Ollama (dynamic model fetching described in `docs/services.md`).
+- Images: upload (attachments) plus generation/edit — OpenAI `image_generation` and xAI `grok_generate_image`/`grok_edit_image` tools, wired through `services/mediaTools.js`.
 - Tool Calling: toggled in Settings; catalogue/handlers live in `services/api/toolManager.js` (see `docs/tool-calling.md`).
 - Memory: optional, local‑only storage; UI + prompt injection (see `docs/memory.md`).
 - Security: DOMPurify config and sanitizers in `init/initialization.js`.

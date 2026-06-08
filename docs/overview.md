@@ -20,7 +20,7 @@ Key Features
 
 How It Starts
 
-- `index.html` loads `src/config/config.js` then `src/js/main.js` (ES modules). The menu system loads panels, then calls `window.initialize()` to bootstrap.
+- Built with Vite. `index.html` loads the single ES module entry `src/js/main.js`, which imports config, shared state, and all app modules in order. The menu system loads the HTML panels, then `main.js` calls `initialize()` to bootstrap.
 
 Testing & Quality
 

@@ -1,4 +1,9 @@
-window.ttsAudioResources = {
+import { saveAudioToDb } from "../../utils/audioStorage.js";
+import { ttsConfig, ttsRuntime } from "./config.js";
+import { stopTtsAudio } from "./playback.js";
+import { state } from "../../init/state.js";
+
+export const ttsAudioResources = {
   activeUrls: new Map(),
 
   addUrl(url, messageId, audioData) {
@@ -8,21 +13,21 @@ window.ttsAudioResources = {
       audioData,
     });
 
-    if (typeof window.saveAudioToDb === 'function' && audioData) {
+    if (audioData) {
       const messageElement = document.getElementById(messageId);
-      let text = '';
-      let voice = window.ttsConfig.voice;
+      let text = "";
+      let voice = ttsConfig.voice;
 
       if (messageElement) {
-        const controlsContainer = messageElement.querySelector('.tts-controls');
+        const controlsContainer = messageElement.querySelector(".tts-controls");
         if (controlsContainer) {
-          text = controlsContainer.getAttribute('data-original-text') || '';
-          voice = controlsContainer.getAttribute('data-voice') || voice;
+          text = controlsContainer.getAttribute("data-original-text") || "";
+          voice = controlsContainer.getAttribute("data-voice") || voice;
         }
       }
 
-      window.saveAudioToDb(audioData, messageId, text, voice).catch((err) => {
-        console.error('Failed to save audio to IndexedDB:', err);
+      saveAudioToDb(audioData, messageId, text, voice).catch((err) => {
+        console.error("Failed to save audio to IndexedDB:", err);
       });
     }
   },
@@ -47,7 +52,7 @@ window.ttsAudioResources = {
   },
 
   clearAll() {
-    const currentlyPlaying = window.activeTtsAudioUrl;
+    const currentlyPlaying = ttsRuntime.activeTtsAudioUrl;
     const urlsToRevoke = [];
 
     for (const [messageId, data] of this.activeUrls.entries()) {
@@ -61,22 +66,21 @@ window.ttsAudioResources = {
       try {
         URL.revokeObjectURL(url);
       } catch (error) {
-        console.error('Error revoking URL:', error);
+        console.error("Error revoking URL:", error);
       }
     });
 
-    if (window.VERBOSE_LOGGING) {
-      console.info('Cleared all stored audio resources');
+    if (state.verboseLogging) {
+      console.info("Cleared all stored audio resources");
     }
   },
 };
 
-window.clearTtsAudioResources = function() {
-  window.stopTtsAudio();
-  window.ttsAudioResources.clearAll();
+export function clearTtsAudioResources() {
+  stopTtsAudio();
+  ttsAudioResources.clearAll();
 
-  if (window.VERBOSE_LOGGING) {
-    console.info('All audio resources cleared');
+  if (state.verboseLogging) {
+    console.info("All audio resources cleared");
   }
-};
-
+}

@@ -1,37 +1,43 @@
+import { elements } from "../state.js";
+import { ensureApiKeysLoaded } from "../../services/apiKeys.js";
+import { updateBrowserHistory } from "../../services/history/state.js";
+import { responsesClient } from "../../services/api.js";
+import { updateParameterControls } from "../../components/ui/settingsControls.js";
+import { updateHeaderInfo, updateModelSelector } from "../../components/settings.js";
+import { refreshToolSettingsUI } from "../../components/tools.js";
+import { updateReasoningAvailability } from "../modelSettings.js";
+import { config } from "../../../config/config.js";
+
 export function setupSelectorEventListeners() {
-  if (window.modelSelector) {
-    window.modelSelector.addEventListener('change', () => {
-      window.modelSelector.setAttribute('data-last-selected', window.modelSelector.value);
-      if (typeof window.updateHeaderInfo === 'function') {
-        window.updateHeaderInfo();
-      }
-      if (typeof window.updateReasoningAvailability === 'function') {
-        window.updateReasoningAvailability();
-      }
-      if (typeof window.updateBrowserHistory === 'function') {
-        window.updateBrowserHistory();
-      }
-      if (typeof window.refreshToolSettingsUI === 'function') {
-        window.refreshToolSettingsUI();
-      }
+  if (elements.modelSelector) {
+    elements.modelSelector.addEventListener("change", () => {
+      elements.modelSelector.setAttribute("data-last-selected", elements.modelSelector.value);
+      updateHeaderInfo();
+
+      updateReasoningAvailability();
+      updateBrowserHistory();
+      refreshToolSettingsUI();
+
     });
   }
 
-  if (window.serviceSelector) {
-    window.serviceSelector.addEventListener('change', async() => {
-      const selectedService = window.serviceSelector.value;
-      window.config.defaultService = selectedService;
-
-      if (typeof window.ensureApiKeysLoaded === 'function') {
-        window.ensureApiKeysLoaded();
+  if (elements.serviceSelector) {
+    elements.serviceSelector.addEventListener("change", async() => {
+      const selectedService = elements.serviceSelector.value;
+      if (config && typeof config.isServiceEnabled === "function" && !config.isServiceEnabled(selectedService)) {
+        elements.serviceSelector.value = config.normalizeServiceKey?.(config.defaultService) || "openai";
+        return;
       }
+      config.defaultService = selectedService;
 
-      const serviceConfig = window.config?.services?.[selectedService];
-      if (serviceConfig && typeof serviceConfig.fetchAndUpdateModels === 'function') {
-        const serviceLabel = selectedService === 'lmstudio'
-          ? 'LM Studio'
-          : selectedService === 'ollama'
-            ? 'Ollama'
+      ensureApiKeysLoaded();
+
+      const serviceConfig = config?.services?.[selectedService];
+      if (serviceConfig && typeof serviceConfig.fetchAndUpdateModels === "function") {
+        const serviceLabel = selectedService === "lmstudio"
+          ? "LM Studio"
+          : selectedService === "ollama"
+            ? "Ollama"
             : selectedService;
         try {
           await serviceConfig.fetchAndUpdateModels();
@@ -40,41 +46,32 @@ export function setupSelectorEventListeners() {
         }
       }
 
-      if (typeof window.updateModelSelector === 'function') {
-        window.updateModelSelector();
-      }
-      if (typeof window.updateParameterControls === 'function') {
-        window.updateParameterControls();
-      }
-      if (typeof window.updateHeaderInfo === 'function') {
-        window.updateHeaderInfo();
-      }
-      if (typeof window.updateReasoningAvailability === 'function') {
-        window.updateReasoningAvailability();
-      }
-      if (typeof window.updateBrowserHistory === 'function') {
-        window.updateBrowserHistory();
-      }
+      updateModelSelector();
+
+      updateParameterControls();
+      updateHeaderInfo();
+
+      updateReasoningAvailability();
+      updateBrowserHistory();
 
       const refreshToolsUI = () => {
-        if (typeof window.refreshToolSettingsUI === 'function') {
-          window.refreshToolSettingsUI();
-        }
+        refreshToolSettingsUI();
+
       };
 
-      if (window.responsesClient && typeof window.responsesClient.refreshMcpAvailability === 'function') {
+      if (responsesClient && typeof responsesClient.refreshMcpAvailability === "function") {
         try {
-          const maybePromise = window.responsesClient.refreshMcpAvailability(true);
-          if (maybePromise && typeof maybePromise.then === 'function') {
+          const maybePromise = responsesClient.refreshMcpAvailability(true);
+          if (maybePromise && typeof maybePromise.then === "function") {
             maybePromise.then(refreshToolsUI).catch((error) => {
-              console.warn('Failed to refresh MCP availability after service change:', error);
+              console.warn("Failed to refresh MCP availability after service change:", error);
               refreshToolsUI();
             });
           } else {
             refreshToolsUI();
           }
         } catch (error) {
-          console.warn('Failed to refresh MCP availability after service change:', error);
+          console.warn("Failed to refresh MCP availability after service change:", error);
           refreshToolsUI();
         }
       } else {

@@ -1,13 +1,13 @@
 # Testing & Coverage
 
-Wordmark ships with a lightweight Node test suite (via the built-in `node --test` runner) that focuses on deterministic validation of the browser modules exposed on `window`. The goal is to keep confidence high without introducing a heavyweight integration harness.
+Wordmark ships with a lightweight Node test suite (via the built-in `node --test` runner) that focuses on deterministic validation of the app's ES modules. The goal is to keep confidence high without introducing a heavyweight integration harness.
 
 ## Running the Suite
 
 - `npm test` – executes every spec under `tests/**/*.spec.js`.
 - `npm run test:watch` – reruns affected specs whenever a source file changes.
 
-The suite stubs browser primitives such as `window`, `document`, `Audio`, `localStorage`, and `fetch` so that modules can be exercised in isolation without a DOM.
+Both scripts run through `node --import ./tests/helpers/registerLoaders.mjs`, which registers the loaders that let Node import the app's ES modules (including Vite-style `?raw` imports) and provides a DOMPurify stub. The suite stubs browser primitives such as `window`, `document`, `Audio`, `localStorage`, and `fetch` so that modules can be exercised in isolation without a DOM.
 
 ## Coverage Highlights
 
@@ -25,8 +25,8 @@ Recent test additions capture critical service behaviours:
 ## Adding New Specs
 
 1. Place files in `tests/*.spec.js` (use nested folders for helpers only).
-2. Load the browser module with `loadWindowScript` and supply any required stubs (DOM, fetch, storage, etc.).
-3. Assert against public `window.*` APIs—avoid relying on private module scope.
+2. Set up any required globals (`globalThis.window`, `document`, `fetch`, `localStorage`, …) **before** importing the module under test, then load it with a dynamic `await import("../src/js/.../module.js")`.
+3. Assert against the module's exported API and observable side effects—avoid relying on private module scope. (A few legacy specs still use the `loadWindowScript` helper for scripts that haven't been converted; new specs should use plain ESM imports.)
 4. Prefer deterministic timeouts (`setTimeout(() => fn(), 0)`) and mocked timers to keep the suite fast (<5s).
 
 ## Smoke Checklist

@@ -1,3 +1,4 @@
+import { showError,showInfo } from "../utils/notifications.js";
 /**
  * Assistants File Manager UI Component
  * Mirrors the Python utility (upload/list/delete/delete-all) for browser usage.
@@ -85,11 +86,11 @@ export async function refreshAssistantFileList() {
 
         try {
           await deleteAssistantFile(fileId);
-          if (window.showInfo) window.showInfo("File deleted");
+          if (showInfo) showInfo("File deleted");
           await refreshAssistantFileList();
         } catch (err) {
           console.error("Failed to delete file:", err);
-          if (window.showError) window.showError(`Failed to delete: ${err.message}`);
+          if (showError) showError(`Failed to delete: ${err.message}`);
         }
       });
     });
@@ -119,7 +120,7 @@ export async function refreshAssistantFileList() {
 async function uploadSelectedAssistantFiles() {
   const input = document.getElementById("assistant-file-upload");
   if (!input || !input.files || input.files.length === 0) {
-    if (window.showInfo) window.showInfo("Select one or more files first.");
+    if (showInfo) showInfo("Select one or more files first.");
     return;
   }
 
@@ -137,8 +138,8 @@ async function uploadSelectedAssistantFiles() {
     }
   }
 
-  if (window.showInfo) {
-    window.showInfo(`Upload complete. Success: ${success}${fail ? `, Failed: ${fail}` : ""}`);
+  if (showInfo) {
+    showInfo(`Upload complete. Success: ${success}${fail ? `, Failed: ${fail}` : ""}`);
   }
 
   // Clear the file input
@@ -151,21 +152,21 @@ async function uploadSelectedAssistantFiles() {
  * Delete all assistant files, with strong confirmation
  */
 async function handleDeleteAllAssistantFiles() {
-  const confirmation = prompt("This will delete all files with purpose 'assistants'. Type 'YES' to confirm:");
+  const confirmation = prompt("This will delete all OpenAI files with purpose 'assistants'. Type 'YES' to confirm:");
   if (confirmation !== "YES") {
-    if (window.showInfo) window.showInfo("Operation cancelled.");
+    if (showInfo) showInfo("Operation cancelled.");
     return;
   }
 
   try {
     const result = await deleteAllAssistantFiles();
-    if (window.showInfo) {
-      window.showInfo(`Deleted ${result.deleted}/${result.total} files.${result.errors?.length ? " Some deletions failed." : ""}`);
+    if (showInfo) {
+      showInfo(`Deleted ${result.deleted}/${result.total} files.${result.errors?.length ? " Some deletions failed." : ""}`);
     }
     await refreshAssistantFileList();
   } catch (err) {
     console.error("Failed to delete all assistant files:", err);
-    if (window.showError) window.showError(`Failed to delete all: ${err.message}`);
+    if (showError) showError(`Failed to delete all: ${err.message}`);
   }
 }
 
@@ -177,9 +178,3 @@ function escapeHtml(text) {
   div.textContent = String(text ?? "");
   return div.innerHTML;
 }
-
-// Export for use in other modules and debugging
-window.filesManager = {
-  init: initFilesManager,
-  refresh: refreshAssistantFileList,
-};

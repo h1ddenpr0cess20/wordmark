@@ -1,6 +1,20 @@
+import { elements, state } from "../init/state.js";
+import { showError,showInfo } from "../utils/notifications.js";
 /**
  * User interaction handling for the chatbot application
  */
+
+import { sanitizeInput, stripBase64FromHistory } from "../utils/utils.js";
+import { saveImageToDb } from "../utils/imageStorage.js";
+import { scrollInputIntoView } from "../utils/mobileHandling.js";
+import { finalizeStreamedResponse, removeLoadingIndicator } from "../services/streaming/messageLifecycle.js";
+import { updateBrowserHistory } from "../services/history/state.js";
+import { saveCurrentConversation } from "../services/history/persistence.js";
+import { responsesClient } from "../services/api.js";
+import { uploadFile, uploadAndAttachFiles, saveVectorStoreMetadata } from "../services/vectorStore.js";
+import { generateMessageId, addMessageCopyButton } from "./messages.js";
+import { appendMessage } from "./ui/chatMessages.js";
+import { getVerbosity, getReasoningEffort, getHistoryTokenBudget } from "../init/modelSettings.js";
 
 // -----------------------------------------------------
 // Message sending and related functionality
@@ -9,34 +23,34 @@
 /**
  * Sends a message to the API and handles the response
  */
-window.sendMessage = async function() {
-  const message = window.userInput.value.trim();
-  const hasImages = window.pendingUploads && window.pendingUploads.length > 0;
-  const hasDocuments = window.pendingDocuments && window.pendingDocuments.length > 0;
+export async function sendMessage() {
+  const message = elements.userInput.value.trim();
+  const hasImages = state.pendingUploads && state.pendingUploads.length > 0;
+  const hasDocuments = state.pendingDocuments && state.pendingDocuments.length > 0;
 
   if (!message && !hasImages && !hasDocuments) {
-    if (window.VERBOSE_LOGGING) {
+    if (state.verboseLogging) {
       console.info("No message entered. sendMessage aborted.");
     }
     return;
   }
 
-  window.shouldStopGeneration = false;
+  state.shouldStopGeneration = false;
 
-  if (window.VERBOSE_LOGGING) {
+  if (state.verboseLogging) {
     console.info("New message send initiated:", message);
   }
 
   // Transform send button into stop button
-  window.sendButton.classList.add("stop-mode");
-  window.sendButton.title = "Stop generation";
+  elements.sendButton.classList.add("stop-mode");
+  elements.sendButton.title = "Stop generation";
 
   // Change button action to stop generation
-  window.sendButton.removeEventListener("click", window.sendMessage);
-  window.sendButton.addEventListener("click", window.stopGeneration);
+  elements.sendButton.removeEventListener("click", sendMessage);
+  elements.sendButton.addEventListener("click", stopGeneration);
 
   // Handle standalone image uploads (not part of a directory)
-  const uploads = window.pendingUploads || [];
+  const uploads = state.pendingUploads || [];
   let uploadHtml = "";
   const placeholders = [];
   const attachmentsForHistory = [];
@@ -62,14 +76,14 @@ window.sendMessage = async function() {
       uploaded: true,
       timestamp: up.timestamp,
     });
-    if (window.imageDataCache && typeof window.imageDataCache.set === "function" && filename && up.dataUrl) {
-      window.imageDataCache.set(filename, up.dataUrl);
+    if (state.imageDataCache && typeof state.imageDataCache.set === "function" && filename && up.dataUrl) {
+      state.imageDataCache.set(filename, up.dataUrl);
     }
   });
 
   // Add document attachments display and save for later upload
   let documentsHtml = "";
-  const documents = window.pendingDocuments || [];
+  const documents = state.pendingDocuments || [];
   const documentsToUpload = [...documents]; // Save copy before clearing
   const formatFileSize = (bytes) => {
     if (bytes < 1024) return bytes + " B";
@@ -126,7 +140,7 @@ window.sendMessage = async function() {
     }
   });
 
-  let userHtml = window.sanitizeInput(message);
+  let userHtml = sanitizeInput(message);
   if (documentsHtml) {
     userHtml = `<div class="attached-documents">${documentsHtml}</div>${userHtml}`;
   }
@@ -135,25 +149,21 @@ window.sendMessage = async function() {
   }
 
   // Add user message to the conversation and store in history manually
-  const userElement = window.appendMessage("You", userHtml, "user", true);
-  const userId = userElement ? userElement.id : (typeof window.generateMessageId === "function"
-    ? window.generateMessageId()
-    : `msg-${Date.now()}`);
+  const userElement = appendMessage("You", userHtml, "user", true);
+  const userId = userElement ? userElement.id : generateMessageId();
   const historyContent = placeholders.length > 0 ? `${placeholders.join("\n")}\n\n${message}` : message;
-  window.conversationHistory.push({
+  state.conversationHistory.push({
     role: "user",
     content: historyContent,
     id: userId,
     timestamp: new Date().toISOString(),
     attachments: attachmentsForHistory.length > 0 ? attachmentsForHistory : undefined,
   });
-  if (typeof window.addMessageCopyButton === "function") {
-    window.addMessageCopyButton(userElement, userId);
-  }
+  addMessageCopyButton(userElement, userId);
   if (uploads.length > 0) {
-    window.generatedImages = window.generatedImages || [];
+    state.generatedImages = state.generatedImages || [];
     for (const up of uploads) {
-      window.generatedImages.push({
+      state.generatedImages.push({
         url: up.dataUrl,
         tool: "upload",
         prompt: "",
@@ -165,8 +175,8 @@ window.sendMessage = async function() {
         mimeType: (up.file && up.file.type) || "image/png",
         isStoredInDb: true,
       });
-      if (window.saveImageToDb) {
-        window.saveImageToDb(up.dataUrl, up.filename, {
+      if (saveImageToDb) {
+        saveImageToDb(up.dataUrl, up.filename, {
           tool: "upload",
           prompt: "",
           timestamp: up.timestamp,
@@ -177,42 +187,40 @@ window.sendMessage = async function() {
         }).catch(err => console.error("Failed to save upload image:", err));
       }
     }
-    window.pendingUploads = [];
+    state.pendingUploads = [];
   }
 
   // Clear documents and previews after processing
-  window.pendingDocuments = [];
+  state.pendingDocuments = [];
   const preview = document.querySelector(".upload-previews");
   if (preview) {
     preview.innerHTML = "";
   }
   console.info("User message added to conversation history.");
   // Auto-save after user message
-  if (window.saveCurrentConversation) {
-    window.saveCurrentConversation();
-  }
+  saveCurrentConversation();
 
   // Clear input and adjust height
-  window.userInput.value = "";
-  window.userInput.style.height = "auto";
+  elements.userInput.value = "";
+  elements.userInput.style.height = "auto";
 
   // Create loading message with pure animation
   const loadingId = `loading-${Date.now()}`;
   const loadingHTML = "<div class=\"loading-animation\"><div class=\"loading-dot\"></div><div class=\"loading-dot\"></div><div class=\"loading-dot\"></div></div>";
-  window.appendMessage("Assistant", loadingHTML, "assistant", true);
-  const loadingElement = window.chatBox.lastElementChild;
+  appendMessage("Assistant", loadingHTML, "assistant", true);
+  const loadingElement = elements.chatBox.lastElementChild;
   loadingElement.id = loadingId;
 
   // Update browser URL
-  if (typeof window.updateBrowserHistory === "function") {
-    window.updateBrowserHistory();
-    console.info("Browser history updated.");
-  }
+  updateBrowserHistory();
+  console.info("Browser history updated.");
 
-  window.activeLoadingMessageId = loadingId;
-  window.isResponsePending = true;
+  state.activeLoadingMessageId = loadingId;
+  state.isResponsePending = true;
 
   // Handle document uploads if present
+  let vectorStoreId = state.activeVectorStore || null;
+  const activeServiceKey = elements.serviceSelector ? elements.serviceSelector.value : "openai";
   if (hasDocuments) {
     console.log("Has documents:", documentsToUpload.length);
 
@@ -226,73 +234,120 @@ window.sendMessage = async function() {
       }
     });
 
-    // Upload files and attach as input_file references directly in the message
-    try {
-      if (window.showInfo) {
-        window.showInfo("Uploading files...");
-      }
+    if (activeServiceKey === "xai") {
+      // xAI: upload files and attach as input_file references directly in the message
+      try {
+        if (showInfo) {
+          showInfo("Uploading files...");
+        }
 
-      const { uploadFile } = await import("../services/vectorStore.js");
-      const fileIds = [];
-      for (const file of files) {
-        const uploaded = await uploadFile(file);
-        fileIds.push(uploaded.id);
-      }
+        const fileIds = [];
+        for (const file of files) {
+          const uploaded = await uploadFile(file);
+          fileIds.push(uploaded.id);
+        }
 
-      // Inject input_file parts into the last user message in conversation history
-      const lastUserMsg = window.conversationHistory[window.conversationHistory.length - 1];
-      if (lastUserMsg && lastUserMsg.role === "user") {
-        const fileParts = fileIds.map(id => ({ type: "input_file", file_id: id }));
-        if (typeof lastUserMsg.content === "string") {
-          const textPart = { type: "input_text", text: lastUserMsg.content };
-          lastUserMsg.content = [textPart, ...fileParts];
-        } else if (Array.isArray(lastUserMsg.content)) {
-          lastUserMsg.content.push(...fileParts);
+        // Inject input_file parts into the last user message in conversation history
+        const lastUserMsg = state.conversationHistory[state.conversationHistory.length - 1];
+        if (lastUserMsg && lastUserMsg.role === "user") {
+          const fileParts = fileIds.map(id => ({ type: "input_file", file_id: id }));
+          if (typeof lastUserMsg.content === "string") {
+            const textPart = { type: "input_text", text: lastUserMsg.content };
+            lastUserMsg.content = [textPart, ...fileParts];
+          } else if (Array.isArray(lastUserMsg.content)) {
+            lastUserMsg.content.push(...fileParts);
+          }
+        }
+
+        console.info("Files uploaded for xAI:", fileIds);
+        if (showInfo) {
+          showInfo(`${fileIds.length} file(s) uploaded`);
+        }
+      } catch (error) {
+        console.error("Failed to upload files:", error);
+        if (showError) {
+          showError(`Failed to upload files: ${error.message}`);
+        }
+        removeLoadingIndicator(loadingId);
+        resetSendButton();
+        return;
+      }
+    } else {
+      // OpenAI: use vector stores + file_search
+      console.log("File search enabled:", responsesClient?.isToolEnabled("builtin:file_search"));
+
+      if (!responsesClient?.isToolEnabled("builtin:file_search")) {
+        console.warn("File Search tool is not enabled. Documents will not be uploaded.");
+        if (showInfo) {
+          showInfo("Enable File Search tool in settings to upload documents");
+        }
+      } else {
+        try {
+          console.info("Uploading documents to vector store...");
+
+          if (showInfo) {
+            showInfo("Creating vector store and uploading documents...");
+          }
+
+          console.log("Files to upload:", files.map(f => f.name));
+          const result = await uploadAndAttachFiles(files, `Chat-${Date.now()}`);
+          vectorStoreId = result.vectorStoreId;
+          state.activeVectorStore = vectorStoreId;
+
+          // Save vector store metadata
+          saveVectorStoreMetadata(vectorStoreId, {
+            name: `Chat-${Date.now()}`,
+            createdAt: Date.now(),
+            fileCount: files.length,
+          });
+
+          console.info("Documents uploaded to vector store:", vectorStoreId);
+
+          if (showInfo) {
+            const uploadedCount = files.length - (result.skipped || 0);
+            const message = result.skipped > 0
+              ? `Vector store created with ${uploadedCount} file(s). ${result.skipped} file(s) skipped.`
+              : `Vector store created with ${uploadedCount} file(s)`;
+            showInfo(message);
+          }
+        } catch (error) {
+          console.error("Failed to upload documents:", error);
+          if (showError) {
+            showError(`Failed to upload documents: ${error.message}`);
+          }
+          removeLoadingIndicator(loadingId);
+          resetSendButton();
+          return;
         }
       }
-
-      console.info("Files uploaded:", fileIds);
-      if (window.showInfo) {
-        window.showInfo(`${fileIds.length} file(s) uploaded`);
-      }
-    } catch (error) {
-      console.error("Failed to upload files:", error);
-      if (window.showError) {
-        window.showError(`Failed to upload files: ${error.message}`);
-      }
-      window.removeLoadingIndicator(loadingId);
-      window.resetSendButton();
-      return;
     }
   }
 
   try {
-    if (!window.responsesClient || typeof window.responsesClient.runTurn !== "function") {
+    if (!responsesClient || typeof responsesClient.runTurn !== "function") {
       throw new Error("Responses client is not available. Check that services/api.js is loaded.");
     }
 
     const abortController = new AbortController();
-    window.activeAbortController = abortController;
+    state.activeAbortController = abortController;
 
-    const requestMessages = Array.isArray(window.conversationHistory)
-      ? [...window.conversationHistory]
+    const requestMessages = Array.isArray(state.conversationHistory)
+      ? [...state.conversationHistory]
       : [];
 
-    const result = await window.responsesClient.runTurn({
+    const result = await responsesClient.runTurn({
       inputMessages: requestMessages,
-      model: window.modelSelector ? window.modelSelector.value : undefined,
-      verbosity: typeof window.getVerbosity === "function"
-        ? window.getVerbosity()
-        : undefined,
-      reasoningEffort: typeof window.getReasoningEffort === "function"
-        ? window.getReasoningEffort()
-        : undefined,
+      model: elements.modelSelector ? elements.modelSelector.value : undefined,
+      verbosity: getVerbosity(),
+      reasoningEffort: getReasoningEffort(),
       stream: true,
       loadingId,
       abortController,
+      vectorStoreId,
+      historyTokenBudget: getHistoryTokenBudget(),
     });
 
-    if (window.shouldStopGeneration) {
+    if (state.shouldStopGeneration) {
       return;
     }
 
@@ -301,7 +356,7 @@ window.sendMessage = async function() {
       return;
     }
 
-    window.finalizeStreamedResponse(loadingMessage, {
+    finalizeStreamedResponse(loadingMessage, {
       content: result.outputText,
       reasoning: result.reasoningText,
       response: result.response,
@@ -309,89 +364,90 @@ window.sendMessage = async function() {
   } catch (error) {
     console.error("Error during message send:", error);
     if (error.name === "AbortError") {
-      window.removeLoadingIndicator(loadingId);
-      if (window.showInfo) {
-        window.showInfo("Generation stopped");
+      removeLoadingIndicator(loadingId);
+      if (showInfo) {
+        showInfo("Generation stopped");
       }
     } else {
-      window.removeLoadingIndicator(loadingId);
-      if (window.showError) {
-        window.showError(`Error: ${error.message}`);
+      removeLoadingIndicator(loadingId);
+      if (showError) {
+        showError(`Error: ${error.message}`);
       }
     }
     return;
   } finally {
-    if (uploads.length > 0 && typeof window.stripBase64FromHistory === "function") {
-      window.stripBase64FromHistory(userId, placeholders);
+    if (uploads.length > 0) {
+      stripBase64FromHistory(userId, placeholders);
     }
-    window.activeAbortController = null;
-    window.resetSendButton();
+    state.activeAbortController = null;
+    resetSendButton();
   }
-};
+}
 
 /**
  * Stops ongoing generation
  */
-window.stopGeneration = function() {
-  if (!window.isResponsePending) {
+export function stopGeneration() {
+  if (!state.isResponsePending) {
     return;
   }
 
-  window.sendButton.disabled = true;
-  window.sendButton.classList.add("stopping");
-  window.sendButton.classList.remove("stop-mode");
+  elements.sendButton.disabled = true;
+  elements.sendButton.classList.add("stopping");
+  elements.sendButton.classList.remove("stop-mode");
 
-  window.shouldStopGeneration = true;
+  state.shouldStopGeneration = true;
 
-  if (window.activeAbortController) {
+  if (state.activeAbortController) {
     try {
-      window.activeAbortController.abort();
+      state.activeAbortController.abort();
     } catch (abortError) {
       console.warn("Abort controller error:", abortError);
     }
   }
 
-  if (window.activeLoadingMessageId) {
-    window.removeLoadingIndicator(window.activeLoadingMessageId);
+  if (state.activeLoadingMessageId) {
+    removeLoadingIndicator(state.activeLoadingMessageId);
   }
 
-  window.resetSendButton();
+  resetSendButton();
 
-  if (window.VERBOSE_LOGGING) {
+  if (state.verboseLogging) {
     console.info("Response generation cancelled.");
   }
-};
+}
 
 /**
  * Resets the send button to its original state
  */
-window.resetSendButton = function() {
-  window.sendButton.classList.remove("stop-mode", "stopping");
-  window.sendButton.title = "Send message";
-  window.sendButton.disabled = false;
+export function resetSendButton() {
+  elements.sendButton.classList.remove("stop-mode", "stopping");
+  elements.sendButton.title = "Send message";
+  elements.sendButton.disabled = false;
 
-  window.activeLoadingMessageId = null;
-  window.isResponsePending = false;
-  window.shouldStopGeneration = false;
-  window.activeAbortController = null;
+  state.activeLoadingMessageId = null;
+  state.isResponsePending = false;
+  state.shouldStopGeneration = false;
+  state.activeAbortController = null;
 
   // Reset both button and enter key handlers
-  window.sendButton.removeEventListener("click", window.stopGeneration);
-  window.sendButton.addEventListener("click", window.sendMessage);
+  elements.sendButton.removeEventListener("click", stopGeneration);
+  elements.sendButton.addEventListener("click", sendMessage);
 
   // Make sure userInput is properly enabled but don't focus on mobile
-  if (window.userInput) {
-    window.userInput.disabled = false;
+  if (elements.userInput) {
+    elements.userInput.disabled = false;
 
     // Only focus on desktop devices, skip on mobile to prevent keyboard popup
     const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) ||
                     window.innerWidth <= 768;
 
     if (!isMobile) {
-      window.userInput.focus();
-    } else if (typeof window.scrollInputIntoView === "function") {
+      elements.userInput.focus();
+    } else {
       // For mobile, ensure the input is visible without forcing focus
-      window.scrollInputIntoView();
+      scrollInputIntoView();
+
     }
   }
-};
+}

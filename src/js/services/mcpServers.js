@@ -1,3 +1,7 @@
+import { icon } from "../utils/icons.js";
+import { showNotification } from "../utils/notifications.js";
+import { responsesClient } from "./api.js";
+import { refreshToolSettingsUI } from "../components/tools.js";
 /**
  * MCP Server Management
  * Handles configuration and management of URL-based Model Context Protocol servers
@@ -10,7 +14,7 @@ const MCP_SERVERS_STORAGE_KEY = "mcp_servers";
  * Get all configured MCP servers
  * @returns {Array} Array of server configurations
  */
-function getMCPServers() {
+export function getMCPServers() {
   try {
     const stored = localStorage.getItem(MCP_SERVERS_STORAGE_KEY);
     return stored ? JSON.parse(stored) : [];
@@ -38,7 +42,7 @@ function saveMCPServers(servers) {
  * @param {Object} server - Server configuration
  * @returns {boolean} Success status
  */
-function addMCPServer(server) {
+export function addMCPServer(server) {
   try {
     const servers = getMCPServers();
 
@@ -61,7 +65,7 @@ function addMCPServer(server) {
  * @param {string} serverLabel - Label of server to remove
  * @returns {boolean} Success status
  */
-function removeMCPServer(serverLabel) {
+export function removeMCPServer(serverLabel) {
   try {
     const servers = getMCPServers();
     const filtered = servers.filter(s => s.server_label !== serverLabel);
@@ -123,7 +127,7 @@ function renderMCPServersList() {
     removeBtn.className = "mcp-server-remove";
     removeBtn.dataset.serverLabel = server.server_label;
     removeBtn.title = "Remove Server";
-    removeBtn.innerHTML = window.icon("trash", { width: 16, height: 16 });
+    removeBtn.innerHTML = icon("trash", { width: 16, height: 16 });
     removeBtn.addEventListener("click", handleRemoveServer);
     item.appendChild(removeBtn);
 
@@ -131,7 +135,7 @@ function renderMCPServersList() {
   });
 }
 
-function requestMcpServerRemoval(serverLabel, fallbackDisplayName) {
+export function requestMcpServerRemoval(serverLabel, fallbackDisplayName) {
   if (!serverLabel) {
     return false;
   }
@@ -148,9 +152,9 @@ function requestMcpServerRemoval(serverLabel, fallbackDisplayName) {
     removeMCPServer(serverLabel);
     renderMCPServersList();
 
-    if (window.responsesClient && typeof window.responsesClient.unregisterMcpServer === "function") {
+    if (responsesClient && typeof responsesClient.unregisterMcpServer === "function") {
       try {
-        window.responsesClient.unregisterMcpServer(serverLabel);
+        responsesClient.unregisterMcpServer(serverLabel);
       } catch (unregisterError) {
         console.warn("Unable to unregister MCP server:", unregisterError);
       }
@@ -158,13 +162,13 @@ function requestMcpServerRemoval(serverLabel, fallbackDisplayName) {
 
     refreshToolingState();
 
-    if (window.showNotification) {
-      window.showNotification("MCP server removed successfully", "success");
+    if (showNotification) {
+      showNotification("MCP server removed successfully", "success");
     }
     return true;
   } catch (error) {
-    if (window.showNotification) {
-      window.showNotification(`Error removing server: ${error.message}`, "error");
+    if (showNotification) {
+      showNotification(`Error removing server: ${error.message}`, "error");
     }
     return false;
   }
@@ -173,24 +177,19 @@ function requestMcpServerRemoval(serverLabel, fallbackDisplayName) {
 function refreshToolingState(options = {}) {
   const { checkAvailability = false } = options;
 
-  if (typeof window.refreshToolSettingsUI === "function") {
-    window.refreshToolSettingsUI();
-  } else if (typeof window.updateToolDefinitions === "function") {
-    window.updateToolDefinitions();
-  }
+  refreshToolSettingsUI();
 
   if (!checkAvailability) {
     return;
   }
 
-  if (window.responsesClient && typeof window.responsesClient.refreshMcpAvailability === "function") {
+  if (responsesClient && typeof responsesClient.refreshMcpAvailability === "function") {
     try {
-      const maybePromise = window.responsesClient.refreshMcpAvailability(true);
+      const maybePromise = responsesClient.refreshMcpAvailability(true);
       if (maybePromise && typeof maybePromise.then === "function") {
         maybePromise.then(() => {
-          if (typeof window.refreshToolSettingsUI === "function") {
-            window.refreshToolSettingsUI();
-          }
+          refreshToolSettingsUI();
+
         }).catch(error => {
           console.warn("Unable to refresh MCP availability:", error);
         });
@@ -232,22 +231,22 @@ function handleAddServer() {
 
   // Validate inputs
   if (!displayName) {
-    if (window.showNotification) {
-      window.showNotification("Please enter a display name", "error");
+    if (showNotification) {
+      showNotification("Please enter a display name", "error");
     }
     return;
   }
 
   if (!server_label) {
-    if (window.showNotification) {
-      window.showNotification("Please enter a server label", "error");
+    if (showNotification) {
+      showNotification("Please enter a server label", "error");
     }
     return;
   }
 
   if (!server_url) {
-    if (window.showNotification) {
-      window.showNotification("Please enter a server URL", "error");
+    if (showNotification) {
+      showNotification("Please enter a server URL", "error");
     }
     return;
   }
@@ -258,8 +257,8 @@ function handleAddServer() {
     // URL validation successful if we get here
     void url; // Explicitly mark as intentionally unused
   } catch {
-    if (window.showNotification) {
-      window.showNotification("Please enter a valid URL (e.g., http://localhost:9404/mcp)", "error");
+    if (showNotification) {
+      showNotification("Please enter a valid URL (e.g., http://localhost:9404/mcp)", "error");
     }
     return;
   }
@@ -278,9 +277,9 @@ function handleAddServer() {
     addMCPServer(server);
     renderMCPServersList();
 
-    if (window.responsesClient && typeof window.responsesClient.registerMcpServer === "function") {
+    if (responsesClient && typeof responsesClient.registerMcpServer === "function") {
       try {
-        window.responsesClient.registerMcpServer(server);
+        responsesClient.registerMcpServer(server);
       } catch (registerError) {
         console.warn("Unable to register MCP server dynamically:", registerError);
       }
@@ -295,12 +294,12 @@ function handleAddServer() {
     approvalInput.value = "always";
     if (descriptionInput) descriptionInput.value = "";
 
-    if (window.showNotification) {
-      window.showNotification("MCP server added successfully. It is now available without reloading.", "success");
+    if (showNotification) {
+      showNotification("MCP server added successfully. It is now available without reloading.", "success");
     }
   } catch (error) {
-    if (window.showNotification) {
-      window.showNotification(`Error adding server: ${error.message}`, "error");
+    if (showNotification) {
+      showNotification(`Error adding server: ${error.message}`, "error");
     }
   }
 }
@@ -308,7 +307,7 @@ function handleAddServer() {
 /**
  * Initialize MCP server management
  */
-function initMCPServers() {
+export function initMCPServers() {
   // Render initial list
   renderMCPServersList();
 
@@ -318,10 +317,3 @@ function initMCPServers() {
     addButton.addEventListener("click", handleAddServer);
   }
 }
-
-// Export functions to window for access from other modules
-window.getMCPServers = getMCPServers;
-window.addMCPServer = addMCPServer;
-window.removeMCPServer = removeMCPServer;
-window.requestMcpServerRemoval = requestMcpServerRemoval;
-window.initMCPServers = initMCPServers;

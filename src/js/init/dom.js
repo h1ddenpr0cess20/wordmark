@@ -2,85 +2,84 @@
  * DOM initialization for chatbot application
  */
 
+import { elements, state } from "./state.js";
 /**
  * Initialize all DOM references
  */
-function initializeDOMReferences() {
-  window.chatBox = document.getElementById("chat-box");
-  window.userInput = document.getElementById("user-input");
-  window.sendButton = document.getElementById("send-button");
-  window.sendButtonIcon = window.sendButton ? {
-    send: window.sendButton.querySelector(".send-icon"),
-    stop: window.sendButton.querySelector(".stop-icon"),
-    spinner: window.sendButton.querySelector(".stopping-spinner"),
+export function initializeDOMReferences() {
+  elements.chatBox = document.getElementById("chat-box");
+  elements.userInput = document.getElementById("user-input");
+  elements.sendButton = document.getElementById("send-button");
+  elements.sendButtonIcon = elements.sendButton ? {
+    send: elements.sendButton.querySelector(".send-icon"),
+    stop: elements.sendButton.querySelector(".stop-icon"),
+    spinner: elements.sendButton.querySelector(".stopping-spinner"),
   } : null;
-  window.settingsButton = document.getElementById("settings-button");
-  window.settingsPanel = document.getElementById("settings-panel");
-  window.closeSettingsButton = document.querySelector(".close-settings");
-  window.modelSelector = document.getElementById("model-selector");
-  window.serviceSelector = document.getElementById("service-selector");
-  window.reasoningEffortSelector = document.getElementById("reasoning-effort");
-  window.verbositySelector = document.getElementById("verbosity-level");
-  window.personalityPromptRadio = document.getElementById("personality-prompt");
-  window.customPromptRadio = document.getElementById("custom-prompt");
-  window.noPromptRadio = document.getElementById("no-prompt");
-  window.personalityInput = document.getElementById("personality-input");
-  window.systemPromptCustom = document.getElementById("system-prompt-custom");
-  window.clearMemoryButton = document.getElementById("clear-memory");
-  window.exportChatButton = document.getElementById("export-chat");
-  window.exportFormatSelector = document.getElementById("export-format");
-  window.resetPersonalityButton = document.getElementById("reset-personality");
-  window.setPersonalityButton = document.getElementById("set-personality");
-  window.setCustomPromptButton = document.getElementById("set-custom-prompt");
-  window.setNoPromptButton = document.getElementById("set-no-prompt");
+  elements.settingsButton = document.getElementById("settings-button");
+  elements.settingsPanel = document.getElementById("settings-panel");
+  elements.closeSettingsButton = document.querySelector(".close-settings");
+  elements.modelSelector = document.getElementById("model-selector");
+  elements.serviceSelector = document.getElementById("service-selector");
+  elements.reasoningEffortSelector = document.getElementById("reasoning-effort");
+  elements.verbositySelector = document.getElementById("verbosity-level");
+  elements.historyTokenBudgetInput = document.getElementById("history-token-budget");
+  elements.personalityPromptRadio = document.getElementById("personality-prompt");
+  elements.customPromptRadio = document.getElementById("custom-prompt");
+  elements.noPromptRadio = document.getElementById("no-prompt");
+  elements.personalityInput = document.getElementById("personality-input");
+  elements.systemPromptCustom = document.getElementById("system-prompt-custom");
+  elements.clearMemoryButton = document.getElementById("clear-memory");
+  elements.exportChatButton = document.getElementById("export-chat");
+  elements.exportFormatSelector = document.getElementById("export-format");
+  elements.resetPersonalityButton = document.getElementById("reset-personality");
+  elements.setPersonalityButton = document.getElementById("set-personality");
+  elements.setCustomPromptButton = document.getElementById("set-custom-prompt");
+  elements.setNoPromptButton = document.getElementById("set-no-prompt");
   // Personality settings toggles
-  window.verboseModeToggle = document.getElementById("verbose-mode-toggle");
+  elements.verboseModeToggle = document.getElementById("verbose-mode-toggle");
   // TTS elements
-  window.ttsToggle = document.getElementById("tts-toggle");
-  window.ttsAutoplayToggle = document.getElementById("tts-autoplay-toggle");
-  window.ttsProviderSelector = document.getElementById("tts-provider-selector");
-  window.ttsVoiceSelector = document.getElementById("tts-voice-selector");
-  window.ttsInstructionsInput = document.getElementById("tts-instructions");
-  window.testTtsButton = document.getElementById("test-tts");
-  window.stopTtsButton = document.getElementById("stop-tts");
-  window.clearTtsCacheButton = document.getElementById("clear-tts-cache");
+  elements.ttsToggle = document.getElementById("tts-toggle");
+  elements.ttsAutoplayToggle = document.getElementById("tts-autoplay-toggle");
+  elements.ttsProviderSelector = document.getElementById("tts-provider-selector");
+  elements.ttsVoiceSelector = document.getElementById("tts-voice-selector");
+  elements.ttsInstructionsInput = document.getElementById("tts-instructions");
+  elements.testTtsButton = document.getElementById("test-tts");
+  elements.stopTtsButton = document.getElementById("stop-tts");
+  elements.clearTtsCacheButton = document.getElementById("clear-tts-cache");
 
   // Location elements
-  window.locationToggle = document.getElementById("location-toggle");
-  window.locationStatus = document.getElementById("location-status");
+  elements.locationToggle = document.getElementById("location-toggle");
+  elements.locationStatus = document.getElementById("location-status");
 
   // Tool calling toggle element
-  window.toolCallingToggle = document.getElementById("tool-calling-toggle");
-  window.dataSettingsToggle = document.getElementById("data-settings-toggle");
+  elements.toolCallingToggle = document.getElementById("tool-calling-toggle");
+  elements.dataSettingsToggle = document.getElementById("data-settings-toggle");
 
   // Individual tools container
-  window.individualToolsContainer = document.getElementById("individual-tools-container");
+  elements.individualToolsContainer = document.getElementById("individual-tools-container");
 
   // Chat history elements
-  window.historyButton = document.getElementById("history-button");
-  window.historyPanel = document.getElementById("history-panel");
-  window.closeHistoryButton = document.querySelector(".close-history");
-  window.historyList = document.getElementById("history-list");
+  elements.historyButton = document.getElementById("history-button");
+  elements.historyPanel = document.getElementById("history-panel");
+  elements.closeHistoryButton = document.querySelector(".close-history");
+  elements.historyList = document.getElementById("history-list");
 
   // Gallery elements
-  window.galleryButton = document.getElementById("gallery-button");
-  window.galleryPanel = document.getElementById("gallery-panel");
-  window.closeGalleryButton = document.querySelector(".close-gallery");
-  window.galleryGrid = document.getElementById("gallery-grid");
+  elements.galleryButton = document.getElementById("gallery-button");
+  elements.galleryPanel = document.getElementById("gallery-panel");
+  elements.closeGalleryButton = document.querySelector(".close-gallery");
+  elements.galleryGrid = document.getElementById("gallery-grid");
 
-  if (window.VERBOSE_LOGGING) {
+  if (state.verboseLogging) {
     console.info("DOM references assigned:", {
-      chatBox: Boolean(window.chatBox),
-      userInput: Boolean(window.userInput),
-      sendButton: Boolean(window.sendButton),
-      modelSelector: Boolean(window.modelSelector),
-      serviceSelector: Boolean(window.serviceSelector),
-      reasoningEffortSelector: Boolean(window.reasoningEffortSelector),
-      verbositySelector: Boolean(window.verbositySelector),
+      chatBox: Boolean(elements.chatBox),
+      userInput: Boolean(elements.userInput),
+      sendButton: Boolean(elements.sendButton),
+      modelSelector: Boolean(elements.modelSelector),
+      serviceSelector: Boolean(elements.serviceSelector),
+      reasoningEffortSelector: Boolean(elements.reasoningEffortSelector),
+      verbositySelector: Boolean(elements.verbositySelector),
     // ...add more if needed
     });
   }
 }
-
-// Make function available globally
-window.initializeDOMReferences = initializeDOMReferences;

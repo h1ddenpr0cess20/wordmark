@@ -1,3 +1,8 @@
+import { elements, state } from "../../init/state.js";
+import { showError } from "../../utils/notifications.js";
+import { updateBrowserHistory } from "../history/state.js";
+import { saveCurrentConversation } from "../history/persistence.js";
+import { ttsConfig, generateTtsForMessage } from "../tts.js";
 /**
  * Message lifecycle helpers used during streaming and finalization.
  */
@@ -5,85 +10,89 @@
 import {
   imageDebugLog,
   processImageGenerationOutputs,
-} from './imageGeneration.js';
+} from "./imageGeneration.js";
 import {
   extractCodeInterpreterOutputs,
   renderCodeInterpreterOutputs,
-} from './codeInterpreter.js';
+} from "./codeInterpreter.js";
 import {
   processMainContentMarkdown,
   separateThinkingSegments,
-} from './thinkingUtils.js';
+} from "./thinkingUtils.js";
+import { highlightAndAddCopyButtons, generateMessageId, addMessageCopyButton } from "../../components/messages.js";
+import { appendAssistantMessage } from "../../components/ui/chatMessages.js";
+import { setupImageInteractions } from "../../components/ui/imageInteractions.js";
+import { resetSendButton } from "../../components/interaction.js";
 
 export function finalizeStreamedResponse(loadingMessage, contentObj) {
   if (!loadingMessage) {
     return;
   }
 
-  const responsePayload = contentObj && typeof contentObj === 'object' ? contentObj.response || null : null;
-  let content = contentObj && typeof contentObj === 'object' ? (contentObj.content || '') : (contentObj || '');
-  let reasoning = contentObj && typeof contentObj === 'object' ? (contentObj.reasoning || '') : '';
+  const responsePayload = contentObj && typeof contentObj === "object" ? contentObj.response || null : null;
+  let content = contentObj && typeof contentObj === "object" ? (contentObj.content || "") : (contentObj || "");
+  let reasoning = contentObj && typeof contentObj === "object" ? (contentObj.reasoning || "") : "";
 
   function extractOutputText(payload) {
     if (!payload) {
-      return '';
+      return "";
     }
     if (Array.isArray(payload.output)) {
       return payload.output
-        .filter(item => item && item.type === 'output_text')
-        .map(item => item.text || item.content || '')
-        .join('');
+        .filter(item => item && item.type === "output_text")
+        .map(item => item.text || item.content || "")
+        .join("");
     }
-    if (typeof payload.output_text === 'string') {
+    if (typeof payload.output_text === "string") {
       return payload.output_text;
     }
     if (Array.isArray(payload.output_text)) {
-      return payload.output_text.join('');
+      return payload.output_text.join("");
     }
-    return '';
+    return "";
   }
 
   function extractReasoningText(payload) {
     if (!payload) {
-      return '';
+      return "";
     }
     const flattenContentArray = (items) => {
       return items
         .map(item => {
-          if (typeof item === 'string') {
+          if (typeof item === "string") {
             return item;
           }
-          if (item && typeof item === 'object') {
-            if (typeof item.text === 'string') {
+          if (item && typeof item === "object") {
+            if (typeof item.text === "string") {
               return item.text;
             }
-            if (typeof item.content === 'string') {
+            if (typeof item.content === "string") {
               return item.content;
             }
           }
-          return '';
+          return "";
         })
-        .join('');
+        .join("");
     };
-    if (payload.reasoning && typeof payload.reasoning === 'string') {
+    if (payload.reasoning && typeof payload.reasoning === "string") {
       return payload.reasoning;
     }
     if (payload.reasoning && Array.isArray(payload.reasoning)) {
-      return payload.reasoning.map(item => item?.content || '').join('');
+      return payload.reasoning.map(item => item?.content || "").join("");
     }
     if (payload.reasoning && Array.isArray(payload.reasoning.output)) {
-      return payload.reasoning.output.map(item => item?.content || '').join('');
+      return payload.reasoning.output.map(item => item?.content || "").join("");
     }
-    if (typeof payload.reasoning_content === 'string') {
+    if (typeof payload.reasoning_content === "string") {
       return payload.reasoning_content;
     }
     if (Array.isArray(payload.reasoning_content)) {
       return flattenContentArray(payload.reasoning_content);
     }
-    if (payload.reasoning && typeof payload.reasoning === 'object' && typeof payload.reasoning.content === 'string') {
+    if (payload.reasoning && typeof payload.reasoning === "object" && typeof payload.reasoning.content === "string") {
       return payload.reasoning.content;
     }
-    return '';
+    return "";
   }
 
   if (!content) {
@@ -98,7 +107,7 @@ export function finalizeStreamedResponse(loadingMessage, contentObj) {
     content = parsedThinking.content;
     if (parsedThinking.reasoning) {
       reasoning = reasoning
-        ? `${reasoning}${reasoning.endsWith('\n') ? '' : '\n'}${parsedThinking.reasoning}`
+        ? `${reasoning}${reasoning.endsWith("\n") ? "" : "\n"}${parsedThinking.reasoning}`
         : parsedThinking.reasoning;
     }
   }
@@ -108,18 +117,18 @@ export function finalizeStreamedResponse(loadingMessage, contentObj) {
     try {
       processImageGenerationOutputs(responsePayload);
     } catch (error) {
-      console.error('Failed to process image generation outputs:', error);
+      console.error("Failed to process image generation outputs:", error);
     }
     try {
       codeInterpreterOutputs = extractCodeInterpreterOutputs(responsePayload);
     } catch (error) {
-      console.error('Failed to extract code interpreter outputs:', error);
+      console.error("Failed to extract code interpreter outputs:", error);
       codeInterpreterOutputs = { attachments: [], logs: [] };
     }
   }
 
-  const hasPendingMedia = Array.isArray(window.currentGeneratedImageHtml)
-    ? window.currentGeneratedImageHtml.length > 0
+  const hasPendingMedia = Array.isArray(state.currentGeneratedImageHtml)
+    ? state.currentGeneratedImageHtml.length > 0
     : false;
 
   if (!hasPendingMedia && !content.trim() && !reasoning.trim()) {
@@ -132,44 +141,42 @@ export function finalizeStreamedResponse(loadingMessage, contentObj) {
   let hasThinking = Boolean(thinkingContent);
 
   const thinkingId = `thinking-${loadingMessage.id}`;
-  const contentWrapper = loadingMessage.querySelector('.message-content');
+  const contentWrapper = loadingMessage.querySelector(".message-content");
   if (!contentWrapper) {
     return;
   }
 
   if (!loadingMessage.id) {
-    loadingMessage.id = typeof window.generateMessageId === 'function'
-      ? window.generateMessageId()
-      : `msg-${Date.now()}`;
+    loadingMessage.id = generateMessageId();
   }
 
-  if (window.currentGeneratedImageHtml && window.currentGeneratedImageHtml.length > 0) {
-    imageDebugLog('Detected pending generated images before rendering message.', {
-      count: window.currentGeneratedImageHtml.length,
+  if (state.currentGeneratedImageHtml && state.currentGeneratedImageHtml.length > 0) {
+    imageDebugLog("Detected pending generated images before rendering message.", {
+      count: state.currentGeneratedImageHtml.length,
     });
   }
 
   let fullContent = content;
   const hasExistingImagePlaceholders = /\[\[(?:IMAGE|MEDIA): [^\]]+\]\]/.test(fullContent);
   const willHaveImages = !hasExistingImagePlaceholders &&
-                         window.currentGeneratedImageHtml &&
-                         window.currentGeneratedImageHtml.length > 0;
+                         state.currentGeneratedImageHtml &&
+                         state.currentGeneratedImageHtml.length > 0;
 
   if (willHaveImages) {
-    const imageList = window.currentGeneratedImageHtml
+    const imageList = state.currentGeneratedImageHtml
       .map(html => {
         const match = html.match(/data-filename="([^"]+)"/);
         return match ? `[[MEDIA: ${match[1]}]]` : null;
       })
       .filter(Boolean)
-      .join('\n');
+      .join("\n");
     if (imageList) {
       fullContent = `${imageList}\n\n${fullContent}`;
     }
   }
 
-  window.conversationHistory.push({
-    role: 'assistant',
+  state.conversationHistory.push({
+    role: "assistant",
     content: fullContent,
     reasoning,
     id: loadingMessage.id,
@@ -180,28 +187,28 @@ export function finalizeStreamedResponse(loadingMessage, contentObj) {
   });
 
   const existingThinkingContainer = document.getElementById(thinkingId);
-  let existingMainContentContainer = contentWrapper.querySelector('.main-response-content');
-  let existingImagesContainer = contentWrapper.querySelector('.generated-images');
+  let existingMainContentContainer = contentWrapper.querySelector(".main-response-content");
+  let existingImagesContainer = contentWrapper.querySelector(".generated-images");
 
-  if (window.currentGeneratedImageHtml && window.currentGeneratedImageHtml.length > 0) {
+  if (state.currentGeneratedImageHtml && state.currentGeneratedImageHtml.length > 0) {
     let imagesContainer = existingImagesContainer;
     if (!imagesContainer) {
-      imagesContainer = document.createElement('div');
-      imagesContainer.className = 'generated-images';
+      imagesContainer = document.createElement("div");
+      imagesContainer.className = "generated-images";
       contentWrapper.appendChild(imagesContainer);
     }
-    imagesContainer.innerHTML = window.currentGeneratedImageHtml.join('');
-    window.setupImageInteractions(imagesContainer);
-    imageDebugLog('Injected generated images into chat bubble.', {
-      imageCount: window.currentGeneratedImageHtml.length,
+    imagesContainer.innerHTML = state.currentGeneratedImageHtml.join("");
+    setupImageInteractions(imagesContainer);
+    imageDebugLog("Injected generated images into chat bubble.", {
+      imageCount: state.currentGeneratedImageHtml.length,
       messageId: loadingMessage.id,
     });
 
-    const thisMessageImages = [...window.currentGeneratedImageHtml];
-    if (!window.messageImages) {
-      window.messageImages = {};
+    const thisMessageImages = [...state.currentGeneratedImageHtml];
+    if (!state.messageImages) {
+      state.messageImages = {};
     }
-    window.messageImages[loadingMessage.id] = thisMessageImages;
+    state.messageImages[loadingMessage.id] = thisMessageImages;
 
     const filenamesForThisMessage = thisMessageImages
       .map(html => {
@@ -209,18 +216,18 @@ export function finalizeStreamedResponse(loadingMessage, contentObj) {
         return match ? match[1] : null;
       })
       .filter(Boolean);
-    if (Array.isArray(window.generatedImages)) {
-      window.generatedImages.forEach(img => {
+    if (Array.isArray(state.generatedImages)) {
+      state.generatedImages.forEach(img => {
         if (!img.associatedMessageId && filenamesForThisMessage.includes(img.filename)) {
           img.associatedMessageId = loadingMessage.id;
         }
       });
     }
 
-    const historyEntry = window.conversationHistory.find(entry => entry.id === loadingMessage.id);
+    const historyEntry = state.conversationHistory.find(entry => entry.id === loadingMessage.id);
     if (historyEntry) {
       historyEntry.hasImages = true;
-      imageDebugLog('Marked conversation history entry as having images.', {
+      imageDebugLog("Marked conversation history entry as having images.", {
         messageId: loadingMessage.id,
       });
     }
@@ -228,38 +235,38 @@ export function finalizeStreamedResponse(loadingMessage, contentObj) {
 
   if (hasThinking) {
     let finalThinkingContainer = existingThinkingContainer;
-    const persistedExpanded = (window.userThinkingState && window.userThinkingState[thinkingId] === true);
-    const hasPersisted = !!(window.userThinkingState && Object.prototype.hasOwnProperty.call(window.userThinkingState, thinkingId));
-    const priorWasCollapsed = finalThinkingContainer ? finalThinkingContainer.classList.contains('collapsed') : true;
+    const persistedExpanded = (state.userThinkingState && state.userThinkingState[thinkingId] === true);
+    const hasPersisted = Boolean(state.userThinkingState && Object.prototype.hasOwnProperty.call(state.userThinkingState, thinkingId));
+    const priorWasCollapsed = finalThinkingContainer ? finalThinkingContainer.classList.contains("collapsed") : true;
     const shouldCollapse = hasPersisted ? !persistedExpanded : priorWasCollapsed;
 
     if (!finalThinkingContainer) {
       const containerHTML =
         `<div id="${thinkingId}" class="thinking-container">
-           <div class="thinking-title" onclick="toggleThinking('${thinkingId}', event)">Reasoning</div>
+           <div class="thinking-title">Reasoning</div>
            <div class="thinking-content"></div>
          </div>`;
-      contentWrapper.insertAdjacentHTML('beforeend', containerHTML);
+      contentWrapper.insertAdjacentHTML("beforeend", containerHTML);
       finalThinkingContainer = document.getElementById(thinkingId);
     }
 
     if (finalThinkingContainer) {
-      const contentDiv = finalThinkingContainer.querySelector('.thinking-content');
+      const contentDiv = finalThinkingContainer.querySelector(".thinking-content");
       if (contentDiv) {
         contentDiv.innerHTML = processMainContentMarkdown(thinkingContent);
       }
       if (shouldCollapse) {
-        finalThinkingContainer.classList.add('collapsed');
+        finalThinkingContainer.classList.add("collapsed");
       } else {
-        finalThinkingContainer.classList.remove('collapsed');
+        finalThinkingContainer.classList.remove("collapsed");
       }
     }
   }
 
   let finalMainContentContainer = existingMainContentContainer;
   if (!finalMainContentContainer) {
-    finalMainContentContainer = document.createElement('div');
-    finalMainContentContainer.className = 'main-response-content';
+    finalMainContentContainer = document.createElement("div");
+    finalMainContentContainer.className = "main-response-content";
     contentWrapper.appendChild(finalMainContentContainer);
   }
   finalMainContentContainer.innerHTML = processMainContentMarkdown(processedText);
@@ -268,24 +275,20 @@ export function finalizeStreamedResponse(loadingMessage, contentObj) {
   updateFinalMessage(loadingMessage);
 
   // TTS uses the cleaned content (think tags stripped when present)
-  if (window.ttsConfig && window.ttsConfig.enabled && typeof window.generateTtsForMessage === 'function') {
-    window.generateTtsForMessage(content, loadingMessage.id);
+  if (ttsConfig.enabled) {
+    generateTtsForMessage(content, loadingMessage.id);
   }
 
-  if (typeof window.updateBrowserHistory === 'function') {
-    window.updateBrowserHistory();
-  }
+  updateBrowserHistory();
 
-  if (window.saveCurrentConversation) {
-    window.saveCurrentConversation();
-  }
+  saveCurrentConversation();
 
-  if (window.currentGeneratedImageHtml && window.currentGeneratedImageHtml.length > 0) {
-    imageDebugLog('Resetting currentGeneratedImageHtml; pending images should now be associated.', {
+  if (state.currentGeneratedImageHtml && state.currentGeneratedImageHtml.length > 0) {
+    imageDebugLog("Resetting currentGeneratedImageHtml; pending images should now be associated.", {
       messageId: loadingMessage.id,
     });
   }
-  window.currentGeneratedImageHtml = [];
+  state.currentGeneratedImageHtml = [];
 }
 
 export function updateFinalMessage(loadingMessage) {
@@ -293,21 +296,17 @@ export function updateFinalMessage(loadingMessage) {
     return;
   }
 
-  if (typeof window.highlightAndAddCopyButtons === 'function') {
-    try {
-      window.highlightAndAddCopyButtons(loadingMessage);
-    } catch (e) {
-      console.warn('Error highlighting code in final message:', e);
-    }
+  try {
+    highlightAndAddCopyButtons(loadingMessage);
+  } catch (e) {
+    console.warn("Error highlighting code in final message:", e);
   }
 
-  loadingMessage.className = 'message assistant';
+  loadingMessage.className = "message assistant";
   if (!loadingMessage.id) {
     loadingMessage.id = `msg-${Date.now()}`;
   }
-  if (typeof window.addMessageCopyButton === 'function') {
-    window.addMessageCopyButton(loadingMessage, loadingMessage.id);
-  }
+  addMessageCopyButton(loadingMessage, loadingMessage.id);
 }
 
 export function handleNonStreamingResponse(data, loadingId) {
@@ -319,21 +318,21 @@ export function handleNonStreamingResponse(data, loadingId) {
   }
 
   const outputText = Array.isArray(responsePayload.output)
-    ? responsePayload.output.filter(item => item && item.type === 'output_text')
-      .map(item => item.text || item.content || '')
-      .join('')
-    : (responsePayload.output_text || '');
+    ? responsePayload.output.filter(item => item && item.type === "output_text")
+      .map(item => item.text || item.content || "")
+      .join("")
+    : (responsePayload.output_text || "");
 
   const reasoningText = responsePayload.reasoning && Array.isArray(responsePayload.reasoning.output)
-    ? responsePayload.reasoning.output.map(item => item?.content || '').join('')
-    : '';
+    ? responsePayload.reasoning.output.map(item => item?.content || "").join("")
+    : "";
 
   finalizeStreamedResponse(loadingMessage, {
     content: outputText,
     reasoning: reasoningText,
     response: responsePayload,
   });
-  window.resetSendButton();
+  resetSendButton();
 }
 
 export function hasValidAssistantMessage(data) {
@@ -345,20 +344,18 @@ export function hasValidAssistantMessage(data) {
     return false;
   }
   if (Array.isArray(responsePayload.output)) {
-    return responsePayload.output.some(item => item && item.type === 'output_text' && item.text);
+    return responsePayload.output.some(item => item && item.type === "output_text" && item.text);
   }
-  return typeof responsePayload.output_text === 'string' && responsePayload.output_text.trim().length > 0;
+  return typeof responsePayload.output_text === "string" && responsePayload.output_text.trim().length > 0;
 }
 
 export function addToConversationHistory(assistantMessage, reasoning) {
-  const msgId = typeof window.generateMessageId === 'function'
-    ? window.generateMessageId()
-    : `msg-${Date.now()}`;
+  const msgId = generateMessageId();
 
-  window.conversationHistory.push({
-    role: 'assistant',
+  state.conversationHistory.push({
+    role: "assistant",
     content: assistantMessage,
-    reasoning: reasoning || '',
+    reasoning: reasoning || "",
     id: msgId,
     timestamp: new Date().toISOString(),
   });
@@ -371,9 +368,9 @@ export function updateLoadingIndicator(loadingMessage, assistantMessageObj) {
     if (assistantMessageObj && assistantMessageObj.id) {
       loadingMessage.id = assistantMessageObj.id;
     }
-    const cursor = loadingMessage.querySelector('.streaming-cursor');
+    const cursor = loadingMessage.querySelector(".streaming-cursor");
     if (cursor) {
-      cursor.classList.add('fade-out');
+      cursor.classList.add("fade-out");
       setTimeout(() => {
         updateMessageContent(loadingMessage, assistantMessageObj);
       }, 250);
@@ -382,7 +379,7 @@ export function updateLoadingIndicator(loadingMessage, assistantMessageObj) {
     }
   } else {
     const processedMessage = processMainContentMarkdown(assistantMessageObj.content);
-    window.appendAssistantMessage(processedMessage);
+    appendAssistantMessage(processedMessage);
   }
 }
 
@@ -390,13 +387,13 @@ export function updateMessageContent(loadingMessage, assistantMessageObj) {
   if (!loadingMessage) {
     return;
   }
-  const contentWrapper = loadingMessage.querySelector('.message-content');
+  const contentWrapper = loadingMessage.querySelector(".message-content");
   if (!contentWrapper) {
     return;
   }
-  const content = typeof assistantMessageObj === 'string' ? assistantMessageObj : (assistantMessageObj.content || '');
-  const reasoning = typeof assistantMessageObj === 'string' ? '' : (assistantMessageObj.reasoning || '');
-  const codeOutputs = typeof assistantMessageObj === 'string'
+  const content = typeof assistantMessageObj === "string" ? assistantMessageObj : (assistantMessageObj.content || "");
+  const reasoning = typeof assistantMessageObj === "string" ? "" : (assistantMessageObj.reasoning || "");
+  const codeOutputs = typeof assistantMessageObj === "string"
     ? null
     : (assistantMessageObj.codeInterpreterOutputs || null);
   const parsedThinking = separateThinkingSegments(content);
@@ -404,36 +401,36 @@ export function updateMessageContent(loadingMessage, assistantMessageObj) {
   let thinkingContent = reasoning;
   if (parsedThinking.reasoning) {
     thinkingContent = thinkingContent
-      ? `${thinkingContent}${thinkingContent.endsWith('\n') ? '' : '\n'}${parsedThinking.reasoning}`
+      ? `${thinkingContent}${thinkingContent.endsWith("\n") ? "" : "\n"}${parsedThinking.reasoning}`
       : parsedThinking.reasoning;
   }
   let hasThinking = Boolean(thinkingContent);
   const thinkingId = `thinking-${loadingMessage.id}`;
 
-  contentWrapper.innerHTML = '';
+  contentWrapper.innerHTML = "";
 
-  if (window.messageImages && window.messageImages[loadingMessage.id]) {
-    const imagesContainer = document.createElement('div');
-    imagesContainer.className = 'generated-images';
-    imagesContainer.innerHTML = window.messageImages[loadingMessage.id].join('');
+  if (state.messageImages && state.messageImages[loadingMessage.id]) {
+    const imagesContainer = document.createElement("div");
+    imagesContainer.className = "generated-images";
+    imagesContainer.innerHTML = state.messageImages[loadingMessage.id].join("");
     contentWrapper.appendChild(imagesContainer);
-    window.setupImageInteractions(imagesContainer);
+    setupImageInteractions(imagesContainer);
   }
 
   if (hasThinking) {
     const containerHTML =
       `<div id="${thinkingId}" class="thinking-container">
-         <div class="thinking-title" onclick="toggleThinking('${thinkingId}', event)">Reasoning</div>
+         <div class="thinking-title">Reasoning</div>
          <div class="thinking-content"></div>
        </div>`;
-    contentWrapper.insertAdjacentHTML('beforeend', containerHTML);
+    contentWrapper.insertAdjacentHTML("beforeend", containerHTML);
     const thinkingContainer = document.getElementById(thinkingId);
     if (thinkingContainer) {
-      const persistedExpanded = (window.userThinkingState && window.userThinkingState[thinkingId] === true);
-      const hasPersisted = !!(window.userThinkingState && Object.prototype.hasOwnProperty.call(window.userThinkingState, thinkingId));
+      const persistedExpanded = (state.userThinkingState && state.userThinkingState[thinkingId] === true);
+      const hasPersisted = Boolean(state.userThinkingState && Object.prototype.hasOwnProperty.call(state.userThinkingState, thinkingId));
       const shouldCollapse = hasPersisted ? !persistedExpanded : true;
 
-      const contentDiv = thinkingContainer.querySelector('.thinking-content');
+      const contentDiv = thinkingContainer.querySelector(".thinking-content");
       if (contentDiv) {
         contentDiv.innerHTML = processMainContentMarkdown(thinkingContent);
         if (!shouldCollapse) {
@@ -441,15 +438,15 @@ export function updateMessageContent(loadingMessage, assistantMessageObj) {
         }
       }
       if (shouldCollapse) {
-        thinkingContainer.classList.add('collapsed');
+        thinkingContainer.classList.add("collapsed");
       } else {
-        thinkingContainer.classList.remove('collapsed');
+        thinkingContainer.classList.remove("collapsed");
       }
     }
   }
 
-  const mainContentContainer = document.createElement('div');
-  mainContentContainer.className = 'main-response-content';
+  const mainContentContainer = document.createElement("div");
+  mainContentContainer.className = "main-response-content";
   mainContentContainer.innerHTML = processMainContentMarkdown(processedText);
   contentWrapper.appendChild(mainContentContainer);
 
@@ -461,13 +458,13 @@ export function updateMessageContent(loadingMessage, assistantMessageObj) {
 export function removeLoadingIndicator(loadingId) {
   const loadingMessage = document.getElementById(loadingId);
   if (loadingMessage) {
-    window.chatBox.removeChild(loadingMessage);
+    elements.chatBox.removeChild(loadingMessage);
   }
 }
 
 export function handleInvalidResponse(loadingId) {
   removeLoadingIndicator(loadingId);
-  if (window.showError) {
-    window.showError('Unexpected API response format.');
+  if (showError) {
+    showError("Unexpected API response format.");
   }
 }

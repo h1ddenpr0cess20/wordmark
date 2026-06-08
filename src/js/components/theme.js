@@ -2,9 +2,21 @@
  * Theme management functions for the AI Assistant
  */
 
+import hljs from "highlight.js";
+
+// Theme CSS is imported as raw text so theme class names can be parsed in both
+// the Vite dev server (where a plain fetch of a .css URL returns a JS HMR
+// wrapper, not the stylesheet) and production builds.
+import darkThemeCss from "../../css/themes/base/dark.css?raw";
+import lightThemeCss from "../../css/themes/base/light.css?raw";
+import metalThemeCss from "../../css/themes/base/metal.css?raw";
+import neonThemeCss from "../../css/themes/base/neon.css?raw";
+import countryThemeCss from "../../css/themes/base/country.css?raw";
+import specialThemeCss from "../../css/themes/base/special.css?raw";
+
 // Initialize theme variables
-window.themeSelector = null;
-window.currentTheme = "theme-dark-blue"; // Default theme
+let themeSelector = null;
+let currentTheme = "theme-dark-blue"; // Default theme
 
 // Theme categories - will be populated dynamically from CSS files
 let themeCategories = {};
@@ -15,7 +27,16 @@ let colorParsingContext = null;
 /**
  * Extract theme names from CSS files
  */
-async function extractThemesFromCSS() {
+function extractThemesFromCSS() {
+  const themeSources = {
+    "Dark Themes": darkThemeCss,
+    "Light Themes": lightThemeCss,
+    "Metal Themes": metalThemeCss,
+    "Neon Themes": neonThemeCss,
+    "Country Themes": countryThemeCss,
+    "Special Themes": specialThemeCss,
+  };
+
   const categories = {
     "Dark Themes": [],
     "Light Themes": [],
@@ -25,31 +46,13 @@ async function extractThemesFromCSS() {
     "Special Themes": [],
   };
 
-  const themeFiles = {
-    "Dark Themes": new URL("../../css/themes/base/dark.css", import.meta.url).href,
-    "Light Themes": new URL("../../css/themes/base/light.css", import.meta.url).href,
-    "Metal Themes": new URL("../../css/themes/base/metal.css", import.meta.url).href,
-    "Neon Themes": new URL("../../css/themes/base/neon.css", import.meta.url).href,
-    "Country Themes": new URL("../../css/themes/base/country.css", import.meta.url).href,
-    "Special Themes": new URL("../../css/themes/base/special.css", import.meta.url).href,
-  };
-
-  for (const [category, filePath] of Object.entries(themeFiles)) {
-    try {
-      const response = await fetch(filePath);
-      const cssContent = await response.text();
-
-      // Extract theme class names using regex
-      const themeMatches = cssContent.match(/^\.theme-[a-zA-Z0-9-]+(?=\s*\{)/gm);
-      if (themeMatches) {
-        const themes = themeMatches
-          .map(match => match.substring(1)) // Remove the leading dot
-          .filter((theme, index, arr) => arr.indexOf(theme) === index);
-
-        categories[category] = themes;
-      }
-    } catch (error) {
-      console.error(`Failed to load themes from ${filePath}:`, error);
+  for (const [category, cssContent] of Object.entries(themeSources)) {
+    // Extract theme class names using regex
+    const themeMatches = (cssContent || "").match(/^\.theme-[a-zA-Z0-9-]+(?=\s*\{)/gm);
+    if (themeMatches) {
+      categories[category] = themeMatches
+        .map(match => match.substring(1)) // Remove the leading dot
+        .filter((theme, index, arr) => arr.indexOf(theme) === index);
     }
   }
 
@@ -194,7 +197,7 @@ async function populateThemeSelector() {
 /**
  * Initialize theme functionality
  */
-window.initTheme = async function() {
+export async function initTheme() {
   // Extract themes from CSS files first
   themeCategories = await extractThemesFromCSS();
 
@@ -202,9 +205,9 @@ window.initTheme = async function() {
   await populateThemeSelector();
 
   // Get theme selector
-  window.themeSelector = document.getElementById("theme-selector");
+  themeSelector = document.getElementById("theme-selector");
 
-  if (!window.themeSelector) {
+  if (!themeSelector) {
     console.error("Theme selector not found");
     return;
   }
@@ -212,27 +215,27 @@ window.initTheme = async function() {
   // Load saved theme if it exists
   const savedTheme = localStorage.getItem("selectedTheme");
   if (savedTheme) {
-    window.currentTheme = savedTheme;
-    window.themeSelector.value = savedTheme;
+    currentTheme = savedTheme;
+    themeSelector.value = savedTheme;
   }
 
   // Apply the current theme
-  window.applyTheme(window.currentTheme);
+  applyTheme(currentTheme);
 
   // Add event listener for theme changes
-  window.themeSelector.addEventListener("change", (e) => {
+  themeSelector.addEventListener("change", (e) => {
     const newTheme = e.target.value;
-    window.applyTheme(newTheme);
-    window.currentTheme = newTheme;
+    applyTheme(newTheme);
+    currentTheme = newTheme;
     localStorage.setItem("selectedTheme", newTheme);
   });
-};
+}
 
 /**
  * Apply a theme to the document
  * @param {string} themeName - The name/class of the theme to apply
  */
-window.applyTheme = function(themeName) {
+export function applyTheme(themeName) {
   // Remove all theme classes from body
   document.body.classList.remove(...getThemeClasses());
 
@@ -249,83 +252,57 @@ window.applyTheme = function(themeName) {
   document.getElementById("theme-selector").value = themeName;
 
   // Update code highlighting to match the theme
-  window.updateCodeHighlighting(themeName);
+  updateCodeHighlighting(themeName);
 
   // Update preview dots in settings if visible
-  window.updateThemePreview();
-};
-
-window.updateThemeColorTriplets = updateThemeColorTriplets;
+  updateThemePreview();
+}
 
 /**
  * Rehighlight all code blocks to apply the current theme styling
  */
-window.rehighlightCodeBlocks = function() {
+function rehighlightCodeBlocks() {
   try {
-    // Check if highlight.js is loaded
-    if (window.hljs || typeof hljs !== "undefined") {
-      const codeBlocks = document.querySelectorAll("pre code");
+    const codeBlocks = document.querySelectorAll("pre code");
 
-      if (codeBlocks && codeBlocks.length > 0) {
-        console.log(`Rehighlighting ${codeBlocks.length} code blocks with current theme`);
+    if (codeBlocks && codeBlocks.length > 0) {
+      console.log(`Rehighlighting ${codeBlocks.length} code blocks with current theme`);
 
-        // Configure highlight.js to ignore unescaped HTML for security
-        hljs.configure({
-          ignoreUnescapedHTML: true,
-        });
+      // Configure highlight.js to ignore unescaped HTML for security
+      hljs.configure({
+        ignoreUnescapedHTML: true,
+      });
 
-        codeBlocks.forEach((codeBlock) => {
-          try {
-            // Store original content if not already stored
-            if (!codeBlock.hasAttribute("data-original-code")) {
-              codeBlock.setAttribute("data-original-code", codeBlock.textContent);
-            }
-
-            // Apply highlighting
-            hljs.highlightElement(codeBlock);
-
-            // Add code-block class to parent for styling
-            if (codeBlock.parentElement && !codeBlock.parentElement.classList.contains("code-block")) {
-              codeBlock.parentElement.classList.add("code-block");
-            }
-          } catch (error) {
-            console.error("Error highlighting code block:", error);
+      codeBlocks.forEach((codeBlock) => {
+        try {
+          // Store original content if not already stored
+          if (!codeBlock.hasAttribute("data-original-code")) {
+            codeBlock.setAttribute("data-original-code", codeBlock.textContent);
           }
-        });
-      } else {
-        console.log("No code blocks found to rehighlight");
-      }
+
+          // Apply highlighting
+          hljs.highlightElement(codeBlock);
+
+          // Add code-block class to parent for styling
+          if (codeBlock.parentElement && !codeBlock.parentElement.classList.contains("code-block")) {
+            codeBlock.parentElement.classList.add("code-block");
+          }
+        } catch (error) {
+          console.error("Error highlighting code block:", error);
+        }
+      });
     } else {
-      console.log("Highlight.js not loaded, attempting to load it");
-      // Try to load highlight.js
-      if (typeof loadHighlightJS === "function") {
-        loadHighlightJS().then(() => {
-          // Try again after loading
-          console.log("Highlight.js loaded, retrying rehighlight");
-          window.rehighlightCodeBlocks();
-        }).catch((error) => {
-          console.error("Failed to load highlight.js:", error);
-        });
-      } else if (typeof window.loadHighlightJS === "function") {
-        window.loadHighlightJS().then(() => {
-          // Try again after loading
-          window.rehighlightCodeBlocks();
-        }).catch((error) => {
-          console.error("Failed to load highlight.js:", error);
-        });
-      } else {
-        console.error("loadHighlightJS function not available");
-      }
+      console.log("No code blocks found to rehighlight");
     }
   } catch (error) {
     console.error("Error in rehighlightCodeBlocks:", error);
   }
-};
+}
 
 /**
  * Update the theme preview dots in the settings panel
  */
-window.updateThemePreview = function() {
+function updateThemePreview() {
   // Update color dots to reflect current theme
   const colorDots = document.querySelectorAll(".color-dot");
   if (colorDots && colorDots.length > 0) {
@@ -335,50 +312,19 @@ window.updateThemePreview = function() {
     colorDots[3].style.backgroundColor = "var(--accent-color)";
     colorDots[4].style.backgroundColor = "var(--user-bg)";
   }
-};
+}
 
 function updateCodeHighlighting() {
   // Simply rehighlight using hljs; do not reset classes to avoid losing token styles
-  if (typeof window.rehighlightCodeBlocks === "function") {
-    window.rehighlightCodeBlocks();
-  } else if (window.hljs) {
-    window.hljs.highlightAll();
-  }
+  rehighlightCodeBlocks();
 }
-
-// Expose for callers that reference window.updateCodeHighlighting
-if (typeof window !== "undefined") {
-  window.updateCodeHighlighting = updateCodeHighlighting;
-}
-
-/**
- * Initializes theme based on localStorage or default
- */
-window.initializeTheme = function() {
-  const savedTheme = localStorage.getItem("selectedTheme") || "theme-dark-gray";
-  document.body.className = savedTheme;
-
-  updateThemeColorTriplets();
-
-  // Set the theme selector to the saved theme
-  if (window.themeSelector) {
-    window.themeSelector.value = savedTheme;
-  }
-
-  // Initialize any theme-specific TTS UI elements
-  if (window.ttsConfig) {
-    const toggleSwitch = document.querySelector(".toggle-switch");
-    if (toggleSwitch) {
-      toggleSwitch.style.backgroundColor = window.ttsConfig.enabled ?
-        "var(--accent-color)" : "var(--bg-secondary)";
-    }
-  }
-};
 
 // Add theme initialization to window load event
-window.addEventListener("DOMContentLoaded", () => {
-  // Wait a moment to ensure all resources are loaded
-  setTimeout(() => {
-    window.initTheme();
-  }, 100);
-});
+if (typeof window !== "undefined") {
+  window.addEventListener("DOMContentLoaded", () => {
+    // Wait a moment to ensure all resources are loaded
+    setTimeout(() => {
+      initTheme();
+    }, 100);
+  });
+}

@@ -2,65 +2,59 @@
  * TTS initialization for the chatbot application
  */
 
+import { elements, state } from "./state.js";
+import { setupMobileKeyboardHandling } from "../utils/mobileHandling.js";
+import { ttsConfig, availableTtsVoices, initTtsReferences } from "../services/tts.js";
+
 /**
  * Initialize TTS functionality
  */
-function initializeTts() {
-  if (!window.ttsConfig) return;
+export function initializeTts() {
+  if (!ttsConfig) return;
 
   // Initialize TTS provider selector
-  if (window.ttsProviderSelector) {
-    window.ttsProviderSelector.value = window.ttsConfig.provider || "xai";
+  if (elements.ttsProviderSelector) {
+    const provider = availableTtsVoices?.[ttsConfig.provider] ? ttsConfig.provider : "openai";
+    ttsConfig.provider = provider;
+    elements.ttsProviderSelector.value = provider;
   }
 
   // Populate TTS voice selector
   populateTtsVoiceSelector();
 
   // Initialize TTS toggle state
-  if (window.ttsToggle) {
-    window.ttsToggle.checked = window.ttsConfig.enabled;
+  if (elements.ttsToggle) {
+    elements.ttsToggle.checked = ttsConfig.enabled;
   }
 
   // Initialize TTS autoplay toggle state
-  if (window.ttsAutoplayToggle) {
-    window.ttsAutoplayToggle.checked = window.ttsConfig.autoplay;
+  if (elements.ttsAutoplayToggle) {
+    elements.ttsAutoplayToggle.checked = ttsConfig.autoplay;
   }
 
   // Initialize TTS instructions
-  if (window.ttsInstructionsInput) {
-    window.ttsInstructionsInput.value = window.ttsConfig.instructions || "";
+  if (elements.ttsInstructionsInput) {
+    elements.ttsInstructionsInput.value = ttsConfig.instructions || "";
     // xAI TTS doesn't support voice instructions
-    const instructionsItem = window.ttsInstructionsInput.closest(".setting-item");
+    const instructionsItem = elements.ttsInstructionsInput.closest(".setting-item");
     if (instructionsItem) {
-      instructionsItem.style.display = (window.ttsConfig.provider || "xai") === "xai" ? "none" : "";
+      instructionsItem.style.display = (ttsConfig.provider || "openai") === "xai" ? "none" : "";
     }
   }
 
-  // Share references with TTS service
-  if (window.initTtsReferences) {
-    window.initTtsReferences({
-      ttsToggle: window.ttsToggle,
-      ttsAutoplayToggle: window.ttsAutoplayToggle,
-      ttsProviderSelector: window.ttsProviderSelector,
-      ttsVoiceSelector: window.ttsVoiceSelector,
-      ttsInstructionsInput: window.ttsInstructionsInput,
-      personalityInput: window.personalityInput,
-      personalityPromptRadio: window.personalityPromptRadio,
-    });
-  } else {
-    console.warn("initTtsReferences function not found. TTS may not work properly.");
-  }
+  // Wire the TTS voice-change listener.
+  initTtsReferences();
 }
 
 /**
  * Populate the TTS voice selector with available voices
  */
-function populateTtsVoiceSelector() {
-  if (window.ttsVoiceSelector && window.availableTtsVoices && window.ttsConfig) {
-    window.ttsVoiceSelector.innerHTML = "";
+export function populateTtsVoiceSelector() {
+  if (elements.ttsVoiceSelector && availableTtsVoices && ttsConfig) {
+    elements.ttsVoiceSelector.innerHTML = "";
 
-    const provider = window.ttsConfig.provider || "xai";
-    const voices = window.availableTtsVoices[provider];
+    const provider = ttsConfig.provider || "openai";
+    const voices = availableTtsVoices[provider];
     if (!voices) return;
 
     const categories = ["neutral", "male", "female"];
@@ -76,34 +70,25 @@ function populateTtsVoiceSelector() {
           option.textContent = voice.name;
           group.appendChild(option);
         });
-        window.ttsVoiceSelector.appendChild(group);
+        elements.ttsVoiceSelector.appendChild(group);
       }
     }
 
     // If current voice isn't in the new provider's list, select the first available
     const allVoiceIds = categories.flatMap(c => (voices[c] || []).map(v => v.id));
-    if (!allVoiceIds.includes(window.ttsConfig.voice)) {
-      window.ttsConfig.voice = allVoiceIds[0] || "";
+    if (!allVoiceIds.includes(ttsConfig.voice)) {
+      ttsConfig.voice = allVoiceIds[0] || "";
     }
-    window.ttsVoiceSelector.value = window.ttsConfig.voice;
+    elements.ttsVoiceSelector.value = ttsConfig.voice;
   }
 }
 
 /**
  * Initialize mobile keyboard handling
  */
-function initializeMobileKeyboardHandling() {
-  if (typeof window.setupMobileKeyboardHandling === "function") {
-    window.setupMobileKeyboardHandling();
-    if (window.VERBOSE_LOGGING) {
-      console.info("Mobile keyboard handling initialized.");
-    }
-  } else {
-    console.warn("Mobile keyboard handling function not available");
+export function initializeMobileKeyboardHandling() {
+  setupMobileKeyboardHandling();
+  if (state.verboseLogging) {
+    console.info("Mobile keyboard handling initialized.");
   }
 }
-
-// Make functions available globally
-window.initializeTts = initializeTts;
-window.populateTtsVoiceSelector = populateTtsVoiceSelector;
-window.initializeMobileKeyboardHandling = initializeMobileKeyboardHandling;

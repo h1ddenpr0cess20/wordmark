@@ -1,22 +1,12 @@
+import { elements, state } from "../init/state.js";
 import { ensureImagesHaveMessageIds } from "./streaming/imageGeneration.js";
-import { processMainContentMarkdown } from "./streaming/thinkingUtils.js";
-import {
-  addToConversationHistory,
-  finalizeStreamedResponse,
-  handleInvalidResponse,
-  handleNonStreamingResponse,
-  hasValidAssistantMessage,
-  removeLoadingIndicator,
-  updateFinalMessage,
-  updateLoadingIndicator,
-  updateMessageContent,
-} from "./streaming/messageLifecycle.js";
 import { createStreamingRuntime } from "./streaming/runtime.js";
 import { createStreamingEventProcessor } from "./streaming/eventProcessor.js";
+import { setupImageInteractions } from "../components/ui/imageInteractions.js";
 
-window.ensureImagesHaveMessageIds = ensureImagesHaveMessageIds;
+export { ensureImagesHaveMessageIds };
 
-window.handleStreamedResponse = async function(response, loadingId) {
+export async function handleStreamedResponse(response, loadingId) {
   const loadingMessage = document.getElementById(loadingId);
   if (!loadingMessage) {
     return { response: null, outputText: "", reasoningText: "" };
@@ -42,14 +32,12 @@ window.handleStreamedResponse = async function(response, loadingId) {
     contentWrapper.appendChild(mainContentContainer);
   }
 
-  if (window.currentGeneratedImageHtml && window.currentGeneratedImageHtml.length > 0) {
+  if (state.currentGeneratedImageHtml && state.currentGeneratedImageHtml.length > 0) {
     const imagesContainer = document.createElement("div");
     imagesContainer.className = "generated-images";
-    imagesContainer.innerHTML = window.currentGeneratedImageHtml.join("");
+    imagesContainer.innerHTML = state.currentGeneratedImageHtml.join("");
     contentWrapper.appendChild(imagesContainer);
-    if (typeof window.setupImageInteractions === "function") {
-      window.setupImageInteractions(contentWrapper);
-    }
+    setupImageInteractions(contentWrapper);
   }
 
   const reader = response.body && response.body.getReader ? response.body.getReader() : null;
@@ -68,8 +56,8 @@ window.handleStreamedResponse = async function(response, loadingId) {
   });
   const processor = createStreamingEventProcessor(runtime);
 
-  window.shouldAutoScroll = true;
-  window.chatBox.scrollTop = window.chatBox.scrollHeight;
+  state.shouldAutoScroll = true;
+  elements.chatBox.scrollTop = elements.chatBox.scrollHeight;
 
   const decoder = new TextDecoder();
   let buffer = "";
@@ -85,7 +73,7 @@ window.handleStreamedResponse = async function(response, loadingId) {
   }
 
   try {
-    while (!window.shouldStopGeneration) {
+    while (!state.shouldStopGeneration) {
       const { done, value } = await reader.read();
       if (done) {
         flushEvent();
@@ -117,7 +105,7 @@ window.handleStreamedResponse = async function(response, loadingId) {
       throw streamError;
     }
   } finally {
-    window.shouldStopGeneration = false;
+    state.shouldStopGeneration = false;
   }
 
   processor.finalize();
@@ -130,16 +118,5 @@ window.handleStreamedResponse = async function(response, loadingId) {
     outputText: runtime.getOutputText(),
     reasoningText: runtime.getReasoningText(),
   };
-};
-
-window.processMainContentMarkdown = processMainContentMarkdown;
-window.finalizeStreamedResponse = finalizeStreamedResponse;
-window.updateFinalMessage = updateFinalMessage;
-window.handleNonStreamingResponse = handleNonStreamingResponse;
-window.hasValidAssistantMessage = hasValidAssistantMessage;
-window.addToConversationHistory = addToConversationHistory;
-window.updateLoadingIndicator = updateLoadingIndicator;
-window.updateMessageContent = updateMessageContent;
-window.removeLoadingIndicator = removeLoadingIndicator;
-window.handleInvalidResponse = handleInvalidResponse;
+}
 

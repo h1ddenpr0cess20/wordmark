@@ -1,3 +1,4 @@
+import { elements, state } from "../init/state.js";
 /**
  * Chat export functionality
  */
@@ -254,7 +255,7 @@ function persistExportFormatPreference(formatKey) {
 }
 
 function resolveSelectedExportFormat() {
-  const selectValue = window.exportFormatSelector ? window.exportFormatSelector.value : null;
+  const selectValue = elements.exportFormatSelector ? elements.exportFormatSelector.value : null;
   const normalised = normaliseExportFormat(selectValue);
   if (normalised && EXPORT_FORMATS[normalised]) {
     return normalised;
@@ -266,7 +267,7 @@ function resolveSelectedExportFormat() {
   return "md";
 }
 
-window.handleExportFormatChange = function(event) {
+export function handleExportFormatChange(event) {
   const value = event && event.target ? event.target.value : null;
   const formatKey = normaliseExportFormat(value);
   if (!formatKey || !EXPORT_FORMATS[formatKey]) {
@@ -276,21 +277,21 @@ window.handleExportFormatChange = function(event) {
   if (event && event.target && event.target.value !== formatKey) {
     event.target.value = formatKey;
   }
-};
+}
 
-window.initializeExportControls = function() {
-  if (!window.exportFormatSelector) {
+export function initializeExportControls() {
+  if (!elements.exportFormatSelector) {
     return;
   }
   const stored = getStoredExportFormat();
   const effective = EXPORT_FORMATS[stored] ? stored : "md";
-  window.exportFormatSelector.value = effective;
-};
+  elements.exportFormatSelector.value = effective;
+}
 
 /**
  * Exports the current chat conversation to a user-selected format
  */
-window.exportChat = function() {
+export function exportChat() {
   const formatKey = resolveSelectedExportFormat();
   const formatConfig = EXPORT_FORMATS[formatKey];
   if (!formatConfig) {
@@ -303,7 +304,7 @@ window.exportChat = function() {
   const includeThinkingCheckbox = document.getElementById("include-thinking");
   const includeThinking = includeThinkingCheckbox ? includeThinkingCheckbox.checked : false;
 
-  const normalisedMessages = normaliseMessagesForExport(window.conversationHistory);
+  const normalisedMessages = normaliseMessagesForExport(state.conversationHistory);
   if (normalisedMessages.length === 0) {
     console.warn("Export skipped: no conversation history available yet.");
     return;
@@ -321,4 +322,4 @@ window.exportChat = function() {
   anchor.click();
   document.body.removeChild(anchor);
   URL.revokeObjectURL(url);
-};
+}

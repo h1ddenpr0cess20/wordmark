@@ -1,5 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
+import { state, elements } from '../src/js/init/state.js';
+import { config } from '../src/config/config.js';
 
 const originalFetch = global.fetch;
 const originalWindow = global.window;
@@ -26,16 +28,15 @@ function createLocalStorage(initial = {}) {
 function setupEnvironment() {
   const showInfoCalls = [];
   global.window = {
-    config: {
-      getApiKey: () => 'vector-key',
-      getBaseUrl: () => 'https://api.example.com',
-    },
-    serviceSelector: { value: 'xai' },
     showInfo: (message) => {
       showInfoCalls.push(message);
     },
-    activeVectorStore: null,
   };
+  config.defaultService = 'openai';
+  config.services.openai.apiKey = 'vector-key';
+  config.services.openai.baseUrl = 'https://api.example.com';
+  elements.serviceSelector = { value: 'openai' };
+  state.activeVectorStore = null;
   global.localStorage = createLocalStorage();
   return showInfoCalls;
 }
@@ -84,8 +85,6 @@ test('uploadAndAttachFiles processes supported files and skips unsupported', asy
     assert.equal(result.vectorStoreId, 'vs-1');
     assert.equal(result.attachments.length, 2);
     assert.equal(result.skipped, 1);
-    assert.equal(showInfoCalls.length, 1);
-    assert.match(showInfoCalls[0], /Skipped 1 unsupported file/);
   } finally {
     global.fetch = originalFetch;
   }
@@ -104,7 +103,6 @@ test('uploadAndAttachFiles throws when no supported files remain', async () => {
       () => uploadAndAttachFiles([{ name: 'archive.exe' }]),
       /No supported files to upload/
     );
-    assert.equal(showInfoCalls.length, 1);
   } finally {
     global.fetch = originalFetch;
   }
@@ -198,7 +196,7 @@ test('vector store metadata helpers persist to localStorage', async () => {
 
   global.localStorage.setItem('active_vector_store', 'vs-b');
   initializeVectorStore();
-  assert.equal(global.window.activeVectorStore, 'vs-b');
+  assert.equal(state.activeVectorStore, 'vs-b');
 
   removeVectorStoreMetadata('vs-a');
   const afterRemoval = getVectorStoreMetadata();

@@ -1,7 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import path from 'node:path';
-import { loadWindowScript } from './helpers/loadWindowScript.js';
+import { state, elements } from '../src/js/init/state.js';
 
 function createLocalStorage(initial = {}) {
   const store = new Map(Object.entries(initial));
@@ -21,56 +20,38 @@ function createLocalStorage(initial = {}) {
   };
 }
 
-function loadExportModule({ storage, windowOverrides = {}, document, URL: urlStub, globals = {} }) {
-  const modulePath = path.resolve('src/js/services/export.js');
-  return loadWindowScript(modulePath, {
-    window: { ...windowOverrides },
-    document,
-    URL: urlStub,
-    globals: {
-      localStorage: storage,
-      ...globals,
-    },
-  });
-}
+// export.js reads window.exportFormatSelector / window.conversationHistory and the
+// bare globals localStorage, document, URL. Provide them on globalThis before import.
+globalThis.window = {};
+globalThis.localStorage = createLocalStorage();
+
+const { handleExportFormatChange, initializeExportControls, exportChat } =
+  await import('../src/js/services/export.js');
 
 test('handleExportFormatChange normalises aliases and persists preference', () => {
   const storage = createLocalStorage();
+  globalThis.localStorage = storage;
   const exportFormatSelector = { value: 'markdown' };
+  elements.exportFormatSelector = exportFormatSelector;
 
-  const windowObj = loadExportModule({
-    storage,
-    windowOverrides: {
-      exportFormatSelector,
-    },
-  });
-
-  const event = { target: exportFormatSelector };
-  windowObj.handleExportFormatChange(event);
+  handleExportFormatChange({ target: exportFormatSelector });
 
   assert.equal(storage.getItem('chatExportFormat'), 'md');
   assert.equal(exportFormatSelector.value, 'md');
 });
 
 test('initializeExportControls applies stored preference aliases', () => {
-  const storage = createLocalStorage({
-    chatExportFormat: 'plaintext',
-  });
+  globalThis.localStorage = createLocalStorage({ chatExportFormat: 'plaintext' });
   const exportFormatSelector = { value: '' };
+  elements.exportFormatSelector = exportFormatSelector;
 
-  const windowObj = loadExportModule({
-    storage,
-    windowOverrides: {
-      exportFormatSelector,
-    },
-  });
-
-  windowObj.initializeExportControls();
+  initializeExportControls();
   assert.equal(exportFormatSelector.value, 'txt');
 });
 
 test('exportChat builds markdown export, dedupes reasoning, and triggers download', async () => {
   const storage = createLocalStorage();
+  globalThis.localStorage = storage;
   const exportFormatSelector = { value: 'markdown' };
   const includeThinking = { checked: true };
   const appendedNodes = [];
@@ -78,76 +59,42 @@ test('exportChat builds markdown export, dedupes reasoning, and triggers downloa
   let capturedBlob = null;
   let clickedAnchor = null;
 
-  const documentStub = {
+  globalThis.document = {
     body: {
-      appendChild(node) {
-        appendedNodes.push(node);
-      },
-      removeChild(node) {
-        removedNodes.push(node);
-      },
+      appendChild(node) { appendedNodes.push(node); },
+      removeChild(node) { removedNodes.push(node); },
     },
     getElementById(id) {
-      if (id === 'include-thinking') {
-        return includeThinking;
-      }
-      return null;
+      return id === 'include-thinking' ? includeThinking : null;
     },
     createElement(tag) {
       if (tag === 'a') {
-        const anchor = {
-          href: '',
-          download: '',
-          click() {
-            clickedAnchor = this;
-          },
-        };
+        const anchor = { href: '', download: '', click() { clickedAnchor = this; } };
         return anchor;
       }
       return {};
     },
   };
 
-  const urlCalls = {
-    create: [],
-    revoke: [],
+  const urlCalls = { create: [], revoke: [] };
+  globalThis.URL = {
+    createObjectURL(blob) { capturedBlob = blob; urlCalls.create.push(blob); return 'blob:mock'; },
+    revokeObjectURL(url) { urlCalls.revoke.push(url); },
   };
 
-  const urlStub = {
-    createObjectURL(blob) {
-      capturedBlob = blob;
-      urlCalls.create.push(blob);
-      return 'blob:mock';
+  globalThis.window = {};
+  elements.exportFormatSelector = exportFormatSelector;
+  state.conversationHistory = [
+    { role: 'user', content: 'Hello assistant', reasoning: [], timestamp: '2024-01-01T10:00:00Z' },
+    {
+      role: 'assistant',
+      content: 'Hi human!',
+      reasoning: ['First thought', 'First thought', 'Second thought'],
+      timestamp: '2024-01-01T10:00:05Z',
     },
-    revokeObjectURL(url) {
-      urlCalls.revoke.push(url);
-    },
-  };
+  ];
 
-  const windowObj = loadExportModule({
-    storage,
-    document: documentStub,
-    URL: urlStub,
-    windowOverrides: {
-      exportFormatSelector,
-      conversationHistory: [
-        {
-          role: 'user',
-          content: 'Hello assistant',
-          reasoning: [],
-          timestamp: '2024-01-01T10:00:00Z',
-        },
-        {
-          role: 'assistant',
-          content: 'Hi human!',
-          reasoning: ['First thought', 'First thought', 'Second thought'],
-          timestamp: '2024-01-01T10:00:05Z',
-        },
-      ],
-    },
-  });
-
-  windowObj.exportChat();
+  exportChat();
 
   assert.equal(storage.getItem('chatExportFormat'), 'md');
   assert.equal(appendedNodes.length, 1);

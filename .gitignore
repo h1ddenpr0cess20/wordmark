@@ -2,4 +2,6 @@ cert.pem
 key.pem
 .vscode/launch.json
 node_modules
+dist
 CLAUDE.md
+REFACTOR_PLAN.md

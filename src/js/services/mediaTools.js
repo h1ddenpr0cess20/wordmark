@@ -1,20 +1,20 @@
 /**
- * Client-side media generation/editing tools for xAI Grok Imagine.
+ * Client-side media generation/display helpers for xAI Grok Imagine images.
  */
 
-const XAI_IMAGE_MODEL = "grok-imagine-image"; // eslint-disable-line no-unused-vars
-const XAI_VIDEO_MODEL = "grok-imagine-video"; // eslint-disable-line no-unused-vars
+import { state } from "../init/state.js";
+import { loadImageFromDb, saveImageToDb } from "../utils/imageStorage.js";
+import { toolImplementations } from "./toolImplementations.js";
+import { getApiKey } from "./apiKeys.js";
+import { config } from "../../config/config.js";
 
-const XAI_IMAGE_ASPECT_RATIOS = [ // eslint-disable-line no-unused-vars
+const XAI_IMAGE_MODEL = "grok-imagine-image";
+
+const XAI_IMAGE_ASPECT_RATIOS = [
   "1:1", "16:9", "9:16", "4:3", "3:4",
   "3:2", "2:3", "2:1", "1:2",
   "19.5:9", "9:19.5", "20:9", "9:20", "auto",
 ];
-const XAI_VIDEO_ASPECT_RATIOS = ["16:9", "9:16", "1:1", "4:3", "3:4", "3:2", "2:3"]; // eslint-disable-line no-unused-vars
-const XAI_VIDEO_RESOLUTIONS = ["480p", "720p"]; // eslint-disable-line no-unused-vars
-
-const VIDEO_POLL_INTERVAL_MS = 4000;
-const VIDEO_POLL_TIMEOUT_MS = 8 * 60 * 1000;
 
 function escapeHtmlAttribute(value) {
   if (value === null || value === undefined) {
@@ -28,44 +28,7 @@ function escapeHtmlAttribute(value) {
     .replace(/>/g, "&gt;");
 }
 
-function sleep(ms) {
-  return new Promise(resolve => {
-    window.setTimeout(resolve, ms);
-  });
-}
-
-function getProviderBaseUrl(provider) {
-  const baseUrl = window.config?.services?.[provider]?.baseUrl || "";
-  if (!baseUrl) {
-    throw new Error(`Base URL is not configured for ${provider}.`);
-  }
-  return baseUrl.replace(/\/+$/, "");
-}
-
-function getProviderApiKey(provider) {
-  const apiKey = window.getApiKey?.(provider) || window.config?.services?.[provider]?.apiKey || "";
-  const trimmed = typeof apiKey === "string" ? apiKey.trim() : "";
-  if (!trimmed) {
-    const providerLabel = provider === "xai" ? "xAI" : provider;
-    throw new Error(`Add your ${providerLabel} API key in Settings → API Keys.`);
-  }
-  return trimmed;
-}
-
-function buildHeaders(provider, options = {}) {
-  const { multipart = false } = options;
-  const headers = {};
-  const apiKey = getProviderApiKey(provider);
-  if (apiKey) {
-    headers.Authorization = `Bearer ${apiKey}`;
-  }
-  if (!multipart) {
-    headers["Content-Type"] = "application/json";
-  }
-  return headers;
-}
-
-function isVideoMimeType(mimeType = "") {
+export function isVideoMimeType(mimeType = "") {
   return /^video\//i.test(mimeType);
 }
 
@@ -81,7 +44,7 @@ function inferMimeTypeFromFilename(filename = "") {
   return "image/png";
 }
 
-function detectMediaType(source = {}) {
+export function detectMediaType(source = {}) {
   const explicitType = typeof source.mediaType === "string" ? source.mediaType.trim().toLowerCase() : "";
   if (explicitType === "video" || explicitType === "image") {
     return explicitType;
@@ -114,7 +77,7 @@ function makeFilename(prefix, mimeType) {
   return `${base}-${Date.now()}-${Math.random().toString(36).slice(2, 10)}.${extension}`;
 }
 
-function buildMediaRecordHtml(record) {
+export function buildMediaRecordHtml(record) {
   const mediaType = detectMediaType(record);
   const safeFilename = escapeHtmlAttribute(record.filename || "");
   const safePrompt = escapeHtmlAttribute(record.prompt || "");
@@ -139,19 +102,6 @@ function createObjectUrl(value) {
   return "";
 }
 
-async function responseToJson(response) {
-  if (!response.ok) {
-    const text = await response.text().catch(() => "");
-    throw new Error(`${response.status} ${response.statusText}${text ? `: ${text}` : ""}`);
-  }
-  return response.json();
-}
-
-async function fetchJson(url, options = {}) {
-  const response = await fetch(url, options);
-  return responseToJson(response);
-}
-
 async function fetchBlob(url, options = {}) {
   const response = await fetch(url, options);
   if (!response.ok) {
@@ -173,29 +123,21 @@ function decodeDataUri(reference) {
   return new Blob([bytes], { type: mimeType });
 }
 
-function normalizePrompt(args = {}) {
-  const prompt = String(args.prompt || "").trim();
-  if (!prompt) {
-    throw new Error("A prompt is required.");
-  }
-  return prompt;
-}
-
 async function resolveStoredReference(record) {
   if (!record || !record.filename) {
     return null;
   }
-  if (window.imageDataCache?.has(record.filename)) {
-    const cached = window.imageDataCache.get(record.filename);
+  if (state.imageDataCache?.has(record.filename)) {
+    const cached = state.imageDataCache.get(record.filename);
     if (cached) {
       return cached;
     }
   }
   try {
-    const stored = await window.loadImageFromDb?.(record.filename);
-    const displayUrl = window.getMediaDisplayUrl?.(stored?.data, record.filename) || "";
-    if (displayUrl && window.imageDataCache?.set) {
-      window.imageDataCache.set(record.filename, displayUrl);
+    const stored = await loadImageFromDb(record.filename);
+    const displayUrl = getMediaDisplayUrl(stored?.data, record.filename) || "";
+    if (displayUrl && state.imageDataCache?.set) {
+      state.imageDataCache.set(record.filename, displayUrl);
     }
     return displayUrl || null;
   } catch (error) {
@@ -205,7 +147,7 @@ async function resolveStoredReference(record) {
 }
 
 async function findLatestConversationImage() {
-  const history = Array.isArray(window.conversationHistory) ? [...window.conversationHistory].reverse() : [];
+  const history = Array.isArray(state.conversationHistory) ? [...state.conversationHistory].reverse() : [];
   for (const message of history) {
     const attachments = Array.isArray(message?.attachments) ? message.attachments : [];
     for (let index = attachments.length - 1; index >= 0; index -= 1) {
@@ -231,7 +173,7 @@ async function findLatestConversationImage() {
 }
 
 async function findLatestGeneratedMedia(kind) {
-  const media = Array.isArray(window.generatedImages) ? [...window.generatedImages].reverse() : [];
+  const media = Array.isArray(state.generatedImages) ? [...state.generatedImages].reverse() : [];
   for (const item of media) {
     if (!item) {
       continue;
@@ -253,7 +195,7 @@ async function findLatestGeneratedMedia(kind) {
   return null;
 }
 
-async function resolveLatestMediaReference(kind) {
+export async function resolveLatestMediaReference(kind) {
   const generated = await findLatestGeneratedMedia(kind);
   if (generated) {
     return generated;
@@ -264,7 +206,7 @@ async function resolveLatestMediaReference(kind) {
   return null;
 }
 
-function parseImageResponse(payload) { // eslint-disable-line no-unused-vars
+function parseImageResponse(payload) {
   const candidates = Array.isArray(payload?.data) ? payload.data : [];
   return candidates
     .map(item => {
@@ -289,81 +231,18 @@ function parseImageResponse(payload) { // eslint-disable-line no-unused-vars
     .filter(Boolean);
 }
 
-function notifyStatus(message) {
-  if (window.VERBOSE_LOGGING) {
-    console.info("[media-tools]", message);
-  }
-  showMediaSpinner(message);
-}
-
-function showMediaSpinner(statusText) {
-  const loadingId = window.activeLoadingMessageId;
-  const loadingMessage = loadingId ? document.getElementById(loadingId) : null;
-  if (!loadingMessage) {
-    return;
-  }
-  const contentWrapper = loadingMessage.querySelector(".message-content");
-  if (!contentWrapper) {
-    return;
-  }
-
-  let spinner = contentWrapper.querySelector(".media-generation-spinner");
-  if (!spinner) {
-    // Hide the default loading dots while the spinner is shown
-    const loadingDots = contentWrapper.querySelector(".loading-animation");
-    if (loadingDots) {
-      loadingDots.style.display = "none";
-    }
-
-    spinner = document.createElement("div");
-    spinner.className = "media-generation-spinner";
-    spinner.innerHTML = `
-      <div class="media-spinner-ring"></div>
-      <span class="media-spinner-text"></span>
-    `;
-    contentWrapper.appendChild(spinner);
-  }
-
-  const textEl = spinner.querySelector(".media-spinner-text");
-  if (textEl) {
-    textEl.textContent = statusText;
-  }
-}
-
-function hideMediaSpinner() {
-  const loadingId = window.activeLoadingMessageId;
-  const loadingMessage = loadingId ? document.getElementById(loadingId) : null;
-  if (!loadingMessage) {
-    return;
-  }
-  const contentWrapper = loadingMessage.querySelector(".message-content");
-  if (!contentWrapper) {
-    return;
-  }
-  const spinner = contentWrapper.querySelector(".media-generation-spinner");
-  if (spinner) {
-    spinner.remove();
-  }
-  const loadingDots = contentWrapper.querySelector(".loading-animation");
-  if (loadingDots) {
-    loadingDots.style.display = "";
-  }
-}
-
-window.isVideoMimeType = isVideoMimeType;
-window.detectMediaType = detectMediaType;
-window.getMediaDisplayUrl = function(value, filename = "") {
+export function getMediaDisplayUrl(value, filename = "") {
   if (!value) {
     return "";
   }
   if (value instanceof Blob) {
     const cacheKey = filename || `blob-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
-    if (window.imageDataCache?.has(cacheKey)) {
-      return window.imageDataCache.get(cacheKey);
+    if (state.imageDataCache?.has(cacheKey)) {
+      return state.imageDataCache.get(cacheKey);
     }
     const objectUrl = createObjectUrl(value);
-    if (window.imageDataCache?.set) {
-      window.imageDataCache.set(cacheKey, objectUrl);
+    if (state.imageDataCache?.set) {
+      state.imageDataCache.set(cacheKey, objectUrl);
     }
     return objectUrl;
   }
@@ -375,9 +254,9 @@ window.getMediaDisplayUrl = function(value, filename = "") {
     return `data:${mimeType};base64,${value}`;
   }
   return "";
-};
+}
 
-window.downloadMediaSource = async function(source, filename) {
+export async function downloadMediaSource(source, filename) {
   let blob = null;
   const remoteUrl = typeof source === "string" && /^https?:\/\//i.test(source)
     ? source.trim()
@@ -423,19 +302,16 @@ window.downloadMediaSource = async function(source, filename) {
   window.setTimeout(() => {
     URL.revokeObjectURL(objectUrl);
   }, 1000);
-};
+}
 
-window.createGeneratedMediaHtml = buildMediaRecordHtml;
-window.resolveLatestMediaReference = resolveLatestMediaReference;
-window.getMediaToolInstructions = function() {
+export function getMediaToolInstructions() {
   return [
-    "For Grok image edits or video generation/editing, if the user refers to the most recent uploaded or generated image/video, you may omit image_url, image_urls, or video_url.",
-    "The runtime will automatically supply the latest available local image or video when a matching media tool is called without an explicit media URL.",
-    "Never pass both image_url and video_url to the same video tool call.",
+    "For Grok image edits, if the user refers to the most recent uploaded or generated image, you may omit image_url or image_urls.",
+    "The runtime will automatically supply the latest available local image when an image edit tool is called without an explicit image URL.",
   ].join(" ");
-};
+}
 
-window.registerGeneratedMedia = function({
+export function registerGeneratedMedia({
   mediaType,
   sourceData,
   prompt = "",
@@ -455,7 +331,7 @@ window.registerGeneratedMedia = function({
   const effectiveMediaType = mediaType || (isVideoMimeType(effectiveMimeType) ? "video" : "image");
   const effectiveFilename = filename || makeFilename(effectiveMediaType === "video" ? "video" : "generated", effectiveMimeType);
   const timestamp = new Date().toISOString();
-  const displayUrl = window.getMediaDisplayUrl?.(sourceData, effectiveFilename) || createObjectUrl(sourceData);
+  const displayUrl = getMediaDisplayUrl(sourceData, effectiveFilename) || createObjectUrl(sourceData);
 
   const record = {
     url: displayUrl,
@@ -473,212 +349,156 @@ window.registerGeneratedMedia = function({
     pendingStorageData: sourceData,
   };
 
-  window.generatedImages = Array.isArray(window.generatedImages) ? window.generatedImages : [];
-  window.currentGeneratedImageHtml = Array.isArray(window.currentGeneratedImageHtml) ? window.currentGeneratedImageHtml : [];
-  window.generatedImages.push(record);
-  window.currentGeneratedImageHtml.push(buildMediaRecordHtml(record));
+  state.generatedImages = Array.isArray(state.generatedImages) ? state.generatedImages : [];
+  state.currentGeneratedImageHtml = Array.isArray(state.currentGeneratedImageHtml) ? state.currentGeneratedImageHtml : [];
+  state.generatedImages.push(record);
+  state.currentGeneratedImageHtml.push(buildMediaRecordHtml(record));
 
-  if (window.imageDataCache?.set && displayUrl) {
-    window.imageDataCache.set(effectiveFilename, displayUrl);
+  if (state.imageDataCache?.set && displayUrl) {
+    state.imageDataCache.set(effectiveFilename, displayUrl);
   }
 
-  if (typeof window.saveImageToDb === "function") {
-    window.saveImageToDb(sourceData, effectiveFilename, {
-      prompt: record.prompt,
-      tool: record.tool,
-      timestamp: record.timestamp,
-      associatedMessageId: record.associatedMessageId || "",
-      callId: record.callId || "",
-      model: record.model || "",
-      mimeType: record.mimeType,
-      mediaType: record.mediaType,
-      uploaded: record.uploaded,
-    }).then(() => {
-      record.isStoredInDb = true;
-      delete record.pendingStorageData;
-    }).catch(error => {
-      console.error("Failed to save generated media to storage:", error);
-    });
-  }
+  saveImageToDb(sourceData, effectiveFilename, {
+    prompt: record.prompt,
+    tool: record.tool,
+    timestamp: record.timestamp,
+    associatedMessageId: record.associatedMessageId || "",
+    callId: record.callId || "",
+    model: record.model || "",
+    mimeType: record.mimeType,
+    mediaType: record.mediaType,
+    uploaded: record.uploaded,
+  }).then(() => {
+    record.isStoredInDb = true;
+    delete record.pendingStorageData;
+  }).catch(error => {
+    console.error("Failed to save generated media to storage:", error);
+  });
 
   return record;
+}
+
+function getProviderBaseUrl(provider) {
+  const baseUrl = config?.services?.[provider]?.baseUrl || "";
+  if (!baseUrl) {
+    throw new Error(`Base URL is not configured for ${provider}.`);
+  }
+  return baseUrl.replace(/\/+$/, "");
+}
+
+function getProviderApiKey(provider) {
+  const apiKey = getApiKey?.(provider) || config?.services?.[provider]?.apiKey || "";
+  const trimmed = typeof apiKey === "string" ? apiKey.trim() : "";
+  if (!trimmed) {
+    const providerLabel = provider === "xai" ? "xAI" : provider === "openai" ? "OpenAI" : provider;
+    throw new Error(`Add your ${providerLabel} API key in Settings → API Keys.`);
+  }
+  return trimmed;
+}
+
+function buildHeaders(provider) {
+  const headers = { "Content-Type": "application/json" };
+  const apiKey = getProviderApiKey(provider);
+  if (apiKey) {
+    headers.Authorization = `Bearer ${apiKey}`;
+  }
+  return headers;
+}
+
+async function responseToJson(response) {
+  if (!response.ok) {
+    const text = await response.text().catch(() => "");
+    throw new Error(`${response.status} ${response.statusText}${text ? `: ${text}` : ""}`);
+  }
+  return response.json();
+}
+
+async function fetchJson(url, options = {}) {
+  const response = await fetch(url, options);
+  return responseToJson(response);
+}
+
+function normalizePrompt(args = {}) {
+  const prompt = String(args.prompt || "").trim();
+  if (!prompt) {
+    throw new Error("A prompt is required.");
+  }
+  return prompt;
+}
+
+async function generateGrokImage(args, mode) {
+  const prompt = normalizePrompt(args);
+  const provider = "xai";
+  const endpoint = mode === "edit" ? "/images/edits" : "/images/generations";
+  const payload = {
+    model: XAI_IMAGE_MODEL,
+    prompt,
+    n: Number.isFinite(Number(args.n)) ? Math.max(1, Math.min(10, Number(args.n))) : 1,
+    response_format: "b64_json",
+  };
+
+  if (typeof args.aspect_ratio === "string" && XAI_IMAGE_ASPECT_RATIOS.includes(args.aspect_ratio)) {
+    payload.aspect_ratio = args.aspect_ratio;
+  }
+  if (typeof args.resolution === "string" && ["1k", "2k"].includes(args.resolution)) {
+    payload.resolution = args.resolution;
+  }
+
+  if (mode === "edit") {
+    let imageUrls = Array.isArray(args.image_urls)
+      ? args.image_urls.filter(value => typeof value === "string" && value.trim()).map(value => value.trim())
+      : [];
+    if (!imageUrls.length && typeof args.image_url === "string" && args.image_url.trim()) {
+      imageUrls = [args.image_url.trim()];
+    }
+    if (!imageUrls.length) {
+      const latestImage = await resolveLatestMediaReference("image");
+      if (!latestImage) {
+        throw new Error("No source image is available for editing.");
+      }
+      imageUrls = [latestImage];
+    }
+    if (imageUrls.length === 1) {
+      payload.image = { type: "image_url", url: imageUrls[0] };
+    } else {
+      payload.images = imageUrls.slice(0, 3).map(url => ({ type: "image_url", url }));
+    }
+  }
+
+  const response = await fetchJson(`${getProviderBaseUrl(provider)}${endpoint}`, {
+    method: "POST",
+    headers: buildHeaders(provider),
+    body: JSON.stringify(payload),
+  });
+
+  const images = parseImageResponse(response);
+  if (!images.length) {
+    throw new Error("The image API did not return any images.");
+  }
+
+  const records = images.map(image => registerGeneratedMedia({
+    mediaType: "image",
+    sourceData: image.url,
+    prompt,
+    tool: mode === "edit" ? "grok_edit_image" : "grok_generate_image",
+    filename: makeFilename(mode === "edit" ? "edited" : "generated", image.mimeType),
+    mimeType: image.mimeType,
+    model: XAI_IMAGE_MODEL,
+    callId: response.id || null,
+  }));
+
+  return {
+    ok: true,
+    backend: "grok",
+    mediaType: "image",
+    count: records.length,
+    filenames: records.map(record => record.filename),
+  };
+}
+
+toolImplementations.grok_generate_image = async function(args) {
+  return generateGrokImage(args || {}, "generate");
 };
-
-// Grok Imagine image generation/editing commented out due to CORS issues
-// async function generateGrokImage(args, mode) {
-//   const prompt = normalizePrompt(args);
-//   const provider = 'xai';
-//   const endpoint = mode === 'edit' ? '/images/edits' : '/images/generations';
-//   const payload = {
-//     model: XAI_IMAGE_MODEL,
-//     prompt,
-//     n: Number.isFinite(Number(args.n)) ? Math.max(1, Math.min(10, Number(args.n))) : 1,
-//     response_format: 'b64_json',
-//   };
-//
-//   if (typeof args.aspect_ratio === 'string' && XAI_IMAGE_ASPECT_RATIOS.includes(args.aspect_ratio)) {
-//     payload.aspect_ratio = args.aspect_ratio;
-//   }
-//   if (typeof args.resolution === 'string' && ['1k', '2k'].includes(args.resolution)) {
-//     payload.resolution = args.resolution;
-//   }
-//
-//   if (mode === 'edit') {
-//     let imageUrls = Array.isArray(args.image_urls)
-//       ? args.image_urls.filter(value => typeof value === 'string' && value.trim()).map(value => value.trim())
-//       : [];
-//     if (!imageUrls.length && typeof args.image_url === 'string' && args.image_url.trim()) {
-//       imageUrls = [args.image_url.trim()];
-//     }
-//     if (!imageUrls.length) {
-//       const latestImage = await resolveLatestMediaReference('image');
-//       if (!latestImage) {
-//         throw new Error('No source image is available for editing.');
-//       }
-//       imageUrls = [latestImage];
-//     }
-//     if (imageUrls.length === 1) {
-//       payload.image = { type: 'image_url', url: imageUrls[0] };
-//     } else {
-//       payload.images = imageUrls.slice(0, 3).map(url => ({ type: 'image_url', url }));
-//     }
-//   }
-//
-//   const response = await fetchJson(`${getProviderBaseUrl(provider)}${endpoint}`, {
-//     method: 'POST',
-//     headers: buildHeaders(provider),
-//     body: JSON.stringify(payload),
-//   });
-//
-//   const images = parseImageResponse(response);
-//   if (!images.length) {
-//     throw new Error('The image API did not return any images.');
-//   }
-//
-//   const records = images.map((image, index) => window.registerGeneratedMedia({
-//     mediaType: 'image',
-//     sourceData: image.url,
-//     prompt,
-//     tool: mode === 'edit' ? 'grok_edit_image' : 'grok_generate_image',
-//     filename: makeFilename(mode === 'edit' ? 'edited' : 'generated', image.mimeType),
-//     mimeType: image.mimeType,
-//     model: XAI_IMAGE_MODEL,
-//     callId: response.id || null,
-//   }));
-//
-//   return {
-//     ok: true,
-//     backend: 'grok',
-//     mediaType: 'image',
-//     count: records.length,
-//     filenames: records.map(record => record.filename),
-//   };
-// }
-
-// Grok Imagine video generation commented out due to CORS issues
-// async function generateGrokVideo(args) {
-//   const prompt = normalizePrompt(args);
-//   const provider = 'xai';
-//   let imageUrl = typeof args.image_url === 'string' && args.image_url.trim() ? args.image_url.trim() : null;
-//   let videoUrl = typeof args.video_url === 'string' && args.video_url.trim() ? args.video_url.trim() : null;
-//
-//   if (!imageUrl && !videoUrl) {
-//     imageUrl = await resolveLatestMediaReference('image');
-//     if (!imageUrl) {
-//       videoUrl = await resolveLatestMediaReference('video');
-//     }
-//   }
-//
-//   if (imageUrl && videoUrl) {
-//     throw new Error('Only one of image_url or video_url may be provided.');
-//   }
-//
-//   const payload = {
-//     model: XAI_VIDEO_MODEL,
-//     prompt,
-//   };
-//   if (imageUrl) {
-//     payload.image = { url: imageUrl };
-//   }
-//   if (videoUrl) {
-//     payload.video_url = videoUrl;
-//   } else {
-//     if (Number.isFinite(Number(args.duration))) {
-//       payload.duration = Math.max(1, Math.min(15, Number(args.duration)));
-//     }
-//     if (typeof args.aspect_ratio === 'string' && XAI_VIDEO_ASPECT_RATIOS.includes(args.aspect_ratio)) {
-//       payload.aspect_ratio = args.aspect_ratio;
-//     }
-//     if (typeof args.resolution === 'string' && XAI_VIDEO_RESOLUTIONS.includes(args.resolution)) {
-//       payload.resolution = args.resolution;
-//     }
-//   }
-//
-//   notifyStatus(imageUrl ? 'Animating image with Grok Imagine...' : videoUrl ? 'Editing video with Grok Imagine...' : 'Generating video with Grok Imagine...');
-//
-//   let created = await fetchJson(`${getProviderBaseUrl(provider)}/videos/generations`, {
-//     method: 'POST',
-//     headers: buildHeaders(provider),
-//     body: JSON.stringify(payload),
-//   });
-//
-//   const initialStatus = String(created.status || '').trim().toLowerCase();
-//   if (!['done', 'completed', 'succeeded', 'success'].includes(initialStatus) && !extractVideoUrl(created)) {
-//     const requestId = String(created.id || created.request_id || '').trim();
-//     if (!requestId) {
-//       throw new Error('Video generation did not return a request id.');
-//     }
-//     let lastStatus = '';
-//     created = await pollVideo(provider, requestId, status => {
-//       if (status !== lastStatus) {
-//         lastStatus = status;
-//         notifyStatus(`Generating video with Grok Imagine [${status}]`);
-//       }
-//     });
-//   }
-//
-//   const directUrl = extractVideoUrl(created);
-//   if (!directUrl) {
-//     throw new Error('The video API did not return a downloadable video URL.');
-//   }
-//
-//   const videoId = String(created.id || created.request_id || '').trim();
-//   if (!videoId) {
-//     throw new Error('Grok video response did not return a downloadable video id.');
-//   }
-//
-//   notifyStatus('Downloading Grok Imagine video...');
-//   const videoBlob = await fetchBlob(`${getProviderBaseUrl(provider)}/videos/${videoId}/content`, {
-//     headers: buildHeaders(provider, { multipart: true }),
-//   });
-//
-//   const record = window.registerGeneratedMedia({
-//     mediaType: 'video',
-//     sourceData: videoBlob,
-//     prompt,
-//     tool: 'grok_generate_video',
-//     filename: makeFilename(videoUrl ? 'edited-video' : imageUrl ? 'animated-video' : 'generated-video', videoBlob.type || 'video/mp4'),
-//     mimeType: videoBlob.type || 'video/mp4',
-//     model: XAI_VIDEO_MODEL,
-//     callId: videoId || null,
-//   });
-//
-//   return {
-//     ok: true,
-//     backend: 'grok',
-//     mediaType: 'video',
-//     filename: record.filename,
-//   };
-// }
-
-window.toolImplementations = window.toolImplementations || {};
-// Grok Imagine tools commented out due to CORS issues
-// window.toolImplementations.grok_generate_image = async function(args) {
-//   return generateGrokImage(args || {}, 'generate');
-// };
-// window.toolImplementations.grok_edit_image = async function(args) {
-//   return generateGrokImage(args || {}, 'edit');
-// };
-// window.toolImplementations.grok_generate_video = async function(args) {
-//   return generateGrokVideo(args || {});
-// };
+toolImplementations.grok_edit_image = async function(args) {
+  return generateGrokImage(args || {}, "edit");
+};

@@ -11,7 +11,7 @@ async function fetchJson(url, options) {
   return response.json();
 }
 
-async function openMeteoForecast(args = {}) {
+export async function openMeteoForecast(args = {}) {
   const city = (args.city || "").trim();
   if (!city) {
     return { error: "city is required" };
@@ -71,4 +71,4 @@ async function openMeteoForecast(args = {}) {
 }
 
 // Export the handler
-window.weatherToolHandler = openMeteoForecast;
+export const weatherToolHandler = openMeteoForecast;

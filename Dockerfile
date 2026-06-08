@@ -1,4 +1,20 @@
-# Use a small Nginx image to serve static files
+# syntax=docker/dockerfile:1
+
+# --- Build stage: compile the Vite bundle ---
+FROM node:22-alpine AS build
+WORKDIR /app
+
+# Install dependencies first (reproducible install from the lockfile)
+COPY package.json package-lock.json ./
+RUN npm ci
+
+# Copy the sources Vite needs and produce the static bundle in /app/dist
+COPY vite.config.js index.html ./
+COPY src ./src
+COPY public ./public
+RUN npm run build
+
+# --- Runtime stage: serve the built static files with Nginx ---
 FROM nginx:1.28-alpine-slim
 
 # Install curl for health checks and ensure cert directory exists for SSL mounts
@@ -8,10 +24,9 @@ RUN apk add --no-cache curl && \
 # Copy our nginx site config (SPA routing + caching + gzip)
 COPY docker/nginx.conf /etc/nginx/conf.d/default.conf
 
-# Copy the application (static site)
-COPY index.html /usr/share/nginx/html/index.html
+# Copy the built application (static site) from the build stage
+COPY --from=build /app/dist /usr/share/nginx/html
 COPY robots.txt /usr/share/nginx/html/robots.txt
-COPY src /usr/share/nginx/html/src
 
 # Expose HTTP and HTTPS ports
 EXPOSE 80 443

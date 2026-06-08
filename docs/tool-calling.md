@@ -2,7 +2,7 @@
 
 Overview
 
-- Toggle: Settings → Tools → “Enable Tool Calling” (mirrors `window.config.enableFunctionCalling`).
+- Toggle: Settings → Tools → “Enable Tool Calling” (mirrors `config.enableFunctionCalling`).
 - Catalogue: `src/js/services/api/toolManager.js` exposes the tool list, handlers, and MCP helpers consumed by the Responses client.
 - UI: Settings → Tools renders toggles from the catalogue, persists preferences, and disables MCP entries when their servers are unreachable.
 

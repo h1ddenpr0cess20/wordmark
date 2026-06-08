@@ -1,20 +1,32 @@
+import { state } from "../init/state.js";
+import { icon } from "../utils/icons.js";
 /**
  * Media Gallery functionality for the chatbot application.
  * Displays and manages generated or uploaded images and videos from IndexedDB.
  */
+
+import {
+  initImageDb,
+  deleteImageFromDb,
+  getImageDb,
+  IMAGE_STORE_NAME,
+} from "../utils/imageStorage.js";
+import { detectMediaType, getMediaDisplayUrl, downloadMediaSource } from "../services/mediaTools.js";
+import { createImageSlideshow } from "./ui/imageInteractions.js";
+import { updatePanelOpenState } from "../init/eventListeners/settingsPanel.js";
 
 // -----------------------------------------------------
 // Gallery functionality
 // -----------------------------------------------------
 
 // Global flag to track if slideshow is open
-window.isSlideshowOpen = false;
+state.isSlideshowOpen = false;
 
 /**
  * Initialize the gallery functionality
  */
-window.initGallery = function() {
-  if (window.__GALLERY_INITIALIZED__) {
+const initGallery = function() {
+  if (state.galleryInitialized) {
     return;
   }
 
@@ -30,10 +42,10 @@ window.initGallery = function() {
     return;
   }
 
-  window.__GALLERY_INITIALIZED__ = true;
+  state.galleryInitialized = true;
 
   // Keep track of whether images have been loaded
-  window.galleryImagesLoaded = false;
+  state.galleryImagesLoaded = false;
   // Toggle gallery visibility when the gallery button is clicked
   galleryButton.addEventListener("click", () => {
     const isExpanded = galleryButton.getAttribute("aria-expanded") === "true";
@@ -42,19 +54,17 @@ window.initGallery = function() {
 
     if (!isExpanded) {
       galleryPanel.removeAttribute("inert"); // Ensure panel is not inert when opened
-      window.showGalleryPlaceholders();
+      showGalleryPlaceholders();
 
       // Then load the actual images asynchronously
       setTimeout(() => {
-        window.loadGalleryImages();
+        loadGalleryImages();
       }, 50); // Small delay to ensure animation completes first
     } else {
       galleryPanel.setAttribute("inert", "true"); // Make panel inert when closed
     }
 
-    if (typeof window.updatePanelOpenState === "function") {
-      window.updatePanelOpenState();
-    }
+    updatePanelOpenState();
   });
   // Close gallery when the close button is clicked
   closeGallery.addEventListener("click", () => {
@@ -62,22 +72,20 @@ window.initGallery = function() {
     galleryPanel.setAttribute("inert", "true"); // Make panel inert when closed
     galleryButton.setAttribute("aria-expanded", "false");
     galleryButton.focus(); // Explicitly move focus
-    if (typeof window.updatePanelOpenState === "function") {
-      window.updatePanelOpenState();
-    }
+    updatePanelOpenState();
   });
 
   // Refresh gallery when the refresh button is clicked
   if (refreshGalleryBtn) {
     refreshGalleryBtn.addEventListener("click", () => {
-      window.loadGalleryImages();
+      loadGalleryImages();
     });
   }
 
   // Handle bulk delete
   if (bulkDeleteBtn) {
     bulkDeleteBtn.addEventListener("click", () => {
-      window.bulkDeleteSelectedImages();
+      bulkDeleteSelectedImages();
     });
   }
 
@@ -91,7 +99,7 @@ window.initGallery = function() {
 /**
  * Show placeholder grid while media items are loading
  */
-window.showGalleryPlaceholders = function() {
+const showGalleryPlaceholders = function() {
   const galleryGrid = document.getElementById("gallery-grid");
   if (!galleryGrid) {
     return;
@@ -99,13 +107,13 @@ window.showGalleryPlaceholders = function() {
 
   // Create 8 placeholder items (or adjust based on typical gallery size)
   galleryGrid.innerHTML = "";
-  const count = window.galleryImages && window.galleryImages.length > 0 ?
-    window.galleryImages.length : 8;
+  const count = state.galleryImages && state.galleryImages.length > 0 ?
+    state.galleryImages.length : 8;
 
   // Show count from last load
   const galleryCount = document.getElementById("gallery-count");
-  if (galleryCount && window.galleryImages) {
-    galleryCount.textContent = window.galleryImages.length || "...";
+  if (galleryCount && state.galleryImages) {
+    galleryCount.textContent = state.galleryImages.length || "...";
   } else if (galleryCount) {
     galleryCount.textContent = "...";
   }
@@ -130,7 +138,7 @@ window.showGalleryPlaceholders = function() {
 /**
  * Load media from IndexedDB and display them in the gallery
  */
-window.loadGalleryImages = async function() {
+const loadGalleryImages = async function() {
   const galleryGrid = document.getElementById("gallery-grid");
   if (!galleryGrid) {
     return;
@@ -138,10 +146,10 @@ window.loadGalleryImages = async function() {
 
   try {
     // Get all media records from IndexedDB
-    const images = await window.getAllImagesFromDb();
+    const images = await getAllImagesFromDb();
 
     // Filter images based on current tab
-    const currentTab = window.currentGalleryTab || "generated";
+    const currentTab = state.currentGalleryTab || "generated";
     let visibleImages;
 
     if (currentTab === "uploaded") {
@@ -189,8 +197,8 @@ window.loadGalleryImages = async function() {
     });
 
     // Store images globally for slideshow access
-    window.galleryImages = visibleImages;
-    window.galleryImagesLoaded = true;
+    state.galleryImages = visibleImages;
+    state.galleryImagesLoaded = true;
 
     // Clear placeholders
     galleryGrid.innerHTML = "";
@@ -203,9 +211,7 @@ window.loadGalleryImages = async function() {
 
       for (let i = startIndex; i < endIndex; i++) {
         const image = visibleImages[i];
-        const mediaType = typeof window.detectMediaType === "function"
-          ? window.detectMediaType(image)
-          : ((image.mimeType || "").startsWith("video/") ? "video" : "image");
+        const mediaType = detectMediaType(image);
 
         // Create gallery item
         const galleryItem = document.createElement("div");
@@ -233,7 +239,7 @@ window.loadGalleryImages = async function() {
 
           const badge = document.createElement("div");
           badge.className = "gallery-video-badge";
-          badge.innerHTML = window.icon("play", { width: 18, height: 18 });
+          badge.innerHTML = icon("play", { width: 18, height: 18 });
           imageContainer.appendChild(badge);
         } else {
           const img = document.createElement("img");
@@ -261,8 +267,8 @@ window.loadGalleryImages = async function() {
         const actions = document.createElement("div");
         actions.className = "gallery-actions";
         actions.innerHTML = `
-                    <button class="gallery-download-btn" title="Download ${mediaType}">${window.icon("download", { width: 16, height: 16 })}</button>
-                    <button class="gallery-delete-btn" title="Delete ${mediaType}">${window.icon("trash", { width: 16, height: 16 })}</button>
+                    <button class="gallery-download-btn" title="Download ${mediaType}">${icon("download", { width: 16, height: 16 })}</button>
+                    <button class="gallery-delete-btn" title="Delete ${mediaType}">${icon("trash", { width: 16, height: 16 })}</button>
                 `;
 
         // Add event listeners to buttons
@@ -270,14 +276,14 @@ window.loadGalleryImages = async function() {
         deleteBtn.addEventListener("click", (e) => {
           e.stopPropagation();
           if (confirm(`Delete this ${mediaType}?`)) {
-            window.deleteImageAndUpdateGallery(image.filename);
+            deleteImageAndUpdateGallery(image.filename);
           }
         });
 
         const downloadBtn = actions.querySelector(".gallery-download-btn");
         downloadBtn.addEventListener("click", (e) => {
           e.stopPropagation();
-          window.downloadGalleryImage(image.data, image.filename);
+          downloadGalleryImage(image.data, image.filename);
         });
 
         // Add prompt truncated text (first few words) or "uploaded" label
@@ -316,7 +322,7 @@ window.loadGalleryImages = async function() {
 
         // Add click event to show the viewer starting with this media item
         galleryItem.addEventListener("click", () => {
-          window.startGallerySlideshow(i);
+          startGallerySlideshow(i);
         });
 
         // Append all elements to gallery item in the correct order
@@ -347,18 +353,18 @@ window.loadGalleryImages = async function() {
  * Get all media records from IndexedDB
  * @returns {Promise<Array>} Promise resolving to an array of media objects
  */
-window.getAllImagesFromDb = function() {
+const getAllImagesFromDb = function() {
   return new Promise((resolve, reject) => {
-    if (!window.imageDb) {
-      window.initImageDb()
-        .then(() => window.getAllImagesFromDb())
+    if (!getImageDb()) {
+      initImageDb()
+        .then(() => getAllImagesFromDb())
         .then(resolve)
         .catch(reject);
       return;
     }
     const images = [];
-    const storeName = (typeof window !== "undefined" && window.IMAGE_STORE_NAME) ? window.IMAGE_STORE_NAME : "images";
-    const transaction = window.imageDb.transaction([storeName], "readonly");
+    const storeName = IMAGE_STORE_NAME || "images";
+    const transaction = getImageDb().transaction([storeName], "readonly");
     const store = transaction.objectStore(storeName);
 
     const request = store.openCursor();
@@ -373,10 +379,8 @@ window.getAllImagesFromDb = function() {
         const value = cursor.value;
         images.push({
           ...value,
-          data: window.getMediaDisplayUrl?.(value.data, value.filename) || value.data,
-          mediaType: typeof window.detectMediaType === "function"
-            ? window.detectMediaType(value)
-            : ((value.mimeType || "").startsWith("video/") ? "video" : "image"),
+          data: getMediaDisplayUrl(value.data, value.filename) || value.data,
+          mediaType: detectMediaType(value),
         });
         cursor.continue();
       } else {
@@ -390,9 +394,9 @@ window.getAllImagesFromDb = function() {
  * Delete a media item from IndexedDB and remove it from the gallery
  * @param {string} filename - The filename of the media item to delete
  */
-window.deleteImageAndUpdateGallery = async function(filename) {
+const deleteImageAndUpdateGallery = async function(filename) {
   try {
-    await window.deleteImageFromDb(filename);
+    await deleteImageFromDb(filename);
 
     // Remove the media element from the gallery
     const galleryItem = document.querySelector(`.gallery-item[data-filename="${filename}"]`);
@@ -423,8 +427,8 @@ window.deleteImageAndUpdateGallery = async function(filename) {
  * @param {string|Blob} imageData - Media data or display URL
  * @param {string} filename - The filename to save as
  */
-window.downloadGalleryImage = function(imageData, filename) {
-  window.downloadMediaSource?.(imageData, filename)
+const downloadGalleryImage = function(imageData, filename) {
+  downloadMediaSource(imageData, filename)
     .catch(error => {
       console.error("Failed to download gallery media:", error);
       alert("Failed to download the selected media item.");
@@ -435,52 +439,20 @@ window.downloadGalleryImage = function(imageData, filename) {
  * Start the gallery slideshow from a specific index
  * @param {number} startIndex - The index to start from
  */
-window.startGallerySlideshow = function(startIndex) {
-  if (!window.galleryImages || window.galleryImages.length === 0) {
+const startGallerySlideshow = function(startIndex) {
+  if (!state.galleryImages || state.galleryImages.length === 0) {
     console.error("No media available for viewer");
     return;
   }
 
   // Use the shared slideshow function, passing gallery mode as true
-  window.createImageSlideshow(window.galleryImages, startIndex, true);
-};
-
-/**
- * Show a full-size view of a media item
- * @param {string} imageUrl - The media display URL
- * @param {Object} imageData - The media metadata
- */
-window.showFullSizeImage = function(imageUrl, imageData) {
-  // Find the media index in gallery items
-  const index = window.galleryImages.findIndex(img => img.filename === imageData.filename);
-  if (index !== -1) {
-    window.startGallerySlideshow(index);
-  } else {
-    // If media is not found in gallery, add it temporarily and show it.
-    const tempImage = {
-      data: imageUrl,
-      filename: imageData.filename,
-      prompt: imageData.prompt,
-      timestamp: imageData.timestamp,
-      mediaType: imageData.mediaType || (typeof window.detectMediaType === "function"
-        ? window.detectMediaType(imageData)
-        : "image"),
-      mimeType: imageData.mimeType || "",
-    };
-
-    if (!window.galleryImages) {
-      window.galleryImages = [];
-    }
-
-    window.galleryImages.push(tempImage);
-    window.startGallerySlideshow(window.galleryImages.length - 1);
-  }
+  createImageSlideshow(state.galleryImages, startIndex, true);
 };
 
 /**
  * Bulk delete selected media items
  */
-window.bulkDeleteSelectedImages = async function() {
+const bulkDeleteSelectedImages = async function() {
   const selectedCheckboxes = document.querySelectorAll(".gallery-select-checkbox:checked");
 
   if (selectedCheckboxes.length === 0) {
@@ -511,7 +483,7 @@ window.bulkDeleteSelectedImages = async function() {
       if (galleryItem) {
         const filename = galleryItem.dataset.filename;
         if (filename) {
-          deletePromises.push(window.deleteImageFromDb(filename));
+          deletePromises.push(deleteImageFromDb(filename));
         }
       }
     });
@@ -519,13 +491,13 @@ window.bulkDeleteSelectedImages = async function() {
     await Promise.all(deletePromises);
 
     // Reload the gallery
-    window.loadGalleryImages();
+    loadGalleryImages();
   } catch (error) {
     console.error("Error bulk deleting media:", error);
     alert("Some media items could not be deleted. Please try again.");
 
     // Reload the gallery
-    window.loadGalleryImages();
+    loadGalleryImages();
   }
 };
 
@@ -534,7 +506,7 @@ window.bulkDeleteSelectedImages = async function() {
  */
 function initializeGalleryTabs() {
   // Set the current active tab (default to 'generated')
-  window.currentGalleryTab = "generated";
+  state.currentGalleryTab = "generated";
 
   // Get tab elements
   const generatedTab = document.getElementById("gallery-tab-generated");
@@ -559,8 +531,8 @@ function initializeGalleryTabs() {
  * Switch between gallery tabs
  * @param {string} tabName - 'generated' or 'uploaded'
  */
-window.switchGalleryTab = function(tabName) {
-  window.currentGalleryTab = tabName;
+const switchGalleryTab = function(tabName) {
+  state.currentGalleryTab = tabName;
 
   // Update tab active states
   const tabs = document.querySelectorAll(".gallery-tab");
@@ -579,5 +551,7 @@ window.switchGalleryTab = function(tabName) {
   });
 
   // Reload gallery with the new filter
-  window.loadGalleryImages();
+  loadGalleryImages();
 };
+
+export { initGallery };

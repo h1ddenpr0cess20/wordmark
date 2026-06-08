@@ -2,14 +2,21 @@
  * Model settings initialization for the chatbot application
  */
 
+import { state, elements } from "./state.js";
+import { config } from "../../config/config.js";
+
 const REASONING_EFFORT_STORAGE_KEY = "reasoningEffort";
-const DEFAULT_REASONING_EFFORT = "medium";
+export const DEFAULT_REASONING_EFFORT = "medium";
 const VALID_REASONING_EFFORTS = ["low", "medium", "high"];
 const DEFAULT_REASONING_HELP_TEXT = "Higher effort spends more time on structured reasoning before replying; lower effort responds faster.";
-const DISABLED_REASONING_HELP_TEXT = "Reasoning effort is unavailable for Grok models without reasoning support.";
+const DISABLED_REASONING_HELP_TEXT = "Reasoning effort is unavailable for GPT-4/GPT-4.1 and Grok models without reasoning support.";
 const VERBOSITY_STORAGE_KEY = "responseVerbosity";
-const DEFAULT_VERBOSITY = "medium";
+export const DEFAULT_VERBOSITY = "medium";
 const VALID_VERBOSITY_LEVELS = ["low", "medium", "high"];
+const HISTORY_TOKEN_BUDGET_STORAGE_KEY = "historyTokenBudget";
+// Balanced default: ~8k tokens of recent history keeps plenty of context
+// (~10-20 exchanges) while capping cost on long threads. 0 = no limit.
+export const DEFAULT_HISTORY_TOKEN_BUDGET = 8000;
 
 function normalizeReasoningEffort(value) {
   return VALID_REASONING_EFFORTS.includes(value) ? value : DEFAULT_REASONING_EFFORT;
@@ -22,7 +29,7 @@ function loadReasoningEffortFromStorage() {
       return normalizeReasoningEffort(stored);
     }
   } catch (error) {
-    if (window.VERBOSE_LOGGING) {
+    if (state.verboseLogging) {
       console.warn("Unable to load reasoning effort from storage:", error);
     }
   }
@@ -33,7 +40,7 @@ function persistReasoningEffort(value) {
   try {
     localStorage.setItem(REASONING_EFFORT_STORAGE_KEY, value);
   } catch (error) {
-    if (window.VERBOSE_LOGGING) {
+    if (state.verboseLogging) {
       console.warn("Unable to save reasoning effort preference:", error);
     }
   }
@@ -44,26 +51,29 @@ function modelSupportsReasoning(modelName) {
     return true;
   }
   const normalized = String(modelName).toLowerCase();
+  if (normalized.startsWith("gpt-4")) {
+    return false;
+  }
   if (normalized.startsWith("grok-4-fast")) {
     return true;
   }
   return true;
 }
 
-function updateReasoningAvailability() {
-  if (!window.reasoningEffortSelector) {
+export function updateReasoningAvailability() {
+  if (!elements.reasoningEffortSelector) {
     return;
   }
-  const modelName = window.modelSelector ? window.modelSelector.value : "";
-  const activeService = window.serviceSelector ? window.serviceSelector.value : (window.config && window.config.defaultService) || "xai";
+  const modelName = elements.modelSelector ? elements.modelSelector.value : "";
+  const activeService = elements.serviceSelector ? elements.serviceSelector.value : (config && config.defaultService) || "openai";
   const supported = modelSupportsReasoning(modelName) && activeService !== "xai";
-  window.reasoningEffortSelector.disabled = !supported;
+  elements.reasoningEffortSelector.disabled = !supported;
   if (!supported) {
-    window.reasoningEffortSelector.title = DISABLED_REASONING_HELP_TEXT;
-    window.reasoningEffortSelector.setAttribute("aria-disabled", "true");
+    elements.reasoningEffortSelector.title = DISABLED_REASONING_HELP_TEXT;
+    elements.reasoningEffortSelector.setAttribute("aria-disabled", "true");
   } else {
-    window.reasoningEffortSelector.title = "";
-    window.reasoningEffortSelector.removeAttribute("aria-disabled");
+    elements.reasoningEffortSelector.title = "";
+    elements.reasoningEffortSelector.removeAttribute("aria-disabled");
   }
   const info = document.getElementById("reasoning-effort-help");
   if (info) {
@@ -82,7 +92,7 @@ function loadVerbosityFromStorage() {
       return normalizeVerbosity(stored);
     }
   } catch (error) {
-    if (window.VERBOSE_LOGGING) {
+    if (state.verboseLogging) {
       console.warn("Unable to load verbosity preference from storage:", error);
     }
   }
@@ -93,8 +103,41 @@ function persistVerbosity(value) {
   try {
     localStorage.setItem(VERBOSITY_STORAGE_KEY, value);
   } catch (error) {
-    if (window.VERBOSE_LOGGING) {
+    if (state.verboseLogging) {
       console.warn("Unable to save verbosity preference:", error);
+    }
+  }
+}
+
+function normalizeHistoryTokenBudget(value) {
+  const parsed = parseInt(value, 10);
+  // 0 is a valid, explicit "no limit". Blank/negative/invalid falls back to default.
+  if (!Number.isFinite(parsed) || parsed < 0) {
+    return DEFAULT_HISTORY_TOKEN_BUDGET;
+  }
+  return parsed;
+}
+
+function loadHistoryTokenBudgetFromStorage() {
+  try {
+    const stored = localStorage.getItem(HISTORY_TOKEN_BUDGET_STORAGE_KEY);
+    if (stored !== null) {
+      return normalizeHistoryTokenBudget(stored);
+    }
+  } catch (error) {
+    if (state.verboseLogging) {
+      console.warn("Unable to load history token budget from storage:", error);
+    }
+  }
+  return DEFAULT_HISTORY_TOKEN_BUDGET;
+}
+
+function persistHistoryTokenBudget(value) {
+  try {
+    localStorage.setItem(HISTORY_TOKEN_BUDGET_STORAGE_KEY, String(value));
+  } catch (error) {
+    if (state.verboseLogging) {
+      console.warn("Unable to save history token budget preference:", error);
     }
   }
 }
@@ -102,84 +145,106 @@ function persistVerbosity(value) {
 /**
  * Initialize model settings controls with values from config
  */
-function initializeModelSettings() {
+export function initializeModelSettings() {
 
   const storedEffort = loadReasoningEffortFromStorage();
-  window.currentReasoningEffort = storedEffort;
+  state.currentReasoningEffort = storedEffort;
   const storedVerbosity = loadVerbosityFromStorage();
-  window.currentVerbosity = storedVerbosity;
+  state.currentVerbosity = storedVerbosity;
+  const storedBudget = loadHistoryTokenBudgetFromStorage();
+  state.historyTokenBudget = storedBudget;
 
-  if (window.reasoningEffortSelector) {
-    window.reasoningEffortSelector.value = storedEffort;
+  if (elements.reasoningEffortSelector) {
+    elements.reasoningEffortSelector.value = storedEffort;
 
-    if (!window.reasoningEffortSelector.dataset.bound) {
-      window.reasoningEffortSelector.addEventListener("change", (event) => {
+    if (!elements.reasoningEffortSelector.dataset.bound) {
+      elements.reasoningEffortSelector.addEventListener("change", (event) => {
         const selectedEffort = normalizeReasoningEffort(event.target.value);
-        window.currentReasoningEffort = selectedEffort;
+        state.currentReasoningEffort = selectedEffort;
         persistReasoningEffort(selectedEffort);
       });
-      window.reasoningEffortSelector.dataset.bound = "true";
+      elements.reasoningEffortSelector.dataset.bound = "true";
     }
   }
 
-  if (window.verbositySelector) {
-    window.verbositySelector.value = storedVerbosity;
+  if (elements.verbositySelector) {
+    elements.verbositySelector.value = storedVerbosity;
 
-    if (!window.verbositySelector.dataset.bound) {
-      window.verbositySelector.addEventListener("change", (event) => {
+    if (!elements.verbositySelector.dataset.bound) {
+      elements.verbositySelector.addEventListener("change", (event) => {
         const selectedVerbosity = normalizeVerbosity(event.target.value);
-        window.currentVerbosity = selectedVerbosity;
+        state.currentVerbosity = selectedVerbosity;
         persistVerbosity(selectedVerbosity);
       });
-      window.verbositySelector.dataset.bound = "true";
+      elements.verbositySelector.dataset.bound = "true";
     }
   }
 
-  if (window.VERBOSE_LOGGING) {
+  if (elements.historyTokenBudgetInput) {
+    elements.historyTokenBudgetInput.value = String(storedBudget);
+
+    if (!elements.historyTokenBudgetInput.dataset.bound) {
+      elements.historyTokenBudgetInput.addEventListener("change", (event) => {
+        const budget = normalizeHistoryTokenBudget(event.target.value);
+        state.historyTokenBudget = budget;
+        persistHistoryTokenBudget(budget);
+        event.target.value = String(budget);
+      });
+      elements.historyTokenBudgetInput.dataset.bound = "true";
+    }
+  }
+
+  if (state.verboseLogging) {
     console.info("Model settings initialized from config with reasoning effort and verbosity:", {
-      reasoning: window.currentReasoningEffort,
-      verbosity: window.currentVerbosity,
+      reasoning: state.currentReasoningEffort,
+      verbosity: state.currentVerbosity,
+      historyTokenBudget: state.historyTokenBudget,
     });
   }
 
   updateReasoningAvailability();
 }
 
-// Make function available globally
-window.initializeModelSettings = initializeModelSettings;
-window.updateReasoningAvailability = updateReasoningAvailability;
-
-window.getReasoningEffort = function() {
-  const modelName = window.modelSelector ? window.modelSelector.value : "";
-  const activeService = window.serviceSelector ? window.serviceSelector.value : (window.config && window.config.defaultService) || "xai";
+export function getReasoningEffort() {
+  const modelName = elements.modelSelector ? elements.modelSelector.value : "";
+  const activeService = elements.serviceSelector ? elements.serviceSelector.value : (config && config.defaultService) || "openai";
   if (activeService === "xai" || !modelSupportsReasoning(modelName)) {
     return null;
   }
-  return normalizeReasoningEffort(window.currentReasoningEffort);
-};
+  return normalizeReasoningEffort(state.currentReasoningEffort);
+}
 
-window.setReasoningEffort = function(value) {
+export function setReasoningEffort(value) {
   const normalized = normalizeReasoningEffort(value);
-  window.currentReasoningEffort = normalized;
+  state.currentReasoningEffort = normalized;
   persistReasoningEffort(normalized);
-  if (window.reasoningEffortSelector) {
-    window.reasoningEffortSelector.value = normalized;
+  if (elements.reasoningEffortSelector) {
+    elements.reasoningEffortSelector.value = normalized;
   }
-};
+}
 
-window.DEFAULT_REASONING_EFFORT = DEFAULT_REASONING_EFFORT;
+export function getHistoryTokenBudget() {
+  return normalizeHistoryTokenBudget(state.historyTokenBudget);
+}
 
-window.getVerbosity = function() {
-  return normalizeVerbosity(window.currentVerbosity);
-};
+export function setHistoryTokenBudget(value) {
+  const normalized = normalizeHistoryTokenBudget(value);
+  state.historyTokenBudget = normalized;
+  persistHistoryTokenBudget(normalized);
+  if (elements.historyTokenBudgetInput) {
+    elements.historyTokenBudgetInput.value = String(normalized);
+  }
+}
 
-window.setVerbosity = function(value) {
+export function getVerbosity() {
+  return normalizeVerbosity(state.currentVerbosity);
+}
+
+export function setVerbosity(value) {
   const normalized = normalizeVerbosity(value);
-  window.currentVerbosity = normalized;
+  state.currentVerbosity = normalized;
   persistVerbosity(normalized);
-  if (window.verbositySelector) {
-    window.verbositySelector.value = normalized;
+  if (elements.verbositySelector) {
+    elements.verbositySelector.value = normalized;
   }
-};
-
-window.DEFAULT_VERBOSITY = DEFAULT_VERBOSITY;
+}
