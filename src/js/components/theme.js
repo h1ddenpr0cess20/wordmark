@@ -2,7 +2,7 @@
  * Theme management functions for the AI Assistant
  */
 
-import { loadHighlightJS } from "../utils/highlight.js";
+import hljs from "highlight.js";
 
 // Theme CSS is imported as raw text so theme class names can be parsed in both
 // the Vite dev server (where a plain fetch of a .css URL returns a JS HMR
@@ -263,49 +263,36 @@ export function applyTheme(themeName) {
  */
 function rehighlightCodeBlocks() {
   try {
-    // Check if highlight.js is loaded
-    if (window.hljs || typeof hljs !== "undefined") {
-      const codeBlocks = document.querySelectorAll("pre code");
+    const codeBlocks = document.querySelectorAll("pre code");
 
-      if (codeBlocks && codeBlocks.length > 0) {
-        console.log(`Rehighlighting ${codeBlocks.length} code blocks with current theme`);
+    if (codeBlocks && codeBlocks.length > 0) {
+      console.log(`Rehighlighting ${codeBlocks.length} code blocks with current theme`);
 
-        // Configure highlight.js to ignore unescaped HTML for security
-        hljs.configure({
-          ignoreUnescapedHTML: true,
-        });
-
-        codeBlocks.forEach((codeBlock) => {
-          try {
-            // Store original content if not already stored
-            if (!codeBlock.hasAttribute("data-original-code")) {
-              codeBlock.setAttribute("data-original-code", codeBlock.textContent);
-            }
-
-            // Apply highlighting
-            hljs.highlightElement(codeBlock);
-
-            // Add code-block class to parent for styling
-            if (codeBlock.parentElement && !codeBlock.parentElement.classList.contains("code-block")) {
-              codeBlock.parentElement.classList.add("code-block");
-            }
-          } catch (error) {
-            console.error("Error highlighting code block:", error);
-          }
-        });
-      } else {
-        console.log("No code blocks found to rehighlight");
-      }
-    } else {
-      console.log("Highlight.js not loaded, attempting to load it");
-      // Try to load highlight.js
-      loadHighlightJS().then(() => {
-        // Try again after loading
-        console.log("Highlight.js loaded, retrying rehighlight");
-        rehighlightCodeBlocks();
-      }).catch((error) => {
-        console.error("Failed to load highlight.js:", error);
+      // Configure highlight.js to ignore unescaped HTML for security
+      hljs.configure({
+        ignoreUnescapedHTML: true,
       });
+
+      codeBlocks.forEach((codeBlock) => {
+        try {
+          // Store original content if not already stored
+          if (!codeBlock.hasAttribute("data-original-code")) {
+            codeBlock.setAttribute("data-original-code", codeBlock.textContent);
+          }
+
+          // Apply highlighting
+          hljs.highlightElement(codeBlock);
+
+          // Add code-block class to parent for styling
+          if (codeBlock.parentElement && !codeBlock.parentElement.classList.contains("code-block")) {
+            codeBlock.parentElement.classList.add("code-block");
+          }
+        } catch (error) {
+          console.error("Error highlighting code block:", error);
+        }
+      });
+    } else {
+      console.log("No code blocks found to rehighlight");
     }
   } catch (error) {
     console.error("Error in rehighlightCodeBlocks:", error);
@@ -329,11 +316,7 @@ function updateThemePreview() {
 
 function updateCodeHighlighting() {
   // Simply rehighlight using hljs; do not reset classes to avoid losing token styles
-  if (typeof rehighlightCodeBlocks === "function") {
-    rehighlightCodeBlocks();
-  } else if (window.hljs) {
-    window.hljs.highlightAll();
-  }
+  rehighlightCodeBlocks();
 }
 
 // Add theme initialization to window load event

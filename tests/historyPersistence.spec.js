@@ -122,8 +122,6 @@ globalThis.document = {
   addEventListener: () => {},
   body: makeEl(),
 };
-globalThis.marked = { parse: (s) => s };
-globalThis.DOMPurify = { sanitize: (s) => s };
 
 // Set up a window before importing persistence; the module reads shared state
 // (conversationHistory, generatedImages, DOM refs) off whatever `window` is in
@@ -232,11 +230,6 @@ test("saveCurrentConversation filters metadata, persists images, and marks messa
 });
 
 test("loadConversation hydrates UI, preloads images, and filters developer messages", async () => {
-  // loadHighlightJS/loadMarkedLibrary are now static imports; short-circuit their
-  // calls by marking the hljs/marked globals present so ensureLibrariesLoaded skips.
-  globalThis.hljs = {};
-  globalThis.marked = { parse: (s) => s };
-
   const conversationRecord = {
     id: "1",
     name: "Previous chat",
@@ -272,9 +265,6 @@ test("loadConversation hydrates UI, preloads images, and filters developer messa
 });
 
 test("startNewConversation saves existing session and resets state", async () => {
-  globalThis.hljs = {};
-  globalThis.marked = { parse: (s) => s };
-
   await resetDb({
     chatBox: { innerHTML: "<p>old</p>" },
     conversationHistory: [{ role: "user", content: "hello" }],

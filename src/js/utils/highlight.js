@@ -6,13 +6,9 @@ import { icon } from "./icons.js";
 
 import hljs from "highlight.js";
 
-// Expose hljs globally and configure it once. With Vite the library is part of
-// the bundle, so there is no async loading step — `loadHighlightJS()` is kept
-// as a no-op-friendly API for existing callers.
-if (typeof window !== "undefined") {
-  window.hljs = hljs;
-  state.hljsLoaded = true;
-}
+// hljs is bundled and imported directly by its consumers. Configure it once on
+// load; `loadHighlightJS()` remains as the initial-DOM-highlight entry point.
+state.hljsLoaded = true;
 hljs.configure({
   ignoreUnescapedHTML: true,
 });

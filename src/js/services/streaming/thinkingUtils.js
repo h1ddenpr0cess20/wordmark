@@ -2,7 +2,7 @@
  * Helpers for rendering reasoning/thinking content.
  */
 
-import { initializeMarked } from "../../init/marked.js";
+import { marked } from "marked";
 import { sanitizeWithMedia } from "../../utils/sanitize.js";
 
 export function processMainContentMarkdown(mainText) {
@@ -17,12 +17,7 @@ export function processMainContentMarkdown(mainText) {
     html += '`';
   }
 
-  if (typeof marked === 'undefined') {
-    initializeMarked();
-  }
-  let parsedContent = typeof marked !== 'undefined'
-    ? sanitizeWithMedia(marked.parse(html))
-    : DOMPurify.sanitize(html);
+  let parsedContent = sanitizeWithMedia(marked.parse(html));
 
   parsedContent = parsedContent.replace(/\[\[IMAGE: ([^\]]+)\]\]/g, (match, filename) => {
     return `<span class="hidden-image-placeholder">${match}</span>`;

@@ -1,6 +1,6 @@
 import { elements, state } from "../../init/state.js";
 import { icon } from "../../utils/icons.js";
-import { initializeMarked } from "../../init/marked.js";
+import { marked } from "marked";
 import { fastScroll } from "../../utils/mobileHandling.js";
 import { renderWordmarkLogo } from "../logo.js";
 import { generateMessageId, highlightAndAddCopyButtons } from "../messages.js";
@@ -62,12 +62,8 @@ export function appendMessage(sender, content, type, skipHistory = false) {
   }
 
   setTimeout(() => {
-    const ensureMarked = typeof marked === 'undefined'
-      ? Promise.resolve(initializeMarked())
-      : Promise.resolve();
-
-    Promise.resolve(ensureMarked).then(() => {
-      const parsed = typeof marked !== 'undefined' ? marked.parse(content) : content;
+    Promise.resolve().then(() => {
+      const parsed = marked.parse(content);
       const sanitized = sanitizeWithMedia(parsed);
       contentElement.innerHTML = sanitized;
 

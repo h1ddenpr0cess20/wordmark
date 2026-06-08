@@ -5,6 +5,8 @@
  * markup, then post-processes the result to secure media elements.
  */
 
+import DOMPurify from "dompurify";
+
 // DOMPurify configuration that allows YouTube iframes and media tags.
 const DOMPURIFY_CONFIG = {
   ALLOWED_TAGS: [

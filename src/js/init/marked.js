@@ -2,6 +2,8 @@
  * Markdown (marked) initialization for the chatbot application
  */
 
+import { marked } from "marked";
+
 /**
  * Initialize the marked library with custom configuration
  */

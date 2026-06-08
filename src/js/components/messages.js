@@ -1,6 +1,7 @@
+import hljs from "highlight.js";
 import { state } from "../init/state.js";
 import { icon } from "../utils/icons.js";
-import { addCopyButton, loadHighlightJS } from "../utils/highlight.js";
+import { addCopyButton } from "../utils/highlight.js";
 /**
  * Message handling and display functions
  */
@@ -23,64 +24,22 @@ export function highlightAndAddCopyButtons(messageElement) {
     return;
   }
 
-  if (typeof hljs !== "undefined") {
-    codeBlocks.forEach((codeBlock) => {
-      // Check if code block has no language class or only has the default hljs class
-      const hasLanguageClass = Array.from(codeBlock.classList).some(cls =>
-        cls.startsWith("language-") && cls !== "language-plaintext" && cls !== "language-");
+  codeBlocks.forEach((codeBlock) => {
+    // Check if code block has no language class or only has the default hljs class
+    const hasLanguageClass = Array.from(codeBlock.classList).some(cls =>
+      cls.startsWith("language-") && cls !== "language-plaintext" && cls !== "language-");
 
-      // If no language specified, explicitly set it as plaintext to prevent auto-detection
-      if (!hasLanguageClass) {
-        codeBlock.classList.add("language-plaintext");
-        codeBlock.classList.add("plaintext");
-      }
-
-      if (!codeBlock.classList.contains("hljs")) {
-        hljs.highlightElement(codeBlock);
-      }
-      addCopyButton(codeBlock);
-    });
-  } else if (state.hljsLoaded) {
-    if (typeof hljs !== "undefined") {
-      codeBlocks.forEach((codeBlock) => {
-        // Check if code block has no language class or only has the default hljs class
-        const hasLanguageClass = Array.from(codeBlock.classList).some(cls =>
-          cls.startsWith("language-") && cls !== "language-plaintext" && cls !== "language-");
-
-        // If no language specified, explicitly set it as plaintext to prevent auto-detection
-        if (!hasLanguageClass) {
-          codeBlock.classList.add("language-plaintext");
-          codeBlock.classList.add("plaintext");
-        }
-
-        if (!codeBlock.classList.contains("hljs")) {
-          hljs.highlightElement(codeBlock);
-        }
-        addCopyButton(codeBlock);
-      });
+    // If no language specified, explicitly set it as plaintext to prevent auto-detection
+    if (!hasLanguageClass) {
+      codeBlock.classList.add("language-plaintext");
+      codeBlock.classList.add("plaintext");
     }
-  } else {
-    loadHighlightJS().then(() => {
-      if (typeof hljs !== "undefined") {
-        codeBlocks.forEach((codeBlock) => {
-          // Check if code block has no language class or only has the default hljs class
-          const hasLanguageClass = Array.from(codeBlock.classList).some(cls =>
-            cls.startsWith("language-") && cls !== "language-plaintext" && cls !== "language-");
 
-          // If no language specified, explicitly set it as plaintext to prevent auto-detection
-          if (!hasLanguageClass) {
-            codeBlock.classList.add("language-plaintext");
-            codeBlock.classList.add("plaintext");
-          }
-
-          if (!codeBlock.classList.contains("hljs")) {
-            hljs.highlightElement(codeBlock);
-          }
-          addCopyButton(codeBlock);
-        });
-      }
-    });
-  }
+    if (!codeBlock.classList.contains("hljs")) {
+      hljs.highlightElement(codeBlock);
+    }
+    addCopyButton(codeBlock);
+  });
 }
 
 /**

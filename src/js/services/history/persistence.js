@@ -7,8 +7,6 @@ import {
   renameConversationInDb,
 } from "../../utils/conversationStorage.js";
 import { saveImageToDb, loadImageFromDb } from "../../utils/imageStorage.js";
-import { loadHighlightJS } from "../../utils/highlight.js";
-import { initializeMarked } from "../../init/marked.js";
 import { detectMediaType } from "../mediaTools.js";
 import { ensureImagesHaveMessageIds } from "../streaming/imageGeneration.js";
 import { renderChatHistoryList } from "./list.js";
@@ -144,14 +142,9 @@ function normalizePromptState() {
 }
 
 function ensureLibrariesLoaded() {
-  const ensureHighlight = typeof hljs === 'undefined'
-    ? loadHighlightJS()
-    : Promise.resolve();
-  const ensureMarked = typeof marked === 'undefined'
-    ? Promise.resolve(initializeMarked())
-    : Promise.resolve();
-
-  return Promise.all([ensureHighlight, ensureMarked]);
+  // marked and highlight.js are bundled and imported directly by the render
+  // path; nothing to load at runtime.
+  return Promise.resolve();
 }
 
 function preloadImages(convo) {

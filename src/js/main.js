@@ -1,12 +1,6 @@
-// ES module entrypoint to load the app in the correct order
-// Note: Most modules attach to `window.*`; this keeps behavior while enabling ESM.
-
-// Vendor libraries (bundled by Vite). Attach to window so the not-yet-converted
-// modules that reference bare `DOMPurify`/`marked` globals keep working.
-import DOMPurify from 'dompurify';
-import { marked } from 'marked';
-window.DOMPurify = DOMPurify;
-window.marked = marked;
+// ES module entrypoint to load the app in the correct order.
+// Vendor libraries (dompurify, marked, highlight.js) are imported directly by
+// the modules that use them — no window globals.
 
 // Configuration (classic global side-effects: window.config, window.APP_VERSION, ...)
 import '../config/config.js';
