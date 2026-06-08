@@ -14,7 +14,7 @@ Concise description of the bug in one or two sentences.
 - OS: <e.g., Ubuntu 22.04, macOS 14>
 - Browser: <e.g., Chrome 127, Firefox 128>
 - Commit/Version: <git SHA or release>
-- Served via: <file://, http-server HTTPS, python http.server>
+- Served via: <Vite dev server (npm run dev / dev:https), preview (npm run preview), or Docker/nginx>
 
 ## Reproduction Steps
 Provide minimal, step-by-step instructions to reproduce.

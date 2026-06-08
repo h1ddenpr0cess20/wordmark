@@ -1,12 +1,12 @@
 {
   "name": "wordmark",
-  "version": "1.5.2",
-  "description": "Client-side AI assistant supporting OpenAI and local LM Studio/Ollama servers.",
+  "version": "2.0.0",
+  "description": "Client-side AI assistant supporting OpenAI, xAI, and local LM Studio/Ollama servers.",
   "main": "index.html",
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "dev:https": "vite --host --https",
+    "dev:https": "vite --host",
     "build": "vite build",
     "preview": "vite preview --port 8080",
     "start": "vite preview --port 8080",
@@ -71,7 +71,6 @@
     "eslint": "^10.0.3",
     "globals": "^17.4.0",
     "html-validate": "^10.11.2",
-    "http-server": "^14.1.1",
     "npm-check-updates": "^19.6.5",
     "vite": "^8.0.16"
   },

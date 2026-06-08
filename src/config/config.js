@@ -16,8 +16,10 @@ import { uiHooks } from "../js/init/uiHooks.js";
 // OpenAI Responses), not the browser.
 export const MCP_ASSUME_ONLINE = true;
 
-// Application version
-export const APP_VERSION = "1.5.2";
+// Application version. Single source of truth is package.json ("version");
+// `__APP_VERSION__` is injected from it at build time by vite.config.js (and by
+// tests/helpers/registerLoaders.mjs for the test runner). Bump package.json only.
+export const APP_VERSION = __APP_VERSION__;
 
 // GitHub repository URL
 export const GITHUB_URL = "https://github.com/h1ddenpr0cess20/Wordmark";

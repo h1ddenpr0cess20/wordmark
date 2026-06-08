@@ -2,6 +2,25 @@
 
 All notable changes to Wordmark are documented here. Earlier versions didn't follow proper semver — this changelog reflects what actually shipped, not what the version numbers said at the time.
 
+## [2.0.0] - 2026-06-08
+
+Major internal rework. No user-facing feature changes — the app looks and behaves the same — but the codebase moved off the `window.*`-globals hybrid onto a real module system and build.
+
+### Changed
+- **Build system** — adopted [Vite](https://vite.dev) (rolldown). The browser no longer loads raw source files directly; `npm run dev` serves the app and `npm run build` produces the deployable bundle. Opening `index.html` from the filesystem no longer works.
+- **Pure ES modules** — eliminated the `window.*` global API surface. Modules now use explicit `import`/`export`; only genuine browser APIs remain on `window`.
+- **Vendor libraries** — DOMPurify, Marked, and highlight.js are now npm dependencies imported by the modules that use them, replacing the bundled copies in `src/js/lib/` and the classic `<script>` tags.
+- **Shared state** — runtime state and DOM element references consolidated into `src/js/init/state.js` (`state`, `elements`); UI callbacks moved to `src/js/init/uiHooks.js`. The `init/globals.js` bridge was removed.
+- **Single-source version** — the app version now lives only in `package.json`. `config.js` exports it via a build-time `__APP_VERSION__` injection (Vite `define`, mirrored in the test harness) and the README badge reads `package.json` dynamically, replacing the previous three-place manual bump.
+
+### Fixed
+- Lint glob now covers all of `src/js/` (it previously matched only one directory level, silently skipping ~40% of files).
+- Settings panel outside-click handler: a shadowed `state` variable caused the gallery to close while an image slideshow was open.
+
+### Removed
+- `src/js/lib/` bundled vendor libraries (now npm dependencies).
+- `src/js/init/globals.js` and the `window.*` global bridge.
+
 ## [1.5.2] - 2026-03-17
 
 ### Fixed
