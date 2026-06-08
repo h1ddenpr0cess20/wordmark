@@ -3,8 +3,9 @@ import assert from "node:assert/strict";
 
 // menuSystem.js is now an ES module that imports panel markup via Vite `?raw`
 // imports (resolved in tests by tests/helpers/rawLoader.mjs) and attaches
-// window.HTMLLoader as a side effect, then runs an IIFE that inserts the
-// panels and calls window.initialize().
+// window.HTMLLoader as a side effect. It exports initializeMenus(), which
+// inserts the panels and initializes the theme selector (the app's
+// initialize() is called by main.js, not here).
 
 function createDom() {
   const elements = new Map();
@@ -27,12 +28,9 @@ async function loadMenuSystem(windowStub, document) {
   // that references bare `window`/`document` works during later calls too.
   globalThis.window = windowStub;
   globalThis.document = document;
-  // Cache-bust so the side-effecting IIFE runs on every import.
-  await import(`../src/js/utils/menuSystem.js?case=${importCounter++}`);
-  // The IIFE is fire-and-forget and now awaits initTheme()'s (failing) fetches,
-  // so drain pending tasks before returning to keep tests isolated — otherwise a
-  // late-settling IIFE calls the next test's window.initialize stub.
-  await new Promise(resolve => setTimeout(resolve, 50));
+  // Cache-bust so window.HTMLLoader is re-attached against the new stubs.
+  const mod = await import(`../src/js/utils/menuSystem.js?case=${importCounter++}`);
+  return mod;
 }
 
 const SETTINGS_CONTENT_IDS = [
@@ -78,26 +76,21 @@ test("HTMLLoader.loadHTML warns on unknown path", async () => {
   assert.equal(target.innerHTML, "", "unknown path leaves container untouched");
 });
 
-test("initializeMenus IIFE loads panels and calls initialize", async () => {
+test("initializeMenus loads panels and resolves true", async () => {
   const { document, elements } = createDom();
   const panelsContainer = { id: "menu-panels-container", innerHTML: "" };
   elements.set("menu-panels-container", panelsContainer);
   SETTINGS_CONTENT_IDS.forEach(id => elements.set(id, { id, innerHTML: "" }));
 
-  let initCalled = 0;
-  // initTheme is now a static ESM import (no window seam to intercept); it runs
-  // for real and bails early because there is no #theme-selector element here.
-  const windowStub = {
-    addEventListener() {},
-    initialize() { initCalled++; },
-  };
+  // initTheme is a static ESM import (no window seam to intercept); it runs for
+  // real and bails early because there is no #theme-selector element here.
+  const windowStub = { addEventListener() {} };
 
-  await loadMenuSystem(windowStub, document);
-  // Let the async IIFE settle.
-  await new Promise(resolve => setTimeout(resolve, 0));
+  const mod = await loadMenuSystem(windowStub, document);
+  const ready = await mod.initializeMenus();
 
+  assert.equal(ready, true, "initializeMenus resolves true on success");
   assert.ok(panelsContainer.innerHTML.length > 0, "panels.html inserted");
   assert.ok(elements.get("content-personality").innerHTML.length > 0, "personality tab inserted");
   assert.ok(elements.get("content-model").innerHTML.length > 0, "model tab inserted");
-  assert.equal(initCalled, 1, "initialize called once");
 });

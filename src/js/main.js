@@ -23,7 +23,7 @@ import './utils/imageStorage.js';
 import './utils/conversationStorage.js';
 import './utils/mobileHandling.js';
 import './utils/notifications.js';
-import './utils/menuSystem.js';
+import { initializeMenus } from './utils/menuSystem.js';
 
 // Components
 import './components/messages.js';
@@ -51,7 +51,12 @@ import './init/ttsInitialization.js';
 import './init/aboutTab.js';
 import './init/services.js';
 import './init/eventListeners.js';
-import './init/initialization.js';
+import { initialize } from './init/initialization.js';
 
-// Note: App startup is triggered by menuSystem.js after panels load.
-// It calls window.initialize() once HTML fragments are inserted.
+// App startup: load the HTML panels, then initialize the app once they're in
+// the DOM.
+initializeMenus().then((ready) => {
+  if (ready) {
+    initialize();
+  }
+});

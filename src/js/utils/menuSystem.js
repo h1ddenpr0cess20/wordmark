@@ -78,8 +78,12 @@ const SETTINGS_TAB_PARTIALS = [
   { filePath: "src/html/panels/settings/about.html", containerId: "content-about" },
 ];
 
-// Menu Loader Initialization
-(async function initializeMenus() {
+/**
+ * Load all menu/settings panels into the DOM and initialize the theme selector.
+ * The caller (main.js) runs the app's `initialize()` once this resolves true.
+ * @returns {Promise<boolean>} true when panels loaded successfully.
+ */
+export async function initializeMenus() {
   // Wait for DOM to be ready
   if (document.readyState === "loading") {
     await new Promise(resolve => document.addEventListener("DOMContentLoaded", resolve));
@@ -88,7 +92,7 @@ const SETTINGS_TAB_PARTIALS = [
   // Wait for the HTML loader to be available
   if (typeof window.HTMLLoader === "undefined") {
     console.error("HTMLLoader not available");
-    return;
+    return false;
   }
 
   try {
@@ -102,15 +106,9 @@ const SETTINGS_TAB_PARTIALS = [
     } catch (e) {
       console.warn("initTheme failed:", e);
     }
-
-    // Now that menus are loaded, initialize the application
-    const initFn = (typeof window !== "undefined") ? window.initialize : undefined;
-    if (typeof initFn === "function") {
-      initFn();
-    } else {
-      console.error("Initialize function not found");
-    }
+    return true;
   } catch (error) {
     console.error("Error loading menu panels:", error);
+    return false;
   }
-}());
+}

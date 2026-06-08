@@ -3,6 +3,7 @@
  */
 
 import { loadMarkedLibrary } from "../../utils/lazyLoader.js";
+import { sanitizeWithMedia } from "../../utils/sanitize.js";
 
 export function processMainContentMarkdown(mainText) {
   let html = mainText;
@@ -20,7 +21,7 @@ export function processMainContentMarkdown(mainText) {
     loadMarkedLibrary();
   }
   let parsedContent = typeof marked !== 'undefined'
-    ? (window.sanitizeWithYouTube ? window.sanitizeWithYouTube(marked.parse(html)) : DOMPurify.sanitize(marked.parse(html)))
+    ? sanitizeWithMedia(marked.parse(html))
     : DOMPurify.sanitize(html);
 
   parsedContent = parsedContent.replace(/\[\[IMAGE: ([^\]]+)\]\]/g, (match, filename) => {

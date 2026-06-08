@@ -3,6 +3,7 @@ import { loadMarkedLibrary } from "../../utils/lazyLoader.js";
 import { renderWordmarkLogo } from "../logo.js";
 import { generateMessageId, highlightAndAddCopyButtons } from "../messages.js";
 import { setupImageInteractions } from "./imageInteractions.js";
+import { sanitizeWithMedia } from "../../utils/sanitize.js";
 function renderAssistantIcon(senderElement) {
   senderElement.innerHTML = `
     <svg class="sender-icon assistant-icon" width="32" height="32" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -65,7 +66,7 @@ export function appendMessage(sender, content, type, skipHistory = false) {
 
     Promise.resolve(ensureMarked).then(() => {
       const parsed = typeof marked !== 'undefined' ? marked.parse(content) : content;
-      const sanitized = window.sanitizeWithYouTube ? window.sanitizeWithYouTube(parsed) : DOMPurify.sanitize(parsed);
+      const sanitized = sanitizeWithMedia(parsed);
       contentElement.innerHTML = sanitized;
 
       try {

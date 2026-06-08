@@ -4,7 +4,6 @@ import assert from 'node:assert/strict';
 // Mock global dependencies
 globalThis.window = {
   loadMarkedLibrary: () => {},
-  sanitizeWithYouTube: null,
 };
 
 globalThis.marked = {
@@ -13,6 +12,18 @@ globalThis.marked = {
 
 globalThis.DOMPurify = {
   sanitize: (html) => html,
+};
+
+// Minimal document stub so sanitizeWithMedia's DOM post-processing works.
+globalThis.document = {
+  createElement: () => {
+    let html = "";
+    return {
+      set innerHTML(value) { html = value; },
+      get innerHTML() { return html; },
+      querySelectorAll: () => [],
+    };
+  },
 };
 
 const { processMainContentMarkdown } = await import('../src/js/services/streaming/thinkingUtils.js');
