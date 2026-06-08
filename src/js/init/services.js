@@ -7,6 +7,7 @@ import { updateParameterControls } from "../components/ui/settingsControls.js";
 import { updateHeaderInfo, updateModelSelector, updateFeatureStatus, populateServiceSelector } from "../components/settings.js";
 import { updateMasterToolCallingStatus, refreshToolSettingsUI } from "../components/tools.js";
 import { DEFAULT_PERSONALITY, DEFAULT_SHORT_RESPONSE_GUIDELINE, DEFAULT_SYSTEM_PROMPT, config } from "../../config/config.js";
+import { pickCloudFallback } from "./serviceSelection.js";
 
 /**
  * Initialize services and models
@@ -31,27 +32,48 @@ export function initializeServicesAndModels() {
 /**
  * Choose a sensible default provider at startup when no cloud API keys are set.
  *
- * Order: keep the current cloud default if it has a key; otherwise probe
- * LM Studio, then Ollama, and switch to the first one that returns models.
- * If none are reachable, leave the default as-is so the UI shows the usual
- * "Set API key to load models" message.
+ * Order: keep the current cloud default if it has a key; otherwise switch to the
+ * other cloud provider if it has a key; otherwise probe LM Studio, then Ollama,
+ * and switch to the first one that returns models. If none are reachable, leave
+ * the default as-is so the UI shows the usual "Set API key to load models" message.
  *
  * @returns {Promise<boolean>} true if this function already fetched models for
  *   the selected service (so the caller can skip its own model fetch).
  */
 export async function selectDefaultService() {
   const services = config?.services || {};
-  const hasCloudKey = ["openai", "xai"].some(key => {
+  const hasKey = (key) => {
     const svc = services[key];
-    return svc && typeof svc.apiKey === "string" && svc.apiKey.trim() !== "";
-  });
+    return Boolean(svc && typeof svc.apiKey === "string" && svc.apiKey.trim() !== "");
+  };
 
   const current = config?.defaultService;
   const currentIsCloud = current === "openai" || current === "xai";
 
-  // Only auto-pick when the default is a cloud provider with no key available.
-  if (hasCloudKey || !currentIsCloud) {
+  // Only auto-pick when the default is a cloud provider that has no key of its own.
+  if (!currentIsCloud || hasKey(current)) {
     return false;
+  }
+
+  const applyService = (key) => {
+    config.defaultService = key;
+    if (elements.serviceSelector) {
+      elements.serviceSelector.value = key;
+    }
+    updateModelSelector();
+    updateParameterControls();
+    updateHeaderInfo();
+  };
+
+  // The default cloud provider has no key. Prefer another cloud provider that
+  // does have a key before falling back to local services.
+  const cloudFallback = pickCloudFallback(services, current);
+  if (cloudFallback) {
+    applyService(cloudFallback);
+    if (state.verboseLogging) {
+      console.info(`No API key for ${current}; defaulting to ${cloudFallback}.`);
+    }
+    return true;
   }
 
   const isUsableModel = (m) =>
@@ -72,14 +94,7 @@ export async function selectDefaultService() {
       continue;
     }
     if (Array.isArray(svc.models) && svc.models.some(isUsableModel)) {
-      config.defaultService = local;
-      if (elements.serviceSelector) {
-        elements.serviceSelector.value = local;
-      }
-      updateModelSelector();
-
-      updateParameterControls();
-      updateHeaderInfo();
+      applyService(local);
 
       if (state.verboseLogging) {
         console.info(`No cloud API keys found; defaulting to ${local}.`);
