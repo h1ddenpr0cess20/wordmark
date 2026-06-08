@@ -243,7 +243,7 @@ export function finalizeStreamedResponse(loadingMessage, contentObj) {
     if (!finalThinkingContainer) {
       const containerHTML =
         `<div id="${thinkingId}" class="thinking-container">
-           <div class="thinking-title" onclick="toggleThinking('${thinkingId}', event)">Reasoning</div>
+           <div class="thinking-title">Reasoning</div>
            <div class="thinking-content"></div>
          </div>`;
       contentWrapper.insertAdjacentHTML('beforeend', containerHTML);
@@ -420,7 +420,7 @@ export function updateMessageContent(loadingMessage, assistantMessageObj) {
   if (hasThinking) {
     const containerHTML =
       `<div id="${thinkingId}" class="thinking-container">
-         <div class="thinking-title" onclick="toggleThinking('${thinkingId}', event)">Reasoning</div>
+         <div class="thinking-title">Reasoning</div>
          <div class="thinking-content"></div>
        </div>`;
     contentWrapper.insertAdjacentHTML('beforeend', containerHTML);

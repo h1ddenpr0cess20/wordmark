@@ -279,11 +279,7 @@ async function viewVectorStoreDetails(storeId) {
       </div>
     `;
 
-    if (window.showCustomModal) {
-      window.showCustomModal("Vector Store Details", detailsHtml);
-    } else {
-      alert(detailsHtml.replace(/<[^>]*>/g, "\n"));
-    }
+    alert(detailsHtml.replace(/<[^>]*>/g, "\n"));
   } catch (error) {
     console.error("Failed to view vector store details:", error);
     if (showError) {

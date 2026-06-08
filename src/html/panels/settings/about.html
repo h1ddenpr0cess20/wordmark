@@ -10,13 +10,13 @@
       <p>&copy; 2025 Dustin Whyte<br><span class="license-info">Released under the <a href="https://opensource.org/licenses/MIT" target="_blank" rel="noopener">MIT License</a></span></p>
       <p class="license-description">This project is free software: you can redistribute it and/or modify it under the terms of the MIT License.</p>
       <div class="footer-links">
-        <a href="#" onclick="showHelpPopup(); return false;">Help Guide</a>
+        <a href="#" data-popup-action="show-help">Help Guide</a>
         <span class="footer-separator">•</span>
-        <a href="#" onclick="showPrivacyPopup(); return false;">Privacy Policy</a>
+        <a href="#" data-popup-action="show-privacy">Privacy Policy</a>
         <span class="footer-separator">•</span>
-        <a href="#" onclick="showTermsPopup(); return false;">Terms of Service</a>
+        <a href="#" data-popup-action="show-terms">Terms of Service</a>
         <span class="footer-separator">•</span>
-        <a href="#" onclick="showContactPopup(); return false;">Contact</a>
+        <a href="#" data-popup-action="show-contact">Contact</a>
       </div>
     </div>
   </div>
@@ -24,7 +24,7 @@
   <!-- Privacy Policy Popup -->
   <div id="privacy-popup" class="about-popup" style="display: none;">
     <div class="popup-header">
-      <button type="button" class="popup-back-btn" onclick="hidePrivacyPopup()">
+      <button type="button" class="popup-back-btn" data-popup-action="hide-privacy">
         <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><use href="/icons.svg#arrow-left"></use></svg>
         Back
       </button>
@@ -38,7 +38,7 @@
   <!-- Contact Popup -->
   <div id="contact-popup" class="about-popup" style="display: none;">
     <div class="popup-header">
-      <button type="button" class="popup-back-btn" onclick="hideContactPopup()">
+      <button type="button" class="popup-back-btn" data-popup-action="hide-contact">
         <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><use href="/icons.svg#arrow-left"></use></svg>
         Back
       </button>
@@ -52,7 +52,7 @@
   <!-- Terms of Service Popup -->
   <div id="terms-popup" class="about-popup" style="display: none;">
     <div class="popup-header">
-      <button type="button" class="popup-back-btn" onclick="hideTermsPopup()">
+      <button type="button" class="popup-back-btn" data-popup-action="hide-terms">
         <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><use href="/icons.svg#arrow-left"></use></svg>
         Back
       </button>
@@ -66,7 +66,7 @@
   <!-- Help Guide Popup -->
   <div id="help-popup" class="about-popup" style="display: none;">
     <div class="popup-header">
-      <button type="button" class="popup-back-btn" onclick="hideHelpPopup()">
+      <button type="button" class="popup-back-btn" data-popup-action="hide-help">
         <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><use href="/icons.svg#arrow-left"></use></svg>
         Back
       </button>

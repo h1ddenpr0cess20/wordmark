@@ -222,12 +222,31 @@ function hideHelpPopup() {
   }
 }
 
-// Expose popup functions to global window scope
-window.showPrivacyPopup = showPrivacyPopup;
-window.hidePrivacyPopup = hidePrivacyPopup;
-window.showContactPopup = showContactPopup;
-window.hideContactPopup = hideContactPopup;
-window.showTermsPopup = showTermsPopup;
-window.hideTermsPopup = hideTermsPopup;
-window.showHelpPopup = showHelpPopup;
-window.hideHelpPopup = hideHelpPopup;
+// Map the About tab's data-popup-action triggers to their handlers. The About
+// panel is loaded as an HTML fragment after this module evaluates, so bind a
+// single delegated click listener on the document rather than per-element
+// inline onclick handlers.
+const POPUP_ACTIONS = {
+  "show-privacy": showPrivacyPopup,
+  "hide-privacy": hidePrivacyPopup,
+  "show-contact": showContactPopup,
+  "hide-contact": hideContactPopup,
+  "show-terms": showTermsPopup,
+  "hide-terms": hideTermsPopup,
+  "show-help": showHelpPopup,
+  "hide-help": hideHelpPopup,
+};
+
+if (typeof document !== "undefined" && typeof document.addEventListener === "function") {
+  document.addEventListener("click", (event) => {
+    const trigger = event.target.closest("[data-popup-action]");
+    if (!trigger) {
+      return;
+    }
+    const handler = POPUP_ACTIONS[trigger.getAttribute("data-popup-action")];
+    if (handler) {
+      event.preventDefault();
+      handler();
+    }
+  });
+}

@@ -1,11 +1,11 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 
-// menuSystem.js is now an ES module that imports panel markup via Vite `?raw`
-// imports (resolved in tests by tests/helpers/rawLoader.mjs) and attaches
-// window.HTMLLoader as a side effect. It exports initializeMenus(), which
-// inserts the panels and initializes the theme selector (the app's
-// initialize() is called by main.js, not here).
+// menuSystem.js is an ES module that imports panel markup via Vite `?raw`
+// imports (resolved in tests by tests/helpers/rawLoader.mjs) and exports the
+// HTMLLoader utility plus initializeMenus(), which inserts the panels and
+// initializes the theme selector (the app's initialize() is called by main.js,
+// not here).
 
 function createDom() {
   const elements = new Map();
@@ -28,7 +28,7 @@ async function loadMenuSystem(windowStub, document) {
   // that references bare `window`/`document` works during later calls too.
   globalThis.window = windowStub;
   globalThis.document = document;
-  // Cache-bust so window.HTMLLoader is re-attached against the new stubs.
+  // Cache-bust so the module re-evaluates against the new stubs.
   const mod = await import(`../src/js/utils/menuSystem.js?case=${importCounter++}`);
   return mod;
 }
@@ -53,11 +53,11 @@ test("HTMLLoader.loadHTML inserts bundled content into container", async () => {
   SETTINGS_CONTENT_IDS.forEach(id => elements.set(id, { id, innerHTML: "" }));
 
   const windowStub = { addEventListener() {}, initialize() {}, initTheme: async () => {} };
-  await loadMenuSystem(windowStub, document);
+  const mod = await loadMenuSystem(windowStub, document);
 
   const target = { id: "x", innerHTML: "" };
   elements.set("x", target);
-  await windowStub.HTMLLoader.loadHTML("src/html/panels/settings/personality.html", "x");
+  await mod.HTMLLoader.loadHTML("src/html/panels/settings/personality.html", "x");
   assert.ok(target.innerHTML.length > 0, "should insert real panel markup");
   assert.match(target.innerHTML, /personality/i);
 });
@@ -68,11 +68,11 @@ test("HTMLLoader.loadHTML warns on unknown path", async () => {
   SETTINGS_CONTENT_IDS.forEach(id => elements.set(id, { id, innerHTML: "" }));
 
   const windowStub = { addEventListener() {}, initialize() {}, initTheme: async () => {} };
-  await loadMenuSystem(windowStub, document);
+  const mod = await loadMenuSystem(windowStub, document);
 
   const target = { id: "y", innerHTML: "" };
   elements.set("y", target);
-  await windowStub.HTMLLoader.loadHTML("does/not/exist.html", "y");
+  await mod.HTMLLoader.loadHTML("does/not/exist.html", "y");
   assert.equal(target.innerHTML, "", "unknown path leaves container untouched");
 });
 

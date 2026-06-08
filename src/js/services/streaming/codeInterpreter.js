@@ -472,7 +472,7 @@ function buildFileRow(attachment) {
   downloadButton.className = 'code-interpreter-download-btn';
   downloadButton.setAttribute('data-file-id', attachment.fileId || '');
   downloadButton.setAttribute('aria-label', 'Download file');
-  downloadButton.innerHTML = `${window.icon ? icon('download', { width: 14, height: 14, className: 'code-interpreter-download-icon' }) : ''}<span>Download</span>`;
+  downloadButton.innerHTML = `${icon('download', { width: 14, height: 14, className: 'code-interpreter-download-icon' })}<span>Download</span>`;
 
   actions.appendChild(downloadButton);
   row.appendChild(actions);

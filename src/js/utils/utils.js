@@ -135,6 +135,18 @@ export function stripBase64FromHistory(messageId, placeholders = []) {
   sanitizeAttachments();
 }
 
-// Inline HTML handler (onclick="toggleThinking(...)") invokes this by global
-// name, so it remains on window.
-window.toggleThinking = toggleThinking;
+// Reasoning/"thinking" containers are rendered as HTML strings during
+// streaming, so bind a single delegated click listener that toggles the
+// container whose title was clicked rather than per-element inline handlers.
+if (typeof document !== "undefined" && typeof document.addEventListener === "function") {
+  document.addEventListener("click", (event) => {
+    const title = event.target.closest(".thinking-title");
+    if (!title) {
+      return;
+    }
+    const container = title.closest(".thinking-container");
+    if (container && container.id) {
+      toggleThinking(container.id, event);
+    }
+  });
+}

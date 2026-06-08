@@ -33,7 +33,7 @@ const PANEL_HTML = {
 };
 
 // HTML Content Loader Utility
-window.HTMLLoader = {
+export const HTMLLoader = {
   /**
    * Insert bundled HTML content into a container
    * @param {string} filePath - Source path of the HTML fragment
@@ -89,16 +89,10 @@ export async function initializeMenus() {
     await new Promise(resolve => document.addEventListener("DOMContentLoaded", resolve));
   }
 
-  // Wait for the HTML loader to be available
-  if (typeof window.HTMLLoader === "undefined") {
-    console.error("HTMLLoader not available");
-    return false;
-  }
-
   try {
     // Load the combined panels HTML file
-    await window.HTMLLoader.loadHTML("src/html/panels.html", "menu-panels-container");
-    await window.HTMLLoader.loadMultiple(SETTINGS_TAB_PARTIALS);
+    await HTMLLoader.loadHTML("src/html/panels.html", "menu-panels-container");
+    await HTMLLoader.loadMultiple(SETTINGS_TAB_PARTIALS);
     console.log("All menu panels loaded successfully");
     // Initialize theme selector now that panels exist
     try {
