@@ -73,7 +73,10 @@ export async function selectDefaultService() {
     if (state.verboseLogging) {
       console.info(`No API key for ${current}; defaulting to ${cloudFallback}.`);
     }
-    return true;
+    // Return false (not handled) so the caller runs the standard model fetch for
+    // the now-current service — unlike the local probe below, we haven't fetched
+    // models here yet.
+    return false;
   }
 
   const isUsableModel = (m) =>

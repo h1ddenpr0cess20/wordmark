@@ -3,6 +3,7 @@ import { updateFeatureStatus, updateModelSelector } from "../components/settings
 import { refreshToolSettingsUI } from "../components/tools.js";
 import { config } from "../../config/config.js";
 import { state } from "../init/state.js";
+import { API_KEYS_STORAGE_PREFIX, loadApiKeysIntoConfig } from "./apiKeyStorage.js";
 /**
  * API key management functionality
  */
@@ -12,7 +13,6 @@ import { state } from "../init/state.js";
 // -----------------------------------------------------
 
 // Storage keys for local storage
-const API_KEYS_STORAGE_PREFIX = "wordmark_api_key_";
 const LMSTUDIO_SERVER_URL_KEY = "wordmark_lmstudio_server_url";
 const OLLAMA_SERVER_URL_KEY = "wordmark_ollama_server_url";
 const API_KEYS_INIT_MAX_RETRIES = 40;
@@ -616,7 +616,11 @@ function getOllamaServerUrl() {
  * Ensure API keys are loaded and warn if missing
  */
 function ensureApiKeysLoaded() {
-  // Load keys if not already loaded
+  // Populate config from localStorage first, independent of the DOM, so key
+  // presence is correct even before the input elements are cached.
+  loadApiKeysIntoConfig();
+
+  // Then sync the input fields if/when they are available.
   if (typeof loadApiKeys === "function") {
     loadApiKeys();
   }
