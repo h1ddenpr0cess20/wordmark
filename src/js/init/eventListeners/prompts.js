@@ -90,16 +90,12 @@ function setupPersonalityPresetEventListeners(closeSettingsPanel) {
         }
       }
 
-      if (typeof updateHeaderInfo === 'function') {
-        updateHeaderInfo();
-      }
+                  updateHeaderInfo();
+    
       updateBrowserHistory();
 
-      if (typeof focusUserInputSafely === 'function') {
-        focusUserInputSafely();
-      } else if (window.userInput) {
-        window.userInput.focus();
-      }
+                  focusUserInputSafely();
+    
     });
   });
 }

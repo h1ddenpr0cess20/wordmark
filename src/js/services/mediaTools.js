@@ -356,24 +356,22 @@ export function registerGeneratedMedia({
     window.imageDataCache.set(effectiveFilename, displayUrl);
   }
 
-  if (typeof saveImageToDb === "function") {
-    saveImageToDb(sourceData, effectiveFilename, {
-      prompt: record.prompt,
-      tool: record.tool,
-      timestamp: record.timestamp,
-      associatedMessageId: record.associatedMessageId || "",
-      callId: record.callId || "",
-      model: record.model || "",
-      mimeType: record.mimeType,
-      mediaType: record.mediaType,
-      uploaded: record.uploaded,
-    }).then(() => {
-      record.isStoredInDb = true;
-      delete record.pendingStorageData;
-    }).catch(error => {
-      console.error("Failed to save generated media to storage:", error);
-    });
-  }
+  saveImageToDb(sourceData, effectiveFilename, {
+    prompt: record.prompt,
+    tool: record.tool,
+    timestamp: record.timestamp,
+    associatedMessageId: record.associatedMessageId || "",
+    callId: record.callId || "",
+    model: record.model || "",
+    mimeType: record.mimeType,
+    mediaType: record.mediaType,
+    uploaded: record.uploaded,
+  }).then(() => {
+    record.isStoredInDb = true;
+    delete record.pendingStorageData;
+  }).catch(error => {
+    console.error("Failed to save generated media to storage:", error);
+  });
 
   return record;
 }

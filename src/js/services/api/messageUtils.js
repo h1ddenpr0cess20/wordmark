@@ -357,9 +357,7 @@ export function buildDeveloperMessage(model) {
   if (!instructions) {
     return '';
   }
-  const locationInfo = typeof getLocationForPrompt === 'function'
-    ? getLocationForPrompt()
-    : '';
+  const locationInfo = getLocationForPrompt();
   const timestamp = (() => {
     try {
       return new Intl.DateTimeFormat(undefined, { dateStyle: 'full', timeStyle: 'short' })
@@ -375,7 +373,7 @@ export function buildDeveloperMessage(model) {
   if (!developerBlock.includes(timestamp)) {
     developerBlock += `\n(Generated on ${timestamp})`;
   }
-  if (window.config?.enableFunctionCalling && typeof getToolsDescription === 'function') {
+  if (window.config?.enableFunctionCalling) {
     const toolsDescription = getToolsDescription();
     if (toolsDescription) {
       developerBlock += `\n${toolsDescription.trim()}`;
@@ -387,12 +385,10 @@ export function buildDeveloperMessage(model) {
       developerBlock += `\n${mediaToolInstructions.trim()}`;
     }
   }
-  if (typeof getMemoriesForPrompt === 'function') {
-    const memories = getMemoriesForPrompt();
+      const memories = getMemoriesForPrompt();
     if (memories) {
       developerBlock += `\n${memories.trim()}`;
     }
-  }
   const trimmed = developerBlock.trim();
   return trimmed ? trimmed : null;
 }
@@ -414,9 +410,7 @@ function buildPersonalityInstruction() {
 }
 
 function buildLocationString() {
-  if (typeof getLocationForPrompt === 'function') {
-    return getLocationForPrompt();
-  }
+      return getLocationForPrompt();
   return '';
 }
 

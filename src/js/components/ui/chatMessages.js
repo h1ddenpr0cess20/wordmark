@@ -61,7 +61,7 @@ export function appendMessage(sender, content, type, skipHistory = false) {
   }
 
   setTimeout(() => {
-    const ensureMarked = typeof marked === 'undefined' && typeof loadMarkedLibrary === 'function'
+    const ensureMarked = typeof marked === 'undefined'
       ? loadMarkedLibrary()
       : Promise.resolve();
 

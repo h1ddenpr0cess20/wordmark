@@ -1,5 +1,5 @@
 import { showError } from "../utils/notifications.js";
-import { getDataSettingsEnabled, setDataSettingsEnabled, applyDataSettingsState, updateFeatureStatus } from "../components/settings.js";
+import { getDataSettingsEnabled, setDataSettingsEnabled, updateFeatureStatus } from "../components/settings.js";
 import { loadVectorStoreModule, lazyModulesLoaded } from "../utils/lazyLoader.js";
 import { initializeConversationInput } from "./eventListeners/conversationInput.js";
 import { initializeSettingsPanelControls } from "./eventListeners/settingsPanel.js";
@@ -48,23 +48,14 @@ export function setupEventListeners() {
 
   if (window.dataSettingsToggle) {
     try {
-      const enabled = (typeof getDataSettingsEnabled === "function") ? getDataSettingsEnabled() : true;
+      const enabled = getDataSettingsEnabled();
       window.dataSettingsToggle.checked = enabled;
     } catch {}
 
     window.dataSettingsToggle.addEventListener("change", (e) => {
       const on = e.target.checked;
-      if (typeof setDataSettingsEnabled === "function") {
-        setDataSettingsEnabled(on);
-      } else {
-        localStorage.setItem("dataSettingsEnabled", on ? "true" : "false");
-        if (typeof applyDataSettingsState === "function") {
-          applyDataSettingsState();
-        }
-      }
-      if (typeof updateFeatureStatus === "function") {
-        updateFeatureStatus();
-      }
+      setDataSettingsEnabled(on);
+      updateFeatureStatus();
     });
 
     const dataToggleLabel = document.querySelector("label[for=\"data-settings-toggle\"]");
@@ -78,68 +69,66 @@ export function setupEventListeners() {
     }
   }
 
-  if (typeof loadVectorStoreModule === "function") {
-    let vectorStoreModuleLoadingPromise = null;
+  let vectorStoreModuleLoadingPromise = null;
 
-    async function ensureVectorStoreModuleLoaded() {
-      if (lazyModulesLoaded && lazyModulesLoaded.vectorStore) {
-        return true;
-      }
-
-      if (!vectorStoreModuleLoadingPromise) {
-        vectorStoreModuleLoadingPromise = loadVectorStoreModule().finally(() => {
-          vectorStoreModuleLoadingPromise = null;
-        });
-      }
-
-      try {
-        await vectorStoreModuleLoadingPromise;
-        return true;
-      } catch (error) {
-        console.error("Vector store module failed to load:", error);
-        if (showError) {
-          showError(`Failed to load vector store manager: ${error.message}`);
-        }
-        return false;
-      }
+  async function ensureVectorStoreModuleLoaded() {
+    if (lazyModulesLoaded && lazyModulesLoaded.vectorStore) {
+      return true;
     }
 
-    const manualLoadSelectors = [
-      "#refresh-vector-stores",
-      "#clear-active-vector-store",
-      "#refresh-assistant-files",
-      "#upload-assistant-files",
-      "#delete-all-assistant-files",
-    ];
+    if (!vectorStoreModuleLoadingPromise) {
+      vectorStoreModuleLoadingPromise = loadVectorStoreModule().finally(() => {
+        vectorStoreModuleLoadingPromise = null;
+      });
+    }
 
-    manualLoadSelectors.forEach(selector => {
-      const el = document.querySelector(selector);
-      if (!el) return;
-
-      el.addEventListener("click", async(event) => {
-        if (lazyModulesLoaded && lazyModulesLoaded.vectorStore) {
-          return;
-        }
-
-        event.preventDefault();
-
-        const triggerId = event.currentTarget && event.currentTarget.id ? event.currentTarget.id : "";
-        const loaded = await ensureVectorStoreModuleLoaded();
-
-        if (!loaded) {
-          return;
-        }
-
-        if (triggerId === "refresh-vector-stores" || triggerId === "refresh-assistant-files") {
-          return;
-        }
-
-        requestAnimationFrame(() => {
-          if (event.currentTarget && typeof event.currentTarget.click === "function") {
-            event.currentTarget.click();
-          }
-        });
-      }, true);
-    });
+    try {
+      await vectorStoreModuleLoadingPromise;
+      return true;
+    } catch (error) {
+      console.error("Vector store module failed to load:", error);
+      if (showError) {
+        showError(`Failed to load vector store manager: ${error.message}`);
+      }
+      return false;
+    }
   }
+
+  const manualLoadSelectors = [
+    "#refresh-vector-stores",
+    "#clear-active-vector-store",
+    "#refresh-assistant-files",
+    "#upload-assistant-files",
+    "#delete-all-assistant-files",
+  ];
+
+  manualLoadSelectors.forEach(selector => {
+    const el = document.querySelector(selector);
+    if (!el) return;
+
+    el.addEventListener("click", async(event) => {
+      if (lazyModulesLoaded && lazyModulesLoaded.vectorStore) {
+        return;
+      }
+
+      event.preventDefault();
+
+      const triggerId = event.currentTarget && event.currentTarget.id ? event.currentTarget.id : "";
+      const loaded = await ensureVectorStoreModuleLoaded();
+
+      if (!loaded) {
+        return;
+      }
+
+      if (triggerId === "refresh-vector-stores" || triggerId === "refresh-assistant-files") {
+        return;
+      }
+
+      requestAnimationFrame(() => {
+        if (event.currentTarget && typeof event.currentTarget.click === "function") {
+          event.currentTarget.click();
+        }
+      });
+    }, true);
+  });
 }

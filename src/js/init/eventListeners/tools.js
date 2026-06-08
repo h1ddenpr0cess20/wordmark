@@ -12,28 +12,20 @@ export function setupToolCallingEventListeners() {
     window.config.enableFunctionCalling = enabled;
     localStorage.setItem('enableFunctionCalling', enabled ? 'true' : 'false');
 
-    if (typeof updateMasterToolCallingStatus === 'function') {
-      updateMasterToolCallingStatus(enabled);
-    } else if (window.individualToolsContainer) {
-      const toggles = window.individualToolsContainer.querySelectorAll('input[type="checkbox"]');
-      toggles.forEach((toggle) => {
-        toggle.disabled = !enabled;
-      });
-    }
+            updateMasterToolCallingStatus(enabled);
+  
 
-    if (enabled && typeof loadToolScripts === 'function') {
+    if (enabled) {
       loadToolScripts().catch((error) => {
         console.error('Failed to load tool scripts:', error);
       });
     }
 
-    if (typeof updateFeatureStatus === 'function') {
-      updateFeatureStatus();
-    }
+            updateFeatureStatus();
+  
 
-    if (typeof showInfo === 'function') {
-      showInfo(enabled ? 'Tool calling enabled.' : 'Tool calling disabled.');
-    }
+            showInfo(enabled ? 'Tool calling enabled.' : 'Tool calling disabled.');
+  
   });
 }
 

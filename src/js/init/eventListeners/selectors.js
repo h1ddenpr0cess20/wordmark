@@ -10,14 +10,12 @@ export function setupSelectorEventListeners() {
   if (window.modelSelector) {
     window.modelSelector.addEventListener('change', () => {
       window.modelSelector.setAttribute('data-last-selected', window.modelSelector.value);
-      if (typeof updateHeaderInfo === 'function') {
-        updateHeaderInfo();
-      }
+                  updateHeaderInfo();
+    
       updateReasoningAvailability();
       updateBrowserHistory();
-      if (typeof refreshToolSettingsUI === 'function') {
-        refreshToolSettingsUI();
-      }
+                  refreshToolSettingsUI();
+    
     });
   }
 
@@ -30,9 +28,8 @@ export function setupSelectorEventListeners() {
       }
       window.config.defaultService = selectedService;
 
-      if (typeof ensureApiKeysLoaded === 'function') {
-        ensureApiKeysLoaded();
-      }
+                  ensureApiKeysLoaded();
+    
 
       const serviceConfig = window.config?.services?.[selectedService];
       if (serviceConfig && typeof serviceConfig.fetchAndUpdateModels === 'function') {
@@ -48,20 +45,17 @@ export function setupSelectorEventListeners() {
         }
       }
 
-      if (typeof updateModelSelector === 'function') {
-        updateModelSelector();
-      }
+                  updateModelSelector();
+    
       updateParameterControls();
-      if (typeof updateHeaderInfo === 'function') {
-        updateHeaderInfo();
-      }
+                  updateHeaderInfo();
+    
       updateReasoningAvailability();
       updateBrowserHistory();
 
       const refreshToolsUI = () => {
-        if (typeof refreshToolSettingsUI === 'function') {
-          refreshToolSettingsUI();
-        }
+                        refreshToolSettingsUI();
+      
       };
 
       if (responsesClient && typeof responsesClient.refreshMcpAvailability === 'function') {

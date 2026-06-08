@@ -444,9 +444,10 @@ export function resetSendButton() {
 
     if (!isMobile) {
       window.userInput.focus();
-    } else if (typeof scrollInputIntoView === "function") {
+    } else {
       // For mobile, ensure the input is visible without forcing focus
       scrollInputIntoView();
+
     }
   }
 }

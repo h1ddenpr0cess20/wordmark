@@ -32,20 +32,16 @@ let apiKeysEventHandlersApplied = false;
 let shownApiKeyWarnings = null;
 
 function refreshApiDependentUi() {
-  if (typeof refreshToolSettingsUI === "function") {
-    try {
-      refreshToolSettingsUI();
-    } catch (error) {
-      console.error("Failed to refresh tool settings UI:", error);
-    }
+  try {
+    refreshToolSettingsUI();
+  } catch (error) {
+    console.error("Failed to refresh tool settings UI:", error);
   }
 
-  if (typeof updateFeatureStatus === "function") {
-    try {
-      updateFeatureStatus();
-    } catch (error) {
-      console.error("Failed to update feature status after API key change:", error);
-    }
+  try {
+    updateFeatureStatus();
+  } catch (error) {
+    console.error("Failed to update feature status after API key change:", error);
   }
 }
 
@@ -400,18 +396,17 @@ function saveApiKeys() {
     const activeService = activeKey ? window.config?.services?.[activeKey] : null;
     if (activeService && typeof activeService.fetchAndUpdateModels === "function") {
       activeService.fetchAndUpdateModels().then(() => {
-        if (typeof updateModelSelector === "function") {
-          updateModelSelector();
-        }
+        updateModelSelector();
+
       }).catch(err => {
         console.error("Failed to fetch models after saving API keys:", err);
-        if (typeof updateModelSelector === "function") {
-          updateModelSelector();
-        }
+        updateModelSelector();
+
         refreshApiDependentUi();
       });
-    } else if (typeof updateModelSelector === "function") {
+    } else {
       updateModelSelector();
+
     }
 
     refreshApiDependentUi();

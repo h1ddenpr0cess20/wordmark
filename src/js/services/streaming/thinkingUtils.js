@@ -17,7 +17,7 @@ export function processMainContentMarkdown(mainText) {
     html += '`';
   }
 
-  if (typeof marked === 'undefined' && typeof loadMarkedLibrary === 'function') {
+  if (typeof marked === 'undefined') {
     loadMarkedLibrary();
   }
   let parsedContent = typeof marked !== 'undefined'

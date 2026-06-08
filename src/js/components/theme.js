@@ -299,24 +299,13 @@ function rehighlightCodeBlocks() {
     } else {
       console.log("Highlight.js not loaded, attempting to load it");
       // Try to load highlight.js
-      if (typeof loadHighlightJS === "function") {
-        loadHighlightJS().then(() => {
-          // Try again after loading
-          console.log("Highlight.js loaded, retrying rehighlight");
-          rehighlightCodeBlocks();
-        }).catch((error) => {
-          console.error("Failed to load highlight.js:", error);
-        });
-      } else if (typeof loadHighlightJS === "function") {
-        loadHighlightJS().then(() => {
-          // Try again after loading
-          rehighlightCodeBlocks();
-        }).catch((error) => {
-          console.error("Failed to load highlight.js:", error);
-        });
-      } else {
-        console.error("loadHighlightJS function not available");
-      }
+      loadHighlightJS().then(() => {
+        // Try again after loading
+        console.log("Highlight.js loaded, retrying rehighlight");
+        rehighlightCodeBlocks();
+      }).catch((error) => {
+        console.error("Failed to load highlight.js:", error);
+      });
     }
   } catch (error) {
     console.error("Error in rehighlightCodeBlocks:", error);

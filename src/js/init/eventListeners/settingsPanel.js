@@ -143,9 +143,8 @@ function setupOutsideClickHandler(state) {
         !isSettingsPanelElement && !isSettingsButton) {
       restoreOriginalValues(state);
       hideSettingsPanel({ focusButton: true });
-      if (typeof updateHeaderInfo === 'function') {
-        updateHeaderInfo();
-      }
+                  updateHeaderInfo();
+    
     }
 
     if (!window.isSlideshowOpen &&
@@ -183,9 +182,7 @@ export function openSettingsAndSwitch(tabId, attempt = 0) {
   storeOriginalValues(panelState);
   showSettingsPanel();
 
-  if (typeof organizeSettingsLayout === 'function') {
-    organizeSettingsLayout();
-  }
+      organizeSettingsLayout();
 
   if (tabId) {
     setTimeout(() => switchToTab(tabId), 0);
@@ -197,9 +194,8 @@ export function initializeSettingsPanelControls() {
     window.settingsButton.addEventListener('click', () => {
       storeOriginalValues(panelState);
       showSettingsPanel();
-      if (typeof organizeSettingsLayout === 'function') {
-        organizeSettingsLayout();
-      }
+                  organizeSettingsLayout();
+    
     });
   }
 
@@ -207,9 +203,8 @@ export function initializeSettingsPanelControls() {
     window.closeSettingsButton.addEventListener('click', () => {
       restoreOriginalValues(panelState);
       hideSettingsPanel({ focusButton: true });
-      if (typeof updateHeaderInfo === 'function') {
-        updateHeaderInfo();
-      }
+                  updateHeaderInfo();
+    
     });
   }
 

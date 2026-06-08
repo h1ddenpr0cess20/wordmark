@@ -66,7 +66,7 @@ function checkApiKeysMissing() {
     return false;
   }
 
-  const apiKey = typeof getApiKey === 'function' ? getApiKey(currentService) : null;
+  const apiKey =getApiKey(currentService);
   return !apiKey || apiKey.trim() === '';
 }
 

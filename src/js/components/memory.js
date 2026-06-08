@@ -30,21 +30,17 @@ export function initMemorySettings() {
   }
 
   // Update tool definitions to include/exclude memory tool on load
-  if (typeof updateToolDefinitions === "function") {
-    updateToolDefinitions();
-  }
+  updateToolDefinitions();
 
   // Events
   toggle.addEventListener("change", () => {
     if (setMemoryEnabled) setMemoryEnabled(toggle.checked);
     // Reflect in tool availability
-    if (typeof updateToolDefinitions === "function") {
-      updateToolDefinitions();
-    }
+    updateToolDefinitions();
+
     renderList();
-    if (typeof updateFeatureStatus === "function") {
-      updateFeatureStatus();
-    }
+    updateFeatureStatus();
+
   });
 
   limitInput.addEventListener("change", () => {

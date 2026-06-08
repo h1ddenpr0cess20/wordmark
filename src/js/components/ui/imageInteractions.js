@@ -162,7 +162,7 @@ export function createImageSlideshow(images, startIndex, isGalleryMode = false) 
   }
 
   let currentIndex = startIndex || 0;
-  const isMobile = typeof isMobileDevice === 'function' ? isMobileDevice() : false;
+  const isMobile =isMobileDevice();
 
   const slideshow = document.createElement('div');
   slideshow.className = 'gallery-slideshow';

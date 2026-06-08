@@ -1,7 +1,7 @@
 import { icon } from "../utils/icons.js";
 import { showNotification } from "../utils/notifications.js";
 import { responsesClient } from "./api.js";
-import { refreshToolSettingsUI, updateToolDefinitions } from "../components/tools.js";
+import { refreshToolSettingsUI } from "../components/tools.js";
 /**
  * MCP Server Management
  * Handles configuration and management of URL-based Model Context Protocol servers
@@ -177,11 +177,7 @@ export function requestMcpServerRemoval(serverLabel, fallbackDisplayName) {
 function refreshToolingState(options = {}) {
   const { checkAvailability = false } = options;
 
-  if (typeof refreshToolSettingsUI === "function") {
-    refreshToolSettingsUI();
-  } else if (typeof updateToolDefinitions === "function") {
-    updateToolDefinitions();
-  }
+  refreshToolSettingsUI();
 
   if (!checkAvailability) {
     return;
@@ -192,9 +188,8 @@ function refreshToolingState(options = {}) {
       const maybePromise = responsesClient.refreshMcpAvailability(true);
       if (maybePromise && typeof maybePromise.then === "function") {
         maybePromise.then(() => {
-          if (typeof refreshToolSettingsUI === "function") {
-            refreshToolSettingsUI();
-          }
+          refreshToolSettingsUI();
+
         }).catch(error => {
           console.warn("Unable to refresh MCP availability:", error);
         });

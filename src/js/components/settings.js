@@ -288,8 +288,9 @@ export function updateFeatureStatus() {
         if (toggle) {
           toggle.checked = !isOn;
           toggle.dispatchEvent(new Event("change", { bubbles: true }));
-        } else if (typeof setMemoryEnabled === "function") {
+        } else {
           setMemoryEnabled(!isOn);
+
         }
         break;
       }
@@ -299,15 +300,17 @@ export function updateFeatureStatus() {
           if (toggle) {
             toggle.checked = true;
             toggle.dispatchEvent(new Event("change", { bubbles: true }));
-          } else if (typeof requestLocation === "function") {
+          } else {
             await requestLocation();
+
           }
         } else {
           if (toggle) {
             toggle.checked = false;
             toggle.dispatchEvent(new Event("change", { bubbles: true }));
-          } else if (typeof disableLocation === "function") {
+          } else {
             disableLocation();
+
           }
         }
         break;

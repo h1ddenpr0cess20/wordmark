@@ -11,43 +11,37 @@ export function setupLocationEventListeners() {
     const isEnabled = event.target.checked;
 
     if (isEnabled) {
-      if (typeof loadLocationModule === 'function' && !lazyModulesLoaded?.location) {
+      if (!lazyModulesLoaded?.location) {
         await loadLocationModule();
       }
 
       const result = await requestLocation();
       if (result.success) {
-        if (typeof updateLocationUI === 'function') {
-          updateLocationUI();
-        }
+                        updateLocationUI();
+      
         if (window.VERBOSE_LOGGING) {
           console.info('Location enabled:', result.locationString);
         }
       } else {
         window.locationToggle.checked = false;
-        if (typeof updateLocationUI === 'function') {
-          updateLocationUI();
-        }
-        if (typeof showError === 'function') {
-          showError(`Location request failed: ${result.error}`);
-        }
+                        updateLocationUI();
+      
+                        showError(`Location request failed: ${result.error}`);
+      
         console.warn('Location request failed:', result.error);
       }
     } else {
-      if (typeof disableLocation === 'function') {
-        disableLocation();
-      }
-      if (typeof updateLocationUI === 'function') {
-        updateLocationUI();
-      }
+                  disableLocation();
+    
+                  updateLocationUI();
+    
       if (window.VERBOSE_LOGGING) {
         console.info('Location services disabled');
       }
     }
 
-    if (typeof updateFeatureStatus === 'function') {
-      updateFeatureStatus();
-    }
+            updateFeatureStatus();
+  
   });
 }
 

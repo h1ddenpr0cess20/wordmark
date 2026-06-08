@@ -382,23 +382,9 @@ export function addTtsControlsToMessage(audioData, messageId, originalText) {
       const cachedAudioData = ttsAudioResources.getAudioData(messageId);
 
       if (cachedAudioData) {
-        if (typeof exportAudioForDownload === 'function') {
-          exportAudioForDownload(cachedAudioData, filename);
-          statusText.textContent = 'Downloaded';
-        } else {
-          const blob = new Blob([cachedAudioData], { type: 'audio/wav' });
-          const url = URL.createObjectURL(blob);
-
-          const a = document.createElement('a');
-          a.href = url;
-          a.download = filename;
-          document.body.appendChild(a);
-          a.click();
-          document.body.removeChild(a);
-
-          setTimeout(() => URL.revokeObjectURL(url), 100);
-          statusText.textContent = 'Downloaded';
-        }
+                        exportAudioForDownload(cachedAudioData, filename);
+                statusText.textContent = 'Downloaded';
+      
       } else {
         const a = document.createElement('a');
         a.href = audioUrl;

@@ -86,12 +86,8 @@ export function populateTtsVoiceSelector() {
  * Initialize mobile keyboard handling
  */
 export function initializeMobileKeyboardHandling() {
-  if (typeof setupMobileKeyboardHandling === "function") {
-    setupMobileKeyboardHandling();
-    if (window.VERBOSE_LOGGING) {
-      console.info("Mobile keyboard handling initialized.");
-    }
-  } else {
-    console.warn("Mobile keyboard handling function not available");
+  setupMobileKeyboardHandling();
+  if (window.VERBOSE_LOGGING) {
+    console.info("Mobile keyboard handling initialized.");
   }
 }

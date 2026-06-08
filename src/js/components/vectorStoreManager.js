@@ -80,7 +80,7 @@ export async function refreshVectorStoreList(applyCooldown = true) {
   const listContainer = document.getElementById("vector-store-list");
   if (!listContainer) return;
 
-  const activeIds = (typeof getActiveVectorStoreIds === "function" ? getActiveVectorStoreIds() : []);
+  const activeIds = getActiveVectorStoreIds();
 
   // Show loading state
   listContainer.innerHTML = "<div class=\"loading-text\">Loading vector stores...</div>";
@@ -173,7 +173,7 @@ export async function refreshVectorStoreList(applyCooldown = true) {
             const friendlyDisplayName = metadata?.[storeId]?.friendlyName || metadata?.[storeId]?.name || storeId;
             removeVectorStoreMetadata(storeId);
             try {
-              if (typeof getActiveVectorStoreId === "function" && getActiveVectorStoreId() === storeId) {
+              if (getActiveVectorStoreId() === storeId) {
                 clearActiveVectorStore();
               }
             } catch { /* noop */ }

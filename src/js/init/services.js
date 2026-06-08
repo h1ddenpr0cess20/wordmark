@@ -74,13 +74,11 @@ export async function selectDefaultService() {
       if (window.serviceSelector) {
         window.serviceSelector.value = local;
       }
-      if (typeof updateModelSelector === "function") {
-        updateModelSelector();
-      }
+      updateModelSelector();
+
       updateParameterControls();
-      if (typeof updateHeaderInfo === "function") {
-        updateHeaderInfo();
-      }
+      updateHeaderInfo();
+
       if (window.VERBOSE_LOGGING) {
         console.info(`No cloud API keys found; defaulting to ${local}.`);
       }
@@ -175,17 +173,11 @@ export function initializeToolCalling() {
     window.toolCallingToggle.title = enabled ? "Tool calling is enabled." : "Tool calling is disabled.";
   }
 
-  if (typeof updateMasterToolCallingStatus === "function") {
-    updateMasterToolCallingStatus(enabled);
-  }
+  updateMasterToolCallingStatus(enabled);
 
-  if (typeof updateFeatureStatus === "function") {
-    updateFeatureStatus();
-  }
+  updateFeatureStatus();
 
-  if (typeof refreshToolSettingsUI === "function") {
-    refreshToolSettingsUI();
-  }
+  refreshToolSettingsUI();
 }
 
 /**

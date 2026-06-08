@@ -153,12 +153,10 @@ let getToolsDescription;
     }
     const enabled = checkbox.checked;
     responsesClient.setToolEnabled(toolKey, enabled);
-    if (typeof updateFeatureStatus === "function") {
-      updateFeatureStatus();
-    }
-    if (typeof showInfo === "function") {
-      showInfo(`${enabled ? "Enabled" : "Disabled"} ${checkbox.getAttribute("data-tool-name") || "tool"}.`);
-    }
+    updateFeatureStatus();
+
+    showInfo(`${enabled ? "Enabled" : "Disabled"} ${checkbox.getAttribute("data-tool-name") || "tool"}.`);
+
   }
 
   function handleMcpDelete(tool) {
@@ -166,11 +164,8 @@ let getToolsDescription;
       return;
     }
     const label = tool.key.replace(/^mcp:/, "");
-    if (typeof requestMcpServerRemoval === "function") {
-      requestMcpServerRemoval(label, tool.displayName);
-    } else {
-      console.warn("MCP removal helper unavailable; unable to delete server from UI.");
-    }
+    requestMcpServerRemoval(label, tool.displayName);
+
   }
 
   function renderToolList() {
@@ -330,9 +325,8 @@ let getToolsDescription;
       toolsContainer.appendChild(item);
     });
 
-    if (typeof updateFeatureStatus === "function") {
-      updateFeatureStatus();
-    }
+    updateFeatureStatus();
+
   }
 
   function bindBulkActions() {
@@ -348,12 +342,10 @@ let getToolsDescription;
         }
         responsesClient.setAllToolsEnabled(true);
         renderToolList();
-        if (typeof updateFeatureStatus === "function") {
-          updateFeatureStatus();
-        }
-        if (typeof showInfo === "function") {
-          showInfo("All tools enabled.");
-        }
+        updateFeatureStatus();
+
+        showInfo("All tools enabled.");
+
       });
     }
 
@@ -364,12 +356,10 @@ let getToolsDescription;
         }
         responsesClient.setAllToolsEnabled(false);
         renderToolList();
-        if (typeof updateFeatureStatus === "function") {
-          updateFeatureStatus();
-        }
-        if (typeof showInfo === "function") {
-          showInfo("All tools disabled.");
-        }
+        updateFeatureStatus();
+
+        showInfo("All tools disabled.");
+
       });
     }
   }
@@ -506,7 +496,7 @@ let getToolsDescription;
     try {
       if (
         clientSideToolsSupported
-        && typeof getMemoryConfig === "function"
+
         && getMemoryConfig().enabled
       ) {
         items.push("- Memory: The assistant can remember or forget short details when you ask it to.");

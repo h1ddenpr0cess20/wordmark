@@ -87,13 +87,9 @@ export async function initialize() {
     }
 
     // Initialize tools settings
-    if (typeof initToolsSettings === "function") {
-      initToolsSettings();
-      if (window.VERBOSE_LOGGING) {
-        console.info("Tools settings initialized.");
-      }
-    } else {
-      console.warn("Tools settings initialization function not found");
+    initToolsSettings();
+    if (window.VERBOSE_LOGGING) {
+      console.info("Tools settings initialized.");
     }
 
     // Initialize memory settings (separate from tools UI)
@@ -104,24 +100,21 @@ export async function initialize() {
           console.info("Memory settings initialized.");
         }
         // Sync feature badges after memory init
-        if (typeof updateFeatureStatus === "function") {
-          updateFeatureStatus();
-        }
+        updateFeatureStatus();
+
       } catch (e) {
         console.error("Memory settings initialization failed:", e);
       }
     }
 
     // Initialize MCP servers management
-    if (typeof initMCPServers === "function") {
-      try {
-        initMCPServers();
-        if (window.VERBOSE_LOGGING) {
-          console.info("MCP servers initialized.");
-        }
-      } catch (e) {
-        console.error("MCP servers initialization failed:", e);
+    try {
+      initMCPServers();
+      if (window.VERBOSE_LOGGING) {
+        console.info("MCP servers initialized.");
       }
+    } catch (e) {
+      console.error("MCP servers initialization failed:", e);
     }
 
     // Try to load from URL if available
@@ -149,11 +142,9 @@ export async function initialize() {
     updateParameterControls();
 
     // Ensure API keys are loaded before fetching models
-    if (typeof ensureApiKeysLoaded === "function") {
-      ensureApiKeysLoaded();
-      if (window.VERBOSE_LOGGING) {
-        console.info("API keys loaded from localStorage.");
-      }
+    ensureApiKeysLoaded();
+    if (window.VERBOSE_LOGGING) {
+      console.info("API keys loaded from localStorage.");
     }
 
     // Fetch models dynamically now that API keys are available. First try to
@@ -172,9 +163,7 @@ export async function initialize() {
       .catch(runStandardModelInit);
 
     // Explicitly initialize personality input
-    if (typeof initializePersonalityInput === "function") {
-      initializePersonalityInput();
-    }
+    initializePersonalityInput();
 
     updateModelSelector();
     updateHeaderInfo();
@@ -190,13 +179,10 @@ export async function initialize() {
 
     // Initialize tool calling toggle state
     initializeToolCalling();
-    if (typeof updateFeatureStatus === "function") {
-      updateFeatureStatus();
-    }
+    updateFeatureStatus();
+
     // Apply data settings enabled/disabled state to the Data tab UI
-    if (typeof applyDataSettingsState === "function") {
-      try { applyDataSettingsState(); } catch { /* noop */ }
-    }
+    try { applyDataSettingsState(); } catch { /* noop */ }
 
     renderChatHistoryList();
 
@@ -204,20 +190,17 @@ export async function initialize() {
     initializeVerboseMode();
 
     // Load location services if previously enabled
-    if (localStorage.getItem("locationEnabled") === "true" && typeof loadLocationModule === "function") {
+    if (localStorage.getItem("locationEnabled") === "true") {
       loadLocationModule().then(() => {
-        if (typeof initializeLocationService === "function") {
-          initializeLocationService();
-        }
-        if (typeof updateFeatureStatus === "function") {
-          updateFeatureStatus();
-        }
+        initializeLocationService();
+
+        updateFeatureStatus();
+
       }).catch(err => console.error("Failed to load location module", err));
     } else {
       // Ensure badges render at least once even if location is disabled
-      if (typeof updateFeatureStatus === "function") {
-        updateFeatureStatus();
-      }
+      updateFeatureStatus();
+
     }
 
     // Check if API keys are missing and auto-open the API keys tab if needed
@@ -251,23 +234,10 @@ function setupScrollTracking() {
 }
 
 /**
- * Focus user input safely (checks for mobile devices)
- * Uses the implementation from mobileHandling.js when available
+ * Focus user input safely (handles mobile devices via mobileHandling.js)
  */
 function focusInputField() {
-  // Check if the implementation from mobileHandling.js is available
-  const externalImplementation = focusUserInputSafely;
-
-  if (typeof externalImplementation === "function") {
-    // Call the implementation from mobileHandling.js
-    externalImplementation();
-  } else if (window.userInput) {
-    // Fallback to simple focus
-    window.userInput.focus();
-    if (window.VERBOSE_LOGGING) {
-      console.info("User input focused.");
-    }
-  }
+  focusUserInputSafely();
 }
 
 /**

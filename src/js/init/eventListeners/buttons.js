@@ -30,7 +30,7 @@ export function setupButtonEventListeners({ closeSettingsPanel } = {}) {
       startNewConversation('New Conversation');
       updateHeaderInfo();
       updateBrowserHistory();
-      if (typeof isMobileDevice === 'function' && !isMobileDevice() && window.userInput) {
+      if (!isMobileDevice() && window.userInput) {
         window.userInput.focus();
       }
     });
@@ -52,20 +52,18 @@ export function setupButtonEventListeners({ closeSettingsPanel } = {}) {
 
       closePanelIfActive(closeSettingsPanel);
 
-      if (typeof updateHeaderInfo === 'function') {
-        updateHeaderInfo();
-      }
+                  updateHeaderInfo();
+    
       updateBrowserHistory();
-      if (typeof focusUserInputSafely === 'function') {
-        focusUserInputSafely();
-      }
+                  focusUserInputSafely();
+    
     });
   }
 
   if (window.exportChatButton) {
     window.exportChatButton.addEventListener('click', exportChat);
   }
-  if (window.exportFormatSelector && typeof handleExportFormatChange === 'function') {
+  if (window.exportFormatSelector) {
     window.exportFormatSelector.addEventListener('change', handleExportFormatChange);
   }
 
@@ -82,16 +80,14 @@ export function setupButtonEventListeners({ closeSettingsPanel } = {}) {
       }
 
       updatePromptVisibility();
-      if (typeof updateHeaderInfo === 'function') {
-        updateHeaderInfo();
-      }
+                  updateHeaderInfo();
+    
 
       closePanelIfActive(closeSettingsPanel);
 
       updateBrowserHistory();
-      if (typeof focusUserInputSafely === 'function') {
-        focusUserInputSafely();
-      }
+                  focusUserInputSafely();
+    
     });
   }
 
@@ -108,9 +104,8 @@ export function setupButtonEventListeners({ closeSettingsPanel } = {}) {
 
       closePanelIfActive(closeSettingsPanel);
 
-      if (typeof updateHeaderInfo === 'function') {
-        updateHeaderInfo();
-      }
+                  updateHeaderInfo();
+    
       updateBrowserHistory();
       if (window.userInput) {
         window.userInput.focus();
@@ -129,9 +124,8 @@ export function setupButtonEventListeners({ closeSettingsPanel } = {}) {
 
       closePanelIfActive(closeSettingsPanel);
 
-      if (typeof updateHeaderInfo === 'function') {
-        updateHeaderInfo();
-      }
+                  updateHeaderInfo();
+    
       updateBrowserHistory();
       if (window.userInput) {
         window.userInput.focus();

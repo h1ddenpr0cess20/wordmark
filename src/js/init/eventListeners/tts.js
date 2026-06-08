@@ -22,9 +22,8 @@ export function setupTtsEventListeners() {
         ttsConfig.enabled = false;
         stopTtsAudio();
       }
-      if (typeof updateFeatureStatus === "function") {
-        updateFeatureStatus();
-      }
+                  updateFeatureStatus();
+    
     });
   }
 

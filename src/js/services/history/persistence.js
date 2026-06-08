@@ -143,10 +143,10 @@ function normalizePromptState() {
 }
 
 function ensureLibrariesLoaded() {
-  const ensureHighlight = typeof hljs === 'undefined' && typeof loadHighlightJS === 'function'
+  const ensureHighlight = typeof hljs === 'undefined'
     ? loadHighlightJS()
     : Promise.resolve();
-  const ensureMarked = typeof marked === 'undefined' && typeof loadMarkedLibrary === 'function'
+  const ensureMarked = typeof marked === 'undefined'
     ? loadMarkedLibrary()
     : Promise.resolve();
 

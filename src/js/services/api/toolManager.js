@@ -503,7 +503,7 @@ export function getEnabledToolDefinitions(serviceKey = getActiveServiceKey(), mo
       return;
     }
 
-    if (tool.requiresApiKeyService && typeof getApiKey === 'function') {
+    if (tool.requiresApiKeyService) {
       const requiredKey = getApiKey(tool.requiresApiKeyService);
       if (!requiredKey || !requiredKey.trim()) {
         return;
@@ -655,9 +655,7 @@ function isLocalNetworkUrl(url) {
 
 function appendMemoryTools(defs, serviceKey = getActiveServiceKey(), modelName = getActiveModel()) {
   try {
-    const cfg = typeof getMemoryConfig === 'function'
-      ? getMemoryConfig()
-      : { enabled: false };
+    const cfg = getMemoryConfig();
     if (!cfg || !cfg.enabled) {
       return;
     }
