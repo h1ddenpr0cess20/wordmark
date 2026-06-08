@@ -9,7 +9,7 @@ import { updateMasterToolCallingStatus, refreshToolSettingsUI } from "../compone
 /**
  * Initialize services and models
  */
-function initializeServicesAndModels() {
+export function initializeServicesAndModels() {
   // Initialize the service selector
   if (window.serviceSelector && window.config) {
     populateServiceSelector();
@@ -37,7 +37,7 @@ function initializeServicesAndModels() {
  * @returns {Promise<boolean>} true if this function already fetched models for
  *   the selected service (so the caller can skip its own model fetch).
  */
-async function selectDefaultService() {
+export async function selectDefaultService() {
   const services = window.config?.services || {};
   const hasCloudKey = ["openai", "xai"].some(key => {
     const svc = services[key];
@@ -94,7 +94,7 @@ async function selectDefaultService() {
 /**
  * Initialize models for services that fetch dynamically
  */
-function initializeServiceModels() {
+export function initializeServiceModels() {
   const serviceKey = window.config?.defaultService;
   const serviceConfig = serviceKey ? window.config?.services?.[serviceKey] : null;
 
@@ -120,7 +120,7 @@ function initializeServiceModels() {
 /**
  * Initialize conversation name based on current settings
  */
-function initializeConversationName() {
+export function initializeConversationName() {
   // Set initial conversation name based on personality/prompt type
   if (window.personalityPromptRadio && window.personalityPromptRadio.checked && window.personalityInput) {
     window.currentConversationName = `Personality: ${window.personalityInput.value.trim()}`;
@@ -136,7 +136,7 @@ function initializeConversationName() {
 /**
  * Initialize default values from configuration
  */
-function initializeDefaultValues() {
+export function initializeDefaultValues() {
   // Initialize default values from config
   if (window.systemPromptCustom) {
     window.systemPromptCustom.value = window.DEFAULT_SYSTEM_PROMPT;
@@ -157,7 +157,7 @@ function initializeDefaultValues() {
 /**
  * Initialize tool calling toggle state
  */
-function initializeToolCalling() {
+export function initializeToolCalling() {
   let enabled = true;
   const stored = localStorage.getItem("enableFunctionCalling");
   if (stored !== null) {
@@ -191,7 +191,7 @@ function initializeToolCalling() {
 /**
  * Initialize Verbose Mode toggle
  */
-function initializeVerboseMode() {
+export function initializeVerboseMode() {
   if (!window.verboseModeToggle) return;
 
   let enabled = false;
@@ -209,12 +209,4 @@ function initializeVerboseMode() {
   }
 }
 
-// Make functions available globally
-window.initializeServicesAndModels = initializeServicesAndModels;
-window.initializeConversationName = initializeConversationName;
-window.initializeDefaultValues = initializeDefaultValues;
-window.initializeToolCalling = initializeToolCalling;
-window.initializeVerboseMode = initializeVerboseMode;
-window.initializeServiceModels = initializeServiceModels;
-window.selectDefaultService = selectDefaultService;
 // Note: initializeLocationService is defined in location.js, not here

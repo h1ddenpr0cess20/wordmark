@@ -20,6 +20,15 @@ import { initImageUploads } from "../components/attachments.js";
 import { initializeModelSettings } from "./modelSettings.js";
 import { initializeAboutTab } from "./aboutTab.js";
 import { initializeMarked } from "./marked.js";
+import {
+  initializeServicesAndModels,
+  initializeConversationName,
+  initializeDefaultValues,
+  initializeToolCalling,
+  initializeVerboseMode,
+  initializeServiceModels,
+  selectDefaultService,
+} from "./services.js";
 
 // Configure DOMPurify to allow YouTube iframes
 function configureDOMPurify() {
@@ -266,21 +275,15 @@ async function initialize() {
     // (LM Studio, then Ollama). If that already fetched models, skip the
     // standard fetch to avoid a duplicate request.
     const runStandardModelInit = () => {
-      if (typeof window.initializeServiceModels === "function") {
-        window.initializeServiceModels();
-      }
+      initializeServiceModels();
     };
-    if (typeof window.selectDefaultService === "function") {
-      window.selectDefaultService()
-        .then((handled) => {
-          if (!handled) {
-            runStandardModelInit();
-          }
-        })
-        .catch(runStandardModelInit);
-    } else {
-      runStandardModelInit();
-    }
+    selectDefaultService()
+      .then((handled) => {
+        if (!handled) {
+          runStandardModelInit();
+        }
+      })
+      .catch(runStandardModelInit);
 
     // Explicitly initialize personality input
     if (typeof initializePersonalityInput === "function") {
@@ -312,9 +315,7 @@ async function initialize() {
     renderChatHistoryList();
 
     // Initialize Verbose Mode toggle state
-    if (typeof window.initializeVerboseMode === "function") {
-      window.initializeVerboseMode();
-    }
+    initializeVerboseMode();
 
     // Load location services if previously enabled
     if (localStorage.getItem("locationEnabled") === "true" && typeof loadLocationModule === "function") {
