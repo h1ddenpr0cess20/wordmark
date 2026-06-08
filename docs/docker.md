@@ -1,14 +1,17 @@
 # Docker & Containers
 
-This guide covers running Wordmark in a container. The app is a pure client‑side SPA (static files) — the container only serves the site with Nginx. All API calls happen from your browser directly to the OpenAI endpoint you configure or a local LM Studio/Ollama server, not from inside the container.
+This guide covers running Wordmark in a container. Wordmark is a client‑side SPA, but it is built with Vite — so the image uses a **multi‑stage build**: a Node stage compiles the static bundle (`npm ci && npm run build` → `dist/`), and a slim Nginx stage serves the result. All API calls still happen from your browser directly to the OpenAI/xAI endpoint you configure or a local LM Studio/Ollama server, never from inside the container.
 
 ## Images and Files
-- Base image: `nginx:alpine`
-- App root in container: `/usr/share/nginx/html`
+- Build stage: `node:22-alpine` (runs `npm ci` then `npm run build`)
+- Runtime base image: `nginx:1.28-alpine-slim`
+- App root in container: `/usr/share/nginx/html` (the built `dist/` output)
 - Default config: `docker/nginx.conf` (HTTP)
 - Optional HTTPS config: `docker/nginx-ssl.conf` (mount at runtime)
 
 ## Build
+The build happens inside the image — you do **not** need to run `npm run build` on the host first. The build context must include `package.json`, `package-lock.json`, `vite.config.js`, `index.html`, `src/`, and `public/` (all present by default; `.dockerignore` keeps `node_modules`, `tests`, and `docs` out).
+
 ```bash
 # Important: include the build context '.' at the end
 docker build -t wordmark:latest .

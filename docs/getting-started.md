@@ -1,18 +1,27 @@
 # Getting Started
 
-This app runs entirely in the browser. There is no server backend; configuration and keys live in browser storage.
+This app runs entirely in the browser. There is no server backend; configuration and keys live in browser storage. It is built with [Vite](https://vite.dev), so it must be served by the dev server or built first — opening `index.html` from the filesystem no longer works.
 
 Quick Start
 
-- Open `index.html` directly in your browser, or serve via HTTPS (recommended for some APIs and TTS).
+```bash
+npm install
+npm run dev          # dev server on http://localhost:3000 (opens automatically)
+```
+
 - Set API keys in Settings → API Keys.
 - Optionally enable Tool Calling in Settings → Tools; built-in helpers do not require extra keys.
 
 Serve Over HTTPS
 
-- Node: `http-server -S -C cert.pem -K key.pem -p 8000`
-- Python (3.10+ with SSL args): `python -m http.server 8000 --bind 127.0.0.1 --directory . --ssl-certfile cert.pem --ssl-keyfile key.pem`
-- Access at `https://localhost:8000` (accept the self-signed cert warning).
+- `npm run dev:https` — runs the Vite dev server over HTTPS (recommended for APIs, TTS, and geolocation, which require a secure context).
+- Accept the self-signed cert warning on first load.
+
+Production Build
+
+- `npm run build` — outputs a static, hashed bundle to `dist/`.
+- `npm run preview` — serves the built `dist/` on http://localhost:8080.
+- Deploy the contents of `dist/` to any static host (the project deploys to Vercel).
 
 API Keys (where to put them)
 

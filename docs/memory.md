@@ -38,7 +38,7 @@ Wordmark includes an optional, privacy‑friendly Memory feature that lets the a
 - Live updates: UI auto‑rerenders on memory changes
   - Events: `memories:changed` (add/remove/clear/trim), `memories:config` (enabled/limit)
 
-### Public Functions (attached to `window`)
+### Public Functions (exported from `src/js/utils/memoryStorage.js`)
 - `getMemoryConfig()`: `{ enabled, limit }`
 - `setMemoryEnabled(enabled: boolean)`
 - `setMemoryLimit(limit: number)`

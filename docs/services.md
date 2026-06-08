@@ -2,7 +2,7 @@
 
 ## Service Configuration
 
-Defined in `src/config/config.js` under `window.config.services` with a `defaultService` and configuration helpers accessed via `src/js/services/api/clientConfig.js`:
+Defined in `src/config/config.js` under `config.services` with a `defaultService` and configuration helpers accessed via `src/js/services/api/clientConfig.js`:
 
 - `getActiveServiceKey()` - Returns current service (openai, xai, lmstudio, ollama)
 - `getActiveModel()` - Returns selected model for active service
@@ -36,7 +36,7 @@ Local providers query available models at runtime:
 services.lmstudio.fetchAndUpdateModels()
 services.ollama.fetchAndUpdateModels()
 ```
-LM Studio hits `<baseUrl>/models`. Ollama prefers `<baseUrl>/models` and falls back to `/api/tags` if needed. Both update the dropdown via `window.uiHooks.updateLmStudioModelsDropdown`.
+LM Studio hits `<baseUrl>/models`. Ollama prefers `<baseUrl>/models` and falls back to `/api/tags` if needed. Both update the dropdown via `uiHooks.updateModelsDropdown`.
 
 ## Request Handling
 

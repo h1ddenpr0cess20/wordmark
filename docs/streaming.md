@@ -15,7 +15,7 @@ Wordmark breaks streaming responses into focused modules that cooperate to rende
 
 - Reasoning deltas (`response.reasoning.*`) render into a dedicated "Reasoning" accordion ahead of the main response text.
 - Tool and MCP events emit friendly status lines (in-progress, completed, failed) with timing metadata.
-- User preference (`window.userThinkingState`) keeps the accordion collapsed/expanded between turns.
+- User preference (`state.userThinkingState`) keeps the accordion collapsed/expanded between turns.
 
 ## Tool Output Handling
 
