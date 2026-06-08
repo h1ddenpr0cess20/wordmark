@@ -5,7 +5,7 @@
 /**
  * Initialize the marked library with custom configuration
  */
-function initializeMarked() {
+export function initializeMarked() {
   // Configure marked. Marked v16+ passes a single token object to renderer
   // methods, so the link renderer reads { href, title, tokens } and renders the
   // inline text via the bound parser, adding target/rel for safety.
@@ -22,15 +22,4 @@ function initializeMarked() {
       },
     },
   });
-
-  // Provide a markdown-it-compatible shim so existing code can call window.markdownit().render(...)
-  // This uses Marked under the hood.
-  window.markdownit = function() {
-    return {
-      render: (src) => marked.parse(src),
-    };
-  };
 }
-
-// Make function available globally
-window.initializeMarked = initializeMarked;

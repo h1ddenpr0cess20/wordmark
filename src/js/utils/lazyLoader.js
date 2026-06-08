@@ -2,6 +2,8 @@
  * Lazy loading utilities for optional modules to reduce initial page weight.
  */
 
+import { initializeMarked } from "../init/marked.js";
+
 export const lazyModulesLoaded = {};
 
 let galleryModule = null;
@@ -46,9 +48,7 @@ export function loadMobileHandling() {
 
 export function loadMarkedLibrary() {
   // Marked is bundled and imported in main.js; just ensure it's configured.
-  if (typeof window.initializeMarked === "function") {
-    window.initializeMarked();
-  }
+  initializeMarked();
   return Promise.resolve();
 }
 

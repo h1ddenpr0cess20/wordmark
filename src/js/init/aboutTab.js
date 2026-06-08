@@ -5,7 +5,7 @@
 /**
  * Initialize About tab information and configuration display
  */
-function initializeAboutTab() {
+export function initializeAboutTab() {
   // Set up About tab information
   const appVersionElement = document.getElementById("app-version");
   if (appVersionElement) {
@@ -23,6 +23,3 @@ function initializeAboutTab() {
     }
   }
 }
-
-// Make functions available globally
-window.initializeAboutTab = initializeAboutTab;

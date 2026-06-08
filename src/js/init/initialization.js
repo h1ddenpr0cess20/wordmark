@@ -18,6 +18,8 @@ import { updateHeaderInfo, updateModelSelector, updateFeatureStatus, initializeP
 import { initToolsSettings } from "../components/tools.js";
 import { initImageUploads } from "../components/attachments.js";
 import { initializeModelSettings } from "./modelSettings.js";
+import { initializeAboutTab } from "./aboutTab.js";
+import { initializeMarked } from "./marked.js";
 
 // Configure DOMPurify to allow YouTube iframes
 function configureDOMPurify() {
@@ -159,14 +161,10 @@ async function initialize() {
     // Initialize default values from config
     initializeDefaultValues();
 
-    // Initialize Markdown parser (Marked) and shim markdown-it API for rendering
-    if (typeof window.initializeMarked === "function") {
-      window.initializeMarked();
-      if (window.VERBOSE_LOGGING) {
-        console.info("Marked (markdown) initialized.");
-      }
-    } else {
-      console.warn("initializeMarked() not found; markdown may not render correctly.");
+    // Initialize Markdown parser (Marked)
+    initializeMarked();
+    if (window.VERBOSE_LOGGING) {
+      console.info("Marked (markdown) initialized.");
     }
 
     // Configure DOMPurify to allow YouTube iframes
