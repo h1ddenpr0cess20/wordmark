@@ -7,6 +7,7 @@ import { startNewConversation } from "../../services/history/persistence.js";
 import { updatePromptVisibility } from "../../components/ui/settingsControls.js";
 import { updateHeaderInfo, updateModelSelector } from "../../components/settings.js";
 import { setReasoningEffort, DEFAULT_REASONING_EFFORT } from "../modelSettings.js";
+import { DEFAULT_PERSONALITY, config } from "../../../config/config.js";
 function closePanelIfActive(closeSettingsPanel) {
   if (typeof closeSettingsPanel === 'function' && elements.settingsPanel && elements.settingsPanel.classList.contains('active')) {
     closeSettingsPanel();
@@ -73,7 +74,7 @@ export function setupButtonEventListeners({ closeSettingsPanel } = {}) {
       startNewConversation('Default Personality');
 
       if (elements.personalityInput) {
-        elements.personalityInput.value = window.DEFAULT_PERSONALITY;
+        elements.personalityInput.value = DEFAULT_PERSONALITY;
         elements.personalityInput.setAttribute('data-explicitly-set', 'true');
       }
       if (elements.personalityPromptRadio) {
@@ -148,8 +149,8 @@ export function setupButtonEventListeners({ closeSettingsPanel } = {}) {
       event.stopPropagation();
       event.stopImmediatePropagation();
 
-      const serviceKey = window.config?.defaultService;
-      const serviceConfig = serviceKey ? window.config?.services?.[serviceKey] : null;
+      const serviceKey = config?.defaultService;
+      const serviceConfig = serviceKey ? config?.services?.[serviceKey] : null;
       if (serviceConfig && typeof serviceConfig.fetchAndUpdateModels === 'function') {
         const serviceLabelMap = { lmstudio: 'LM Studio', ollama: 'Ollama', openai: 'OpenAI', xai: 'xAI' };
         const serviceLabel = serviceLabelMap[serviceKey] || serviceKey;

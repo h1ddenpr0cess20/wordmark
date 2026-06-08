@@ -2,9 +2,8 @@
  * Centralized application state and DOM element references.
  *
  * Modules should `import { state, elements } from "../init/state.js"` and read
- * or write properties on these objects. During the window-globals migration a
- * compatibility bridge in globals.js mirrors every key onto `window.*`, so code
- * that has not been converted yet keeps working against the same storage.
+ * or write properties on these objects. This is the authoritative store for
+ * shared runtime state and DOM references.
  */
 
 // Mutable runtime state.
@@ -48,6 +47,12 @@ export const state = {
 
   // Active vector store id for file-search (in-memory; not persisted here)
   activeVectorStore: null,
+
+  // Runtime logging flags (toggled at runtime; initial defaults here, the
+  // short-response guideline default text is seeded by config.js at load).
+  debug: false,
+  verboseLogging: false,
+  shortResponseGuideline: "",
 };
 
 // DOM element references — populated by dom.js after panels load.

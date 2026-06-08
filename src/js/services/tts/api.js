@@ -1,5 +1,6 @@
 import { elements } from "../../init/state.js";
 import { ttsConfig } from "./config.js";
+import { config } from "../../../config/config.js";
 
 export async function generateSpeech(text) {
   if (!ttsConfig.enabled) {
@@ -20,7 +21,7 @@ export async function generateSpeech(text) {
 }
 
 async function generateSpeechOpenai(text) {
-  const openaiApiKey = window.config.services.openai?.apiKey;
+  const openaiApiKey = config.services.openai?.apiKey;
 
   if (!openaiApiKey) {
     console.error("OpenAI API key not found for TTS. Please ensure your OpenAI API key is configured.");
@@ -71,7 +72,7 @@ async function generateSpeechOpenai(text) {
 }
 
 async function generateSpeechXai(text) {
-  const xaiApiKey = window.config.services.xai?.apiKey;
+  const xaiApiKey = config.services.xai?.apiKey;
 
   if (!xaiApiKey) {
     console.error("xAI API key not found for TTS. Please ensure your xAI API key is configured.");

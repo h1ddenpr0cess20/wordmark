@@ -1,3 +1,5 @@
+import { APP_VERSION, GITHUB_URL } from "../../config/config.js";
+import { state } from "./state.js";
 /**
  * About tab and configuration initialization for the chatbot application
  */
@@ -9,16 +11,16 @@ export function initializeAboutTab() {
   // Set up About tab information
   const appVersionElement = document.getElementById("app-version");
   if (appVersionElement) {
-    appVersionElement.textContent = window.APP_VERSION || "0.0.0";
-    if (window.VERBOSE_LOGGING) {
+    appVersionElement.textContent = APP_VERSION || "0.0.0";
+    if (state.verboseLogging) {
       console.info("App version set:", appVersionElement.textContent);
     }
   }
 
   const githubLinkElement = document.getElementById("github-link");
-  if (githubLinkElement && window.GITHUB_URL) {
-    githubLinkElement.href = window.GITHUB_URL;
-    if (window.VERBOSE_LOGGING) {
+  if (githubLinkElement && GITHUB_URL) {
+    githubLinkElement.href = GITHUB_URL;
+    if (state.verboseLogging) {
       console.info("GitHub URL set:", githubLinkElement.href);
     }
   }

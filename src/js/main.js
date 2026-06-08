@@ -2,7 +2,7 @@
 // Vendor libraries (dompurify, marked, highlight.js) are imported directly by
 // the modules that use them — no window globals.
 
-// Configuration (classic global side-effects: window.config, window.APP_VERSION, ...)
+// Configuration (classic global side-effects: config, APP_VERSION, ...)
 import '../config/config.js';
 
 // Shared application state and DOM element references.
@@ -44,6 +44,7 @@ import './init/aboutTab.js';
 import './init/services.js';
 import './init/eventListeners.js';
 import { initialize } from './init/initialization.js';
+import { APP_VERSION, config } from "../config/config.js";
 
 // App startup: load the HTML panels, then initialize the app once they're in
 // the DOM.

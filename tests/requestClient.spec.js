@@ -1,33 +1,21 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 
-// Mock global dependencies
-globalThis.window = {
-  config: {
-    services: {
-      openai: { apiKey: 'test-key', baseUrl: 'https://api.openai.com/v1' },
-      xai: { apiKey: 'test-xai-key', baseUrl: 'https://api.x.ai/v1' }
-    },
-    defaultService: 'openai',
-    getApiKey() {
-      const service = this.defaultService;
-      return this.services[service]?.apiKey || '';
-    },
-    getBaseUrl() {
-      const service = this.defaultService;
-      return this.services[service]?.baseUrl || '';
-    },
-  },
-  handleStreamedResponse: async () => ({ response: {}, outputText: '', reasoningText: '' }),
-  responsesClient: {
-    toolHandlers: {}
-  },
-  toolImplementations: {},
-  VERBOSE_LOGGING: false,
-  shouldStopGeneration: false,
+// requestClient.js reads the shared config singleton via clientConfig.js.
+// Provide browser stubs, then drive the real config object.
+globalThis.window = globalThis.window || {};
+globalThis.localStorage = {
+  storage: {},
+  getItem(key) { return this.storage[key] || null; },
+  setItem(key, value) { this.storage[key] = value; },
 };
 
+const { config } = await import('../src/config/config.js');
 const { buildRequestBody, buildHeaders } = await import('../src/js/services/api/requestClient.js');
+
+config.defaultService = 'openai';
+config.services.openai.apiKey = 'test-key';
+config.services.xai.apiKey = 'test-xai-key';
 
 test('buildRequestBody includes basic required fields', () => {
   const body = buildRequestBody({
@@ -92,8 +80,8 @@ test('buildRequestBody includes previousResponseId when provided', () => {
 
 test('buildRequestBody handles xAI service quirks', () => {
   // Mock xAI as active service by changing defaultService
-  const originalService = globalThis.window.config.defaultService;
-  globalThis.window.config.defaultService = 'xai';
+  const originalService = config.defaultService;
+  config.defaultService = 'xai';
 
   const tools = [{ type: 'web_search' }];
   const body = buildRequestBody({
@@ -106,12 +94,12 @@ test('buildRequestBody handles xAI service quirks', () => {
   assert.equal(body.text, undefined, 'xAI should remove text.format when using server tools');
 
   // Restore
-  globalThis.window.config.defaultService = originalService;
+  config.defaultService = originalService;
 });
 
 test('buildRequestBody removes xAI text format when MCP tools are enabled', () => {
-  const originalService = globalThis.window.config.defaultService;
-  globalThis.window.config.defaultService = 'xai';
+  const originalService = config.defaultService;
+  config.defaultService = 'xai';
 
   const tools = [{ type: 'mcp', server_label: 'demo', server_url: 'https://example.com' }];
   const body = buildRequestBody({
@@ -122,7 +110,7 @@ test('buildRequestBody removes xAI text format when MCP tools are enabled', () =
 
   assert.equal(body.text, undefined, 'xAI should remove text.format when MCP tools are present');
 
-  globalThis.window.config.defaultService = originalService;
+  config.defaultService = originalService;
 });
 
 test('buildHeaders includes Authorization header', () => {

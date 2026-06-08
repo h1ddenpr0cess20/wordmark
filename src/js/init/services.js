@@ -6,19 +6,20 @@ import { elements, state } from "./state.js";
 import { updateParameterControls } from "../components/ui/settingsControls.js";
 import { updateHeaderInfo, updateModelSelector, updateFeatureStatus, populateServiceSelector } from "../components/settings.js";
 import { updateMasterToolCallingStatus, refreshToolSettingsUI } from "../components/tools.js";
+import { DEFAULT_PERSONALITY, DEFAULT_SHORT_RESPONSE_GUIDELINE, DEFAULT_SYSTEM_PROMPT, config } from "../../config/config.js";
 
 /**
  * Initialize services and models
  */
 export function initializeServicesAndModels() {
   // Initialize the service selector
-  if (elements.serviceSelector && window.config) {
+  if (elements.serviceSelector && config) {
     populateServiceSelector();
-    if (typeof window.config.normalizeServiceKey === "function") {
-      window.config.defaultService = window.config.normalizeServiceKey(window.config.defaultService);
+    if (typeof config.normalizeServiceKey === "function") {
+      config.defaultService = config.normalizeServiceKey(config.defaultService);
     }
-    elements.serviceSelector.value = window.config.defaultService;
-    if (window.VERBOSE_LOGGING) {
+    elements.serviceSelector.value = config.defaultService;
+    if (state.verboseLogging) {
       console.info("Service selector initialized.");
     }
 
@@ -39,13 +40,13 @@ export function initializeServicesAndModels() {
  *   the selected service (so the caller can skip its own model fetch).
  */
 export async function selectDefaultService() {
-  const services = window.config?.services || {};
+  const services = config?.services || {};
   const hasCloudKey = ["openai", "xai"].some(key => {
     const svc = services[key];
     return svc && typeof svc.apiKey === "string" && svc.apiKey.trim() !== "";
   });
 
-  const current = window.config?.defaultService;
+  const current = config?.defaultService;
   const currentIsCloud = current === "openai" || current === "xai";
 
   // Only auto-pick when the default is a cloud provider with no key available.
@@ -71,7 +72,7 @@ export async function selectDefaultService() {
       continue;
     }
     if (Array.isArray(svc.models) && svc.models.some(isUsableModel)) {
-      window.config.defaultService = local;
+      config.defaultService = local;
       if (elements.serviceSelector) {
         elements.serviceSelector.value = local;
       }
@@ -80,7 +81,7 @@ export async function selectDefaultService() {
       updateParameterControls();
       updateHeaderInfo();
 
-      if (window.VERBOSE_LOGGING) {
+      if (state.verboseLogging) {
         console.info(`No cloud API keys found; defaulting to ${local}.`);
       }
       return true;
@@ -94,17 +95,17 @@ export async function selectDefaultService() {
  * Initialize models for services that fetch dynamically
  */
 export function initializeServiceModels() {
-  const serviceKey = window.config?.defaultService;
-  const serviceConfig = serviceKey ? window.config?.services?.[serviceKey] : null;
+  const serviceKey = config?.defaultService;
+  const serviceConfig = serviceKey ? config?.services?.[serviceKey] : null;
 
   if (serviceConfig && typeof serviceConfig.fetchAndUpdateModels === "function") {
     serviceConfig.fetchAndUpdateModels()
       .then(() => {
-        if (window.VERBOSE_LOGGING) {
+        if (state.verboseLogging) {
           console.info("Models fetched on initialization for:", serviceKey);
         }
         // Update model selector after fetching models
-        if (window.config.defaultService === serviceKey) {
+        if (config.defaultService === serviceKey) {
           updateModelSelector();
         }
       })
@@ -128,7 +129,7 @@ export function initializeConversationName() {
   } else if (elements.noPromptRadio && elements.noPromptRadio.checked) {
     state.currentConversationName = "No System Prompt";
   } else {
-    state.currentConversationName = `Personality: ${window.DEFAULT_PERSONALITY}`;
+    state.currentConversationName = `Personality: ${DEFAULT_PERSONALITY}`;
   }
 }
 
@@ -138,16 +139,16 @@ export function initializeConversationName() {
 export function initializeDefaultValues() {
   // Initialize default values from config
   if (elements.systemPromptCustom) {
-    elements.systemPromptCustom.value = window.DEFAULT_SYSTEM_PROMPT;
-    if (window.VERBOSE_LOGGING) {
+    elements.systemPromptCustom.value = DEFAULT_SYSTEM_PROMPT;
+    if (state.verboseLogging) {
       console.info("Default system prompt set.");
     }
   }
 
   if (elements.personalityInput) {
-    elements.personalityInput.value = window.DEFAULT_PERSONALITY;
+    elements.personalityInput.value = DEFAULT_PERSONALITY;
     elements.personalityInput.setAttribute("data-explicitly-set", "true");
-    if (window.VERBOSE_LOGGING) {
+    if (state.verboseLogging) {
       console.info("Default personality set.");
     }
   }
@@ -161,11 +162,11 @@ export function initializeToolCalling() {
   const stored = localStorage.getItem("enableFunctionCalling");
   if (stored !== null) {
     enabled = stored === "true";
-  } else if (typeof window.config.enableFunctionCalling === "boolean") {
-    enabled = window.config.enableFunctionCalling;
+  } else if (typeof config.enableFunctionCalling === "boolean") {
+    enabled = config.enableFunctionCalling;
   }
 
-  window.config.enableFunctionCalling = enabled;
+  config.enableFunctionCalling = enabled;
 
   if (elements.toolCallingToggle) {
     elements.toolCallingToggle.checked = enabled;
@@ -196,9 +197,9 @@ export function initializeVerboseMode() {
   elements.verboseModeToggle.checked = enabled;
   // Set the guideline string based on toggle
   if (enabled) {
-    window.SHORT_RESPONSE_GUIDELINE = "";
+    state.shortResponseGuideline = "";
   } else {
-    window.SHORT_RESPONSE_GUIDELINE = window.DEFAULT_SHORT_RESPONSE_GUIDELINE || "";
+    state.shortResponseGuideline = DEFAULT_SHORT_RESPONSE_GUIDELINE || "";
   }
 }
 

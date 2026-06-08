@@ -1,6 +1,7 @@
 import { ttsConfig, ttsRuntime, ttsSvgIcons } from "./config.js";
 import { ttsAudioResources } from "./resources.js";
 import { playNextMessageInQueue, playQueuedTtsMessage } from "./queue.js";
+import { state } from "../../init/state.js";
 
 export function stopTtsAudio() {
   if (!ttsRuntime.activeTtsAudio) {
@@ -103,7 +104,7 @@ export function handleTtsAudioEnded(playPauseButton, statusText, audioUrl, isPla
 }
 
 export function handleAudioEnded() {
-  if (window.VERBOSE_LOGGING) {
+  if (state.verboseLogging) {
     console.info("Audio finished, checking for next message in queue");
   }
   ttsRuntime.activeTtsAudio = null;

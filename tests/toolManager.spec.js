@@ -3,13 +3,8 @@ import assert from 'node:assert/strict';
 
 // Mock global dependencies
 globalThis.window = {
-  config: {
-    enableFunctionCalling: true,
-  },
   weatherToolHandler: async () => ({ forecast: 'sunny' }),
   getMemoryConfig: () => ({ enabled: false }),
-  VERBOSE_LOGGING: false,
-  MCP_ASSUME_ONLINE: false,
 };
 
 // Mock localStorage
@@ -29,6 +24,7 @@ globalThis.localStorage = {
   },
 };
 
+const { config } = await import('../src/config/config.js');
 const {
   getToolCatalog,
   isToolEnabled,
@@ -38,6 +34,8 @@ const {
   unregisterMcpServer,
   getEnabledToolDefinitions,
 } = await import('../src/js/services/api/toolManager.js');
+
+config.enableFunctionCalling = true;
 
 test('getToolCatalog returns array of tools', () => {
   const catalog = getToolCatalog();
@@ -165,12 +163,12 @@ test('getEnabledToolDefinitions filters by service', () => {
 });
 
 test('getEnabledToolDefinitions respects master toggle', () => {
-  globalThis.window.config.enableFunctionCalling = false;
+  config.enableFunctionCalling = false;
 
   const tools = getEnabledToolDefinitions('openai');
   assert.equal(tools.length, 0, 'should return no tools when master toggle is off');
 
-  globalThis.window.config.enableFunctionCalling = true;
+  config.enableFunctionCalling = true;
 });
 
 test('getEnabledToolDefinitions excludes disabled tools', () => {
@@ -206,8 +204,8 @@ test('getEnabledToolDefinitions handles xAI service specially', () => {
 });
 
 test('getEnabledToolDefinitions returns no tools for disabled services', () => {
-  const originalServices = globalThis.window.config.services;
-  globalThis.window.config.services = {
+  const originalServices = config.services;
+  config.services = {
     openai: { enabled: true },
     xai: { enabled: false },
   };
@@ -215,7 +213,7 @@ test('getEnabledToolDefinitions returns no tools for disabled services', () => {
   const xaiTools = getEnabledToolDefinitions('xai');
   assert.deepEqual(xaiTools, [], 'disabled xAI service should not receive tools');
 
-  globalThis.window.config.services = originalServices;
+  config.services = originalServices;
 });
 
 test('getEnabledToolDefinitions omits image tool for Codex models', () => {

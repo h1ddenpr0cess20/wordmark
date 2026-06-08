@@ -3,6 +3,7 @@ import { getMemoriesForPrompt } from "../../utils/memoryStorage.js";
 import { getLocationForPrompt } from "../location.js";
 import { getMediaToolInstructions } from "../mediaTools.js";
 import { getToolsDescription } from "../../components/tools.js";
+import { DEFAULT_PERSONALITY, DEFAULT_SYSTEM_PROMPT, PERSONALITY_PROMPT_TEMPLATE, config } from "../../../config/config.js";
 /**
  * Message preparation helpers for the Responses API.
  */
@@ -92,7 +93,7 @@ function createImagePart(filename, role, attachments) {
   const imageUrl = resolveImageUrl(filename, attachments);
   if (!imageUrl) {
     // Only show warning for actual image attachments, not document/vector store files
-    if (typeof window !== 'undefined' && window.VERBOSE_LOGGING) {
+    if (typeof window !== 'undefined' && state.verboseLogging) {
       // Check if this filename corresponds to an image attachment
       const isImageAttachment = Array.isArray(attachments) && 
         attachments.some(att => att && att.filename === filename && att.type === 'image');
@@ -349,8 +350,8 @@ export function buildInstructions() {
   if (elements.personalityPromptRadio && elements.personalityPromptRadio.checked) {
     return buildPersonalityInstruction();
   }
-  const basePrompt = window.DEFAULT_SYSTEM_PROMPT || '';
-  return `${basePrompt}${window.SHORT_RESPONSE_GUIDELINE || ''}`.trim();
+  const basePrompt = DEFAULT_SYSTEM_PROMPT || '';
+  return `${basePrompt}${state.shortResponseGuideline || ''}`.trim();
 }
 
 export function buildDeveloperMessage(model) {
@@ -374,13 +375,13 @@ export function buildDeveloperMessage(model) {
   if (!developerBlock.includes(timestamp)) {
     developerBlock += `\n(Generated on ${timestamp})`;
   }
-  if (window.config?.enableFunctionCalling) {
+  if (config?.enableFunctionCalling) {
     const toolsDescription = getToolsDescription();
     if (toolsDescription) {
       developerBlock += `\n${toolsDescription.trim()}`;
     }
   }
-  if (window.config?.enableFunctionCalling) {
+  if (config?.enableFunctionCalling) {
     const mediaToolInstructions = getMediaToolInstructions();
     if (mediaToolInstructions) {
       developerBlock += `\n${mediaToolInstructions.trim()}`;
@@ -396,11 +397,11 @@ export function buildDeveloperMessage(model) {
 
 function buildPersonalityInstruction() {
   const personality = (elements.personalityInput && elements.personalityInput.value.trim())
-    || window.DEFAULT_PERSONALITY
+    || DEFAULT_PERSONALITY
     || 'a helpful assistant';
-  const template = window.PERSONALITY_PROMPT_TEMPLATE
+  const template = PERSONALITY_PROMPT_TEMPLATE
     || 'Assume the personality of {personality}. Roleplay and never break character.{guideline}';
-  const guideline = window.SHORT_RESPONSE_GUIDELINE || '';
+  const guideline = state.shortResponseGuideline || '';
   const datetime = buildTimestampString();
   const location = buildLocationString();
   return template

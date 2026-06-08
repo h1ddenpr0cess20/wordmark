@@ -3,6 +3,7 @@
  */
 
 import { state, elements } from "./state.js";
+import { config } from "../../config/config.js";
 
 const REASONING_EFFORT_STORAGE_KEY = "reasoningEffort";
 export const DEFAULT_REASONING_EFFORT = "medium";
@@ -24,7 +25,7 @@ function loadReasoningEffortFromStorage() {
       return normalizeReasoningEffort(stored);
     }
   } catch (error) {
-    if (window.VERBOSE_LOGGING) {
+    if (state.verboseLogging) {
       console.warn("Unable to load reasoning effort from storage:", error);
     }
   }
@@ -35,7 +36,7 @@ function persistReasoningEffort(value) {
   try {
     localStorage.setItem(REASONING_EFFORT_STORAGE_KEY, value);
   } catch (error) {
-    if (window.VERBOSE_LOGGING) {
+    if (state.verboseLogging) {
       console.warn("Unable to save reasoning effort preference:", error);
     }
   }
@@ -60,7 +61,7 @@ export function updateReasoningAvailability() {
     return;
   }
   const modelName = elements.modelSelector ? elements.modelSelector.value : "";
-  const activeService = elements.serviceSelector ? elements.serviceSelector.value : (window.config && window.config.defaultService) || "openai";
+  const activeService = elements.serviceSelector ? elements.serviceSelector.value : (config && config.defaultService) || "openai";
   const supported = modelSupportsReasoning(modelName) && activeService !== "xai";
   elements.reasoningEffortSelector.disabled = !supported;
   if (!supported) {
@@ -87,7 +88,7 @@ function loadVerbosityFromStorage() {
       return normalizeVerbosity(stored);
     }
   } catch (error) {
-    if (window.VERBOSE_LOGGING) {
+    if (state.verboseLogging) {
       console.warn("Unable to load verbosity preference from storage:", error);
     }
   }
@@ -98,7 +99,7 @@ function persistVerbosity(value) {
   try {
     localStorage.setItem(VERBOSITY_STORAGE_KEY, value);
   } catch (error) {
-    if (window.VERBOSE_LOGGING) {
+    if (state.verboseLogging) {
       console.warn("Unable to save verbosity preference:", error);
     }
   }
@@ -140,7 +141,7 @@ export function initializeModelSettings() {
     }
   }
 
-  if (window.VERBOSE_LOGGING) {
+  if (state.verboseLogging) {
     console.info("Model settings initialized from config with reasoning effort and verbosity:", {
       reasoning: state.currentReasoningEffort,
       verbosity: state.currentVerbosity,
@@ -152,7 +153,7 @@ export function initializeModelSettings() {
 
 export function getReasoningEffort() {
   const modelName = elements.modelSelector ? elements.modelSelector.value : "";
-  const activeService = elements.serviceSelector ? elements.serviceSelector.value : (window.config && window.config.defaultService) || "openai";
+  const activeService = elements.serviceSelector ? elements.serviceSelector.value : (config && config.defaultService) || "openai";
   if (activeService === "xai" || !modelSupportsReasoning(modelName)) {
     return null;
   }

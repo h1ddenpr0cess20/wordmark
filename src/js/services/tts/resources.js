@@ -1,6 +1,7 @@
 import { saveAudioToDb } from "../../utils/audioStorage.js";
 import { ttsConfig, ttsRuntime } from "./config.js";
 import { stopTtsAudio } from "./playback.js";
+import { state } from "../../init/state.js";
 
 export const ttsAudioResources = {
   activeUrls: new Map(),
@@ -69,7 +70,7 @@ export const ttsAudioResources = {
       }
     });
 
-    if (window.VERBOSE_LOGGING) {
+    if (state.verboseLogging) {
       console.info("Cleared all stored audio resources");
     }
   },
@@ -79,7 +80,7 @@ export function clearTtsAudioResources() {
   stopTtsAudio();
   ttsAudioResources.clearAll();
 
-  if (window.VERBOSE_LOGGING) {
+  if (state.verboseLogging) {
     console.info("All audio resources cleared");
   }
 }

@@ -282,7 +282,7 @@ export async function runTurn({
         && message.includes('Client side tool is not supported for multi-agent models');
       if (shouldRetryWithoutClientSideTools) {
         enabledTools = enabledTools.filter(tool => !isClientSideToolType(tool?.type));
-        if (window.VERBOSE_LOGGING) {
+        if (state.verboseLogging) {
           console.warn(`Retrying xAI request for '${resolvedModel}' without client-side tools.`);
         }
         continue;
@@ -315,7 +315,7 @@ export async function runTurn({
           handler = toolImplementations[call.name];
         }
         if (!handler) {
-          if (window.VERBOSE_LOGGING) {
+          if (state.verboseLogging) {
             console.info(`Skipping server-managed tool call '${call.name || '<unknown>'}'`);
           }
           return null;

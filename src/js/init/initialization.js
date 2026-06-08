@@ -35,13 +35,13 @@ import {
 // Main initialization function
 export async function initialize() {
   try {
-    if (window.VERBOSE_LOGGING) {
+    if (state.verboseLogging) {
       console.info("Initializing chatbot application...");
     }
 
     // Initialize DOM references first
     initializeDOMReferences();
-    if (window.VERBOSE_LOGGING) {
+    if (state.verboseLogging) {
       console.info("DOM references initialized.");
     }
 
@@ -61,7 +61,7 @@ export async function initialize() {
 
     // Initialize Markdown parser (Marked)
     initializeMarked();
-    if (window.VERBOSE_LOGGING) {
+    if (state.verboseLogging) {
       console.info("Marked (markdown) initialized.");
     }
 
@@ -76,19 +76,19 @@ export async function initialize() {
 
     // Setup event listeners
     setupEventListeners();
-    if (window.VERBOSE_LOGGING) {
+    if (state.verboseLogging) {
       console.info("Event listeners set up.");
     }
 
     // Initialize tabs in settings panel
     initTabs();
-    if (window.VERBOSE_LOGGING) {
+    if (state.verboseLogging) {
       console.info("Settings panel tabs initialized.");
     }
 
     // Initialize tools settings
     initToolsSettings();
-    if (window.VERBOSE_LOGGING) {
+    if (state.verboseLogging) {
       console.info("Tools settings initialized.");
     }
 
@@ -96,7 +96,7 @@ export async function initialize() {
     {
       try {
         initMemorySettings();
-        if (window.VERBOSE_LOGGING) {
+        if (state.verboseLogging) {
           console.info("Memory settings initialized.");
         }
         // Sync feature badges after memory init
@@ -110,7 +110,7 @@ export async function initialize() {
     // Initialize MCP servers management
     try {
       initMCPServers();
-      if (window.VERBOSE_LOGGING) {
+      if (state.verboseLogging) {
         console.info("MCP servers initialized.");
       }
     } catch (e) {
@@ -120,7 +120,7 @@ export async function initialize() {
     // Try to load from URL if available
     try {
       loadFromUrl();
-      if (window.VERBOSE_LOGGING) {
+      if (state.verboseLogging) {
         console.info("Loaded chat state from URL (if present).");
       }
     } catch (e) {
@@ -135,7 +135,7 @@ export async function initialize() {
 
     // Initialize mobile keyboard handling
     initializeMobileKeyboardHandling();
-    if (window.VERBOSE_LOGGING) {
+    if (state.verboseLogging) {
       console.info("Mobile keyboard handling initialized.");
     }
     // Call these functions to initialize the UI
@@ -143,7 +143,7 @@ export async function initialize() {
 
     // Ensure API keys are loaded before fetching models
     ensureApiKeysLoaded();
-    if (window.VERBOSE_LOGGING) {
+    if (state.verboseLogging) {
       console.info("API keys loaded from localStorage.");
     }
 
@@ -167,7 +167,7 @@ export async function initialize() {
 
     updateModelSelector();
     updateHeaderInfo();
-    if (window.VERBOSE_LOGGING) {
+    if (state.verboseLogging) {
       console.info("UI controls and selectors initialized.");
     }
 
@@ -202,7 +202,7 @@ export async function initialize() {
       openApiKeysTabIfNeeded();
     }, 2000);
 
-    if (window.VERBOSE_LOGGING) {
+    if (state.verboseLogging) {
       console.info("Chatbot application initialization complete.");
     }
 

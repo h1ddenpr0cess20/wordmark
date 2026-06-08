@@ -7,6 +7,7 @@ import { appendMessage } from "../../components/ui/chatMessages.js";
 import { renderWordmarkLogo } from "../../components/logo.js";
 import { setupImageInteractions } from "../../components/ui/imageInteractions.js";
 import { updateHeaderInfo, updateModelSelector } from "../../components/settings.js";
+import { config } from "../../../config/config.js";
 
 function createMissingMediaPlaceholder(filename, mediaType = 'image') {
   const label = mediaType === 'video' ? 'Video' : 'Image';
@@ -265,16 +266,16 @@ export function renderConversationMessages(convo, imageCache) {
     updatePromptVisibility();
   }
 
-  if (convo.service && elements.serviceSelector && window.config) {
+  if (convo.service && elements.serviceSelector && config) {
     const serviceOption = Array.from(elements.serviceSelector.options || []).find(
       option => option.value === convo.service,
     );
 
     if (serviceOption && !serviceOption.disabled) {
-      window.config.defaultService = convo.service;
+      config.defaultService = convo.service;
       elements.serviceSelector.value = convo.service;
 
-      const serviceConfig = window.config.services?.[convo.service];
+      const serviceConfig = config.services?.[convo.service];
       if (serviceConfig && typeof serviceConfig.fetchAndUpdateModels === 'function') {
         const serviceLabel = convo.service === 'lmstudio'
           ? 'LM Studio'

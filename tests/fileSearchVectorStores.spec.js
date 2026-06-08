@@ -1,24 +1,21 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 
+// runTurn reads the shared config singleton via clientConfig.js. Each test
+// resets globalThis.window/localStorage, but config is a module singleton, so
+// seed the active OpenAI service key once up front.
+globalThis.window = globalThis.window || {};
+globalThis.localStorage = globalThis.localStorage || {
+  getItem: () => null, setItem: () => {}, removeItem: () => {},
+};
+const { config } = await import('../src/config/config.js');
+config.defaultService = 'openai';
+config.services.openai.apiKey = 'test-key';
+config.services.openai.baseUrl = 'https://api.openai.com/v1';
+
 test('file_search attaches provided vectorStoreId when no stored IDs exist', async (t) => {
   // Fresh globals per test
   globalThis.window = {
-    config: {
-      services: {
-        openai: { apiKey: 'test-key', baseUrl: 'https://api.openai.com/v1' },
-        xai: { apiKey: 'test-xai-key', baseUrl: 'https://api.x.ai/v1' },
-      },
-      defaultService: 'openai',
-      getApiKey() {
-        const service = this.defaultService;
-        return this.services[service]?.apiKey || '';
-      },
-      getBaseUrl() {
-        const service = this.defaultService;
-        return this.services[service]?.baseUrl || '';
-      },
-    },
     handleStreamedResponse: async () => ({ response: {}, outputText: '', reasoningText: '' }),
     responsesClient: { toolHandlers: {} },
     toolImplementations: {},
@@ -75,21 +72,6 @@ test('file_search attaches provided vectorStoreId when no stored IDs exist', asy
 test('file_search attaches all active vector stores from storage when none provided explicitly', async (t) => {
   // Fresh globals per test
   globalThis.window = {
-    config: {
-      services: {
-        openai: { apiKey: 'test-key', baseUrl: 'https://api.openai.com/v1' },
-        xai: { apiKey: 'test-xai-key', baseUrl: 'https://api.x.ai/v1' },
-      },
-      defaultService: 'openai',
-      getApiKey() {
-        const service = this.defaultService;
-        return this.services[service]?.apiKey || '';
-      },
-      getBaseUrl() {
-        const service = this.defaultService;
-        return this.services[service]?.baseUrl || '';
-      },
-    },
     handleStreamedResponse: async () => ({ response: {}, outputText: '', reasoningText: '' }),
     responsesClient: { toolHandlers: {} },
     toolImplementations: {},
@@ -153,21 +135,6 @@ test('file_search attaches all active vector stores from storage when none provi
 test('file_search dedupes and merges storage + explicit vectorStoreId', async (t) => {
   // Fresh globals per test
   globalThis.window = {
-    config: {
-      services: {
-        openai: { apiKey: 'test-key', baseUrl: 'https://api.openai.com/v1' },
-        xai: { apiKey: 'test-xai-key', baseUrl: 'https://api.x.ai/v1' },
-      },
-      defaultService: 'openai',
-      getApiKey() {
-        const service = this.defaultService;
-        return this.services[service]?.apiKey || '';
-      },
-      getBaseUrl() {
-        const service = this.defaultService;
-        return this.services[service]?.baseUrl || '';
-      },
-    },
     handleStreamedResponse: async () => ({ response: {}, outputText: '', reasoningText: '' }),
     responsesClient: { toolHandlers: {} },
     toolImplementations: {},

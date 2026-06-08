@@ -10,6 +10,7 @@ import {
   clearTtsAudioResources,
   playNextMessageInQueue,
 } from "../../services/tts.js";
+import { config } from "../../../config/config.js";
 import { initializeTts, populateTtsVoiceSelector } from "../ttsInitialization.js";
 import { updateFeatureStatus } from "../../components/settings.js";
 
@@ -73,8 +74,8 @@ export function setupTtsEventListeners() {
       const provider = availableTtsVoices?.[ttsConfig.provider] ? ttsConfig.provider : "openai";
       ttsConfig.provider = provider;
       const apiKey = provider === "xai"
-        ? window.config.services.xai?.apiKey
-        : window.config.services.openai?.apiKey;
+        ? config.services.xai?.apiKey
+        : config.services.openai?.apiKey;
       if (!apiKey) {
         return;
       }

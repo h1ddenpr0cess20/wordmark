@@ -2,7 +2,7 @@
  * TTS initialization for the chatbot application
  */
 
-import { elements } from "./state.js";
+import { elements, state } from "./state.js";
 import { setupMobileKeyboardHandling } from "../utils/mobileHandling.js";
 import { ttsConfig, availableTtsVoices, initTtsReferences } from "../services/tts.js";
 
@@ -88,7 +88,7 @@ export function populateTtsVoiceSelector() {
  */
 export function initializeMobileKeyboardHandling() {
   setupMobileKeyboardHandling();
-  if (window.VERBOSE_LOGGING) {
+  if (state.verboseLogging) {
     console.info("Mobile keyboard handling initialized.");
   }
 }

@@ -1,4 +1,5 @@
 import { elements } from "../../init/state.js";
+import { config } from "../../../config/config.js";
 export function updatePromptVisibility() {
   const personalityContainer = document.getElementById("personality-container");
   const customPromptContainer = document.getElementById("custom-prompt-container");
@@ -38,8 +39,8 @@ export function updatePromptVisibility() {
 }
 
 export function updateParameterControls() {
-  const currentService = window.config?.defaultService;
-  const serviceConfig = currentService ? window.config?.services?.[currentService] : null;
+  const currentService = config?.defaultService;
+  const serviceConfig = currentService ? config?.services?.[currentService] : null;
   const hasDynamicModels = serviceConfig && typeof serviceConfig.fetchAndUpdateModels === "function";
 
   const refreshButton = document.getElementById("refresh-models");

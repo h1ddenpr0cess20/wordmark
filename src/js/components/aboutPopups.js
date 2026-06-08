@@ -4,6 +4,7 @@ import privacyPolicyHtml from "../../html/privacy-policy.html?raw";
 import contactHtml from "../../html/contact.html?raw";
 import termsOfServiceHtml from "../../html/terms-of-service.html?raw";
 import helpGuideHtml from "../../html/help-guide.html?raw";
+import { state } from "../init/state.js";
 
 // Bundled standalone page markup keyed by their source path.
 const ABOUT_PAGE_HTML = {
@@ -70,7 +71,7 @@ async function loadContentIntoContainer(url, containerId) {
 
   const html = ABOUT_PAGE_HTML[url];
   if (typeof html !== "string") {
-    if (window.VERBOSE_LOGGING) {
+    if (state.verboseLogging) {
       console.warn("No bundled content registered for", url);
     }
     // Keep fallback content visible
@@ -90,11 +91,11 @@ async function loadContentIntoContainer(url, containerId) {
     if (mainContent) {
       container.innerHTML = mainContent.innerHTML;
       container.dataset.loaded = "true";
-    } else if (window.VERBOSE_LOGGING) {
+    } else if (state.verboseLogging) {
       console.warn("No main content found in", url);
     }
   } catch (error) {
-    if (window.VERBOSE_LOGGING) {
+    if (state.verboseLogging) {
       console.warn("About popup content parse failed:", error);
     }
     // Keep fallback content visible

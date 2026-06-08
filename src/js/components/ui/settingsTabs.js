@@ -1,5 +1,7 @@
 import { getApiKey } from "../../services/apiKeys.js";
 import { openSettingsAndSwitch } from "../../init/eventListeners/settingsPanel.js";
+import { config } from "../../../config/config.js";
+import { state } from "../../init/state.js";
 export function initTabs() {
   const tabButtons = document.querySelectorAll('.tab-button');
   const tabContents = document.querySelectorAll('.tab-content');
@@ -57,11 +59,11 @@ export function switchToTab(tabId) {
 }
 
 function checkApiKeysMissing() {
-  if (!window.config || !window.config.services) {
+  if (!config || !config.services) {
     return false;
   }
 
-  const currentService = window.config.defaultService;
+  const currentService = config.defaultService;
   if (currentService === 'lmstudio' || currentService === 'ollama') {
     return false;
   }
@@ -76,7 +78,7 @@ export function openApiKeysTabIfNeeded() {
   }
 
   openSettingsAndSwitch('tab-apikeys');
-  if (window.VERBOSE_LOGGING) {
+  if (state.verboseLogging) {
     console.info('Automatically opened API keys tab via helper due to missing API key');
   }
 }

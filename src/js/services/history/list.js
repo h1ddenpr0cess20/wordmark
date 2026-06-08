@@ -3,6 +3,7 @@ import {
   getAllConversationsFromDb,
   deleteConversationFromDb,
 } from "../../utils/conversationStorage.js";
+import { DEFAULT_PERSONALITY } from "../../../config/config.js";
 import { startNewConversation, loadConversation, renameConversation } from "./persistence.js";
 
 export function renderChatHistoryList() {
@@ -254,7 +255,7 @@ export function renderChatHistoryList() {
         let promptClass = 'none';
         if (convo.systemPrompt) {
           if (convo.systemPrompt.type === 'personality') {
-            promptInfo = convo.systemPrompt.content || window.DEFAULT_PERSONALITY || 'Default';
+            promptInfo = convo.systemPrompt.content || DEFAULT_PERSONALITY || 'Default';
             promptClass = 'personality';
           } else if (convo.systemPrompt.type === 'custom') {
             const content = convo.systemPrompt.content || '';

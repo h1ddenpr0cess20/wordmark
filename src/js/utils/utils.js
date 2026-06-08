@@ -58,7 +58,7 @@ export function toggleThinking(id, event) {
   state.userThinkingState[id] = wasCollapsed === true;
 
   // Debug logging
-  if (window.VERBOSE_LOGGING) {
+  if (state.verboseLogging) {
     console.log(`Toggled thinking container ${id}: ${wasCollapsed ? "expanded" : "collapsed"}`);
   }
 

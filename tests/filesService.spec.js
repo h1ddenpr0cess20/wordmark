@@ -2,16 +2,22 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 
 const originalFetch = global.fetch;
-const originalWindow = global.window;
+
+globalThis.window = globalThis.window || {};
+globalThis.localStorage = {
+  storage: {},
+  getItem(key) { return this.storage[key] || null; },
+  setItem(key, value) { this.storage[key] = value; },
+};
+
+const { config } = await import('../src/config/config.js');
+const { elements } = await import('../src/js/init/state.js');
 
 function setupWindow() {
-  global.window = {
-    config: {
-      getApiKey: () => 'test-key',
-      getBaseUrl: () => 'https://api.example.com',
-    },
-    serviceSelector: { value: 'openai' },
-  };
+  config.defaultService = 'openai';
+  config.services.openai.apiKey = 'test-key';
+  config.services.openai.baseUrl = 'https://api.example.com';
+  elements.serviceSelector = { value: 'openai' };
 }
 
 test('listAssistantFiles returns data on success', async () => {
@@ -126,5 +132,4 @@ test('deleteAllAssistantFiles aggregates successes and errors', async () => {
 
 test.after(() => {
   global.fetch = originalFetch;
-  global.window = originalWindow;
 });

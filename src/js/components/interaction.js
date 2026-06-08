@@ -29,7 +29,7 @@ export async function sendMessage() {
   const hasDocuments = state.pendingDocuments && state.pendingDocuments.length > 0;
 
   if (!message && !hasImages && !hasDocuments) {
-    if (window.VERBOSE_LOGGING) {
+    if (state.verboseLogging) {
       console.info("No message entered. sendMessage aborted.");
     }
     return;
@@ -37,7 +37,7 @@ export async function sendMessage() {
 
   state.shouldStopGeneration = false;
 
-  if (window.VERBOSE_LOGGING) {
+  if (state.verboseLogging) {
     console.info("New message send initiated:", message);
   }
 
@@ -411,7 +411,7 @@ export function stopGeneration() {
 
   resetSendButton();
 
-  if (window.VERBOSE_LOGGING) {
+  if (state.verboseLogging) {
     console.info("Response generation cancelled.");
   }
 }

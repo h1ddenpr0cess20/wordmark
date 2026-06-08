@@ -1,4 +1,6 @@
 import { elements } from "../init/state.js";
+import { uiHooks } from "../init/uiHooks.js";
+import { DEFAULT_PERSONALITY, config } from "../../config/config.js";
 import { getMemoryConfig, setMemoryEnabled } from "../utils/memoryStorage.js";
 import { locationState, requestLocation, disableLocation } from "../services/location.js";
 import { ttsConfig } from "../services/tts.js";
@@ -14,10 +16,11 @@ import { openSettingsAndSwitch } from "../init/eventListeners/settingsPanel.js";
 
 /**
  * Updates the local models dropdown when models are refreshed.
- * Exposed on window.uiHooks for config.js (a classic, non-module script) to call.
+ * Registered on the uiHooks registry so config.js can call it after fetching
+ * provider models without importing the component graph.
  * @param {boolean} fetchError - Whether there was an error fetching models
  */
-function updateModelsDropdown(fetchError) {
+export function updateModelsDropdown(fetchError) {
   const serviceKey = elements.serviceSelector ? elements.serviceSelector.value : "";
   const serviceLabelMap = { lmstudio: "LM Studio", ollama: "Ollama", openai: "OpenAI", xai: "xAI" };
   const serviceLabel = serviceLabelMap[serviceKey] || serviceKey;
@@ -50,12 +53,9 @@ function updateModelsDropdown(fetchError) {
   }
 }
 
-// uiHooks must live on window: config.js (a classic <script>, not a module)
-// calls window.uiHooks.updateModelsDropdown after fetching provider models.
-if (typeof window !== "undefined") {
-  window.uiHooks = window.uiHooks || {};
-  window.uiHooks.updateModelsDropdown = updateModelsDropdown;
-}
+// Register on the uiHooks registry so config.js can trigger dropdown refreshes
+// after fetching provider models without importing the component graph.
+uiHooks.updateModelsDropdown = updateModelsDropdown;
 
 /**
  * Updates the header information
@@ -83,7 +83,7 @@ export function updateHeaderInfo() {
 
     // Update native title on the model name with provider display name
     try {
-      const serviceKey = (window.config && window.config.defaultService) ? window.config.defaultService : "";
+      const serviceKey = (config && config.defaultService) ? config.defaultService : "";
       let displayName = "";
       switch (serviceKey) {
       case "openai": displayName = "OpenAI"; break;
@@ -120,10 +120,10 @@ export function updateHeaderInfo() {
     if (!promptInfo) {
       // Only show default personality in the header if it's actually set in the input
       // Don't automatically override the personality input value here
-      if (window.DEFAULT_PERSONALITY && elements.personalityInput && elements.personalityInput.value.trim()) {
+      if (DEFAULT_PERSONALITY && elements.personalityInput && elements.personalityInput.value.trim()) {
         promptInfo = `Personality: ${elements.personalityInput.value.trim()}`;
-      } else if (window.DEFAULT_PERSONALITY) {
-        promptInfo = `Personality: ${window.DEFAULT_PERSONALITY}`;
+      } else if (DEFAULT_PERSONALITY) {
+        promptInfo = `Personality: ${DEFAULT_PERSONALITY}`;
       }
     }
 
@@ -245,7 +245,7 @@ export function updateFeatureStatus() {
   const state = {
     location: Boolean(locationState && locationState.enabled),
     memory: (() => { try { return Boolean(getMemoryConfig && getMemoryConfig().enabled); } catch { return false; } })(),
-    tools: Boolean(window.config && window.config.enableFunctionCalling !== false),
+    tools: Boolean(config && config.enableFunctionCalling !== false),
     data: getDataSettingsEnabled(),
     tts: Boolean(ttsConfig.enabled),
   };
@@ -279,8 +279,7 @@ export function updateFeatureStatus() {
           toggle.checked = !isOn;
           toggle.dispatchEvent(new Event("change", { bubbles: true }));
         } else {
-          window.config = window.config || {};
-          window.config.enableFunctionCalling = !isOn;
+          config.enableFunctionCalling = !isOn;
         }
         break;
       }
@@ -370,8 +369,8 @@ export function updateModelSelector() {
   elements.modelSelector.innerHTML = "";
 
   try {
-    const activeServiceKey = window.config?.defaultService;
-    const activeService = activeServiceKey ? window.config?.services?.[activeServiceKey] : null;
+    const activeServiceKey = config?.defaultService;
+    const activeService = activeServiceKey ? config?.services?.[activeServiceKey] : null;
     const isLocalLoading = Boolean(activeService && activeService.modelsFetching === true);
 
     if (isLocalLoading) {
@@ -382,7 +381,7 @@ export function updateModelSelector() {
       return;
     }
 
-    const models = window.config.getAvailableModels();
+    const models = config.getAvailableModels();
     if (!Array.isArray(models) || models.length === 0) {
       console.error("No models available for the selected service");
       const option = document.createElement("option");
@@ -409,7 +408,7 @@ export function updateModelSelector() {
     }
     // Then try to use the default model from config
     else {
-      const defaultModel = window.config.getDefaultModel();
+      const defaultModel = config.getDefaultModel();
 
       // Try exact match first
       if (defaultModel && models.includes(defaultModel)) {
@@ -449,7 +448,7 @@ export function updateModelSelector() {
  * Dynamically populates the service selector dropdown based on available services in config
  */
 export function populateServiceSelector() {
-  if (!elements.serviceSelector || !window.config || !window.config.services) {
+  if (!elements.serviceSelector || !config || !config.services) {
     console.warn("Service selector or config not found, skipping populateServiceSelector");
     return;
   }
@@ -458,8 +457,8 @@ export function populateServiceSelector() {
   elements.serviceSelector.innerHTML = "";
 
   // Create and append options for each service in config
-  Object.keys(window.config.services).forEach(serviceKey => {
-    const serviceConfig = window.config.services[serviceKey];
+  Object.keys(config.services).forEach(serviceKey => {
+    const serviceConfig = config.services[serviceKey];
     if (serviceConfig?.enabled === false) {
       return;
     }
@@ -494,8 +493,8 @@ export function populateServiceSelector() {
     elements.serviceSelector.appendChild(option);
   });
 
-  if (typeof window.config.normalizeServiceKey === "function") {
-    window.config.defaultService = window.config.normalizeServiceKey(window.config.defaultService);
+  if (typeof config.normalizeServiceKey === "function") {
+    config.defaultService = config.normalizeServiceKey(config.defaultService);
   }
 }
 
@@ -503,8 +502,8 @@ export function populateServiceSelector() {
  * Explicitly initialize the personality input with the default personality
  */
 export function initializePersonalityInput() {
-  if (elements.personalityInput && window.DEFAULT_PERSONALITY) {
-    elements.personalityInput.value = window.DEFAULT_PERSONALITY;
+  if (elements.personalityInput && DEFAULT_PERSONALITY) {
+    elements.personalityInput.value = DEFAULT_PERSONALITY;
     elements.personalityInput.setAttribute("data-explicitly-set", "true");
     console.info("Default personality explicitly set in personality input box");
   } else {

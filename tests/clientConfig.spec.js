@@ -1,52 +1,23 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 
-// Mock global dependencies
-globalThis.window = {
-  config: {
-    services: {
-      openai: {
-        apiKey: 'sk-test-openai-key',
-        baseUrl: 'https://api.openai.com/v1',
-        models: ['gpt-4o', 'o1-preview', 'o1-mini'],
-      },
-      xai: {
-        apiKey: 'xai-test-key',
-        baseUrl: 'https://api.x.ai/v1',
-        models: ['grok-beta'],
-      },
-      lmstudio: {
-        baseUrl: 'http://localhost:1234/v1',
-        models: [],
-      },
-    },
-    defaultService: 'openai',
-    defaultModel: 'gpt-5-mini',
-    getApiKey() {
-      const service = this.defaultService;
-      return this.services[service]?.apiKey || '';
-    },
-    getBaseUrl() {
-      const service = this.defaultService;
-      return this.services[service]?.baseUrl || '';
-    },
-    getDefaultModel() {
-      return this.defaultModel;
-    },
-  },
-};
-
-// Mock localStorage
+// clientConfig.js reads the shared config singleton (src/config/config.js) and
+// the elements registry (init/state.js). Provide minimal browser stubs, then
+// drive the real config object directly.
+globalThis.window = globalThis.window || {};
 globalThis.localStorage = {
   storage: {},
-  getItem(key) {
-    return this.storage[key] || null;
-  },
-  setItem(key, value) {
-    this.storage[key] = value;
-  },
+  getItem(key) { return this.storage[key] || null; },
+  setItem(key, value) { this.storage[key] = value; },
+};
+globalThis.document = globalThis.document || {
+  getElementById: () => null,
+  querySelector: () => null,
+  querySelectorAll: () => [],
 };
 
+const { config } = await import('../src/config/config.js');
+const { elements } = await import('../src/js/init/state.js');
 const {
   getActiveServiceKey,
   getActiveModel,
@@ -55,26 +26,30 @@ const {
   supportsReasoningEffort,
 } = await import('../src/js/services/api/clientConfig.js');
 
+// Seed the active service for the tests.
+config.defaultService = 'openai';
+config.services.openai.apiKey = 'sk-test-openai-key';
+
 test('getActiveServiceKey returns default service', () => {
   const service = getActiveServiceKey();
   assert.equal(service, 'openai', 'should return default service');
 });
 
 test('getActiveServiceKey ignores disabled selected service', () => {
-  const originalSelector = window.serviceSelector;
-  const originalEnabled = window.config.services.xai.enabled;
-  window.serviceSelector = { value: 'xai' };
-  window.config.services.xai.enabled = false;
+  const originalSelector = elements.serviceSelector;
+  const originalEnabled = config.services.xai.enabled;
+  elements.serviceSelector = { value: 'xai' };
+  config.services.xai.enabled = false;
 
   assert.equal(getActiveServiceKey(), 'openai', 'should fall back to enabled OpenAI service');
 
-  window.serviceSelector = originalSelector;
-  window.config.services.xai.enabled = originalEnabled;
+  elements.serviceSelector = originalSelector;
+  config.services.xai.enabled = originalEnabled;
 });
 
 test('getActiveModel returns default model', () => {
   const model = getActiveModel();
-  assert.equal(model, 'gpt-5-mini', 'should return default model');
+  assert.equal(model, config.services.openai.defaultModel, 'should return active service default model');
 });
 
 test('ensureApiKey returns API key for active service', () => {
@@ -83,17 +58,17 @@ test('ensureApiKey returns API key for active service', () => {
 });
 
 test('ensureApiKey throws when API key is missing', () => {
-  const originalKey = window.config.services.openai.apiKey;
-  window.config.services.openai.apiKey = '';
-  
+  const originalKey = config.services.openai.apiKey;
+  config.services.openai.apiKey = '';
+
   assert.throws(
     () => ensureApiKey(),
     /Add your.*API key/,
     'should throw when key is missing'
   );
-  
+
   // Restore
-  window.config.services.openai.apiKey = originalKey;
+  config.services.openai.apiKey = originalKey;
 });
 
 test('getBaseUrl returns base URL for active service', () => {
@@ -120,14 +95,17 @@ test('supportsReasoningEffort handles model with version suffix', () => {
 });
 
 test('supportsReasoningEffort uses active model when not specified', () => {
-  const originalModel = window.config.defaultModel;
-  
-  window.config.defaultModel = 'gpt-4o';
+  const originalModel = config.services.openai.defaultModel;
+  const originalSelector = elements.modelSelector;
+  elements.modelSelector = null;
+
+  config.services.openai.defaultModel = 'gpt-4o';
   assert.equal(supportsReasoningEffort(), false, 'gpt-4o should not support reasoning');
-  
-  window.config.defaultModel = 'gpt-5-mini';
+
+  config.services.openai.defaultModel = 'gpt-5-mini';
   assert.equal(supportsReasoningEffort(), true, 'gpt-5-mini should support reasoning');
-  
+
   // Restore
-  window.config.defaultModel = originalModel;
+  config.services.openai.defaultModel = originalModel;
+  elements.modelSelector = originalSelector;
 });

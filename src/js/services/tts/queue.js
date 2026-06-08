@@ -1,10 +1,11 @@
 import { ttsConfig, ttsRuntime, ttsMessageQueue } from "./config.js";
 import { shouldSkipTts } from "./filters.js";
 import { stopTtsAudio } from "./playback.js";
+import { state } from "../../init/state.js";
 
 export function playNextMessageInQueue() {
   if (!ttsMessageQueue.length || !ttsConfig.autoplay) {
-    if (window.VERBOSE_LOGGING) {
+    if (state.verboseLogging) {
       console.info("Autoplay sequence ended: queue empty or autoplay disabled");
     }
     ttsRuntime.autoplayActive = false;
@@ -12,13 +13,13 @@ export function playNextMessageInQueue() {
   }
 
   if (ttsRuntime.activeTtsAudio) {
-    if (window.VERBOSE_LOGGING) {
+    if (state.verboseLogging) {
       console.info("Audio already playing, will continue queue when finished");
     }
     return;
   }
 
-  if (window.VERBOSE_LOGGING) {
+  if (state.verboseLogging) {
     console.info("Playing next message in queue. Queue length:", ttsMessageQueue.length);
   }
 
@@ -61,16 +62,16 @@ export function addMessageToTtsQueue(messageId) {
 
   if (!ttsMessageQueue.includes(messageId)) {
     ttsMessageQueue.push(messageId);
-    if (window.VERBOSE_LOGGING) {
+    if (state.verboseLogging) {
       console.info("Adding message to TTS queue:", messageId);
     }
 
     if (!ttsRuntime.activeTtsAudio && ttsRuntime.autoplayActive) {
-      if (window.VERBOSE_LOGGING) {
+      if (state.verboseLogging) {
         console.info("No active audio, starting autoplay sequence");
       }
       playQueuedTtsMessage();
-    } else if (ttsRuntime.activeTtsAudio && window.VERBOSE_LOGGING) {
+    } else if (ttsRuntime.activeTtsAudio && state.verboseLogging) {
       console.info("Audio already playing, message queued for later playback");
     }
   }
@@ -79,11 +80,11 @@ export function addMessageToTtsQueue(messageId) {
 export function startTtsAutoplay() {
   if (ttsConfig.enabled && ttsConfig.autoplay && !ttsRuntime.autoplayActive) {
     ttsRuntime.autoplayActive = true;
-    if (window.VERBOSE_LOGGING) {
+    if (state.verboseLogging) {
       console.info("Starting TTS autoplay sequence.");
     }
     playQueuedTtsMessage();
-  } else if (window.VERBOSE_LOGGING) {
+  } else if (state.verboseLogging) {
     console.info("TTS autoplay not started: already active or disabled.");
   }
 }
@@ -91,7 +92,7 @@ export function startTtsAutoplay() {
 export function stopTtsAutoplay() {
   if (ttsRuntime.autoplayActive) {
     ttsRuntime.autoplayActive = false;
-    if (window.VERBOSE_LOGGING) {
+    if (state.verboseLogging) {
       console.info("Stopping TTS autoplay sequence.");
     }
     stopTtsAudio();

@@ -1,3 +1,4 @@
+import { state } from "../init/state.js";
 /**
  * Location service for browser geolocation functionality
  * Provides location awareness for AI prompts
@@ -48,7 +49,7 @@ export async function requestLocation() {
             locationString: locationString,
           }));
 
-          if (window.VERBOSE_LOGGING) {
+          if (state.verboseLogging) {
             console.info("Location obtained:", locationString);
           }
 
@@ -188,7 +189,7 @@ export function disableLocation() {
   // Update UI if available
   updateLocationUI();
 
-  if (window.VERBOSE_LOGGING) {
+  if (state.verboseLogging) {
     console.info("Location services disabled");
   }
 }
@@ -217,12 +218,12 @@ export function initializeLocationService() {
           timestamp: storedTime,
         };
 
-        if (window.VERBOSE_LOGGING) {
+        if (state.verboseLogging) {
           console.info("Using stored location:", stored.locationString);
         }
       } else {
         // Stored location is too old, request fresh location
-        if (window.VERBOSE_LOGGING) {
+        if (state.verboseLogging) {
           console.info("Stored location expired, requesting fresh location");
         }
         requestLocation();
@@ -238,7 +239,7 @@ export function initializeLocationService() {
   } else if (locationEnabled) {
     // User had enabled location but there's no stored location data
     // Try to get fresh location
-    if (window.VERBOSE_LOGGING) {
+    if (state.verboseLogging) {
       console.info("Location enabled but no stored data, requesting fresh location");
     }
     requestLocation();

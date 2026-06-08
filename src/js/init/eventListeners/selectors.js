@@ -6,6 +6,7 @@ import { updateParameterControls } from "../../components/ui/settingsControls.js
 import { updateHeaderInfo, updateModelSelector } from "../../components/settings.js";
 import { refreshToolSettingsUI } from "../../components/tools.js";
 import { updateReasoningAvailability } from "../modelSettings.js";
+import { config } from "../../../config/config.js";
 
 export function setupSelectorEventListeners() {
   if (elements.modelSelector) {
@@ -23,16 +24,16 @@ export function setupSelectorEventListeners() {
   if (elements.serviceSelector) {
     elements.serviceSelector.addEventListener('change', async() => {
       const selectedService = elements.serviceSelector.value;
-      if (window.config && typeof window.config.isServiceEnabled === 'function' && !window.config.isServiceEnabled(selectedService)) {
-        elements.serviceSelector.value = window.config.normalizeServiceKey?.(window.config.defaultService) || 'openai';
+      if (config && typeof config.isServiceEnabled === 'function' && !config.isServiceEnabled(selectedService)) {
+        elements.serviceSelector.value = config.normalizeServiceKey?.(config.defaultService) || 'openai';
         return;
       }
-      window.config.defaultService = selectedService;
+      config.defaultService = selectedService;
 
                   ensureApiKeysLoaded();
     
 
-      const serviceConfig = window.config?.services?.[selectedService];
+      const serviceConfig = config?.services?.[selectedService];
       if (serviceConfig && typeof serviceConfig.fetchAndUpdateModels === 'function') {
         const serviceLabel = selectedService === 'lmstudio'
           ? 'LM Studio'

@@ -2,6 +2,7 @@ import { elements, state } from "../../init/state.js";
 import { saveConversationToDb } from "../../utils/conversationStorage.js";
 import { appendMessage } from "../../components/ui/chatMessages.js";
 import { updateHeaderInfo } from "../../components/settings.js";
+import { config } from "../../../config/config.js";
 
 export function updateBrowserHistory() {
   let systemPromptValue = '';
@@ -67,7 +68,7 @@ export function loadFromUrl() {
       messages: state.conversationHistory,
       images: chatData.images || [],
       model: chatData.model || elements.modelSelector?.value || 'Unknown',
-      service: chatData.service || window.config?.defaultService || 'Unknown',
+      service: chatData.service || config?.defaultService || 'Unknown',
       systemPrompt: chatData.systemPrompt || {
         type: 'none',
         content: '',
@@ -79,7 +80,7 @@ export function loadFromUrl() {
 
     saveConversationToDb?.(conversation)
       .then((id) => {
-        if (window.VERBOSE_LOGGING) {
+        if (state.verboseLogging) {
           console.info('Saved URL-imported conversation to IndexedDB:', id);
         }
       })

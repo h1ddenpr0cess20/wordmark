@@ -2,8 +2,7 @@
  * DOM initialization for chatbot application
  */
 
-import { elements } from "./state.js";
-
+import { elements, state } from "./state.js";
 /**
  * Initialize all DOM references
  */
@@ -70,7 +69,7 @@ export function initializeDOMReferences() {
   elements.closeGalleryButton = document.querySelector(".close-gallery");
   elements.galleryGrid = document.getElementById("gallery-grid");
 
-  if (window.VERBOSE_LOGGING) {
+  if (state.verboseLogging) {
     console.info("DOM references assigned:", {
       chatBox: Boolean(elements.chatBox),
       userInput: Boolean(elements.userInput),

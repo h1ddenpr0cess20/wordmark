@@ -1,4 +1,4 @@
-import { elements } from "../state.js";
+import { elements, state } from "../state.js";
 import { showError } from "../../utils/notifications.js";
 import { updateFeatureStatus } from "../../components/settings.js";
 import { requestLocation, disableLocation, updateLocationUI } from "../../services/location.js";
@@ -15,7 +15,7 @@ export function setupLocationEventListeners() {
       if (result.success) {
                         updateLocationUI();
       
-        if (window.VERBOSE_LOGGING) {
+        if (state.verboseLogging) {
           console.info('Location enabled:', result.locationString);
         }
       } else {
@@ -31,7 +31,7 @@ export function setupLocationEventListeners() {
     
                   updateLocationUI();
     
-      if (window.VERBOSE_LOGGING) {
+      if (state.verboseLogging) {
         console.info('Location services disabled');
       }
     }

@@ -4,6 +4,7 @@ import { getMemoryConfig } from "../utils/memoryStorage.js";
 import { updateFeatureStatus } from "./settings.js";
 import { requestMcpServerRemoval } from "../services/mcpServers.js";
 import { responsesClient } from "../services/api.js";
+import { config } from "../../config/config.js";
 /**
  * Tool settings management for Responses API integrations.
  * Renders the tool list, persists toggle state, and synchronises with the
@@ -39,23 +40,23 @@ let getToolsDescription;
   }
 
   function isMasterEnabled() {
-    return !(window.config && window.config.enableFunctionCalling === false);
+    return !(config && config.enableFunctionCalling === false);
   }
 
   function getActiveModelName() {
     if (elements.modelSelector && elements.modelSelector.value) {
       return elements.modelSelector.value;
     }
-    if (window.config && typeof window.config.getDefaultModel === "function") {
+    if (config && typeof config.getDefaultModel === "function") {
       try {
-        return window.config.getDefaultModel();
+        return config.getDefaultModel();
       } catch {
         /* ignore */
       }
     }
-    const activeKey = window.config && window.config.defaultService;
-    if (activeKey && window.config?.services?.[activeKey]?.defaultModel) {
-      return window.config.services[activeKey].defaultModel;
+    const activeKey = config && config.defaultService;
+    if (activeKey && config?.services?.[activeKey]?.defaultModel) {
+      return config.services[activeKey].defaultModel;
     }
     return "";
   }
@@ -401,8 +402,8 @@ let getToolsDescription;
     if (elements.toolCallingToggle) {
       elements.toolCallingToggle.checked = enabled;
     }
-    if (window.config) {
-      window.config.enableFunctionCalling = enabled;
+    if (config) {
+      config.enableFunctionCalling = enabled;
     }
     renderToolList();
   };
@@ -435,7 +436,7 @@ let getToolsDescription;
   }
 
   getToolsDescription = function() {
-    if (!window.config || window.config.enableFunctionCalling === false) {
+    if (!config || config.enableFunctionCalling === false) {
       return "";
     }
     if (!responsesClient) {
@@ -444,7 +445,7 @@ let getToolsDescription;
 
     const serviceKey = typeof responsesClient.getActiveServiceKey === "function"
       ? responsesClient.getActiveServiceKey()
-      : (window.config.defaultService || "openai");
+      : (config.defaultService || "openai");
     const activeModelName = getActiveModelName();
     const codexModelActive = isCodexModel(activeModelName);
     const clientSideToolsSupported = supportsClientSideToolsForCurrentModel(serviceKey, activeModelName);

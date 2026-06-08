@@ -1,6 +1,8 @@
 import { icon } from "../utils/icons.js";
 import { updateFeatureStatus, updateModelSelector } from "../components/settings.js";
 import { refreshToolSettingsUI } from "../components/tools.js";
+import { config } from "../../config/config.js";
+import { state } from "../init/state.js";
 /**
  * API key management functionality
  */
@@ -64,7 +66,7 @@ function initApiKeys(retryCount = 0) {
   if (!essentialReady) {
     if (retryCount < API_KEYS_INIT_MAX_RETRIES) {
       setTimeout(() => initApiKeys(retryCount + 1), API_KEYS_INIT_RETRY_DELAY);
-    } else if (window.VERBOSE_LOGGING) {
+    } else if (state.verboseLogging) {
       console.warn("API Keys UI not ready after maximum retries; will retry on next init call.");
     }
     return;
@@ -180,12 +182,12 @@ function saveLmStudioServerUrl() {
       localStorage.setItem(LMSTUDIO_SERVER_URL_KEY, serverUrl);
 
       // Update the config object with the full URL including /v1
-      if (window.config && window.config.services && window.config.services.lmstudio) {
-        window.config.services.lmstudio.baseUrl = `${serverUrl}/v1`;
+      if (config && config.services && config.services.lmstudio) {
+        config.services.lmstudio.baseUrl = `${serverUrl}/v1`;
 
         // Fetch models from the new URL so the dropdown refreshes
-        if (typeof window.config.services.lmstudio.fetchAndUpdateModels === "function") {
-          window.config.services.lmstudio.fetchAndUpdateModels().catch(error => {
+        if (typeof config.services.lmstudio.fetchAndUpdateModels === "function") {
+          config.services.lmstudio.fetchAndUpdateModels().catch(error => {
             console.error("Error fetching LM Studio models after URL update:", error);
           });
         }
@@ -211,7 +213,7 @@ function saveLmStudioServerUrl() {
         }, 5000);
       }
 
-      if (window.VERBOSE_LOGGING) {
+      if (state.verboseLogging) {
         console.info("LM Studio Base URL saved to localStorage:", serverUrl);
       }
     } else {
@@ -281,12 +283,12 @@ function saveOllamaServerUrl() {
       localStorage.setItem(OLLAMA_SERVER_URL_KEY, serverUrl);
 
       // Update the config object with the full URL including /v1
-      if (window.config && window.config.services && window.config.services.ollama) {
-        window.config.services.ollama.baseUrl = `${serverUrl}/v1`;
+      if (config && config.services && config.services.ollama) {
+        config.services.ollama.baseUrl = `${serverUrl}/v1`;
 
         // Fetch models from the new URL so the dropdown refreshes
-        if (typeof window.config.services.ollama.fetchAndUpdateModels === "function") {
-          window.config.services.ollama.fetchAndUpdateModels().catch(error => {
+        if (typeof config.services.ollama.fetchAndUpdateModels === "function") {
+          config.services.ollama.fetchAndUpdateModels().catch(error => {
             console.error("Error fetching Ollama models after URL update:", error);
           });
         }
@@ -312,7 +314,7 @@ function saveOllamaServerUrl() {
         }, 5000);
       }
 
-      if (window.VERBOSE_LOGGING) {
+      if (state.verboseLogging) {
         console.info("Ollama Base URL saved to localStorage:", serverUrl);
       }
     } else {
@@ -381,8 +383,8 @@ function saveApiKeys() {
       }
 
       // Update the config object immediately so dependent UI can react without refresh
-      if (window.config && window.config.services && window.config.services[service]) {
-        window.config.services[service].apiKey = value;
+      if (config && config.services && config.services[service]) {
+        config.services[service].apiKey = value;
       }
     }
 
@@ -392,8 +394,8 @@ function saveApiKeys() {
     showApiKeyStatus("API Keys saved successfully!", "success");
 
     // Fetch models for the active service now that keys are available
-    const activeKey = window.config?.defaultService;
-    const activeService = activeKey ? window.config?.services?.[activeKey] : null;
+    const activeKey = config?.defaultService;
+    const activeService = activeKey ? config?.services?.[activeKey] : null;
     if (activeService && typeof activeService.fetchAndUpdateModels === "function") {
       activeService.fetchAndUpdateModels().then(() => {
         updateModelSelector();
@@ -411,7 +413,7 @@ function saveApiKeys() {
 
     refreshApiDependentUi();
 
-    if (window.VERBOSE_LOGGING) {
+    if (state.verboseLogging) {
       console.info("API keys saved to localStorage");
     }
   } catch (error) {
@@ -434,13 +436,13 @@ function loadApiKeys() {
           input.value = storedKey;
 
           // Update the config object
-          if (window.config && window.config.services && window.config.services[service]) {
-            window.config.services[service].apiKey = storedKey;
+          if (config && config.services && config.services[service]) {
+            config.services[service].apiKey = storedKey;
           }
-        } else if (window.config && window.config.services && window.config.services[service] && window.config.services[service].apiKey) {
+        } else if (config && config.services && config.services[service] && config.services[service].apiKey) {
           // If nothing in localStorage but key exists in config, show it in the input
           // This preserves any hardcoded keys
-          input.value = window.config.services[service].apiKey;
+          input.value = config.services[service].apiKey;
         }
       }
     }
@@ -452,19 +454,19 @@ function loadApiKeys() {
         lmStudioServerUrlInput.value = storedLmUrl;
 
         // Update the config object (ensuring it has the /v1 ending)
-        if (window.config && window.config.services && window.config.services.lmstudio) {
-          window.config.services.lmstudio.baseUrl = `${storedLmUrl}/v1`;
+        if (config && config.services && config.services.lmstudio) {
+          config.services.lmstudio.baseUrl = `${storedLmUrl}/v1`;
 
           // Proactively fetch models on load if function exists
-          if (typeof window.config.services.lmstudio.fetchAndUpdateModels === "function") {
-            window.config.services.lmstudio.fetchAndUpdateModels().catch(error => {
+          if (typeof config.services.lmstudio.fetchAndUpdateModels === "function") {
+            config.services.lmstudio.fetchAndUpdateModels().catch(error => {
               console.error("Error fetching LM Studio models on load:", error);
             });
           }
         }
-      } else if (window.config && window.config.services && window.config.services.lmstudio && window.config.services.lmstudio.baseUrl) {
+      } else if (config && config.services && config.services.lmstudio && config.services.lmstudio.baseUrl) {
         // If nothing in localStorage but URL exists in config, show it in the input without the /v1 part
-        let configLmUrl = window.config.services.lmstudio.baseUrl;
+        let configLmUrl = config.services.lmstudio.baseUrl;
         if (configLmUrl.endsWith("/v1")) {
           configLmUrl = configLmUrl.slice(0, -3);
         }
@@ -479,26 +481,26 @@ function loadApiKeys() {
         ollamaServerUrlInput.value = storedOllamaUrl;
 
         // Update the config object (ensuring it has the /v1 ending)
-        if (window.config && window.config.services && window.config.services.ollama) {
-          window.config.services.ollama.baseUrl = `${storedOllamaUrl}/v1`;
+        if (config && config.services && config.services.ollama) {
+          config.services.ollama.baseUrl = `${storedOllamaUrl}/v1`;
 
           // Proactively fetch models on load if function exists
-          if (typeof window.config.services.ollama.fetchAndUpdateModels === "function") {
-            window.config.services.ollama.fetchAndUpdateModels().catch(error => {
+          if (typeof config.services.ollama.fetchAndUpdateModels === "function") {
+            config.services.ollama.fetchAndUpdateModels().catch(error => {
               console.error("Error fetching Ollama models on load:", error);
             });
           }
         }
-      } else if (window.config && window.config.services && window.config.services.ollama && window.config.services.ollama.baseUrl) {
+      } else if (config && config.services && config.services.ollama && config.services.ollama.baseUrl) {
         // If nothing in localStorage but URL exists in config, show it in the input without the /v1 part
-        let configOllamaUrl = window.config.services.ollama.baseUrl;
+        let configOllamaUrl = config.services.ollama.baseUrl;
         if (configOllamaUrl.endsWith("/v1")) {
           configOllamaUrl = configOllamaUrl.slice(0, -3);
         }
         ollamaServerUrlInput.value = configOllamaUrl;
       }
     }
-    if (window.VERBOSE_LOGGING) {
+    if (state.verboseLogging) {
       console.info("API keys loaded from localStorage");
     }
 
@@ -522,8 +524,8 @@ function getApiKey(service) {
     }
 
     // Fall back to config if exists
-    if (window.config?.services?.[service]?.apiKey) {
-      return window.config.services[service].apiKey;
+    if (config?.services?.[service]?.apiKey) {
+      return config.services[service].apiKey;
     }
 
     return null;
@@ -569,8 +571,8 @@ function getLmStudioServerUrl() {
     }
 
     // Fall back to config if exists
-    if (window.config?.services?.lmstudio?.baseUrl) {
-      return window.config.services.lmstudio.baseUrl;
+    if (config?.services?.lmstudio?.baseUrl) {
+      return config.services.lmstudio.baseUrl;
     }
 
     // Default fallback
@@ -598,8 +600,8 @@ function getOllamaServerUrl() {
     }
 
     // Fall back to config if exists
-    if (window.config?.services?.ollama?.baseUrl) {
-      return window.config.services.ollama.baseUrl;
+    if (config?.services?.ollama?.baseUrl) {
+      return config.services.ollama.baseUrl;
     }
 
     // Default fallback
@@ -619,11 +621,11 @@ function ensureApiKeysLoaded() {
     loadApiKeys();
   }
 
-  if (!window.config || !window.config.services) {
+  if (!config || !config.services) {
     return;
   }
 
-  const service = window.config.defaultService;
+  const service = config.defaultService;
 
   // Skip warning for services that don't require a key (LM Studio)
   if (service === "lmstudio" || service === "ollama") {
@@ -692,7 +694,7 @@ if (typeof document !== "undefined") {
       initApiKeys();
 
       // Log success message if verbose logging is enabled
-      if (window.VERBOSE_LOGGING) {
+      if (state.verboseLogging) {
         console.info("API keys management system initialized");
       }
     }, 100);
@@ -700,7 +702,7 @@ if (typeof document !== "undefined") {
 
   // Initialize API keys when the config object is ready
   // This ensures API keys are loaded even if the DOMContentLoaded event has already fired
-  if (typeof window !== "undefined" && window.config && window.config.services) {
+  if (typeof window !== "undefined" && config && config.services) {
     initApiKeys();
   }
 }

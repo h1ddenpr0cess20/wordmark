@@ -7,6 +7,8 @@ import { getActiveServiceKey, getActiveModel } from './clientConfig.js';
 import { weatherToolHandler } from "../weather.js";
 import { memoryToolDefinition, forgetToolDefinition } from "../memory.js";
 import { getApiKey } from "../apiKeys.js";
+import { MCP_ASSUME_ONLINE, config } from "../../../config/config.js";
+import { state } from "../../init/state.js";
 
 const TOOL_STORAGE_KEY = 'wordmark_tool_preferences';
 
@@ -47,12 +49,12 @@ function cloneDefinition(definition) {
 }
 
 function isConfiguredServiceEnabled(serviceKey) {
-  const services = window.config?.services;
+  const services = config?.services;
   if (!services) {
     return true;
   }
-  if (typeof window.config?.isServiceEnabled === 'function') {
-    return window.config.isServiceEnabled(serviceKey);
+  if (typeof config?.isServiceEnabled === 'function') {
+    return config.isServiceEnabled(serviceKey);
   }
   const service = services[serviceKey];
   return Boolean(service && service.enabled !== false);
@@ -362,7 +364,7 @@ export function getToolCatalog() {
       if (tool.type !== 'mcp') {
         return true;
       }
-      if (typeof window !== 'undefined' && window.MCP_ASSUME_ONLINE === true) {
+      if (typeof window !== 'undefined' && MCP_ASSUME_ONLINE === true) {
         return true;
       }
       const cached = getCachedMcpStatus(tool.key);
@@ -450,7 +452,7 @@ export function unregisterMcpServer(serverLabel, options = {}) {
 }
 
 export function getEnabledToolDefinitions(serviceKey = getActiveServiceKey(), modelName = getActiveModel()) {
-  const masterEnabled = !(window.config && window.config.enableFunctionCalling === false);
+  const masterEnabled = !(config && config.enableFunctionCalling === false);
   if (!masterEnabled) {
     return [];
   }
@@ -472,7 +474,7 @@ export function getEnabledToolDefinitions(serviceKey = getActiveServiceKey(), mo
     }
 
     if (!clientSideToolsSupported && isClientSideToolType(tool.type)) {
-      if (window.VERBOSE_LOGGING) {
+      if (state.verboseLogging) {
         console.info(`Skipping client-side tool '${tool.displayName}' for xAI model '${modelName}'.`);
       }
       return;
@@ -482,7 +484,7 @@ export function getEnabledToolDefinitions(serviceKey = getActiveServiceKey(), mo
       if (!isLocalService) {
         const serverUrl = tool.definition?.server_url;
         if (serverUrl && isLocalNetworkUrl(serverUrl)) {
-          if (window.VERBOSE_LOGGING) {
+          if (state.verboseLogging) {
             console.info(`Skipping local MCP server ${tool.displayName} when using cloud service ${serviceKey}`);
           }
           return;
@@ -491,7 +493,7 @@ export function getEnabledToolDefinitions(serviceKey = getActiveServiceKey(), mo
     }
 
     const onlineState = tool.type === 'mcp'
-      ? ((typeof window !== 'undefined' && window.MCP_ASSUME_ONLINE === true)
+      ? ((typeof window !== 'undefined' && MCP_ASSUME_ONLINE === true)
           ? true
           : (getCachedMcpStatus(tool.key) ?? (typeof tool.isOnline === 'boolean' ? tool.isOnline : false)))
       : true;
@@ -511,7 +513,7 @@ export function getEnabledToolDefinitions(serviceKey = getActiveServiceKey(), mo
     }
 
     if (tool.key === 'builtin:image_generation' && serviceKey === 'openai' && modelIsCodex) {
-      if (window.VERBOSE_LOGGING) {
+      if (state.verboseLogging) {
         console.info(`Skipping image generation tool for Codex model '${modelName}'.`);
       }
       return;
@@ -521,7 +523,7 @@ export function getEnabledToolDefinitions(serviceKey = getActiveServiceKey(), mo
     if (tool.key === 'builtin:code_interpreter') {
       const shellEnabled = getToolPreference('builtin:shell', false);
       if (shellEnabled && serviceKey === 'openai') {
-        if (window.VERBOSE_LOGGING) {
+        if (state.verboseLogging) {
           console.info('Skipping code_interpreter because shell tool is enabled.');
         }
         return;
@@ -563,7 +565,7 @@ export function getEnabledToolDefinitions(serviceKey = getActiveServiceKey(), mo
 
 export function refreshMcpAvailability(force = false) {
   const mcpTools = TOOL_CATALOG.filter(tool => tool.type === 'mcp');
-  if (typeof window !== 'undefined' && window.MCP_ASSUME_ONLINE === true) {
+  if (typeof window !== 'undefined' && MCP_ASSUME_ONLINE === true) {
     mcpTools.forEach(tool => setCachedMcpStatus(tool.key, true));
     lastMcpRefresh = Date.now();
     return Promise.resolve();
@@ -661,7 +663,7 @@ function appendMemoryTools(defs, serviceKey = getActiveServiceKey(), modelName =
     }
 
     if (!supportsClientSideTools(serviceKey, modelName)) {
-      if (window.VERBOSE_LOGGING) {
+      if (state.verboseLogging) {
         console.info(`Skipping memory tools for xAI model '${modelName}' because it disallows client-side tools.`);
       }
       return;
@@ -675,7 +677,7 @@ function appendMemoryTools(defs, serviceKey = getActiveServiceKey(), modelName =
     });
 
     if (hasServerManagedTool && serviceKey === 'xai') {
-      if (window.VERBOSE_LOGGING) {
+      if (state.verboseLogging) {
         console.info(`Skipping memory tools because server-managed tools are active for service '${serviceKey}'.`);
       }
       return;
@@ -709,11 +711,11 @@ async function pingMcpServer(url) {
   if (!normalizedUrl) {
     return false;
   }
-  if (typeof window !== 'undefined' && window.MCP_ASSUME_ONLINE === true) {
+  if (typeof window !== 'undefined' && MCP_ASSUME_ONLINE === true) {
     return true;
   }
   if (!isHostAllowed(normalizedUrl)) {
-    if (window.VERBOSE_LOGGING) {
+    if (state.verboseLogging) {
       console.info(`Skipping MCP availability check for ${normalizedUrl} due to CSP restrictions.`);
     }
     return null;
@@ -740,12 +742,12 @@ async function pingMcpServer(url) {
     return false;
   }
   if (noCorsAttempt.status === 'error') {
-    if (window.VERBOSE_LOGGING) {
+    if (state.verboseLogging) {
       console.warn(`MCP availability check failed (${normalizedUrl}) with network error:`, noCorsAttempt.error);
     }
     return false;
   }
-  if (window.VERBOSE_LOGGING) {
+  if (state.verboseLogging) {
     console.warn(`MCP availability check failed for ${normalizedUrl}.`);
   }
   return false;
@@ -777,7 +779,7 @@ async function attemptMcpFetch(url, mode) {
     if (error && error.name === 'AbortError') {
       return { status: 'timeout' };
     }
-    if (window.VERBOSE_LOGGING) {
+    if (state.verboseLogging) {
       console.warn(`MCP availability check failed (${mode}) for ${url}:`, error);
     }
     return { status: 'error', error };

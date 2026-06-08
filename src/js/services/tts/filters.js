@@ -1,3 +1,4 @@
+import { state } from "../../init/state.js";
 export function shouldSkipTts(messageId) {
   const messageElement = document.getElementById(`message-${messageId}`) || document.getElementById(messageId);
   if (!messageElement) {
@@ -5,7 +6,7 @@ export function shouldSkipTts(messageId) {
   }
 
   if (messageElement.classList.contains('system-message')) {
-    if (window.VERBOSE_LOGGING) {
+    if (state.verboseLogging) {
       console.info('Skipping TTS for system message or message with trigger keywords');
     }
     return true;
@@ -32,7 +33,7 @@ export function shouldSkipTts(messageId) {
 
   for (const keyword of triggerKeywords) {
     if (messageText.includes(keyword)) {
-      if (window.VERBOSE_LOGGING) {
+      if (state.verboseLogging) {
         console.info('Skipping TTS for system message or message with trigger keywords');
       }
       return true;

@@ -1,3 +1,5 @@
+import { applyConsoleLogging } from "../../../config/config.js";
+import { state } from "../state.js";
 function showDebugToggleNotification(status) {
   const notification = document.createElement('div');
   notification.className = 'debug-toggle-notification';
@@ -19,17 +21,17 @@ function showDebugToggleNotification(status) {
 }
 
 function toggleDebugMode() {
-  window.DEBUG = !window.DEBUG;
-  window.VERBOSE_LOGGING = !window.VERBOSE_LOGGING;
+  state.debug = !state.debug;
+  state.verboseLogging = !state.verboseLogging;
 
-  if (typeof window.applyConsoleLogging === 'function') {
-    window.applyConsoleLogging();
+  if (typeof applyConsoleLogging === 'function') {
+    applyConsoleLogging();
   }
 
-  const status = window.DEBUG ? 'enabled' : 'disabled';
+  const status = state.debug ? 'enabled' : 'disabled';
   console.info(`Debug mode ${status}:`, {
-    DEBUG: window.DEBUG,
-    VERBOSE_LOGGING: window.VERBOSE_LOGGING,
+    DEBUG: state.debug,
+    VERBOSE_LOGGING: state.verboseLogging,
   });
 
   showDebugToggleNotification(status);

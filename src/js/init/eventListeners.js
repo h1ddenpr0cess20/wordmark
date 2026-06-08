@@ -1,4 +1,4 @@
-import { elements } from "./state.js";
+import { elements, state } from "./state.js";
 import { showError } from "../utils/notifications.js";
 import { getDataSettingsEnabled, setDataSettingsEnabled, updateFeatureStatus } from "../components/settings.js";
 import { loadVectorStoreModule, lazyModulesLoaded } from "../utils/lazyLoader.js";
@@ -12,9 +12,10 @@ import { setupToolCallingEventListeners } from "./eventListeners/tools.js";
 import { setupLocationEventListeners } from "./eventListeners/location.js";
 import { setupChatHistoryEventListeners } from "./eventListeners/history.js";
 import { setupDebugEventListeners } from "./eventListeners/debug.js";
+import { DEFAULT_SHORT_RESPONSE_GUIDELINE } from "../../config/config.js";
 
 export function setupEventListeners() {
-  if (window.VERBOSE_LOGGING) {
+  if (state.verboseLogging) {
     console.info("Setting up event listeners...");
   }
 
@@ -39,9 +40,9 @@ export function setupEventListeners() {
     elements.verboseModeToggle.addEventListener("change", (e) => {
       const enabled = e.target.checked;
       if (enabled) {
-        window.SHORT_RESPONSE_GUIDELINE = "";
+        state.shortResponseGuideline = "";
       } else {
-        window.SHORT_RESPONSE_GUIDELINE = window.DEFAULT_SHORT_RESPONSE_GUIDELINE || "";
+        state.shortResponseGuideline = DEFAULT_SHORT_RESPONSE_GUIDELINE || "";
       }
       localStorage.setItem("verboseModeEnabled", enabled);
     });

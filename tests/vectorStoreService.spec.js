@@ -1,6 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { state } from '../src/js/init/state.js';
+import { state, elements } from '../src/js/init/state.js';
+import { config } from '../src/config/config.js';
 
 const originalFetch = global.fetch;
 const originalWindow = global.window;
@@ -27,15 +28,14 @@ function createLocalStorage(initial = {}) {
 function setupEnvironment() {
   const showInfoCalls = [];
   global.window = {
-    config: {
-      getApiKey: () => 'vector-key',
-      getBaseUrl: () => 'https://api.example.com',
-    },
-    serviceSelector: { value: 'openai' },
     showInfo: (message) => {
       showInfoCalls.push(message);
     },
   };
+  config.defaultService = 'openai';
+  config.services.openai.apiKey = 'vector-key';
+  config.services.openai.baseUrl = 'https://api.example.com';
+  elements.serviceSelector = { value: 'openai' };
   state.activeVectorStore = null;
   global.localStorage = createLocalStorage();
   return showInfoCalls;

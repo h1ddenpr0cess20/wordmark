@@ -6,6 +6,7 @@ import {
   deleteConversationFromDb,
   renameConversationInDb,
 } from "../../utils/conversationStorage.js";
+import { config } from "../../../config/config.js";
 import { saveImageToDb, loadImageFromDb } from "../../utils/imageStorage.js";
 import { detectMediaType } from "../mediaTools.js";
 import { ensureImagesHaveMessageIds } from "../streaming/imageGeneration.js";
@@ -157,7 +158,7 @@ function preloadImages(convo) {
         .then((imageRecord) => {
           if (imageRecord?.data) {
             imageCache.set(imgRef.filename, imageRecord.data);
-            if (window.VERBOSE_LOGGING) {
+            if (state.verboseLogging) {
               console.info(`Loaded image from IndexedDB: ${imgRef.filename}`);
             }
           }
@@ -197,7 +198,7 @@ export function saveCurrentConversation(meta = {}) {
   }
 
   const updatedCount = ensureImagesHaveMessageIds();
-  if (window.VERBOSE_LOGGING && updatedCount > 0) {
+  if (state.verboseLogging && updatedCount > 0) {
     console.info(`Associated ${updatedCount} images with messages before saving`);
   }
 
@@ -219,7 +220,7 @@ export function saveCurrentConversation(meta = {}) {
     messages: markedMessages,
     images: processedImages,
     model: elements.modelSelector?.value || 'Unknown',
-    service: window.config?.defaultService || 'Unknown',
+    service: config?.defaultService || 'Unknown',
     systemPrompt: {
       type: promptType,
       content: promptContent,
@@ -231,7 +232,7 @@ export function saveCurrentConversation(meta = {}) {
 
   Promise.all(savePromises)
     .then((results) => {
-      if (window.VERBOSE_LOGGING && results.length > 0) {
+      if (state.verboseLogging && results.length > 0) {
         console.info(`Saved ${results.filter(Boolean).length} images to IndexedDB`);
       }
     })
@@ -241,7 +242,7 @@ export function saveCurrentConversation(meta = {}) {
 
   saveConversationToDb?.(conversation)
     .then((id) => {
-      if (window.VERBOSE_LOGGING) {
+      if (state.verboseLogging) {
         console.info('Saved conversation to IndexedDB:', id);
       }
     })
@@ -292,7 +293,7 @@ export function startNewConversation(name = null) {
     elements.chatBox.innerHTML = '';
   }
 
-  if (window.VERBOSE_LOGGING) {
+  if (state.verboseLogging) {
     console.info('Started new conversation');
   }
 };

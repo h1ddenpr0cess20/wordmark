@@ -1,4 +1,4 @@
-import { elements } from "../../init/state.js";
+import { elements, state } from "../../init/state.js";
 import { showError } from "../../utils/notifications.js";
 import { exportAudioForDownload } from "../../utils/audioStorage.js";
 import { ttsConfig, ttsRuntime, ttsSvgIcons, ttsMessageQueue } from "./config.js";
@@ -13,7 +13,7 @@ export async function generateTtsForMessage(text, messageId) {
 
   try {
     if (ttsRuntime.activeTtsAudio && ttsRuntime.activeTtsAudio.paused) {
-      if (window.VERBOSE_LOGGING) {
+      if (state.verboseLogging) {
         console.info('Active TTS audio is paused; treating as stopped before queuing next message.');
       }
       stopTtsAudio();

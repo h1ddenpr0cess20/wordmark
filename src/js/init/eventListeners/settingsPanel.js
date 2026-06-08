@@ -1,6 +1,7 @@
 import { elements, state } from "../state.js";
 import { switchToTab } from "../../components/ui/settingsTabs.js";
 import { updateHeaderInfo, organizeSettingsLayout } from "../../components/settings.js";
+import { DEFAULT_PERSONALITY } from "../../../config/config.js";
 
 // Single settings panel — original prompt values are stashed here while the
 // panel is open so they can be restored if the user dismisses without saving.
@@ -27,7 +28,7 @@ function storeOriginalValues(state) {
 function restoreOriginalValues(state) {
   if (elements.personalityPromptRadio && elements.personalityPromptRadio.checked && elements.personalityInput) {
     elements.personalityInput.value = state.originalPersonalityValue;
-    if (state.originalPersonalityValue === window.DEFAULT_PERSONALITY) {
+    if (state.originalPersonalityValue === DEFAULT_PERSONALITY) {
       elements.personalityInput.setAttribute('data-explicitly-set', 'true');
     }
   }
@@ -112,7 +113,7 @@ function setupQuickAccessTargets(openSettingsAndSwitch) {
 
 function setupOutsideClickHandler(state) {
   document.addEventListener('click', (event) => {
-    if (window.VERBOSE_LOGGING && event.target.closest('.copy-address')) {
+    if (state.verboseLogging && event.target.closest('.copy-address')) {
       console.info('Outside click handler - copy button detected:', {
         target: event.target,
         closest: event.target.closest('.copy-address'),
@@ -124,14 +125,14 @@ function setupOutsideClickHandler(state) {
     }
 
     if (event.defaultPrevented || event.cancelBubble || event.handled) {
-      if (window.VERBOSE_LOGGING) {
+      if (state.verboseLogging) {
         console.info('Outside click handler: event already handled/prevented');
       }
       return;
     }
 
     if (event.target.closest('.copy-address')) {
-      if (window.VERBOSE_LOGGING) {
+      if (state.verboseLogging) {
         console.info('Outside click handler: ignoring copy button click');
       }
       return;
