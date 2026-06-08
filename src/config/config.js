@@ -147,20 +147,6 @@ if (typeof window !== "undefined" && typeof window.addEventListener === "functio
   });
 }
 
-// Stored server-URL overrides (kept in sync by apiKeys.js).
-const LMSTUDIO_SERVER_URL_KEY = "wordmark_lmstudio_server_url";
-const OLLAMA_SERVER_URL_KEY = "wordmark_ollama_server_url";
-
-function storedServerUrl(storageKey) {
-  try {
-    let storedUrl = localStorage.getItem(storageKey);
-    if (storedUrl) {
-      return storedUrl.endsWith("/v1") ? storedUrl : `${storedUrl}/v1`;
-    }
-  } catch (_) { /* no localStorage */ }
-  return null;
-}
-
 // OpenAI API Configuration
 export const config = {
     // Default service to use
@@ -498,20 +484,14 @@ export const config = {
         return this.getActiveService().apiKey;
     },
 
-    // Helper to get the base URL for the current service
+    // Helper to get the base URL for the current service.
+    // LM Studio/Ollama URL overrides are applied by apiKeys.js writing the
+    // chosen URL directly into services.<svc>.baseUrl, so reading the active
+    // service's baseUrl already reflects any stored override.
     getBaseUrl: function() {
         const serviceKey = this.normalizeServiceKey(this.defaultService);
         if (serviceKey && serviceKey !== this.defaultService) {
             this.defaultService = serviceKey;
-        }
-        // Special case for LM Studio / Ollama - use the stored override URL if set
-        if (serviceKey === "lmstudio") {
-            const stored = storedServerUrl(LMSTUDIO_SERVER_URL_KEY);
-            if (stored) return stored;
-        }
-        if (serviceKey === "ollama") {
-            const stored = storedServerUrl(OLLAMA_SERVER_URL_KEY);
-            if (stored) return stored;
         }
         return this.getActiveService().baseUrl;
     },

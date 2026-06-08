@@ -24,9 +24,7 @@ function toggleDebugMode() {
   state.debug = !state.debug;
   state.verboseLogging = !state.verboseLogging;
 
-  if (typeof applyConsoleLogging === 'function') {
-    applyConsoleLogging();
-  }
+  applyConsoleLogging();
 
   const status = state.debug ? 'enabled' : 'disabled';
   console.info(`Debug mode ${status}:`, {
