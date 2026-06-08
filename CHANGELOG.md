@@ -16,6 +16,7 @@ Major internal rework. No user-facing feature changes — the app looks and beha
 ### Fixed
 - Lint glob now covers all of `src/js/` (it previously matched only one directory level, silently skipping ~40% of files).
 - Settings panel outside-click handler: a shadowed `state` variable caused the gallery to close while an image slideshow was open.
+- Default-service selection no longer gets stuck on a keyless provider. Saved API keys are loaded into `config` independent of the DOM at startup, and when the default cloud provider has no key the app switches to another cloud provider that has one before falling back to local services.
 
 ### Removed
 - `src/js/lib/` bundled vendor libraries (now npm dependencies).
