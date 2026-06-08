@@ -239,7 +239,7 @@ window.config = {
             baseUrl: 'http://localhost:1234/v1',
             apiKey: '', // Typically not required for LM Studio
             models: [], // Initialize as empty, will be populated dynamically
-            defaultModel: 'openai/gpt-oss-20b',
+            defaultModel: 'google/gemma-4-12b-qat',
             modelsFetching: false,
 
             // Fetch and update LM Studio models (response expected like { "data": [ { "id": "openai/gpt-oss-20b", ... }, ... ] })
