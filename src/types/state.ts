@@ -4,6 +4,12 @@ import type { Message } from "./api.ts";
 import type { GeneratedImage } from "./common.ts";
 import type { PendingDocument, PendingUpload } from "./attachments.ts";
 
+// A conversation's stored system-prompt selection.
+export interface SystemPrompt {
+  type: string;
+  content: string;
+}
+
 export interface AppState {
   conversationHistory: Message[];
   activeAbortController: AbortController | null;
@@ -17,7 +23,7 @@ export interface AppState {
   currentConversationName: string | null;
   generatedImages: GeneratedImage[];
   currentGeneratedImageHtml: string[];
-  loadedSystemPrompt: any;
+  loadedSystemPrompt: SystemPrompt | null;
   currentReasoningEffort: string;
   currentVerbosity: string;
   historyTokenBudget?: number;

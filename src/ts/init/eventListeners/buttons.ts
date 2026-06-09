@@ -26,7 +26,9 @@ function closePanelIfActive(closeSettingsPanel: (() => void) | undefined) {
   }
 }
 
-export function setupButtonEventListeners({ closeSettingsPanel }: any = {}) {
+export function setupButtonEventListeners(
+  { closeSettingsPanel }: { closeSettingsPanel?: (opts?: { focusButton?: boolean }) => void } = {},
+) {
   if (elements.clearMemoryButton) {
     elements.clearMemoryButton.addEventListener("click", () => {
       startNewConversation("New Conversation");

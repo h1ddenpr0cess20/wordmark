@@ -104,7 +104,9 @@ function setupPersonalityPresetEventListeners(closeSettingsPanel: (() => void) |
   });
 }
 
-export function setupPromptEventListeners({ closeSettingsPanel }: any = {}) {
+export function setupPromptEventListeners(
+  { closeSettingsPanel }: { closeSettingsPanel?: (opts?: { focusButton?: boolean }) => void } = {},
+) {
   setupPromptRadioEventListeners();
   setupInputFieldEventListeners();
   setupPersonalityPresetEventListeners(closeSettingsPanel);
