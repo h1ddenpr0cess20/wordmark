@@ -1,6 +1,7 @@
 // Shared interfaces for the central app state and cached DOM element references.
 
 import type { Attachment, Message } from "./api.ts";
+import type { GeneratedImage } from "./common.ts";
 
 export interface AppState {
   conversationHistory: Message[];
@@ -13,20 +14,20 @@ export interface AppState {
 
   currentConversationId: string | null;
   currentConversationName: string | null;
-  generatedImages: any[];
-  currentGeneratedImageHtml: any[];
+  generatedImages: GeneratedImage[];
+  currentGeneratedImageHtml: string[];
   loadedSystemPrompt: any;
   currentReasoningEffort: string;
   currentVerbosity: string;
-  imageDataCache: Map<string, any>;
+  imageDataCache: Map<string, string>;
 
-  pendingUploads: any[];
-  pendingDocuments: any[];
+  pendingUploads: Attachment[];
+  pendingDocuments: Attachment[];
 
   userThinkingState: Record<string, any>;
   messageImages: Record<string, any>;
 
-  galleryImages: any[];
+  galleryImages: GeneratedImage[];
   galleryImagesLoaded: boolean;
   galleryInitialized: boolean;
   currentGalleryTab: string;

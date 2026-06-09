@@ -7,6 +7,25 @@ import { loadImageFromDb, saveImageToDb } from "../utils/imageStorage.ts";
 import { toolImplementations } from "./toolImplementations.ts";
 import { getApiKey } from "./apiKeys.ts";
 import { config } from "../../config/config.ts";
+import type { GeneratedImage } from "../../types/common.ts";
+
+interface RegisterMediaOptions {
+  mediaType?: string;
+  sourceData: Blob | string;
+  prompt?: string;
+  tool?: string;
+  filename?: string;
+  mimeType?: string;
+  associatedMessageId?: string | null;
+  callId?: string | null;
+  model?: string | null;
+  uploaded?: boolean;
+}
+
+interface ParsedImage {
+  mimeType: string;
+  url: string;
+}
 
 const XAI_IMAGE_MODEL = "grok-imagine-image";
 
@@ -16,7 +35,7 @@ const XAI_IMAGE_ASPECT_RATIOS = [
   "19.5:9", "9:19.5", "20:9", "9:20", "auto",
 ];
 
-function escapeHtmlAttribute(value) {
+function escapeHtmlAttribute(value: unknown): string {
   if (value === null || value === undefined) {
     return "";
   }
@@ -28,11 +47,11 @@ function escapeHtmlAttribute(value) {
     .replace(/>/g, "&gt;");
 }
 
-export function isVideoMimeType(mimeType = "") {
+export function isVideoMimeType(mimeType: string = ""): boolean {
   return /^video\//i.test(mimeType);
 }
 
-function inferMimeTypeFromFilename(filename = "") {
+function inferMimeTypeFromFilename(filename: string = ""): string {
   const lowered = String(filename || "").toLowerCase();
   if (lowered.endsWith(".mp4")) return "video/mp4";
   if (lowered.endsWith(".mov")) return "video/quicktime";
@@ -63,7 +82,7 @@ export function detectMediaType(source: any = {}) {
   return "image";
 }
 
-function makeFilename(prefix, mimeType) {
+function makeFilename(prefix: string, mimeType: string): string {
   const mediaType = isVideoMimeType(mimeType) ? "video" : "image";
   const extension = (() => {
     if (mimeType === "image/jpeg") return "jpg";
@@ -77,7 +96,7 @@ function makeFilename(prefix, mimeType) {
   return `${base}-${Date.now()}-${Math.random().toString(36).slice(2, 10)}.${extension}`;
 }
 
-export function buildMediaRecordHtml(record) {
+export function buildMediaRecordHtml(record: GeneratedImage): string {
   const mediaType = detectMediaType(record);
   const safeFilename = escapeHtmlAttribute(record.filename || "");
   const safePrompt = escapeHtmlAttribute(record.prompt || "");
@@ -92,7 +111,7 @@ export function buildMediaRecordHtml(record) {
   return `<img src="${src}" alt="${safeAlt}" class="generated-image-thumbnail" data-media-type="image" data-filename="${safeFilename}" data-prompt="${safePrompt}" data-timestamp="${safeTimestamp}" />`;
 }
 
-function createObjectUrl(value) {
+function createObjectUrl(value: unknown): string {
   if (value instanceof Blob) {
     return URL.createObjectURL(value);
   }
@@ -102,7 +121,7 @@ function createObjectUrl(value) {
   return "";
 }
 
-async function fetchBlob(url, options = {}) {
+async function fetchBlob(url: string, options: RequestInit = {}): Promise<Blob> {
   const response = await fetch(url, options);
   if (!response.ok) {
     const text = await response.text().catch(() => "");
@@ -111,7 +130,7 @@ async function fetchBlob(url, options = {}) {
   return response.blob();
 }
 
-function decodeDataUri(reference) {
+function decodeDataUri(reference: string): Blob {
   const [header, encoded] = String(reference).split(",", 2);
   const mimeMatch = /^data:([^;]+)/i.exec(header || "");
   const mimeType = mimeMatch ? mimeMatch[1] : "application/octet-stream";
@@ -123,7 +142,7 @@ function decodeDataUri(reference) {
   return new Blob([bytes], { type: mimeType });
 }
 
-async function resolveStoredReference(record) {
+async function resolveStoredReference(record: { filename?: string } | null | undefined): Promise<string | null> {
   if (!record || !record.filename) {
     return null;
   }
@@ -172,7 +191,7 @@ async function findLatestConversationImage() {
   return null;
 }
 
-async function findLatestGeneratedMedia(kind) {
+async function findLatestGeneratedMedia(kind: string): Promise<string | null> {
   const media = Array.isArray(state.generatedImages) ? [...state.generatedImages].reverse() : [];
   for (const item of media) {
     if (!item) {
@@ -195,7 +214,7 @@ async function findLatestGeneratedMedia(kind) {
   return null;
 }
 
-export async function resolveLatestMediaReference(kind) {
+export async function resolveLatestMediaReference(kind: string): Promise<string | null> {
   const generated = await findLatestGeneratedMedia(kind);
   if (generated) {
     return generated;
@@ -206,10 +225,10 @@ export async function resolveLatestMediaReference(kind) {
   return null;
 }
 
-function parseImageResponse(payload) {
+function parseImageResponse(payload: any): ParsedImage[] {
   const candidates = Array.isArray(payload?.data) ? payload.data : [];
   return candidates
-    .map(item => {
+    .map((item: any): ParsedImage | null => {
       if (!item || typeof item !== "object") {
         return null;
       }
@@ -228,17 +247,17 @@ function parseImageResponse(payload) {
       }
       return null;
     })
-    .filter(Boolean);
+    .filter((img: ParsedImage | null): img is ParsedImage => img !== null);
 }
 
-export function getMediaDisplayUrl(value, filename = "") {
+export function getMediaDisplayUrl(value: unknown, filename: string = ""): string {
   if (!value) {
     return "";
   }
   if (value instanceof Blob) {
     const cacheKey = filename || `blob-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
     if (state.imageDataCache?.has(cacheKey)) {
-      return state.imageDataCache.get(cacheKey);
+      return state.imageDataCache.get(cacheKey)!;
     }
     const objectUrl = createObjectUrl(value);
     if (state.imageDataCache?.set) {
@@ -256,8 +275,8 @@ export function getMediaDisplayUrl(value, filename = "") {
   return "";
 }
 
-export async function downloadMediaSource(source, filename) {
-  let blob = null;
+export async function downloadMediaSource(source: Blob | string, filename?: string): Promise<void> {
+  let blob: Blob | null = null;
   const remoteUrl = typeof source === "string" && /^https?:\/\//i.test(source)
     ? source.trim()
     : "";
@@ -291,6 +310,9 @@ export async function downloadMediaSource(source, filename) {
     throw new Error("No downloadable media source was provided.");
   }
 
+  if (!blob) {
+    throw new Error("No downloadable media source was provided.");
+  }
   const objectUrl = URL.createObjectURL(blob);
   const anchor = document.createElement("a");
   anchor.href = objectUrl;
@@ -322,7 +344,7 @@ export function registerGeneratedMedia({
   callId = null,
   model = null,
   uploaded = false,
-}) {
+}: RegisterMediaOptions): GeneratedImage {
   const effectiveMimeType = mimeType || (sourceData instanceof Blob
     ? (sourceData.type || inferMimeTypeFromFilename(filename))
     : (typeof sourceData === "string" && sourceData.startsWith("data:")
@@ -333,7 +355,7 @@ export function registerGeneratedMedia({
   const timestamp = new Date().toISOString();
   const displayUrl = getMediaDisplayUrl(sourceData, effectiveFilename) || createObjectUrl(sourceData);
 
-  const record = {
+  const record: GeneratedImage = {
     url: displayUrl,
     prompt: prompt || "",
     tool: tool || "",
@@ -378,7 +400,7 @@ export function registerGeneratedMedia({
   return record;
 }
 
-function getProviderBaseUrl(provider) {
+function getProviderBaseUrl(provider: string): string {
   const baseUrl = config?.services?.[provider]?.baseUrl || "";
   if (!baseUrl) {
     throw new Error(`Base URL is not configured for ${provider}.`);
@@ -386,7 +408,7 @@ function getProviderBaseUrl(provider) {
   return baseUrl.replace(/\/+$/, "");
 }
 
-function getProviderApiKey(provider) {
+function getProviderApiKey(provider: string): string {
   const apiKey = getApiKey?.(provider) || config?.services?.[provider]?.apiKey || "";
   const trimmed = typeof apiKey === "string" ? apiKey.trim() : "";
   if (!trimmed) {
@@ -396,7 +418,7 @@ function getProviderApiKey(provider) {
   return trimmed;
 }
 
-function buildHeaders(provider) {
+function buildHeaders(provider: string): Record<string, string> {
   const headers: Record<string, string> = { "Content-Type": "application/json" };
   const apiKey = getProviderApiKey(provider);
   if (apiKey) {
@@ -405,7 +427,7 @@ function buildHeaders(provider) {
   return headers;
 }
 
-async function responseToJson(response) {
+async function responseToJson(response: Response): Promise<any> {
   if (!response.ok) {
     const text = await response.text().catch(() => "");
     throw new Error(`${response.status} ${response.statusText}${text ? `: ${text}` : ""}`);
@@ -413,7 +435,7 @@ async function responseToJson(response) {
   return response.json();
 }
 
-async function fetchJson(url, options = {}) {
+async function fetchJson(url: string, options: RequestInit = {}): Promise<any> {
   const response = await fetch(url, options);
   return responseToJson(response);
 }
@@ -426,7 +448,7 @@ function normalizePrompt(args: any = {}) {
   return prompt;
 }
 
-async function generateGrokImage(args, mode) {
+async function generateGrokImage(args: any, mode: string): Promise<any> {
   const prompt = normalizePrompt(args);
   const provider = "xai";
   const endpoint = mode === "edit" ? "/images/edits" : "/images/generations";
@@ -446,7 +468,7 @@ async function generateGrokImage(args, mode) {
 
   if (mode === "edit") {
     let imageUrls = Array.isArray(args.image_urls)
-      ? args.image_urls.filter(value => typeof value === "string" && value.trim()).map(value => value.trim())
+      ? args.image_urls.filter((value: any) => typeof value === "string" && value.trim()).map((value: string) => value.trim())
       : [];
     if (!imageUrls.length && typeof args.image_url === "string" && args.image_url.trim()) {
       imageUrls = [args.image_url.trim()];
@@ -461,7 +483,7 @@ async function generateGrokImage(args, mode) {
     if (imageUrls.length === 1) {
       payload.image = { type: "image_url", url: imageUrls[0] };
     } else {
-      payload.images = imageUrls.slice(0, 3).map(url => ({ type: "image_url", url }));
+      payload.images = imageUrls.slice(0, 3).map((url: string) => ({ type: "image_url", url }));
     }
   }
 
@@ -496,9 +518,9 @@ async function generateGrokImage(args, mode) {
   };
 }
 
-toolImplementations.grok_generate_image = async function(args) {
+toolImplementations.grok_generate_image = async function(args: any) {
   return generateGrokImage(args || {}, "generate");
 };
-toolImplementations.grok_edit_image = async function(args) {
+toolImplementations.grok_edit_image = async function(args: any) {
   return generateGrokImage(args || {}, "edit");
 };

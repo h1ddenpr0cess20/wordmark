@@ -65,7 +65,7 @@ export function initImageDb() {
  * @param {string} metadata - Any additional metadata about the image
  * @returns {Promise<string>} - Promise that resolves with the filename
  */
-export function saveImageToDb(base64Data: string, filename: string, metadata: Record<string, unknown> = {}): Promise<string> {
+export function saveImageToDb(base64Data: string | Blob, filename: string, metadata: Record<string, unknown> = {}): Promise<string> {
   return new Promise<string>((resolve, reject) => {
     if (!imageDb) {
       console.error("IndexedDB not initialized");
