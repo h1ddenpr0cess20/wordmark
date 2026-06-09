@@ -8,7 +8,6 @@ import {
   deleteVectorStore,
   getVectorStore,
   listVectorStoreFiles,
-  setActiveVectorStoreId,
   clearActiveVectorStore,
   getActiveVectorStoreId,
   getActiveVectorStoreIds,
@@ -226,31 +225,6 @@ export async function refreshVectorStoreList(applyCooldown = true) {
       `;
     } else {
       listContainer.innerHTML = `<div class="error-message">Failed to load vector stores: ${escapeHtml(errorMessage)}</div>`;
-    }
-  }
-}
-
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-async function activateVectorStore(storeId: string) {
-  try {
-    const store = await getVectorStore(storeId);
-
-    setActiveVectorStoreId(storeId);
-    saveVectorStoreMetadata(storeId, {
-      name: store.name,
-      createdAt: store.created_at,
-      fileCount: store.file_counts?.total || 0,
-    });
-
-    if (showInfo) {
-      showInfo(`Vector store "${store.name || storeId}" activated`);
-    }
-
-    await refreshVectorStoreList();
-  } catch (error) {
-    console.error("Failed to activate vector store:", error);
-    if (showError) {
-      showError(`Failed to activate vector store: ${error instanceof Error ? error.message : ""}`);
     }
   }
 }
