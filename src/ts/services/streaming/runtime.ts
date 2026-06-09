@@ -3,8 +3,8 @@ import {
   IMAGE_GENERATION_CALL_TYPE,
   collectImageCandidates,
   imageDebugLog,
+  type ImageCandidate,
 } from "./imageGeneration.ts";
-import type { ImageCandidate } from "./imageGeneration.ts";
 import { processMainContentMarkdown, separateThinkingSegments } from "./thinkingUtils.ts";
 import { highlightAndAddCopyButtons } from "../../components/messages.ts";
 import { fastScroll } from "../../utils/mobileHandling.ts";
