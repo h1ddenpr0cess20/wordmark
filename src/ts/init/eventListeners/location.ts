@@ -9,7 +9,7 @@ export function setupLocationEventListeners() {
   }
 
   locationToggle.addEventListener("change", async(event) => {
-    const isEnabled = (event.target as any).checked;
+    const isEnabled = (event.target as HTMLInputElement).checked;
 
     if (isEnabled) {
       const result = await requestLocation();

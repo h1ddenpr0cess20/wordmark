@@ -10,7 +10,7 @@ export function setupToolCallingEventListeners() {
   }
 
   elements.toolCallingToggle.addEventListener("change", (event) => {
-    const enabled = (event.target as any).checked;
+    const enabled = (event.target as HTMLInputElement).checked;
     config.enableFunctionCalling = enabled;
     localStorage.setItem("enableFunctionCalling", enabled ? "true" : "false");
 

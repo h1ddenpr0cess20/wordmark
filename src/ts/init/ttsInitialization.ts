@@ -36,7 +36,7 @@ export function initializeTts() {
   if (elements.ttsInstructionsInput) {
     elements.ttsInstructionsInput.value = ttsConfig.instructions || "";
     // xAI TTS doesn't support voice instructions
-    const instructionsItem = elements.ttsInstructionsInput.closest(".setting-item") as any;
+    const instructionsItem = elements.ttsInstructionsInput.closest<HTMLElement>(".setting-item");
     if (instructionsItem) {
       instructionsItem.style.display = (ttsConfig.provider || "openai") === "xai" ? "none" : "";
     }

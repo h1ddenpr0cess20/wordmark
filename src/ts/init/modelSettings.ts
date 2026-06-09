@@ -159,7 +159,7 @@ export function initializeModelSettings() {
 
     if (!elements.reasoningEffortSelector.dataset.bound) {
       elements.reasoningEffortSelector.addEventListener("change", (event) => {
-        const selectedEffort = normalizeReasoningEffort((event.target as any).value);
+        const selectedEffort = normalizeReasoningEffort((event.target as HTMLSelectElement).value);
         state.currentReasoningEffort = selectedEffort;
         persistReasoningEffort(selectedEffort);
       });
@@ -172,7 +172,7 @@ export function initializeModelSettings() {
 
     if (!elements.verbositySelector.dataset.bound) {
       elements.verbositySelector.addEventListener("change", (event) => {
-        const selectedVerbosity = normalizeVerbosity((event.target as any).value);
+        const selectedVerbosity = normalizeVerbosity((event.target as HTMLSelectElement).value);
         state.currentVerbosity = selectedVerbosity;
         persistVerbosity(selectedVerbosity);
       });
@@ -185,10 +185,11 @@ export function initializeModelSettings() {
 
     if (!elements.historyTokenBudgetInput.dataset.bound) {
       elements.historyTokenBudgetInput.addEventListener("change", (event) => {
-        const budget = normalizeHistoryTokenBudget((event.target as any).value);
+        const budgetInput = event.target as HTMLInputElement;
+        const budget = normalizeHistoryTokenBudget(budgetInput.value);
         state.historyTokenBudget = budget;
         persistHistoryTokenBudget(budget);
-        (event.target as any).value = String(budget);
+        budgetInput.value = String(budget);
       });
       elements.historyTokenBudgetInput.dataset.bound = "true";
     }

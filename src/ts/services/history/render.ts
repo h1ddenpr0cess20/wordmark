@@ -149,7 +149,7 @@ export function renderConversationMessages(convo: any, imageCache: any) {
     const originalSelector = document.querySelector;
     document.querySelector = function(selector: string) {
       if (selector === "#wordmark-logo g") {
-        return sender.querySelector("g") as any;
+        return sender.querySelector("g");
       }
       return originalSelector.call(document, selector);
     };

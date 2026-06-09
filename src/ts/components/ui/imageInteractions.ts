@@ -60,25 +60,29 @@ export function setupImageInteractions(messageElement: HTMLElement | null) {
     return;
   }
 
-  const mediaElements = messageElement.querySelectorAll(".message-content img, .message-content video") as any;
+  const mediaElements = messageElement.querySelectorAll<HTMLImageElement | HTMLVideoElement>(".message-content img, .message-content video");
   if (!mediaElements.length) {
     return;
   }
 
   const downloadIconSvg = icon("download", { width: 16, height: 16 });
 
-  mediaElements.forEach((media: any, index: number) => {
-    if (media.parentNode?.classList?.contains("image-container")) {
+  mediaElements.forEach((media, index) => {
+    if (media.parentElement?.classList.contains("image-container")) {
       return;
     }
 
     const mediaType = elementMediaType(media);
+    const parent = media.parentNode;
+    if (!parent) {
+      return;
+    }
     const container = document.createElement("div");
     container.className = "image-container";
-    media.parentNode.insertBefore(container, media);
+    parent.insertBefore(container, media);
     container.appendChild(media);
 
-    if (mediaType === "video") {
+    if (media instanceof HTMLVideoElement) {
       media.controls = true;
       media.playsInline = true;
       media.preload = media.preload || "metadata";
@@ -97,14 +101,14 @@ export function setupImageInteractions(messageElement: HTMLElement | null) {
         ? `video-${Date.now()}-${index + 1}.mp4`
         : `image-${Date.now()}-${index + 1}.png`;
       const filename = media.dataset.filename || fallbackName;
-      const source = mediaType === "video" ? (media.currentSrc || media.src) : media.src;
+      const source = media instanceof HTMLVideoElement ? (media.currentSrc || media.src) : media.src;
       downloadMediaSource(source, filename)
         .catch(error => console.error(`Error downloading ${mediaType}:`, error));
     });
   });
 
-  const images = messageElement.querySelectorAll(".message-content img") as any;
-  images.forEach((img: any) => {
+  const images = messageElement.querySelectorAll<HTMLImageElement>(".message-content img");
+  images.forEach((img) => {
     if (img.dataset.viewerBound === "true") {
       return;
     }
@@ -120,8 +124,8 @@ export function setupImageInteractions(messageElement: HTMLElement | null) {
     });
   });
 
-  const videos = messageElement.querySelectorAll(".message-content video") as any;
-  videos.forEach((video: any) => {
+  const videos = messageElement.querySelectorAll<HTMLVideoElement>(".message-content video");
+  videos.forEach((video) => {
     if (video.dataset.viewerBound === "true") {
       return;
     }
@@ -157,7 +161,7 @@ export function createImageSlideshow(images: any[], startIndex: number, isGaller
     return;
   }
 
-  const existingSlideshow = document.querySelector(".gallery-slideshow") as any;
+  const existingSlideshow = document.querySelector(".gallery-slideshow");
   if (existingSlideshow) {
     document.body.removeChild(existingSlideshow);
   }
@@ -231,20 +235,20 @@ export function createImageSlideshow(images: any[], startIndex: number, isGaller
         .then(() => {
           state.galleryImages.splice(currentIndex, 1);
 
-          const galleryItem = document.querySelector(`.gallery-item[data-filename="${image.filename}"]`) as any;
+          const galleryItem = document.querySelector(`.gallery-item[data-filename="${image.filename}"]`);
           if (galleryItem) {
             galleryItem.remove();
           }
 
-          const galleryCount = document.getElementById("gallery-count") as any;
+          const galleryCount = document.getElementById("gallery-count");
           if (galleryCount) {
-            const currentCount = parseInt(galleryCount.textContent, 10);
-            galleryCount.textContent = Math.max(0, currentCount - 1);
+            const currentCount = parseInt(galleryCount.textContent || "0", 10);
+            galleryCount.textContent = String(Math.max(0, currentCount - 1));
           }
 
           if (!state.galleryImages.length) {
             closeSlideshow();
-            const galleryGrid = document.getElementById("gallery-grid") as any;
+            const galleryGrid = document.getElementById("gallery-grid");
             if (galleryGrid) {
               galleryGrid.innerHTML = "<div class=\"gallery-empty\">No media found in gallery</div>";
             }

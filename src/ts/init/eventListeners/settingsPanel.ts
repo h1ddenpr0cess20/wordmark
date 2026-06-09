@@ -15,6 +15,11 @@ const panelState: PanelState = {
   originalCustomPromptValue: "",
 };
 
+// Quick-access (capture-phase) handlers mark a click here so the bubbling
+// outside-click handler knows to skip it. Tracked via a WeakSet rather than a
+// custom property on the Event object so it stays type-safe and self-cleaning.
+const handledEvents = new WeakSet<Event>();
+
 export function updatePanelOpenState() {
   const settingsOpen = Boolean(elements.settingsPanel && elements.settingsPanel.classList.contains("active"));
   const historyOpen = Boolean(elements.historyPanel && elements.historyPanel.getAttribute("aria-hidden") === "false");
@@ -98,45 +103,45 @@ function setupQuickAccessTargets(openSettingsAndSwitch: (tabId: string) => void)
       element.addEventListener("click", (event) => {
         event.preventDefault();
         event.stopPropagation();
-        (event as any).handled = true;
+        handledEvents.add(event);
         openSettingsAndSwitch(tabId);
       });
     }
   });
 
   document.addEventListener("click", (event) => {
-    const match = targets.find(({ selector }) => (event.target as any).closest && (event.target as any).closest(selector));
+    const match = targets.find(({ selector }) => (event.target as Element | null)?.closest(selector));
     if (!match) {
       return;
     }
     event.preventDefault();
     event.stopPropagation();
-    (event as any).handled = true;
+    handledEvents.add(event);
     openSettingsAndSwitch(match.tabId);
   }, true);
 }
 
 function setupOutsideClickHandler() {
   document.addEventListener("click", (event) => {
-    if (state.verboseLogging && (event.target as any).closest(".copy-address")) {
+    if (state.verboseLogging && (event.target as Element | null)?.closest(".copy-address")) {
       console.info("Outside click handler - copy button detected:", {
         target: event.target,
-        closest: (event.target as any).closest(".copy-address"),
+        closest: (event.target as Element | null)?.closest(".copy-address"),
         defaultPrevented: event.defaultPrevented,
         cancelBubble: event.cancelBubble,
-        handled: (event as any).handled,
+        handled: handledEvents.has(event),
         timeStamp: event.timeStamp,
       });
     }
 
-    if (event.defaultPrevented || event.cancelBubble || (event as any).handled) {
+    if (event.defaultPrevented || event.cancelBubble || handledEvents.has(event)) {
       if (state.verboseLogging) {
         console.info("Outside click handler: event already handled/prevented");
       }
       return;
     }
 
-    if ((event.target as any).closest(".copy-address")) {
+    if ((event.target as Element | null)?.closest(".copy-address")) {
       if (state.verboseLogging) {
         console.info("Outside click handler: ignoring copy button click");
       }

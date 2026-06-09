@@ -17,7 +17,7 @@ import { updateFeatureStatus } from "../../components/settings.ts";
 export function setupTtsEventListeners() {
   if (elements.ttsToggle) {
     elements.ttsToggle.addEventListener("change", (event) => {
-      if ((event.target as any).checked) {
+      if ((event.target as HTMLInputElement).checked) {
         ttsConfig.enabled = true;
         initializeTts();
       } else {
@@ -31,8 +31,8 @@ export function setupTtsEventListeners() {
 
   if (elements.ttsAutoplayToggle) {
     elements.ttsAutoplayToggle.addEventListener("change", (event) => {
-      ttsConfig.autoplay = (event.target as any).checked;
-      if ((event.target as any).checked && ttsMessageQueue.length > 0 && !ttsRuntime.activeTtsAudio) {
+      ttsConfig.autoplay = (event.target as HTMLInputElement).checked;
+      if ((event.target as HTMLInputElement).checked && ttsMessageQueue.length > 0 && !ttsRuntime.activeTtsAudio) {
         ttsRuntime.autoplayActive = true;
         playNextMessageInQueue();
       }
@@ -41,11 +41,12 @@ export function setupTtsEventListeners() {
 
   if (elements.ttsProviderSelector) {
     elements.ttsProviderSelector.addEventListener("change", (event) => {
-      ttsConfig.provider = (availableTtsVoices as Record<string, any>)?.[(event.target as any).value] ? (event.target as any).value : "openai";
-      (event.target as any).value = ttsConfig.provider;
+      const providerSelect = event.target as HTMLSelectElement;
+      ttsConfig.provider = (availableTtsVoices as Record<string, any>)?.[providerSelect.value] ? providerSelect.value : "openai";
+      providerSelect.value = ttsConfig.provider;
       populateTtsVoiceSelector();
       // xAI TTS doesn't support voice instructions
-      const instructionsItem = elements.ttsInstructionsInput?.closest(".setting-item") as any;
+      const instructionsItem = elements.ttsInstructionsInput?.closest<HTMLElement>(".setting-item");
       if (instructionsItem) {
         instructionsItem.style.display = ttsConfig.provider === "xai" ? "none" : "";
       }
@@ -54,13 +55,13 @@ export function setupTtsEventListeners() {
 
   if (elements.ttsVoiceSelector) {
     elements.ttsVoiceSelector.addEventListener("change", (event) => {
-      ttsConfig.voice = (event.target as any).value;
+      ttsConfig.voice = (event.target as HTMLSelectElement).value;
     });
   }
 
   if (elements.ttsInstructionsInput) {
     elements.ttsInstructionsInput.addEventListener("change", (event) => {
-      ttsConfig.instructions = (event.target as any).value;
+      ttsConfig.instructions = (event.target as HTMLTextAreaElement).value;
     });
   }
 

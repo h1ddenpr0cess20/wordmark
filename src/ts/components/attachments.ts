@@ -424,7 +424,7 @@ function setupDragAndDrop(inputWrapper: HTMLElement) {
           if (entry.isDirectory) {
             sawDirectory = true;
             const dirFiles = await readAllFilesFromEntry(entry);
-            files.push(...(dirFiles as any[]));
+            files.push(...dirFiles);
           } else if (entry.isFile) {
             const f = await fileFromEntry(entry);
             if (f) files.push(f);

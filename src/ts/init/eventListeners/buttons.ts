@@ -134,14 +134,14 @@ export function setupButtonEventListeners({ closeSettingsPanel }: any = {}) {
     });
   }
 
-  const resetModelSettingsButton = document.getElementById("reset-model-settings") as any;
+  const resetModelSettingsButton = document.getElementById("reset-model-settings");
   if (resetModelSettingsButton) {
     resetModelSettingsButton.addEventListener("click", () => {
       setReasoningEffort(DEFAULT_REASONING_EFFORT || "medium");
     });
   }
 
-  const refreshModelsButton = document.getElementById("refresh-models") as any;
+  const refreshModelsButton = document.getElementById("refresh-models") as HTMLButtonElement | null;
   if (refreshModelsButton) {
     refreshModelsButton.addEventListener("click", async(event: Event) => {
       event.preventDefault();
@@ -163,7 +163,7 @@ export function setupButtonEventListeners({ closeSettingsPanel }: any = {}) {
           const models = serviceConfig.models || [];
           const hasError = models.length === 0 || models.some((m: any) => typeof m === "string" && (m.startsWith("Error:") || m.startsWith("No models")));
 
-          const existingStatus = document.querySelector(".service-status") as any;
+          const existingStatus = document.querySelector(".service-status");
           if (existingStatus) {
             existingStatus.remove();
           }
@@ -174,7 +174,7 @@ export function setupButtonEventListeners({ closeSettingsPanel }: any = {}) {
             ? `Failed to refresh ${serviceLabel} models`
             : `${serviceLabel} models updated successfully!`;
 
-          const statusAnchor = document.querySelector(".model-selector-container") || document.querySelector(".lmstudio-action-buttons") as any;
+          const statusAnchor = document.querySelector(".model-selector-container") || document.querySelector(".lmstudio-action-buttons");
           if (statusAnchor) {
             statusAnchor.insertAdjacentElement("afterend", statusElement);
             setTimeout(() => statusElement.remove(), 5000);
@@ -182,7 +182,7 @@ export function setupButtonEventListeners({ closeSettingsPanel }: any = {}) {
         } catch (error) {
           console.error(`Error refreshing ${serviceLabel} models:`, error);
 
-          const existingStatus = document.querySelector(".service-status") as any;
+          const existingStatus = document.querySelector(".service-status");
           if (existingStatus) {
             existingStatus.remove();
           }
@@ -191,7 +191,7 @@ export function setupButtonEventListeners({ closeSettingsPanel }: any = {}) {
           statusElement.className = "service-status error";
           statusElement.textContent = `Failed to refresh ${serviceLabel} models`;
 
-          const statusAnchor = document.querySelector(".model-selector-container") || document.querySelector(".lmstudio-action-buttons") as any;
+          const statusAnchor = document.querySelector(".model-selector-container") || document.querySelector(".lmstudio-action-buttons");
           if (statusAnchor) {
             statusAnchor.insertAdjacentElement("afterend", statusElement);
             setTimeout(() => statusElement.remove(), 5000);

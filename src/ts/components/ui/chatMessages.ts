@@ -16,7 +16,7 @@ function renderAssistantIcon(senderElement: HTMLElement) {
   const originalSelector = document.querySelector;
   document.querySelector = function(selector: string) {
     if (selector === "#wordmark-logo g") {
-      return senderElement.querySelector("g") as any;
+      return senderElement.querySelector("g");
     }
     return originalSelector.call(document, selector);
   };

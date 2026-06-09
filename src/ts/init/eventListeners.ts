@@ -38,13 +38,13 @@ export function setupEventListeners() {
 
   if (elements.verboseModeToggle) {
     elements.verboseModeToggle.addEventListener("change", (e) => {
-      const enabled = (e.target as any).checked;
+      const enabled = (e.target as HTMLInputElement).checked;
       if (enabled) {
         state.shortResponseGuideline = "";
       } else {
         state.shortResponseGuideline = DEFAULT_SHORT_RESPONSE_GUIDELINE || "";
       }
-      localStorage.setItem("verboseModeEnabled", enabled);
+      localStorage.setItem("verboseModeEnabled", String(enabled));
     });
   }
 
@@ -56,12 +56,12 @@ export function setupEventListeners() {
     } catch {}
 
     dataSettingsToggle.addEventListener("change", (e) => {
-      const on = (e.target as any).checked;
+      const on = (e.target as HTMLInputElement).checked;
       setDataSettingsEnabled(on);
       updateFeatureStatus();
     });
 
-    const dataToggleLabel = document.querySelector("label[for=\"data-settings-toggle\"]") as any;
+    const dataToggleLabel = document.querySelector("label[for=\"data-settings-toggle\"]");
     if (dataToggleLabel) {
       dataToggleLabel.addEventListener("click", (ev: Event) => {
         ev.preventDefault();
@@ -106,7 +106,7 @@ export function setupEventListeners() {
   ];
 
   manualLoadSelectors.forEach(selector => {
-    const el = document.querySelector(selector) as any;
+    const el = document.querySelector(selector);
     if (!el) return;
 
     el.addEventListener("click", async(event: Event) => {

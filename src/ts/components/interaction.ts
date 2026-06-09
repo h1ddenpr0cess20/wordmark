@@ -199,7 +199,7 @@ export async function sendMessage() {
 
   // Clear documents and previews after processing
   state.pendingDocuments = [];
-  const preview = document.querySelector(".upload-previews") as any;
+  const preview = document.querySelector(".upload-previews");
   if (preview) {
     preview.innerHTML = "";
   }

@@ -24,7 +24,7 @@ export function initializeConversationInput() {
   document.querySelectorAll(svgSelectors).forEach((svg) => {
     svg.addEventListener("click", (event: Event) => {
       event.stopPropagation();
-      const parentButton = (event.currentTarget as any).closest("button");
+      const parentButton = (event.currentTarget as Element).closest("button");
       if (parentButton) {
         parentButton.click();
       }
