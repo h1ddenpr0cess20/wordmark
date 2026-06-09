@@ -8,6 +8,27 @@ import { processMainContentMarkdown, separateThinkingSegments } from "./thinking
 import { highlightAndAddCopyButtons } from "../../components/messages.ts";
 import { fastScroll } from "../../utils/mobileHandling.ts";
 
+interface StreamingRuntimeOptions {
+  loadingMessage: HTMLElement;
+  contentWrapper: HTMLElement;
+  placeholderElement: HTMLElement | null;
+  mainContentContainer: HTMLElement;
+  thinkingId: string;
+  existingThinkingContainer: HTMLElement | null;
+}
+
+interface ImageCandidate {
+  dataUrl?: string;
+  mimeType?: string;
+  [key: string]: unknown;
+}
+
+interface AccumulatedImage {
+  dataUrl: string;
+  mimeType: string;
+  sourceLabel: string;
+}
+
 /**
  * Builds the runtime helpers responsible for tracking streaming state and
  * updating the DOM incrementally while the response arrives.
@@ -27,13 +48,13 @@ export function createStreamingRuntime({
   mainContentContainer,
   thinkingId,
   existingThinkingContainer,
-}) {
-  const accumulatedImageOutputs = [];
-  const accumulatedImageSeen = new Set();
+}: StreamingRuntimeOptions) {
+  const accumulatedImageOutputs: AccumulatedImage[] = [];
+  const accumulatedImageSeen = new Set<string>();
   let placeholderCleared = !placeholderElement;
   let accumulatedContent = "";
   let accumulatedReasoning = "";
-  let thinkingContainer = existingThinkingContainer || null;
+  let thinkingContainer: HTMLElement | null = existingThinkingContainer || null;
 
   if (existingThinkingContainer && existingThinkingContainer.dataset.accumulatedReasoning) {
     accumulatedReasoning = existingThinkingContainer.dataset.accumulatedReasoning;
@@ -50,7 +71,7 @@ export function createStreamingRuntime({
     }
   }
 
-  function ensureThinkingContainer(persistedExpanded, hasPersisted, priorWasCollapsed) {
+  function ensureThinkingContainer(persistedExpanded: boolean, hasPersisted: boolean, priorWasCollapsed: boolean) {
     if (thinkingContainer) {
       return thinkingContainer;
     }
@@ -60,7 +81,7 @@ export function createStreamingRuntime({
          <div class="thinking-content"></div>
        </div>`;
     mainContentContainer.insertAdjacentHTML("beforebegin", containerHTML);
-    thinkingContainer = document.getElementById(thinkingId) as any;
+    thinkingContainer = document.getElementById(thinkingId);
     if (thinkingContainer && accumulatedReasoning) {
       thinkingContainer.dataset.accumulatedReasoning = accumulatedReasoning;
       if (hasPersisted && !persistedExpanded) {
@@ -94,7 +115,7 @@ export function createStreamingRuntime({
       thinkingContainer = ensureThinkingContainer(persistedExpanded, hasPersisted, priorWasCollapsed);
 
       if (thinkingContainer) {
-        const contentDiv = thinkingContainer.querySelector(".thinking-content") as any;
+        const contentDiv = thinkingContainer.querySelector<HTMLElement>(".thinking-content");
         if (contentDiv) {
           contentDiv.innerHTML = processMainContentMarkdown(thinkingContent);
           const shouldCollapse = hasPersisted ? !persistedExpanded : priorWasCollapsed;
@@ -124,12 +145,12 @@ export function createStreamingRuntime({
       console.warn("Error highlighting code during streaming:", err);
     }
 
-    if (state.shouldAutoScroll) {
+    if (state.shouldAutoScroll && elements.chatBox) {
       fastScroll(elements.chatBox, elements.chatBox.scrollHeight);
     }
   }
 
-  function appendReasoningLine(text, indent = 0) {
+  function appendReasoningLine(text: string, indent = 0) {
     if (!text) return;
     if (accumulatedReasoning && !accumulatedReasoning.endsWith("\n")) {
       accumulatedReasoning += "\n";
@@ -139,7 +160,7 @@ export function createStreamingRuntime({
     render();
   }
 
-  function updateLastReasoningLine(newText, indent = 0) {
+  function updateLastReasoningLine(newText: string, indent = 0) {
     if (!newText) return;
     const lines = accumulatedReasoning.split("\n");
     if (lines.length > 0 && lines[lines.length - 1] === "") {
@@ -154,7 +175,7 @@ export function createStreamingRuntime({
     render();
   }
 
-  function appendReasoningDelta(delta) {
+  function appendReasoningDelta(delta: string) {
     if (!delta) return;
     accumulatedReasoning += delta;
     render();
@@ -168,29 +189,29 @@ export function createStreamingRuntime({
     render();
   }
 
-  function appendOutputText(delta) {
+  function appendOutputText(delta: string) {
     if (!delta) return;
     accumulatedContent += delta;
     render();
   }
 
-  function replaceOutputSegment(startOffset, fullText) {
+  function replaceOutputSegment(startOffset: number, fullText: string) {
     accumulatedContent = accumulatedContent.slice(0, startOffset) + fullText;
     render();
   }
 
-  function collectImagesFromSource(source, label) {
+  function collectImagesFromSource(source: unknown, label: string) {
     if (!source || typeof source !== "object") {
       return;
     }
-    const localSeen = new Set();
+    const localSeen = new Set<string>();
     const visited = typeof WeakSet !== "undefined" ? new WeakSet() : null;
-    const buffer = [];
+    const buffer: ImageCandidate[] = [];
     collectImageCandidates(source, buffer, "image/png", localSeen, visited);
     if (!buffer.length) {
       return;
     }
-    buffer.forEach(item => {
+    buffer.forEach((item: ImageCandidate) => {
       if (!item || typeof item.dataUrl !== "string") {
         return;
       }
@@ -211,11 +232,11 @@ export function createStreamingRuntime({
     });
   }
 
-  function attachImagesToPayload(payload) {
+  function attachImagesToPayload(payload: Record<string, any> | null) {
     if (!accumulatedImageOutputs.length) {
       return payload;
     }
-    const targetPayload = payload || {};
+    const targetPayload: Record<string, any> = payload || {};
     if (!Array.isArray(targetPayload.output)) {
       targetPayload.output = Array.isArray(targetPayload.output) ? targetPayload.output : [];
     }
@@ -250,7 +271,7 @@ export function createStreamingRuntime({
     getOutputText: () => accumulatedContent,
     getOutputLength: () => accumulatedContent.length,
     getReasoningText: () => accumulatedReasoning,
-    outputEndsWith: suffix => accumulatedContent.endsWith(suffix),
+    outputEndsWith: (suffix: string) => accumulatedContent.endsWith(suffix),
     hasOutput: () => accumulatedContent.trim().length > 0,
     removePlaceholder,
     render,

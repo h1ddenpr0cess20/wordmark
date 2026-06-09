@@ -5,7 +5,7 @@
 import { marked } from "marked";
 import { sanitizeWithMedia } from "../../utils/sanitize.ts";
 
-export function processMainContentMarkdown(mainText) {
+export function processMainContentMarkdown(mainText: string) {
   let html = mainText;
 
   if (html.split("```").length % 2 === 0) {
@@ -26,7 +26,7 @@ export function processMainContentMarkdown(mainText) {
   return parsedContent;
 }
 
-export function separateThinkingSegments(text) {
+export function separateThinkingSegments(text: string) {
   if (typeof text !== "string" || !text) {
     return { content: text || "", reasoning: "" };
   }
@@ -34,8 +34,8 @@ export function separateThinkingSegments(text) {
   const lower = text.toLowerCase();
   const openTag = "<think>";
   const closeTag = "</think>";
-  const contentParts = [];
-  const reasoningParts = [];
+  const contentParts: string[] = [];
+  const reasoningParts: string[] = [];
   let cursor = 0;
   let inThinking = false;
 
