@@ -9,7 +9,7 @@ export const DEFAULT_MODEL = "gpt-5-mini";
 export const DEFAULT_VERBOSITY = "medium";
 export const DEFAULT_REASONING_EFFORT = "low";
 
-function isConfiguredServiceEnabled(serviceKey) {
+function isConfiguredServiceEnabled(serviceKey: string | null | undefined): boolean {
   if (!serviceKey || !config || !config.services) {
     return false;
   }
@@ -20,7 +20,7 @@ function isConfiguredServiceEnabled(serviceKey) {
   return Boolean(service && service.enabled !== false);
 }
 
-function getFallbackServiceKey() {
+function getFallbackServiceKey(): string {
   if (isConfiguredServiceEnabled("openai")) {
     return "openai";
   }
@@ -31,7 +31,7 @@ function getFallbackServiceKey() {
   return Object.keys(services).find(isConfiguredServiceEnabled) || "openai";
 }
 
-export function getActiveModel() {
+export function getActiveModel(): string {
   if (elements.modelSelector && elements.modelSelector.value) {
     return elements.modelSelector.value;
   }
@@ -41,9 +41,9 @@ export function getActiveModel() {
   return DEFAULT_MODEL;
 }
 
-export function getActiveServiceKey() {
+export function getActiveServiceKey(): string {
   const selectedService = elements.serviceSelector && elements.serviceSelector.value;
-  if (isConfiguredServiceEnabled(selectedService)) {
+  if (selectedService && isConfiguredServiceEnabled(selectedService)) {
     return selectedService;
   }
   if (config && typeof config.defaultService === "string" && isConfiguredServiceEnabled(config.defaultService)) {
@@ -52,7 +52,7 @@ export function getActiveServiceKey() {
   return getFallbackServiceKey();
 }
 
-export function ensureApiKey() {
+export function ensureApiKey(): string | null {
   if (!config || typeof config.getApiKey !== "function") {
     throw new Error("API configuration is unavailable.");
   }
@@ -75,7 +75,7 @@ export function ensureApiKey() {
   throw new Error(`Add your ${friendlyName} API key in Settings → API Keys.`);
 }
 
-export function getBaseUrl() {
+export function getBaseUrl(): string {
   if (!config || typeof config.getBaseUrl !== "function") {
     throw new Error("API base URL is not configured.");
   }
@@ -86,7 +86,7 @@ export function getBaseUrl() {
   return baseUrl.replace(/\/+$/, "");
 }
 
-export function supportsReasoningEffort(modelName = null) {
+export function supportsReasoningEffort(modelName: string | null = null): boolean {
   const model = String(modelName || getActiveModel() || "").toLowerCase();
   if (!model) {
     return true;

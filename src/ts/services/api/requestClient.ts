@@ -28,6 +28,18 @@ import {
 import { getActiveVectorStoreIds } from "../vectorStore.ts";
 import { toolImplementations } from "../toolImplementations.ts";
 import { handleStreamedResponse } from "../streaming.ts";
+import type {
+  BuildRequestOptions,
+  CollectedFunctionCall,
+  RunTurnOptions,
+  RunTurnResult,
+  ToolCallLike,
+} from "../../../types/api.ts";
+import type { ToolDefinition } from "../../../types/tools.ts";
+
+type ActionableCall = CollectedFunctionCall & {
+  handler: (...args: unknown[]) => unknown;
+};
 
 const DEFAULT_INCLUDE_FIELDS = [
   "code_interpreter_call.outputs",
@@ -44,12 +56,12 @@ export function buildRequestBody({
   reasoningEffort,
   stream,
   previousResponseId,
-}) {
+}: BuildRequestOptions): Record<string, unknown> {
   const targetModel = model || getActiveModel();
   const allowReasoning = supportsReasoningEffort(targetModel);
   const serviceKey = getActiveServiceKey();
   const isLocalService = serviceKey === "lmstudio" || serviceKey === "ollama";
-  const payload: any = {
+  const payload: Record<string, unknown> = {
     model: targetModel,
     text: {
       format: { type: "text" },
@@ -80,7 +92,7 @@ export function buildRequestBody({
     payload.previous_response_id = previousResponseId;
   }
   if (serviceKey === "xai" && payload.text) {
-    const usesServerSideTools = Array.isArray(tools) && tools.some(tool => {
+    const usesServerSideTools = Array.isArray(tools) && tools.some((tool: ToolDefinition) => {
       if (!tool || typeof tool !== "object") {
         return false;
       }
@@ -106,7 +118,7 @@ export function buildHeaders() {
   return headers;
 }
 
-export async function executeStreamingRequest(body, abortController) {
+export async function executeStreamingRequest(body: unknown, abortController?: AbortController | null): Promise<Response> {
   const endpoint = `${getBaseUrl()}/responses`;
   const response = await fetch(endpoint, {
     method: "POST",
@@ -121,7 +133,7 @@ export async function executeStreamingRequest(body, abortController) {
   return response;
 }
 
-export async function executeNonStreamingRequest(body, abortController) {
+export async function executeNonStreamingRequest(body: unknown, abortController?: AbortController | null): Promise<any> {
   const endpoint = `${getBaseUrl()}/responses`;
   const headers = buildHeaders();
   headers.Accept = "application/json";
@@ -149,16 +161,16 @@ export async function runTurn({
   abortController,
   vectorStoreId,
   historyTokenBudget = 0,
-}: any) {
+}: RunTurnOptions): Promise<RunTurnResult> {
   const baseMessages = Array.isArray(inputMessages)
     ? inputMessages.filter(msg => msg && msg.role !== "developer" && msg.role !== "system")
     : [];
-  let previousResponseId = null;
+  let previousResponseId: string | null = null;
   let previousAssistantHadImages = false;
   for (let i = baseMessages.length - 1; i >= 0; i -= 1) {
     const candidate = baseMessages[i];
     if (candidate && candidate.role === "assistant" && candidate.responseId) {
-      previousResponseId = candidate.responseId;
+      previousResponseId = candidate.responseId ?? null;
       previousAssistantHadImages = Boolean(candidate.hasImages);
       break;
     }
@@ -185,7 +197,7 @@ export async function runTurn({
 
   // Handle file_search tool: attach ALL active vector stores (persisted + explicitly active)
   if (enabledTools) {
-    const idsSet = new Set();
+    const idsSet = new Set<string>();
     try {
       const activeIds = getActiveVectorStoreIds ? getActiveVectorStoreIds() : [];
       if (Array.isArray(activeIds)) {
@@ -235,7 +247,7 @@ export async function runTurn({
       previousResponseId: previousAssistantHadImages ? previousResponseId : null,
     });
 
-    let responsePayload = null;
+    let responsePayload: any = null;
     let streamedText = "";
     let streamedReasoning = "";
 
@@ -249,8 +261,8 @@ export async function runTurn({
       } else {
         responsePayload = await executeNonStreamingRequest(body, abortController);
         streamedText = responsePayload.output_text || "";
-        const flattenContent = (items) => items
-          .map(item => {
+        const flattenContent = (items: any[]): string => items
+          .map((item: any) => {
             if (typeof item === "string") {
               return item;
             }
@@ -270,7 +282,7 @@ export async function runTurn({
         } else if (responsePayload.reasoning && Array.isArray(responsePayload.reasoning)) {
           streamedReasoning = flattenContent(responsePayload.reasoning);
         } else if (responsePayload.reasoning && Array.isArray(responsePayload.reasoning.output)) {
-          streamedReasoning = responsePayload.reasoning.output.map(item => item?.content || "").join("");
+          streamedReasoning = responsePayload.reasoning.output.map((item: any) => item?.content || "").join("");
         } else if (typeof responsePayload.reasoning_content === "string") {
           streamedReasoning = responsePayload.reasoning_content;
         } else if (Array.isArray(responsePayload.reasoning_content)) {
@@ -280,13 +292,13 @@ export async function runTurn({
         }
       }
     } catch (error) {
-      const message = error && typeof error.message === "string" ? error.message : "";
+      const message = error instanceof Error ? error.message : "";
       const shouldRetryWithoutClientSideTools = clientSideToolsSupported === false
         && Array.isArray(enabledTools)
-        && enabledTools.some(tool => isClientSideToolType(tool?.type))
+        && enabledTools.some((tool: ToolDefinition) => isClientSideToolType(tool?.type))
         && message.includes("Client side tool is not supported for multi-agent models");
       if (shouldRetryWithoutClientSideTools) {
-        enabledTools = enabledTools.filter(tool => !isClientSideToolType(tool?.type));
+        enabledTools = enabledTools.filter((tool: ToolDefinition) => !isClientSideToolType(tool?.type));
         if (state.verboseLogging) {
           console.warn(`Retrying xAI request for '${resolvedModel}' without client-side tools.`);
         }
@@ -313,12 +325,9 @@ export async function runTurn({
     }
 
     const rawCalls = collectFunctionCalls(responsePayload.output || []);
-    const actionableCalls = rawCalls
-      .map(call => {
-        let handler = TOOL_HANDLERS[call.name];
-        if (!handler) {
-          handler = toolImplementations[call.name];
-        }
+    const actionableCalls: ActionableCall[] = rawCalls
+      .map((call: CollectedFunctionCall): ActionableCall | null => {
+        const handler = TOOL_HANDLERS[call.name] || toolImplementations[call.name];
         if (!handler) {
           if (state.verboseLogging) {
             console.info(`Skipping server-managed tool call '${call.name || "<unknown>"}'`);
@@ -327,7 +336,7 @@ export async function runTurn({
         }
         return { ...call, handler };
       })
-      .filter(Boolean);
+      .filter((call): call is ActionableCall => call !== null);
 
     if (!actionableCalls.length) {
       return {
@@ -337,17 +346,17 @@ export async function runTurn({
       };
     }
 
-    const preferToolCallFor = (toolName) =>
+    const preferToolCallFor = (toolName: string): boolean =>
       serviceKey === "xai" && (toolName === "web_search" || toolName === "x_search" || toolName === "code_interpreter");
 
-    actionableCalls.forEach(call => {
+    actionableCalls.forEach((call: ActionableCall) => {
       const resolvedCallId = call.callId || `call_${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 8)}`;
       call.callId = resolvedCallId;
       if (preferToolCallFor(call.name)) {
         const toolCallPart = call.toolCallInput
           ? JSON.parse(JSON.stringify(call.toolCallInput))
           : null;
-        const ensureArguments = (part) => {
+        const ensureArguments = (part: ToolCallLike): ToolCallLike => {
           if (!part.function || typeof part.function !== "object") {
             part.function = {
               name: call.name,
@@ -397,16 +406,16 @@ export async function runTurn({
     });
 
     for (const call of actionableCalls) {
-      let result;
+      let result: unknown;
       try {
         result = await call.handler(call.argsDict || {});
       } catch (error) {
-        result = { error: error.message || "Function execution failed" };
+        result = { error: (error instanceof Error && error.message) || "Function execution failed" };
       }
       const resolvedCallId = call.callId || `call_${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 8)}`;
       const normalizedOutput = typeof result === "string" ? result : JSON.stringify(result);
       if (preferToolCallFor(call.name)) {
-        const resultPayload: any = {
+        const resultPayload: Record<string, unknown> = {
           type: "tool_result",
           tool_call_id: resolvedCallId,
           output: normalizedOutput,

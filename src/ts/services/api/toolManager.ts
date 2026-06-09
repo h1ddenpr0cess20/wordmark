@@ -9,10 +9,22 @@ import { memoryToolDefinition, forgetToolDefinition } from "../memory.ts";
 import { getApiKey } from "../apiKeys.ts";
 import { MCP_ASSUME_ONLINE, config } from "../../../config/config.ts";
 import { state } from "../../init/state.ts";
+import type {
+  McpServerConfig,
+  ToolCatalogEntry,
+  ToolDefinition,
+  ToolEntry,
+} from "../../../types/tools.ts";
+
+interface McpFetchResult {
+  status: "ok" | "bad-status" | "timeout" | "error";
+  code?: number;
+  error?: unknown;
+}
 
 const TOOL_STORAGE_KEY = "wordmark_tool_preferences";
 
-function loadUserMCPServers() {
+function loadUserMCPServers(): McpServerConfig[] {
   try {
     const stored = localStorage.getItem("mcp_servers");
     if (!stored) return [];
@@ -24,7 +36,7 @@ function loadUserMCPServers() {
   }
 }
 
-function buildMcpToolEntry(server) {
+function buildMcpToolEntry(server: McpServerConfig): ToolEntry | null {
   if (!server || !server.server_label || !server.server_url) {
     return null;
   }
@@ -44,11 +56,11 @@ function buildMcpToolEntry(server) {
   };
 }
 
-function cloneDefinition(definition) {
+function cloneDefinition(definition: ToolDefinition): ToolDefinition {
   return JSON.parse(JSON.stringify(definition));
 }
 
-function isConfiguredServiceEnabled(serviceKey) {
+function isConfiguredServiceEnabled(serviceKey: string): boolean {
   const services = config?.services;
   if (!services) {
     return true;
@@ -60,7 +72,7 @@ function isConfiguredServiceEnabled(serviceKey) {
   return Boolean(service && service.enabled !== false);
 }
 
-const STATIC_TOOLS = [
+const STATIC_TOOLS: ToolEntry[] = [
   {
     key: "function:open_meteo_forecast",
     type: "function",
@@ -255,8 +267,8 @@ const STATIC_TOOLS = [
   },
 ];
 
-const TOOL_CATALOG = [];
-const TOOL_DEFINITIONS = [];
+const TOOL_CATALOG: ToolEntry[] = [];
+const TOOL_DEFINITIONS: ToolDefinition[] = [];
 let userMcpToolCount = 0;
 
 const SERVER_MANAGED_TOOL_TYPES = new Set([
@@ -273,23 +285,23 @@ const CLIENT_SIDE_TOOL_TYPES = new Set([
   "mcp",
 ]);
 
-function insertMcpTool(toolEntry) {
+function insertMcpTool(toolEntry: ToolEntry) {
   TOOL_CATALOG.splice(userMcpToolCount, 0, toolEntry);
   TOOL_DEFINITIONS.splice(userMcpToolCount, 0, cloneDefinition(toolEntry.definition));
   userMcpToolCount += 1;
 }
 
-function replaceToolAt(index, toolEntry) {
+function replaceToolAt(index: number, toolEntry: ToolEntry) {
   TOOL_CATALOG[index] = toolEntry;
   TOOL_DEFINITIONS[index] = cloneDefinition(toolEntry.definition);
 }
 
-function addStaticTool(toolEntry) {
+function addStaticTool(toolEntry: ToolEntry) {
   TOOL_CATALOG.push(toolEntry);
   TOOL_DEFINITIONS.push(cloneDefinition(toolEntry.definition));
 }
 
-function removeToolAt(index) {
+function removeToolAt(index: number) {
   TOOL_CATALOG.splice(index, 1);
   TOOL_DEFINITIONS.splice(index, 1);
 }
@@ -304,8 +316,8 @@ storedMcpServers.forEach(server => {
 
 STATIC_TOOLS.forEach(tool => addStaticTool(tool));
 
-const TOOL_HANDLERS = {
-  open_meteo_forecast: function(...args) {
+const TOOL_HANDLERS: Record<string, (...args: unknown[]) => unknown> = {
+  open_meteo_forecast: function(...args: unknown[]) {
     if (weatherToolHandler) {
       return weatherToolHandler(...args);
     }
@@ -315,13 +327,13 @@ const TOOL_HANDLERS = {
 
 const MCP_PING_TIMEOUT_MS = 4000;
 const MCP_REFRESH_INTERVAL_MS = 60000;
-const mcpStatusCache = new Map();
+const mcpStatusCache = new Map<string, { online: boolean | null; checkedAt: number }>();
 let lastMcpRefresh = 0;
-let mcpRefreshPromise = null;
+let mcpRefreshPromise: Promise<void> | null = null;
 
 let toolPreferences = loadToolPreferences();
 
-function isCodexModel(modelName) {
+function isCodexModel(modelName: string | undefined): boolean {
   return typeof modelName === "string" && modelName.toLowerCase().includes("codex");
 }
 
@@ -340,11 +352,11 @@ export function supportsClientSideTools(
   return !xaiModelDisallowsClientSideTools(modelName);
 }
 
-export function isClientSideToolType(type) {
+export function isClientSideToolType(type: string): boolean {
   return CLIENT_SIDE_TOOL_TYPES.has(type);
 }
 
-export function getToolCatalog() {
+export function getToolCatalog(): ToolCatalogEntry[] {
   return TOOL_CATALOG.map(tool => ({
     key: tool.key,
     type: tool.type,
@@ -377,7 +389,7 @@ export function getToolCatalog() {
   }));
 }
 
-export function isToolEnabled(key) {
+export function isToolEnabled(key: string): boolean {
   const tool = TOOL_CATALOG.find(item => item.key === key);
   if (!tool) {
     return false;
@@ -385,7 +397,7 @@ export function isToolEnabled(key) {
   return getToolPreference(key, tool.defaultEnabled !== false);
 }
 
-export function setToolEnabled(key, enabled) {
+export function setToolEnabled(key: string, enabled: boolean) {
   const tool = TOOL_CATALOG.find(item => item.key === key);
   if (!tool) {
     return;
@@ -397,7 +409,7 @@ export function setToolEnabled(key, enabled) {
   saveToolPreferences(toolPreferences);
 }
 
-export function setAllToolsEnabled(enabled) {
+export function setAllToolsEnabled(enabled: boolean) {
   const updated = { ...toolPreferences };
   TOOL_CATALOG.forEach(tool => {
     updated[tool.key] = Boolean(enabled);
@@ -406,7 +418,7 @@ export function setAllToolsEnabled(enabled) {
   saveToolPreferences(toolPreferences);
 }
 
-export function registerMcpServer(serverConfig, options: any = {}) {
+export function registerMcpServer(serverConfig: McpServerConfig, options: { silent?: boolean } = {}): ToolEntry | null {
   const { silent = false } = options;
   const entry = buildMcpToolEntry(serverConfig);
   if (!entry) {
@@ -426,7 +438,7 @@ export function registerMcpServer(serverConfig, options: any = {}) {
   return entry;
 }
 
-export function unregisterMcpServer(serverLabel, options: any = {}) {
+export function unregisterMcpServer(serverLabel: string, options: { silent?: boolean } = {}): boolean {
   if (!serverLabel) {
     return false;
   }
@@ -450,7 +462,7 @@ export function unregisterMcpServer(serverLabel, options: any = {}) {
   return true;
 }
 
-export function getEnabledToolDefinitions(serviceKey = getActiveServiceKey(), modelName = getActiveModel()) {
+export function getEnabledToolDefinitions(serviceKey: string = getActiveServiceKey(), modelName: string = getActiveModel()): ToolDefinition[] {
   const masterEnabled = !(config && config.enableFunctionCalling === false);
   if (!masterEnabled) {
     return [];
@@ -462,7 +474,7 @@ export function getEnabledToolDefinitions(serviceKey = getActiveServiceKey(), mo
   const isLocalService = serviceKey === "lmstudio" || serviceKey === "ollama";
   const modelIsCodex = isCodexModel(modelName);
   const clientSideToolsSupported = supportsClientSideTools(serviceKey, modelName);
-  const defs = [];
+  const defs: ToolDefinition[] = [];
 
   TOOL_CATALOG.forEach(tool => {
     if (tool.onlyServices && !tool.onlyServices.includes(serviceKey)) {
@@ -562,7 +574,7 @@ export function getEnabledToolDefinitions(serviceKey = getActiveServiceKey(), mo
   return defs;
 }
 
-export function refreshMcpAvailability(force = false) {
+export function refreshMcpAvailability(force = false): Promise<void> {
   const mcpTools = TOOL_CATALOG.filter(tool => tool.type === "mcp");
   if (typeof window !== "undefined" && MCP_ASSUME_ONLINE === true) {
     mcpTools.forEach(tool => setCachedMcpStatus(tool.key, true));
@@ -609,7 +621,7 @@ export function refreshMcpAvailability(force = false) {
 
 export { TOOL_DEFINITIONS, TOOL_HANDLERS };
 
-function loadToolPreferences() {
+function loadToolPreferences(): Record<string, boolean> {
   try {
     const raw = localStorage.getItem(TOOL_STORAGE_KEY);
     if (!raw) {
@@ -622,7 +634,7 @@ function loadToolPreferences() {
   }
 }
 
-function saveToolPreferences(prefs) {
+function saveToolPreferences(prefs: Record<string, boolean>) {
   try {
     localStorage.setItem(TOOL_STORAGE_KEY, JSON.stringify(prefs));
   } catch {
@@ -630,14 +642,14 @@ function saveToolPreferences(prefs) {
   }
 }
 
-function getToolPreference(key, defaultEnabled) {
+function getToolPreference(key: string, defaultEnabled: boolean): boolean {
   if (Object.prototype.hasOwnProperty.call(toolPreferences, key)) {
     return Boolean(toolPreferences[key]);
   }
   return defaultEnabled;
 }
 
-function isLocalNetworkUrl(url) {
+function isLocalNetworkUrl(url: string): boolean {
   try {
     const parsed = new URL(url);
     const hostname = parsed.hostname.toLowerCase();
@@ -654,7 +666,7 @@ function isLocalNetworkUrl(url) {
   }
 }
 
-function appendMemoryTools(defs, serviceKey = getActiveServiceKey(), modelName = getActiveModel()) {
+function appendMemoryTools(defs: ToolDefinition[], serviceKey: string = getActiveServiceKey(), modelName: string = getActiveModel()) {
   try {
     const cfg = getMemoryConfig();
     if (!cfg || !cfg.enabled) {
@@ -668,7 +680,7 @@ function appendMemoryTools(defs, serviceKey = getActiveServiceKey(), modelName =
       return;
     }
 
-    const hasServerManagedTool = defs.some(def => {
+    const hasServerManagedTool = defs.some((def: ToolDefinition) => {
       if (!def || typeof def !== "object") {
         return false;
       }
@@ -692,12 +704,12 @@ function appendMemoryTools(defs, serviceKey = getActiveServiceKey(), modelName =
   }
 }
 
-function getCachedMcpStatus(toolKey) {
+function getCachedMcpStatus(toolKey: string): boolean | null {
   const entry = mcpStatusCache.get(toolKey);
   return entry ? entry.online : null;
 }
 
-function setCachedMcpStatus(toolKey, online) {
+function setCachedMcpStatus(toolKey: string, online: boolean | null) {
   mcpStatusCache.set(toolKey, { online, checkedAt: Date.now() });
   const tool = TOOL_CATALOG.find(item => item.key === toolKey);
   if (tool) {
@@ -705,7 +717,7 @@ function setCachedMcpStatus(toolKey, online) {
   }
 }
 
-async function pingMcpServer(url) {
+async function pingMcpServer(url: string | undefined): Promise<boolean | null> {
   const normalizedUrl = typeof url === "string" ? url : "";
   if (!normalizedUrl) {
     return false;
@@ -752,7 +764,7 @@ async function pingMcpServer(url) {
   return false;
 }
 
-async function attemptMcpFetch(url, mode) {
+async function attemptMcpFetch(url: string, mode: RequestMode): Promise<McpFetchResult> {
   const controller = new AbortController();
   const timeoutId = setTimeout(() => controller.abort(), MCP_PING_TIMEOUT_MS);
   try {
@@ -775,7 +787,7 @@ async function attemptMcpFetch(url, mode) {
     return { status: "bad-status", code: response.status };
   } catch (error) {
     clearTimeout(timeoutId);
-    if (error && error.name === "AbortError") {
+    if (error instanceof Error && error.name === "AbortError") {
       return { status: "timeout" };
     }
     if (state.verboseLogging) {
@@ -785,7 +797,7 @@ async function attemptMcpFetch(url, mode) {
   }
 }
 
-function isHostAllowed(url) {
+function isHostAllowed(url: string): boolean {
   try {
     const parsed = new URL(url, window.location.origin);
     const host = parsed.hostname;

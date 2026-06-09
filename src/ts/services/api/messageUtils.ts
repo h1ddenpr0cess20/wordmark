@@ -4,6 +4,14 @@ import { getLocationForPrompt } from "../location.ts";
 import { getMediaToolInstructions } from "../mediaTools.ts";
 import { getToolsDescription } from "../../components/tools.ts";
 import { DEFAULT_PERSONALITY, DEFAULT_SYSTEM_PROMPT, PERSONALITY_PROMPT_TEMPLATE, config } from "../../../config/config.ts";
+import type {
+  Attachment,
+  CollectedFunctionCall,
+  ContentPart,
+  Message,
+  ResponseOutputItem,
+  ToolCallLike,
+} from "../../../types/api.ts";
 /**
  * Message preparation helpers for the Responses API.
  */
@@ -14,7 +22,7 @@ function createPlaceholderRegex() {
   return new RegExp(IMAGE_PLACEHOLDER_PATTERN, "g");
 }
 
-function getTextPartType(role = "") {
+function getTextPartType(role: string = "") {
   if (role === "assistant") {
     return "output_text";
   }
@@ -24,11 +32,11 @@ function getTextPartType(role = "") {
   return "input_text";
 }
 
-function getImagePartType(role = "") {
+function getImagePartType(role: string = "") {
   return role === "assistant" ? "output_image" : "input_image";
 }
 
-function appendTextPart(parts, role, segment) {
+function appendTextPart(parts: ContentPart[], role: string | undefined, segment: unknown) {
   if (segment === undefined || segment === null) {
     return;
   }
@@ -42,7 +50,7 @@ function appendTextPart(parts, role, segment) {
   });
 }
 
-function resolveImageUrl(filename, attachments = []) {
+function resolveImageUrl(filename: string | undefined, attachments: Attachment[] = []): string | null {
   if (!filename) {
     return null;
   }
@@ -89,7 +97,7 @@ function resolveImageUrl(filename, attachments = []) {
   return typeof candidate === "string" && candidate ? candidate : null;
 }
 
-function createImagePart(filename, role, attachments) {
+function createImagePart(filename: string, role: string | undefined, attachments?: Attachment[]): ContentPart | null {
   const imageUrl = resolveImageUrl(filename, attachments);
   if (!imageUrl) {
     // Only show warning for actual image attachments, not document/vector store files
@@ -110,7 +118,7 @@ function createImagePart(filename, role, attachments) {
   };
 }
 
-function buildUserContentFromString(message) {
+function buildUserContentFromString(message: Message): string | ContentPart[] {
   const rawContent = typeof message.content === "string" ? message.content : "";
   const attachments = Array.isArray(message.attachments) ? message.attachments : [];
   const hasAttachments = attachments.length > 0;
@@ -121,12 +129,12 @@ function buildUserContentFromString(message) {
     return rawContent;
   }
 
-  const parts = [];
-  const usedFilenames = new Set();
+  const parts: ContentPart[] = [];
+  const usedFilenames = new Set<string>();
   let lastIndex = 0;
 
   const replaceRegex = createPlaceholderRegex();
-  rawContent.replace(replaceRegex, (match, filename, offset) => {
+  rawContent.replace(replaceRegex, (match: string, filename: string, offset: number) => {
     const preceding = rawContent.slice(lastIndex, offset);
     appendTextPart(parts, message.role, preceding);
 
@@ -171,16 +179,16 @@ function buildUserContentFromString(message) {
   return parts;
 }
 
-export function serializeMessagesForRequest(messages) {
+export function serializeMessagesForRequest(messages: Message[] = []): Message[] {
   if (!Array.isArray(messages)) {
     return [];
   }
   return messages
-    .map(msg => {
+    .map((msg: Message): Message | null => {
       if (!msg || typeof msg !== "object") {
         return null;
       }
-      const payload: any = {};
+      const payload: Message = {};
       if (msg.role) {
         payload.role = msg.role;
       }
@@ -198,7 +206,7 @@ export function serializeMessagesForRequest(messages) {
         }
       } else if (Array.isArray(msg.content)) {
         payload.content = msg.content
-          .map(part => {
+          .map((part): ContentPart | null => {
             if (part && typeof part === "object") {
               return { ...part };
             }
@@ -207,7 +215,7 @@ export function serializeMessagesForRequest(messages) {
             }
             return null;
           })
-          .filter(Boolean);
+          .filter((part): part is ContentPart => part !== null);
       } else if (msg.content && typeof msg.content === "object") {
         payload.content = { ...msg.content };
       }
@@ -225,7 +233,7 @@ export function serializeMessagesForRequest(messages) {
       }
       return payload;
     })
-    .filter(Boolean);
+    .filter((msg): msg is Message => msg !== null);
 }
 
 // ---- Token-budget history windowing ----
@@ -235,7 +243,7 @@ export function serializeMessagesForRequest(messages) {
  * @param {string} text
  * @returns {number}
  */
-export function estimateTokens(text) {
+export function estimateTokens(text: unknown): number {
   if (!text) {
     return 0;
   }
@@ -248,7 +256,7 @@ export function estimateTokens(text) {
  * @param {object} message
  * @returns {number}
  */
-export function estimateMessageTokens(message) {
+export function estimateMessageTokens(message: Message): number {
   if (!message || typeof message !== "object") {
     return 0;
   }
@@ -282,14 +290,14 @@ export function estimateMessageTokens(message) {
  * @param {number} budget - token budget; 0 or negative means "no limit"
  * @returns {object[]} a trimmed copy in original order
  */
-export function windowMessagesByTokenBudget(messages, budget) {
+export function windowMessagesByTokenBudget(messages: Message[], budget: number): Message[] {
   if (!Array.isArray(messages)) {
     return [];
   }
   if (!budget || budget <= 0) {
     return messages.slice();
   }
-  const kept = [];
+  const kept: Message[] = [];
   let total = 0;
   for (let i = messages.length - 1; i >= 0; i -= 1) {
     const cost = estimateMessageTokens(messages[i]);
@@ -302,10 +310,10 @@ export function windowMessagesByTokenBudget(messages, budget) {
   return kept;
 }
 
-export function collectFunctionCalls(responseOutput = []) {
-  const calls = [];
+export function collectFunctionCalls(responseOutput: ResponseOutputItem[] = []): CollectedFunctionCall[] {
+  const calls: CollectedFunctionCall[] = [];
 
-  const ensureJsonString = value => {
+  const ensureJsonString = (value: unknown): string => {
     if (typeof value === "string") {
       return value;
     }
@@ -316,7 +324,7 @@ export function collectFunctionCalls(responseOutput = []) {
     }
   };
 
-  const buildArgsDict = rawArgs => {
+  const buildArgsDict = (rawArgs: unknown): Record<string, unknown> => {
     if (!rawArgs) {
       return {};
     }
@@ -333,7 +341,12 @@ export function collectFunctionCalls(responseOutput = []) {
     return {};
   };
 
-  const buildToolCallInput = (name, argsJson, callId, original) => {
+  const buildToolCallInput = (
+    name: string,
+    argsJson: string,
+    callId: string | null | undefined,
+    original: ToolCallLike | undefined,
+  ): ToolCallLike => {
     if (original && typeof original === "object") {
       try {
         return JSON.parse(JSON.stringify(original));
@@ -341,7 +354,7 @@ export function collectFunctionCalls(responseOutput = []) {
         // fall through to manual construction
       }
     }
-    const input: any = {
+    const input: ToolCallLike = {
       type: "tool_call",
       id: callId || undefined,
       function: {
@@ -355,12 +368,17 @@ export function collectFunctionCalls(responseOutput = []) {
     return input;
   };
 
-  responseOutput.forEach(item => {
+  responseOutput.forEach((item: ResponseOutputItem) => {
     if (!item) {
       return;
     }
 
-    const processCall = (name, rawArgs, callId, source) => {
+    const processCall = (
+      name: string | undefined,
+      rawArgs: unknown,
+      callId: string | undefined,
+      source: ToolCallLike,
+    ) => {
       if (!name) {
         return;
       }

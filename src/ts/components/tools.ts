@@ -5,6 +5,7 @@ import { updateFeatureStatus } from "./settings.ts";
 import { requestMcpServerRemoval } from "../services/mcpServers.ts";
 import { responsesClient } from "../services/api.ts";
 import { config } from "../../config/config.ts";
+import type { ToolCatalogEntry } from "../../types/tools.ts";
 /**
  * Tool settings management for Responses API integrations.
  * Renders the tool list, persists toggle state, and synchronises with the
@@ -12,16 +13,16 @@ import { config } from "../../config/config.ts";
  */
 // Public API is assigned by the IIFE below and re-exported; the IIFE form is
 // kept to preserve the module's private state/closure without re-indenting.
-let initToolsSettings;
-let updateMasterToolCallingStatus;
-let refreshToolSettingsUI;
-let updateToolDefinitions;
-let getToolsDescription;
+let initToolsSettings: () => void;
+let updateMasterToolCallingStatus: (enabled: boolean) => void;
+let refreshToolSettingsUI: () => void;
+let updateToolDefinitions: () => void;
+let getToolsDescription: () => string;
 
 (function() {
-  let toolsContainer = null;
-  let enableAllButton = null;
-  let disableAllButton = null;
+  let toolsContainer: HTMLElement | null = null;
+  let enableAllButton: HTMLElement | null = null;
+  let disableAllButton: HTMLElement | null = null;
   let bulkActionsBound = false;
 
   function ensureClient() {
@@ -43,7 +44,7 @@ let getToolsDescription;
     return !(config && config.enableFunctionCalling === false);
   }
 
-  function getActiveModelName() {
+  function getActiveModelName(): string {
     if (elements.modelSelector && elements.modelSelector.value) {
       return elements.modelSelector.value;
     }
@@ -61,18 +62,18 @@ let getToolsDescription;
     return "";
   }
 
-  function isCodexModel(modelName) {
+  function isCodexModel(modelName: string): boolean {
     return typeof modelName === "string" && modelName.toLowerCase().includes("codex");
   }
 
-  function supportsClientSideToolsForCurrentModel(serviceKey, modelName) {
+  function supportsClientSideToolsForCurrentModel(serviceKey: string, modelName: string): boolean {
     if (!responsesClient || typeof responsesClient.supportsClientSideTools !== "function") {
       return true;
     }
     return responsesClient.supportsClientSideTools(serviceKey, modelName);
   }
 
-  function isClientSideTool(tool) {
+  function isClientSideTool(tool: ToolCatalogEntry): boolean {
     if (!tool) {
       return false;
     }
@@ -82,7 +83,7 @@ let getToolsDescription;
     return tool.type === "function" || tool.type === "mcp";
   }
 
-  function createBadge(tool) {
+  function createBadge(tool: ToolCatalogEntry): HTMLSpanElement {
     const badge = document.createElement("span");
     badge.className = `tool-badge tool-badge-${tool.type}`;
     switch (tool.type) {
@@ -98,7 +99,7 @@ let getToolsDescription;
     return badge;
   }
 
-  function availabilityNote(tool, isAvailable, isOnline, masterEnabled, serviceKey, codexModelActive, clientSideToolsSupported) {
+  function availabilityNote(tool: ToolCatalogEntry, isAvailable: boolean, isOnline: boolean | null, masterEnabled: boolean, serviceKey: string, codexModelActive: boolean, clientSideToolsSupported: boolean): HTMLDivElement | null {
     if (tool.requiresApiKeyService && tool.hasRequiredApiKey === false) {
       const note = document.createElement("div");
       note.className = "tool-note";
@@ -147,8 +148,8 @@ let getToolsDescription;
     return null;
   }
 
-  function handleToolToggle(event) {
-    const checkbox = event.currentTarget;
+  function handleToolToggle(event: Event) {
+    const checkbox = event.currentTarget as HTMLInputElement;
     const toolKey = checkbox.getAttribute("data-tool-key");
     if (!toolKey || !ensureClient()) {
       return;
@@ -161,7 +162,7 @@ let getToolsDescription;
 
   }
 
-  function handleMcpDelete(tool) {
+  function handleMcpDelete(tool: ToolCatalogEntry) {
     if (!tool || !tool.key) {
       return;
     }
@@ -324,7 +325,7 @@ let getToolsDescription;
       content.appendChild(control);
 
       item.appendChild(content);
-      toolsContainer.appendChild(item);
+      toolsContainer!.appendChild(item);
     });
 
     updateFeatureStatus();
@@ -367,9 +368,9 @@ let getToolsDescription;
   }
 
   initToolsSettings = function() {
-    toolsContainer = document.getElementById("individual-tools-container") as any;
-    enableAllButton = document.getElementById("enable-all-tools") as any;
-    disableAllButton = document.getElementById("disable-all-tools") as any;
+    toolsContainer = document.getElementById("individual-tools-container");
+    enableAllButton = document.getElementById("enable-all-tools");
+    disableAllButton = document.getElementById("disable-all-tools");
 
     if (elements.toolCallingToggle) {
       elements.toolCallingToggle.disabled = false;
@@ -398,7 +399,7 @@ let getToolsDescription;
     }
   };
 
-  updateMasterToolCallingStatus = function(enabled) {
+  updateMasterToolCallingStatus = function(enabled: boolean) {
     if (elements.toolCallingToggle) {
       elements.toolCallingToggle.checked = enabled;
     }
@@ -416,7 +417,7 @@ let getToolsDescription;
     refreshToolSettingsUI();
   };
 
-  function isLocalNetworkUrl(url) {
+  function isLocalNetworkUrl(url: string): boolean {
     try {
       const parsed = new URL(url);
       const hostname = parsed.hostname.toLowerCase();
@@ -453,12 +454,12 @@ let getToolsDescription;
     // Check if this is a local AI service
     const isLocalService = serviceKey === "lmstudio" || serviceKey === "ollama";
 
-    let catalog = [];
+    let catalog: ToolCatalogEntry[] = [];
     if (typeof responsesClient.getToolCatalog === "function") {
       catalog = responsesClient.getToolCatalog();
     }
 
-    const items = [];
+    const items: string[] = [];
     catalog.forEach(tool => {
       if (tool.hidden) {
         return;
