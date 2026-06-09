@@ -12,6 +12,15 @@ interface GeoPositionLike {
   timestamp: number;
 }
 
+// Result returned by requestLocation: a success payload or an error message.
+interface LocationResult {
+  success?: boolean;
+  error?: string;
+  position?: GeoPositionLike;
+  locationString?: string;
+  coordinates?: { lat: number; lng: number };
+}
+
 // Location state management
 export const locationState: {
   enabled: boolean;
@@ -31,7 +40,7 @@ export const locationState: {
  * Request location permission and get current position
  * @returns {Promise<Object>} - Location data or error
  */
-export async function requestLocation(): Promise<any> {
+export async function requestLocation(): Promise<LocationResult> {
   if (!navigator.geolocation) {
     const error = "Geolocation is not supported by this browser";
     locationState.error = error;
@@ -39,7 +48,7 @@ export async function requestLocation(): Promise<any> {
     return { error };
   }
 
-  return new Promise((resolve) => {
+  return new Promise<LocationResult>((resolve) => {
     navigator.geolocation.getCurrentPosition(
       async(position) => {
         locationState.position = position;

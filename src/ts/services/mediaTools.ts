@@ -63,7 +63,9 @@ function inferMimeTypeFromFilename(filename: string = ""): string {
   return "image/png";
 }
 
-export function detectMediaType(source: any = {}) {
+export function detectMediaType(
+  source: { mediaType?: unknown; mimeType?: unknown; filename?: string; url?: unknown } = {},
+): "video" | "image" {
   const explicitType = typeof source.mediaType === "string" ? source.mediaType.trim().toLowerCase() : "";
   if (explicitType === "video" || explicitType === "image") {
     return explicitType;

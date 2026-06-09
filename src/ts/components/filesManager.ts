@@ -52,7 +52,7 @@ export async function refreshAssistantFileList() {
     }
 
     // Build list
-    const listHtml = files.map((file: any) => {
+    const listHtml = files.map((file: { id?: string; filename?: string; name?: string; created_at?: number }) => {
       const createdDate = file.created_at ? new Date(file.created_at * 1000).toLocaleDateString() : "Unknown";
       const name = escapeHtml(file.filename || file.name || "(no name)");
       const id = escapeHtml(file.id || "");
