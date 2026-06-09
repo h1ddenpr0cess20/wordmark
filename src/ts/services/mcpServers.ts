@@ -10,11 +10,20 @@ import { refreshToolSettingsUI } from "../components/tools.ts";
 // Storage key for MCP servers
 const MCP_SERVERS_STORAGE_KEY = "mcp_servers";
 
+// A configured URL-based MCP server, as persisted in localStorage.
+interface McpServer {
+  server_label: string;
+  server_url: string;
+  displayName: string;
+  require_approval?: string;
+  description?: string;
+}
+
 /**
  * Get all configured MCP servers
  * @returns {Array} Array of server configurations
  */
-export function getMCPServers() {
+export function getMCPServers(): McpServer[] {
   try {
     const stored = localStorage.getItem(MCP_SERVERS_STORAGE_KEY);
     return stored ? JSON.parse(stored) : [];
@@ -28,7 +37,7 @@ export function getMCPServers() {
  * Save MCP servers to localStorage
  * @param {Array} servers - Array of server configurations
  */
-function saveMCPServers(servers: any[]) {
+function saveMCPServers(servers: McpServer[]) {
   try {
     localStorage.setItem(MCP_SERVERS_STORAGE_KEY, JSON.stringify(servers));
   } catch (error) {
@@ -42,12 +51,12 @@ function saveMCPServers(servers: any[]) {
  * @param {Object} server - Server configuration
  * @returns {boolean} Success status
  */
-export function addMCPServer(server: any) {
+export function addMCPServer(server: McpServer) {
   try {
     const servers = getMCPServers();
 
     // Check if server with same label already exists
-    if (servers.some((s: any) => s.server_label === server.server_label)) {
+    if (servers.some((s) => s.server_label === server.server_label)) {
       throw new Error(`Server with label "${server.server_label}" already exists`);
     }
 
@@ -68,7 +77,7 @@ export function addMCPServer(server: any) {
 export function removeMCPServer(serverLabel: string) {
   try {
     const servers = getMCPServers();
-    const filtered = servers.filter((s: any) => s.server_label !== serverLabel);
+    const filtered = servers.filter((s) => s.server_label !== serverLabel);
     saveMCPServers(filtered);
     return true;
   } catch (error) {
@@ -93,7 +102,7 @@ function renderMCPServersList() {
 
   container.innerHTML = "";
 
-  servers.forEach((server: any) => {
+  servers.forEach((server) => {
     const item = document.createElement("div");
     item.className = "mcp-server-item";
     item.dataset.serverLabel = server.server_label;
@@ -141,7 +150,7 @@ export function requestMcpServerRemoval(serverLabel: string, fallbackDisplayName
   }
 
   const servers = getMCPServers();
-  const server = servers.find((s: any) => s.server_label === serverLabel);
+  const server = servers.find((s) => s.server_label === serverLabel);
   const displayName = server ? server.displayName : (fallbackDisplayName || serverLabel);
 
   if (!confirm(`Are you sure you want to remove the MCP server "${displayName}"?`)) {

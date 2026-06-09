@@ -2,7 +2,7 @@
  * Weather tool implementation using Open-Meteo API
  */
 
-async function fetchJson(url: string, options?: any) {
+async function fetchJson(url: string, options?: RequestInit) {
   const response = await fetch(url, options);
   if (!response.ok) {
     const text = await response.text().catch(() => "");

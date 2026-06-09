@@ -352,20 +352,20 @@ function setupDragAndDrop(inputWrapper: HTMLElement) {
   }
 
   // Helpers for reading directory drops (webkit entries)
-  function readAllFilesFromEntry(entry: any, path = ""): Promise<File[]> {
+  function readAllFilesFromEntry(entry: FileSystemEntry, path = ""): Promise<File[]> {
     return new Promise((resolve) => {
       try {
         if (entry.isFile) {
-          entry.file((file: FileWithRelativePath) => {
+          (entry as FileSystemFileEntry).file((file: FileWithRelativePath) => {
             // Attach relative path info for later grouping
             file._relativePath = path + file.name;
             resolve([file]);
           }, () => resolve([]));
         } else if (entry.isDirectory) {
-          const reader = entry.createReader();
-          const entries: any[] = [];
+          const reader = (entry as FileSystemDirectoryEntry).createReader();
+          const entries: FileSystemEntry[] = [];
           const readBatch = () => {
-            reader.readEntries((batch: any[]) => {
+            reader.readEntries((batch: FileSystemEntry[]) => {
               if (!batch || batch.length === 0) {
                 // Done reading children; recurse
                 const promises = entries.map((child) =>
@@ -390,10 +390,10 @@ function setupDragAndDrop(inputWrapper: HTMLElement) {
     });
   }
 
-  function fileFromEntry(entry: any): Promise<File | null> {
+  function fileFromEntry(entry: FileSystemEntry): Promise<File | null> {
     return new Promise((resolve) => {
       try {
-        entry.file((file: FileWithRelativePath) => {
+        (entry as FileSystemFileEntry).file((file: FileWithRelativePath) => {
           file._relativePath = file.name; // no nesting info
           resolve(file);
         }, () => resolve(null));
