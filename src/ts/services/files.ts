@@ -59,7 +59,7 @@ export async function deleteAllAssistantFiles() {
   const files = Array.isArray(list?.data) ? list.data : [];
 
   let deleted = 0;
-  const errors: { id: any; error: string }[] = [];
+  const errors: { id: string; error: string }[] = [];
 
   for (const f of files) {
     try {

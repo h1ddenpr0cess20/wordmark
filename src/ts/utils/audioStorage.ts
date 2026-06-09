@@ -140,7 +140,7 @@ export function loadAudioForMessage(messageId: string): Promise<any> {
       const results = request.result;
       if (results && results.length > 0) {
         // Get the most recent audio for this message
-        results.sort((a: any, b: any) => b.timestamp - a.timestamp);
+        results.sort((a: { timestamp: number }, b: { timestamp: number }) => b.timestamp - a.timestamp);
         console.info("Audio loaded from IndexedDB for message:", messageId);
         resolve(results[0]);
       } else {
@@ -171,7 +171,7 @@ export function cleanupOldAudio(): Promise<number> {
     const index = store.index("timestamp");
     const request = index.openCursor(null, "prev"); // Descending order (newest first)
 
-    const allAudioRecords: { id: any; timestamp: number }[] = [];
+    const allAudioRecords: { id: string; timestamp: number }[] = [];
 
     request.onerror = () => {
       console.error("Error accessing audio records:", request.error);

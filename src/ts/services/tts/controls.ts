@@ -285,7 +285,7 @@ export function addTtsControlsToMessage(audioData: ArrayBuffer, messageId: strin
           ttsRuntime.activeTtsAudio.pause();
           ttsRuntime.activeTtsAudio.currentTime = 0;
 
-          document.querySelectorAll(".tts-play-pause").forEach((btn: any) => {
+          document.querySelectorAll<HTMLElement>(".tts-play-pause").forEach((btn) => {
             if (btn !== playPauseButton && !btn.contains(loadingSpinner)) {
               btn.innerHTML = ttsSvgIcons.play;
               btn.title = "Play voice";

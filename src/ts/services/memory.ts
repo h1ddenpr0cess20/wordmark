@@ -72,9 +72,9 @@ toolImplementations.forget = async function(args) {
     if (!keyword) return { ok: false, message: "Missing keyword" };
 
     const mems = getMemories ? getMemories() : [];
-    const matches: { index: number; memory: any }[] = [];
+    const matches: { index: number; memory: string }[] = [];
     const lower = keyword.toLowerCase();
-    mems.forEach((m: any, i: number) => {
+    mems.forEach((m, i) => {
       if (typeof m === "string" && m.toLowerCase().includes(lower)) {
         matches.push({ index: i, memory: m });
       }

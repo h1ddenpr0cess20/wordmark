@@ -46,7 +46,7 @@ export function setMemoryLimit(limit: string | number) {
   try { window.dispatchEvent(new CustomEvent("memories:config", { detail: { key: "limit", value: newLimit } })); } catch {}
 }
 
-export function getMemories() {
+export function getMemories(): string[] {
   ensureMemoryDefaults();
   try {
     const raw = localStorage.getItem(MEMORIES_KEY);
