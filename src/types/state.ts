@@ -20,6 +20,7 @@ export interface AppState {
   loadedSystemPrompt: any;
   currentReasoningEffort: string;
   currentVerbosity: string;
+  historyTokenBudget?: number;
   imageDataCache: Map<string, string>;
 
   pendingUploads: PendingUpload[];
@@ -40,16 +41,12 @@ export interface AppState {
   debug: boolean;
   verboseLogging: boolean;
   shortResponseGuideline: string;
-
-  // Allow runtime-added properties without widening every access site.
-  [key: string]: any;
 }
 
 export interface Elements {
   chatBox: HTMLElement | null;
   userInput: HTMLTextAreaElement | null;
   sendButton: HTMLButtonElement | null;
-  sendButtonIcon: HTMLElement | null;
   settingsButton: HTMLButtonElement | null;
   settingsPanel: HTMLElement | null;
   closeSettingsButton: HTMLButtonElement | null;
@@ -100,7 +97,4 @@ export interface Elements {
   galleryPanel: HTMLElement | null;
   closeGalleryButton: HTMLButtonElement | null;
   galleryGrid: HTMLElement | null;
-
-  // dom.js / other modules attach additional refs at runtime.
-  [key: string]: HTMLElement | null;
 }

@@ -109,7 +109,7 @@ function persistVerbosity(value: string) {
   }
 }
 
-function normalizeHistoryTokenBudget(value: string | number) {
+function normalizeHistoryTokenBudget(value: string | number | undefined) {
   const parsed = parseInt(String(value), 10);
   // 0 is a valid, explicit "no limit". Blank/negative/invalid falls back to default.
   if (!Number.isFinite(parsed) || parsed < 0) {

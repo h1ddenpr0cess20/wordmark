@@ -63,7 +63,6 @@ export const elements: Elements = {
   chatBox: null,
   userInput: null,
   sendButton: null,
-  sendButtonIcon: null,
   settingsButton: null,
   settingsPanel: null,
   closeSettingsButton: null,
