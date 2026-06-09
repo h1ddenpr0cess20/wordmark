@@ -9,10 +9,42 @@ import {
   getBaseUrl,
 } from "../api/clientConfig.ts";
 
-const FILE_METADATA_CACHE = new Map();
-const FILE_METADATA_PROMISES = new Map();
+const FILE_METADATA_CACHE = new Map<string, any>();
+const FILE_METADATA_PROMISES = new Map<string, Promise<any>>();
 
-function isCodeInterpreterName(rawName) {
+export interface CodeAttachment {
+  kind: "attachment";
+  subtype: string;
+  callId: string | null;
+  fileId: string;
+  containerId?: string | null;
+  filename: string | null;
+  mimeType: string | null;
+  bytes: number | null;
+  index: number | null;
+  status: string;
+  error: string | null;
+}
+
+export interface CodeLog {
+  kind: "logs";
+  callId: string | null;
+  text: string;
+}
+
+export interface CodeInterpreterOutputs {
+  attachments: CodeAttachment[];
+  logs: CodeLog[];
+}
+
+interface GatherContext {
+  callId: string | null;
+  pushAttachment: (attachment: CodeAttachment | null) => void;
+  pushLog: (logEntry: CodeLog) => void;
+  visitedObjects: WeakSet<object> | null;
+}
+
+function isCodeInterpreterName(rawName: unknown) {
   if (typeof rawName !== "string") {
     return false;
   }
@@ -20,7 +52,7 @@ function isCodeInterpreterName(rawName) {
   return name === "code_interpreter" || name === "python" || name === "code-interpreter";
 }
 
-function looksLikeFileId(value) {
+function looksLikeFileId(value: unknown) {
   if (typeof value !== "string" || !value) {
     return false;
   }
@@ -28,7 +60,7 @@ function looksLikeFileId(value) {
   return /^(cfile_|file_)[a-zA-Z0-9]+$/.test(value);
 }
 
-function inferSubtype(type, mimeType) {
+function inferSubtype(type: unknown, mimeType: unknown) {
   const lowerType = typeof type === "string" ? type.toLowerCase() : "";
   const lowerMime = typeof mimeType === "string" ? mimeType.toLowerCase() : "";
   if (lowerType.includes("image") || lowerMime.startsWith("image/")) {
@@ -37,7 +69,7 @@ function inferSubtype(type, mimeType) {
   return "file";
 }
 
-function extractFileId(candidate) {
+function extractFileId(candidate: any) {
   if (!candidate || typeof candidate !== "object") {
     return null;
   }
@@ -62,7 +94,7 @@ function extractFileId(candidate) {
   return null;
 }
 
-function buildAttachmentFromObject(candidate, callId) {
+function buildAttachmentFromObject(candidate: any, callId: string | null): CodeAttachment | null {
   const fileId = extractFileId(candidate);
   if (!fileId) {
     return null;
@@ -94,7 +126,7 @@ function buildAttachmentFromObject(candidate, callId) {
   };
 }
 
-function gatherOutputsFromValue(value, context) {
+function gatherOutputsFromValue(value: any, context: GatherContext) {
   const {
     callId,
     pushAttachment,
@@ -162,14 +194,14 @@ function gatherOutputsFromValue(value, context) {
   }
 }
 
-export function extractCodeInterpreterOutputs(responsePayload) {
-  const attachments = [];
-  const logs = [];
-  const attachmentById = new Map();
-  const logKeys = new Set();
+export function extractCodeInterpreterOutputs(responsePayload: any): CodeInterpreterOutputs {
+  const attachments: CodeAttachment[] = [];
+  const logs: CodeLog[] = [];
+  const attachmentById = new Map<string, CodeAttachment>();
+  const logKeys = new Set<string>();
   const visitedObjects = typeof WeakSet !== "undefined" ? new WeakSet() : null;
 
-  const pushAttachment = (attachment) => {
+  const pushAttachment = (attachment: CodeAttachment | null) => {
     if (!attachment || !attachment.fileId) {
       return;
     }
@@ -202,7 +234,7 @@ export function extractCodeInterpreterOutputs(responsePayload) {
     attachmentById.set(attachment.fileId, attachment);
   };
 
-  const pushLog = (logEntry) => {
+  const pushLog = (logEntry: CodeLog) => {
     if (!logEntry || !logEntry.text) {
       return;
     }
@@ -218,14 +250,14 @@ export function extractCodeInterpreterOutputs(responsePayload) {
     });
   };
 
-  const context = {
+  const context: GatherContext = {
     callId: null,
     pushAttachment,
     pushLog,
     visitedObjects,
   };
 
-  const inspectItem = (item, callIdHint?) => {
+  const inspectItem = (item: any, callIdHint?: string | null) => {
     if (!item || typeof item !== "object") {
       return;
     }
@@ -244,13 +276,13 @@ export function extractCodeInterpreterOutputs(responsePayload) {
   };
 
   const rootOutputs = Array.isArray(responsePayload?.output) ? responsePayload.output : [];
-  rootOutputs.forEach(item => {
+  rootOutputs.forEach((item: any) => {
     inspectItem(item);
     // Also check for annotations with container_file_citation
     if (item && Array.isArray(item.content)) {
-      item.content.forEach(contentItem => {
+      item.content.forEach((contentItem: any) => {
         if (contentItem && Array.isArray(contentItem.annotations)) {
-          contentItem.annotations.forEach(annotation => {
+          contentItem.annotations.forEach((annotation: any) => {
             if (annotation && annotation.type === "container_file_citation") {
               const fileAttachment = buildAttachmentFromObject(annotation, item.id);
               if (fileAttachment) {
@@ -264,16 +296,16 @@ export function extractCodeInterpreterOutputs(responsePayload) {
   });
 
   const toolCalls = Array.isArray(responsePayload?.tool_calls) ? responsePayload.tool_calls : [];
-  toolCalls.forEach(call => inspectItem(call));
+  toolCalls.forEach((call: any) => inspectItem(call));
 
-  const ciCalls = [];
+  const ciCalls: any[] = [];
   if (Array.isArray(responsePayload?.code_interpreter_calls)) {
     ciCalls.push(...responsePayload.code_interpreter_calls);
   }
   if (responsePayload?.code_interpreter_call) {
     ciCalls.push(responsePayload.code_interpreter_call);
   }
-  ciCalls.forEach(call => {
+  ciCalls.forEach((call: any) => {
     const callId = call && (call.id || call.tool_call_id || call.call_id || null);
     context.callId = callId || null;
     gatherOutputsFromValue(call, context);
@@ -287,11 +319,11 @@ export function extractCodeInterpreterOutputs(responsePayload) {
   };
 }
 
-function ensureSection(contentWrapper) {
+function ensureSection(contentWrapper: HTMLElement | null) {
   if (!contentWrapper) {
     return null;
   }
-  let section = contentWrapper.querySelector(".code-interpreter-outputs") as any;
+  let section = contentWrapper.querySelector<HTMLElement>(".code-interpreter-outputs");
   if (!section) {
     section = document.createElement("div");
     section.className = "code-interpreter-outputs";
@@ -304,7 +336,7 @@ function ensureSection(contentWrapper) {
   return section;
 }
 
-function fallbackFilename(attachment, index) {
+function fallbackFilename(attachment: CodeAttachment, index: number | null) {
   if (attachment && attachment.filename) {
     return attachment.filename;
   }
@@ -314,7 +346,7 @@ function fallbackFilename(attachment, index) {
   return `code-output-${typeof index === "number" ? index + 1 : 1}`;
 }
 
-function formatBytes(bytes) {
+function formatBytes(bytes: unknown) {
   if (typeof bytes !== "number" || !Number.isFinite(bytes) || bytes < 0) {
     return null;
   }
@@ -331,8 +363,8 @@ function formatBytes(bytes) {
   return `${value.toFixed(value >= 10 ? 0 : 1)} ${units[unitIndex]}`;
 }
 
-function describeAttachment(attachment) {
-  const parts = [];
+function describeAttachment(attachment: CodeAttachment) {
+  const parts: string[] = [];
   if (attachment.mimeType) {
     parts.push(attachment.mimeType);
   }
@@ -346,7 +378,7 @@ function describeAttachment(attachment) {
   return parts.join(" • ");
 }
 
-function parseContentDispositionFilename(header) {
+function parseContentDispositionFilename(header: string | null) {
   if (typeof header !== "string") {
     return null;
   }
@@ -357,7 +389,7 @@ function parseContentDispositionFilename(header) {
   return null;
 }
 
-function guessExtension(mimeType) {
+function guessExtension(mimeType: unknown) {
   if (typeof mimeType !== "string") {
     return "";
   }
@@ -375,7 +407,7 @@ function guessExtension(mimeType) {
   return "";
 }
 
-async function fetchFileMetadata(fileId) {
+async function fetchFileMetadata(fileId: string) {
   if (FILE_METADATA_CACHE.has(fileId)) {
     return FILE_METADATA_CACHE.get(fileId);
   }
@@ -411,7 +443,7 @@ async function fetchFileMetadata(fileId) {
   return promise;
 }
 
-async function hydrateAttachment(attachment) {
+async function hydrateAttachment(attachment: CodeAttachment | null) {
   if (!attachment || !attachment.fileId) {
     return attachment;
   }
@@ -438,13 +470,13 @@ async function hydrateAttachment(attachment) {
     attachment.status = "ready";
   } catch (error) {
     attachment.status = "error";
-    attachment.error = error.message || "Failed to load metadata";
+    attachment.error = (error instanceof Error ? error.message : "") || "Failed to load metadata";
     throw error;
   }
   return attachment;
 }
 
-function buildFileRow(attachment) {
+function buildFileRow(attachment: CodeAttachment) {
   const row = document.createElement("div");
   row.className = "code-interpreter-file";
 
@@ -498,7 +530,7 @@ function buildFileRow(attachment) {
   };
 }
 
-async function downloadFileContent(attachment) {
+async function downloadFileContent(attachment: CodeAttachment | null) {
   if (!attachment || !attachment.fileId) {
     throw new Error("Missing file identifier for download.");
   }
@@ -545,18 +577,18 @@ async function downloadFileContent(attachment) {
   }, 2000);
 }
 
-export function renderCodeInterpreterOutputs(messageElement, outputs) {
+export function renderCodeInterpreterOutputs(messageElement: HTMLElement | null, outputs: CodeInterpreterOutputs | null) {
   if (!messageElement) {
     return;
   }
-  const contentWrapper = messageElement.querySelector(".message-content") as any;
+  const contentWrapper = messageElement.querySelector<HTMLElement>(".message-content");
   if (!contentWrapper) {
     return;
   }
   const attachments = outputs && Array.isArray(outputs.attachments)
     ? outputs.attachments
     : [];
-  const section = contentWrapper.querySelector(".code-interpreter-outputs") as any;
+  const section = contentWrapper.querySelector<HTMLElement>(".code-interpreter-outputs");
 
   if (!attachments.length) {
     if (section) {
@@ -571,15 +603,15 @@ export function renderCodeInterpreterOutputs(messageElement, outputs) {
   }
 
   // Remove previous rows but keep title element (first child)
-  Array.from(container.querySelectorAll(".code-interpreter-file")).forEach((node: any) => node.remove());
+  Array.from(container.querySelectorAll(".code-interpreter-file")).forEach((node) => node.remove());
 
-  attachments.forEach(attachment => {
+  attachments.forEach((attachment: CodeAttachment) => {
     const rowControls = buildFileRow(attachment);
     container.appendChild(rowControls.row);
     rowControls.update();
     rowControls.downloadButton.addEventListener("click", async() => {
       rowControls.downloadButton.disabled = true;
-      const originalText = rowControls.downloadButton.querySelector("span") as any;
+      const originalText = rowControls.downloadButton.querySelector<HTMLElement>("span");
       if (originalText) {
         originalText.textContent = "Downloading...";
       }
@@ -608,7 +640,7 @@ export function renderCodeInterpreterOutputs(messageElement, outputs) {
   });
 }
 
-export function getCodeInterpreterOutputsForMessage(message) {
+export function getCodeInterpreterOutputsForMessage(message: any) {
   if (!message || typeof message !== "object") {
     return { attachments: [], logs: [] };
   }
