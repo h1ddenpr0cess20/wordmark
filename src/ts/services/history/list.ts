@@ -46,19 +46,19 @@ export function renderChatHistoryList() {
         </div>
       `;
 
-      const newButton = toolbarDiv.querySelector(".history-new-button") as any;
-      const multiSelectCheckbox = toolbarDiv.querySelector("#multi-select-mode") as any;
-      const selectionStatus = toolbarDiv.querySelector(".selection-status") as any;
-      const selectedCountSpan = toolbarDiv.querySelector(".selected-count") as any;
-      const selectAllButton = toolbarDiv.querySelector(".history-select-all-btn") as any;
-      const clearSelectionButton = toolbarDiv.querySelector(".history-clear-selection-btn") as any;
-      const loadButton = toolbarDiv.querySelector(".history-load-btn") as any;
-      const renameButton = toolbarDiv.querySelector(".history-rename-btn") as any;
-      const deleteButton = toolbarDiv.querySelector(".history-delete-btn") as any;
-      const deleteCountSpan = toolbarDiv.querySelector(".delete-count") as any;
+      const newButton = toolbarDiv.querySelector(".history-new-button") as HTMLElement;
+      const multiSelectCheckbox = toolbarDiv.querySelector("#multi-select-mode") as HTMLInputElement;
+      const selectionStatus = toolbarDiv.querySelector(".selection-status") as HTMLElement;
+      const selectedCountSpan = toolbarDiv.querySelector(".selected-count") as HTMLElement;
+      const selectAllButton = toolbarDiv.querySelector(".history-select-all-btn") as HTMLElement;
+      const clearSelectionButton = toolbarDiv.querySelector(".history-clear-selection-btn") as HTMLElement;
+      const loadButton = toolbarDiv.querySelector(".history-load-btn") as HTMLButtonElement;
+      const renameButton = toolbarDiv.querySelector(".history-rename-btn") as HTMLButtonElement;
+      const deleteButton = toolbarDiv.querySelector(".history-delete-btn") as HTMLButtonElement;
+      const deleteCountSpan = toolbarDiv.querySelector(".delete-count") as HTMLElement;
 
       const updateButtonStates = () => {
-        const selectedRows = document.querySelectorAll(".history-row.selected") as any;
+        const selectedRows = document.querySelectorAll<HTMLElement>(".history-row.selected");
         const isMultiSelect = multiSelectCheckbox.checked;
         const selectedCount = selectedRows.length;
 
@@ -66,8 +66,8 @@ export function renderChatHistoryList() {
         clearSelectionButton.style.display = isMultiSelect ? "inline-block" : "none";
         selectionStatus.style.display = isMultiSelect && selectedCount > 0 ? "inline-block" : "none";
 
-        selectedCountSpan.textContent = selectedCount;
-        deleteCountSpan.textContent = selectedCount;
+        selectedCountSpan.textContent = String(selectedCount);
+        deleteCountSpan.textContent = String(selectedCount);
 
         loadButton.disabled = selectedCount !== 1;
         renameButton.disabled = selectedCount !== 1;
@@ -91,7 +91,7 @@ export function renderChatHistoryList() {
           row.classList.remove("selected");
         });
 
-        const table = document.querySelector(".history-table") as any;
+        const table = document.querySelector(".history-table");
         if (table) {
           table.classList.toggle("multi-select-mode", isMultiSelect);
         }
@@ -114,36 +114,40 @@ export function renderChatHistoryList() {
       };
 
       loadButton.onclick = () => {
-        const selectedRow = document.querySelector(".history-row.selected") as any;
+        const selectedRow = document.querySelector<HTMLElement>(".history-row.selected");
         if (selectedRow) {
           const conversationId = selectedRow.dataset.conversationId;
-          loadConversation(conversationId)?.then(() => {
-            elements.historyPanel?.setAttribute("aria-hidden", "true");
-            elements.historyButton?.setAttribute("aria-expanded", "false");
-          });
+          if (conversationId) {
+              loadConversation(conversationId)?.then(() => {
+              elements.historyPanel?.setAttribute("aria-hidden", "true");
+              elements.historyButton?.setAttribute("aria-expanded", "false");
+            });
+          }
         }
       };
 
       renameButton.onclick = () => {
-        const selectedRow = document.querySelector(".history-row.selected") as any;
+        const selectedRow = document.querySelector<HTMLElement>(".history-row.selected");
         if (!selectedRow) {
           return;
         }
         const conversationId = selectedRow.dataset.conversationId;
         const currentTitle = selectedRow.querySelector(".history-title")?.textContent || "";
         const newName = prompt("Rename conversation:", currentTitle);
-        if (newName && newName.trim()) {
+        if (conversationId && newName && newName.trim()) {
           renameConversation(conversationId, newName.trim());
         }
       };
 
       deleteButton.onclick = () => {
-        const selectedRows = document.querySelectorAll(".history-row.selected") as any;
+        const selectedRows = document.querySelectorAll<HTMLElement>(".history-row.selected");
         if (!selectedRows.length) {
           return;
         }
 
-        const conversationIds = Array.from(selectedRows).map((row: any) => row.dataset.conversationId);
+        const conversationIds = Array.from(selectedRows)
+          .map((row) => row.dataset.conversationId)
+          .filter((id): id is string => Boolean(id));
         const confirmMessage = conversationIds.length === 1
           ? "Delete this conversation?"
           : `Delete ${conversationIds.length} conversations?`;
@@ -305,7 +309,7 @@ export function renderChatHistoryList() {
               row.classList.toggle("selected");
             } else if (e.shiftKey) {
               const allRows = Array.from(document.querySelectorAll(".history-row"));
-              const lastSelected = document.querySelector(".history-row.selected:last-of-type") as any;
+              const lastSelected = document.querySelector(".history-row.selected:last-of-type");
 
               if (lastSelected) {
                 const startIndex = allRows.indexOf(lastSelected);
