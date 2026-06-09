@@ -19,19 +19,19 @@ const API_KEYS_INIT_MAX_RETRIES = 40;
 const API_KEYS_INIT_RETRY_DELAY = 150;
 
 // DOM element references
-const apiKeyInputs = {
+const apiKeyInputs: Record<string, HTMLInputElement | null> = {
   openai: null,
   xai: null,
   // huggingface: null,
 };
 
-let saveApiKeysButton = null;
-let lmStudioServerUrlInput = null;
-let saveLmStudioUrlButton = null;
-let ollamaServerUrlInput = null;
-let saveOllamaUrlButton = null;
+let saveApiKeysButton: HTMLElement | null = null;
+let lmStudioServerUrlInput: HTMLInputElement | null = null;
+let saveLmStudioUrlButton: HTMLElement | null = null;
+let ollamaServerUrlInput: HTMLInputElement | null = null;
+let saveOllamaUrlButton: HTMLElement | null = null;
 let apiKeysEventHandlersApplied = false;
-let shownApiKeyWarnings = null;
+let shownApiKeyWarnings: Set<string> | null = null;
 
 function refreshApiDependentUi() {
   try {
@@ -50,16 +50,16 @@ function refreshApiDependentUi() {
 /**
  * Initialize API key management functionality
  */
-function initApiKeys(retryCount = 0) {
+function initApiKeys(retryCount: number = 0) {
   // Get DOM references for main API keys
-  const openaiInput = document.getElementById("openai-api-key") as any;
-  const xaiInput = document.getElementById("xai-api-key") as any;
-  // const huggingfaceInput = document.getElementById("huggingface-api-key") as any;
-  const saveKeysButton = document.getElementById("save-api-keys") as any;
-  const lmStudioUrlInput = document.getElementById("lmstudio-server-url") as any;
-  const saveLmStudioButton = document.getElementById("save-lmstudio-url") as any;
-  const ollamaUrlInput = document.getElementById("ollama-server-url") as any;
-  const saveOllamaButton = document.getElementById("save-ollama-url") as any;
+  const openaiInput = document.getElementById("openai-api-key") as HTMLInputElement | null;
+  const xaiInput = document.getElementById("xai-api-key") as HTMLInputElement | null;
+  // const huggingfaceInput = document.getElementById("huggingface-api-key") as HTMLInputElement | null;
+  const saveKeysButton = document.getElementById("save-api-keys");
+  const lmStudioUrlInput = document.getElementById("lmstudio-server-url") as HTMLInputElement | null;
+  const saveLmStudioButton = document.getElementById("save-lmstudio-url");
+  const ollamaUrlInput = document.getElementById("ollama-server-url") as HTMLInputElement | null;
+  const saveOllamaButton = document.getElementById("save-ollama-url");
 
   const essentialReady = Boolean(saveKeysButton && (openaiInput || xaiInput || lmStudioUrlInput || ollamaUrlInput));
 
@@ -85,7 +85,7 @@ function initApiKeys(retryCount = 0) {
     // Add click handlers to prevent propagation on all input fields
     Object.values(apiKeyInputs).forEach(input => {
       if (input) {
-        input.addEventListener("click", (event) => {
+        input.addEventListener("click", (event: Event) => {
           event.stopPropagation();
         });
       }
@@ -93,18 +93,18 @@ function initApiKeys(retryCount = 0) {
 
     // Also add click handler for LM Studio server URL input
     if (lmStudioServerUrlInput) {
-      lmStudioServerUrlInput.addEventListener("click", (event) => {
+      lmStudioServerUrlInput.addEventListener("click", (event: Event) => {
         event.stopPropagation();
       });
     }
     if (ollamaServerUrlInput) {
-      ollamaServerUrlInput.addEventListener("click", (event) => {
+      ollamaServerUrlInput.addEventListener("click", (event: Event) => {
         event.stopPropagation();
       });
     }
 
     // Get password toggle buttons
-    const toggleButtons = document.querySelectorAll(".toggle-password") as any;
+    const toggleButtons = document.querySelectorAll<HTMLElement>(".toggle-password");
     // Add event listeners to toggle password visibility
     toggleButtons.forEach(button => {
       button.addEventListener("click", function(event) {
@@ -113,7 +113,7 @@ function initApiKeys(retryCount = 0) {
         event.stopPropagation();
 
         const inputId = this.getAttribute("data-for");
-        const input = document.getElementById(inputId) as any;
+        const input = inputId ? document.getElementById(inputId) : null;
 
         // Masking is handled via CSS on .secret-input.masked
         if (input && input.classList) {
@@ -130,7 +130,7 @@ function initApiKeys(retryCount = 0) {
 
     // Add event listener to save button
     if (saveApiKeysButton) {
-      saveApiKeysButton.addEventListener("click", (event) => {
+      saveApiKeysButton.addEventListener("click", (event: Event) => {
         // Prevent event propagation
         event.preventDefault();
         event.stopPropagation();
@@ -140,14 +140,14 @@ function initApiKeys(retryCount = 0) {
 
     // Add event listener to save LM Studio URL button
     if (saveLmStudioUrlButton) {
-      saveLmStudioUrlButton.addEventListener("click", (event) => {
+      saveLmStudioUrlButton.addEventListener("click", (event: Event) => {
         event.preventDefault();
         event.stopPropagation();
         saveLmStudioServerUrl();
       });
     }
     if (saveOllamaUrlButton) {
-      saveOllamaUrlButton.addEventListener("click", (event) => {
+      saveOllamaUrlButton.addEventListener("click", (event: Event) => {
         event.preventDefault();
         event.stopPropagation();
         saveOllamaServerUrl();
@@ -194,7 +194,7 @@ function saveLmStudioServerUrl() {
       }
 
       // Show success message in the LM Studio section
-      const existingStatus = document.querySelector(".lmstudio-status") as any;
+      const existingStatus = document.querySelector(".lmstudio-status") as HTMLElement | null;
       if (existingStatus) {
         existingStatus.remove();
       }
@@ -203,7 +203,7 @@ function saveLmStudioServerUrl() {
       statusElement.className = "lmstudio-status success";
       statusElement.textContent = "LM Studio Base URL saved successfully!";
 
-      const lmstudioActionButtons = document.querySelector(".lmstudio-action-buttons") as any;
+      const lmstudioActionButtons = document.querySelector(".lmstudio-action-buttons") as HTMLElement | null;
       if (lmstudioActionButtons) {
         lmstudioActionButtons.insertAdjacentElement("afterend", statusElement);
 
@@ -218,7 +218,7 @@ function saveLmStudioServerUrl() {
       }
     } else {
       // Show error message in the LM Studio section
-      const existingStatus = document.querySelector(".lmstudio-status") as any;
+      const existingStatus = document.querySelector(".lmstudio-status") as HTMLElement | null;
       if (existingStatus) {
         existingStatus.remove();
       }
@@ -227,7 +227,7 @@ function saveLmStudioServerUrl() {
       statusElement.className = "lmstudio-status error";
       statusElement.textContent = "Please enter a valid LM Studio Base URL";
 
-      const lmstudioActionButtons = document.querySelector(".lmstudio-action-buttons") as any;
+      const lmstudioActionButtons = document.querySelector(".lmstudio-action-buttons") as HTMLElement | null;
       if (lmstudioActionButtons) {
         lmstudioActionButtons.insertAdjacentElement("afterend", statusElement);
 
@@ -241,7 +241,7 @@ function saveLmStudioServerUrl() {
     console.error("Error saving LM Studio Base URL:", error);
 
     // Show error message in the LM Studio section
-    const existingStatus = document.querySelector(".lmstudio-status") as any;
+    const existingStatus = document.querySelector(".lmstudio-status") as HTMLElement | null;
     if (existingStatus) {
       existingStatus.remove();
     }
@@ -250,7 +250,7 @@ function saveLmStudioServerUrl() {
     statusElement.className = "lmstudio-status error";
     statusElement.textContent = "Error saving LM Studio Base URL";
 
-    const lmstudioActionButtons = document.querySelector(".lmstudio-action-buttons") as any;
+    const lmstudioActionButtons = document.querySelector(".lmstudio-action-buttons") as HTMLElement | null;
     if (lmstudioActionButtons) {
       lmstudioActionButtons.insertAdjacentElement("afterend", statusElement);
 
@@ -295,7 +295,7 @@ function saveOllamaServerUrl() {
       }
 
       // Show success message in the Ollama section
-      const existingStatus = document.querySelector(".ollama-status") as any;
+      const existingStatus = document.querySelector(".ollama-status") as HTMLElement | null;
       if (existingStatus) {
         existingStatus.remove();
       }
@@ -304,7 +304,7 @@ function saveOllamaServerUrl() {
       statusElement.className = "ollama-status success";
       statusElement.textContent = "Ollama Base URL saved successfully!";
 
-      const ollamaActionButtons = document.querySelector(".ollama-action-buttons") as any;
+      const ollamaActionButtons = document.querySelector(".ollama-action-buttons") as HTMLElement | null;
       if (ollamaActionButtons) {
         ollamaActionButtons.insertAdjacentElement("afterend", statusElement);
 
@@ -319,7 +319,7 @@ function saveOllamaServerUrl() {
       }
     } else {
       // Show error message in the Ollama section
-      const existingStatus = document.querySelector(".ollama-status") as any;
+      const existingStatus = document.querySelector(".ollama-status") as HTMLElement | null;
       if (existingStatus) {
         existingStatus.remove();
       }
@@ -328,7 +328,7 @@ function saveOllamaServerUrl() {
       statusElement.className = "ollama-status error";
       statusElement.textContent = "Please enter a valid Ollama Base URL";
 
-      const ollamaActionButtons = document.querySelector(".ollama-action-buttons") as any;
+      const ollamaActionButtons = document.querySelector(".ollama-action-buttons") as HTMLElement | null;
       if (ollamaActionButtons) {
         ollamaActionButtons.insertAdjacentElement("afterend", statusElement);
 
@@ -342,7 +342,7 @@ function saveOllamaServerUrl() {
     console.error("Error saving Ollama Base URL:", error);
 
     // Show error message in the Ollama section
-    const existingStatus = document.querySelector(".ollama-status") as any;
+    const existingStatus = document.querySelector(".ollama-status") as HTMLElement | null;
     if (existingStatus) {
       existingStatus.remove();
     }
@@ -351,7 +351,7 @@ function saveOllamaServerUrl() {
     statusElement.className = "ollama-status error";
     statusElement.textContent = "Error saving Ollama Base URL";
 
-    const ollamaActionButtons = document.querySelector(".ollama-action-buttons") as any;
+    const ollamaActionButtons = document.querySelector(".ollama-action-buttons") as HTMLElement | null;
     if (ollamaActionButtons) {
       ollamaActionButtons.insertAdjacentElement("afterend", statusElement);
 
@@ -515,7 +515,7 @@ function loadApiKeys() {
  * @param {string} service - The service to get the key for
  * @returns {string|null} - The API key or null if not found
  */
-function getApiKey(service) {
+function getApiKey(service: string): string | null {
   try {
     // Try localStorage first
     const storedKey = localStorage.getItem(`${API_KEYS_STORAGE_PREFIX}${service}`);
@@ -539,7 +539,7 @@ function getApiKey(service) {
  * @param {string} service - The service to get the key for (e.g., 'rapidapi', 'alphavantage')
  * @returns {string|null} - The API key or null if not found
  */
-function getToolApiKey(service) {
+function getToolApiKey(service: string): string | null {
   try {
   // Try localStorage first
     const storedKey = localStorage.getItem(`wordmark_tool_api_key_${service}`);
@@ -652,9 +652,9 @@ function ensureApiKeysLoaded() {
  * @param {string} message - The message to show
  * @param {string} type - The type of message ('success' or 'error')
  */
-function showApiKeyStatus(message, type = "success") {
+function showApiKeyStatus(message: string, type: string = "success") {
   // Remove any existing status message
-  const existingStatus = document.querySelector(".api-keys-status") as any;
+  const existingStatus = document.querySelector(".api-keys-status") as HTMLElement | null;
   if (existingStatus) {
     existingStatus.remove();
   }
@@ -665,7 +665,7 @@ function showApiKeyStatus(message, type = "success") {
   statusElement.textContent = message;
 
   // Add status message to the DOM
-  const apiKeysActionButtons = document.querySelector(".api-keys-action-buttons") as any;
+  const apiKeysActionButtons = document.querySelector(".api-keys-action-buttons") as HTMLElement | null;
   if (apiKeysActionButtons) {
     apiKeysActionButtons.insertAdjacentElement("afterend", statusElement);
 
