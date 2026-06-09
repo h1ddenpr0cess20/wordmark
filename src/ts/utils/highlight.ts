@@ -46,8 +46,8 @@ export function loadHighlightJS() {
  * Adds a copy button to code blocks
  * @param {HTMLElement} codeBlock - The code block element to add a button to
  */
-export function addCopyButton(codeBlock: any) {
-  if (!codeBlock.parentNode.querySelector(".copy-btn")) {
+export function addCopyButton(codeBlock: HTMLElement) {
+  if (!codeBlock.parentElement?.querySelector(".copy-btn")) {
     const copyButton = document.createElement("button");
     copyButton.className = "copy-btn";
     copyButton.setAttribute("aria-label", "Copy code");

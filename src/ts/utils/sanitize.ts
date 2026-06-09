@@ -32,7 +32,7 @@ const DOMPURIFY_CONFIG = {
 };
 
 // Sanitize HTML allowing YouTube iframes and external image support.
-export function sanitizeWithMedia(html: any) {
+export function sanitizeWithMedia(html: string) {
   const config = {
     ...DOMPURIFY_CONFIG,
     // Allow external content protocols

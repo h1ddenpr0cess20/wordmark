@@ -28,7 +28,7 @@ function renderAssistantIcon(senderElement: HTMLElement) {
   }
 }
 
-export function appendMessage(sender: string, content: any, type: string, skipHistory = false) {
+export function appendMessage(sender: string, content: string, type: string, skipHistory = false) {
   const messageElement = document.createElement("div");
   messageElement.classList.add("message");
   if (type) {
@@ -64,7 +64,7 @@ export function appendMessage(sender: string, content: any, type: string, skipHi
 
   setTimeout(() => {
     Promise.resolve().then(() => {
-      const parsed = marked.parse(content);
+      const parsed = marked.parse(content, { async: false });
       const sanitized = sanitizeWithMedia(parsed);
       contentElement.innerHTML = sanitized;
 
@@ -93,7 +93,7 @@ export function appendMessage(sender: string, content: any, type: string, skipHi
   return messageElement;
 }
 
-export function appendAssistantMessage(assistantMessage: any, skipHistory = false) {
+export function appendAssistantMessage(assistantMessage: string, skipHistory = false) {
   let msgId: string | null = null;
   if (!skipHistory) {
     msgId = generateMessageId();

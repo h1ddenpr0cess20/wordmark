@@ -17,7 +17,7 @@ export function processMainContentMarkdown(mainText: string) {
     html += "`";
   }
 
-  let parsedContent = sanitizeWithMedia(marked.parse(html));
+  let parsedContent = sanitizeWithMedia(marked.parse(html, { async: false }));
 
   parsedContent = parsedContent.replace(/\[\[IMAGE: ([^\]]+)\]\]/g, (match) => {
     return `<span class="hidden-image-placeholder">${match}</span>`;
