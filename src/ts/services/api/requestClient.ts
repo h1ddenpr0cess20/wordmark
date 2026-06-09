@@ -31,6 +31,7 @@ import { handleStreamedResponse } from "../streaming.ts";
 import type {
   BuildRequestOptions,
   CollectedFunctionCall,
+  ResponseObject,
   RunTurnOptions,
   RunTurnResult,
   ToolCallLike,
@@ -133,7 +134,7 @@ export async function executeStreamingRequest(body: unknown, abortController?: A
   return response;
 }
 
-export async function executeNonStreamingRequest(body: unknown, abortController?: AbortController | null): Promise<any> {
+export async function executeNonStreamingRequest(body: unknown, abortController?: AbortController | null): Promise<ResponseObject> {
   const endpoint = `${getBaseUrl()}/responses`;
   const headers = buildHeaders();
   headers.Accept = "application/json";

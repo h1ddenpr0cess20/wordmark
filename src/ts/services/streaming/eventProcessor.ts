@@ -12,15 +12,18 @@ function bufferGet(map: Map<string, string>, key: string) {
   return map.get(key) || "";
 }
 
-function safeTruncate(str: any, max = 800) {
-  if (typeof str !== "string") {
+function safeTruncate(str: unknown, max = 800): string {
+  let text: string;
+  if (typeof str === "string") {
+    text = str;
+  } else {
     try {
-      str = JSON.stringify(str, null, 2);
+      text = JSON.stringify(str, null, 2);
     } catch {
-      str = String(str);
+      text = String(str);
     }
   }
-  return str.length > max ? `${str.slice(0, max)}…` : str;
+  return text.length > max ? `${text.slice(0, max)}…` : text;
 }
 
 function formatToolArgs(args: any, inline = false) {

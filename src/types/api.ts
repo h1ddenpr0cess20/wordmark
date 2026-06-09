@@ -79,6 +79,22 @@ export interface ResponseOutputItem extends ToolCallLike {
   tool_calls?: ToolCallLike[];
 }
 
+/**
+ * A Responses-API response object: the parsed body of a non-streaming
+ * request, or the `response` field of a `response.completed` event.
+ *
+ * Only `output` (and `id`) have a stable, cross-provider shape and are named.
+ * Other fields (`output_text`, `reasoning`/`reasoning_content`, vendor
+ * extensions) vary by provider and are read defensively at the parse sites,
+ * so they pass through the index signature as `unknown`.
+ */
+export interface ResponseObject {
+  id?: string;
+  model?: string;
+  output?: ResponseOutputItem[];
+  [key: string]: unknown;
+}
+
 /** A normalized function call extracted from a response by `collectFunctionCalls`. */
 export interface CollectedFunctionCall {
   name: string;
@@ -116,7 +132,7 @@ export interface RunTurnOptions {
 
 /** Result of a completed `runTurn` cycle. */
 export interface RunTurnResult {
-  response: any;
+  response: ResponseObject | null;
   outputText: string;
   reasoningText: string;
 }

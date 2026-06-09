@@ -4,6 +4,7 @@
 
 import { state } from "../../init/state.ts";
 import { registerGeneratedMedia } from "../mediaTools.ts";
+import type { ResponseObject } from "../../../types/api.ts";
 
 export const IMAGE_GENERATION_CALL_TYPE = "image_generation_call";
 
@@ -315,7 +316,7 @@ function determineSourceLabel(node: any, mode: string) {
   return "image_generation";
 }
 
-export function processImageGenerationOutputs(responsePayload: any) {
+export function processImageGenerationOutputs(responsePayload: ResponseObject | null) {
   if (!responsePayload || typeof responsePayload !== "object") {
     imageDebugLog("Skipping image extraction: response payload missing or invalid.");
     return;

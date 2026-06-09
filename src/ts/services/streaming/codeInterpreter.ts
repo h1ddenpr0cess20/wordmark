@@ -8,6 +8,7 @@ import {
   ensureApiKey,
   getBaseUrl,
 } from "../api/clientConfig.ts";
+import type { ResponseObject } from "../../../types/api.ts";
 
 const FILE_METADATA_CACHE = new Map<string, any>();
 const FILE_METADATA_PROMISES = new Map<string, Promise<any>>();
@@ -194,7 +195,7 @@ function gatherOutputsFromValue(value: any, context: GatherContext) {
   }
 }
 
-export function extractCodeInterpreterOutputs(responsePayload: any): CodeInterpreterOutputs {
+export function extractCodeInterpreterOutputs(responsePayload: ResponseObject | null): CodeInterpreterOutputs {
   const attachments: CodeAttachment[] = [];
   const logs: CodeLog[] = [];
   const attachmentById = new Map<string, CodeAttachment>();
