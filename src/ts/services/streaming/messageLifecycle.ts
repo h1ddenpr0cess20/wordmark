@@ -24,7 +24,7 @@ import { appendAssistantMessage } from "../../components/ui/chatMessages.ts";
 import { setupImageInteractions } from "../../components/ui/imageInteractions.ts";
 import { resetSendButton } from "../../components/interaction.ts";
 
-export function finalizeStreamedResponse(loadingMessage, contentObj) {
+export function finalizeStreamedResponse(loadingMessage: HTMLElement | null, contentObj: any) {
   if (!loadingMessage) {
     return;
   }
@@ -33,14 +33,14 @@ export function finalizeStreamedResponse(loadingMessage, contentObj) {
   let content = contentObj && typeof contentObj === "object" ? (contentObj.content || "") : (contentObj || "");
   let reasoning = contentObj && typeof contentObj === "object" ? (contentObj.reasoning || "") : "";
 
-  function extractOutputText(payload) {
+  function extractOutputText(payload: any) {
     if (!payload) {
       return "";
     }
     if (Array.isArray(payload.output)) {
       return payload.output
-        .filter(item => item && item.type === "output_text")
-        .map(item => item.text || item.content || "")
+        .filter((item: any) => item && item.type === "output_text")
+        .map((item: any) => item.text || item.content || "")
         .join("");
     }
     if (typeof payload.output_text === "string") {
@@ -52,13 +52,13 @@ export function finalizeStreamedResponse(loadingMessage, contentObj) {
     return "";
   }
 
-  function extractReasoningText(payload) {
+  function extractReasoningText(payload: any) {
     if (!payload) {
       return "";
     }
-    const flattenContentArray = (items) => {
+    const flattenContentArray = (items: any[]) => {
       return items
-        .map(item => {
+        .map((item: any) => {
           if (typeof item === "string") {
             return item;
           }
@@ -78,10 +78,10 @@ export function finalizeStreamedResponse(loadingMessage, contentObj) {
       return payload.reasoning;
     }
     if (payload.reasoning && Array.isArray(payload.reasoning)) {
-      return payload.reasoning.map(item => item?.content || "").join("");
+      return payload.reasoning.map((item: any) => item?.content || "").join("");
     }
     if (payload.reasoning && Array.isArray(payload.reasoning.output)) {
-      return payload.reasoning.output.map(item => item?.content || "").join("");
+      return payload.reasoning.output.map((item: any) => item?.content || "").join("");
     }
     if (typeof payload.reasoning_content === "string") {
       return payload.reasoning_content;
@@ -112,7 +112,7 @@ export function finalizeStreamedResponse(loadingMessage, contentObj) {
     }
   }
 
-  let codeInterpreterOutputs = { attachments: [], logs: [] };
+  let codeInterpreterOutputs: { attachments: any[]; logs: any[] } = { attachments: [], logs: [] };
   if (responsePayload) {
     try {
       processImageGenerationOutputs(responsePayload);
@@ -141,7 +141,7 @@ export function finalizeStreamedResponse(loadingMessage, contentObj) {
   let hasThinking = Boolean(thinkingContent);
 
   const thinkingId = `thinking-${loadingMessage.id}`;
-  const contentWrapper = loadingMessage.querySelector(".message-content") as any;
+  const contentWrapper = loadingMessage.querySelector<HTMLElement>(".message-content");
   if (!contentWrapper) {
     return;
   }
@@ -186,14 +186,13 @@ export function finalizeStreamedResponse(loadingMessage, contentObj) {
     codeInterpreterOutputs,
   });
 
-  const existingThinkingContainer = document.getElementById(thinkingId) as any;
-  let existingMainContentContainer = contentWrapper.querySelector(".main-response-content") as any;
-  let existingImagesContainer = contentWrapper.querySelector(".generated-images") as any;
+  const existingThinkingContainer = document.getElementById(thinkingId);
+  const existingMainContentContainer = contentWrapper.querySelector<HTMLElement>(".main-response-content");
+  const existingImagesContainer = contentWrapper.querySelector<HTMLElement>(".generated-images");
 
   if (state.currentGeneratedImageHtml && state.currentGeneratedImageHtml.length > 0) {
-    let imagesContainer = existingImagesContainer;
-    if (!imagesContainer) {
-      imagesContainer = document.createElement("div");
+    let imagesContainer: HTMLElement = existingImagesContainer ?? document.createElement("div");
+    if (!existingImagesContainer) {
       imagesContainer.className = "generated-images";
       contentWrapper.appendChild(imagesContainer);
     }
@@ -218,7 +217,7 @@ export function finalizeStreamedResponse(loadingMessage, contentObj) {
       .filter(Boolean);
     if (Array.isArray(state.generatedImages)) {
       state.generatedImages.forEach(img => {
-        if (!img.associatedMessageId && filenamesForThisMessage.includes(img.filename)) {
+        if (!img.associatedMessageId && img.filename && filenamesForThisMessage.includes(img.filename)) {
           img.associatedMessageId = loadingMessage.id;
         }
       });
@@ -234,7 +233,7 @@ export function finalizeStreamedResponse(loadingMessage, contentObj) {
   }
 
   if (hasThinking) {
-    let finalThinkingContainer = existingThinkingContainer;
+    let finalThinkingContainer: HTMLElement | null = existingThinkingContainer;
     const persistedExpanded = (state.userThinkingState && state.userThinkingState[thinkingId] === true);
     const hasPersisted = Boolean(state.userThinkingState && Object.prototype.hasOwnProperty.call(state.userThinkingState, thinkingId));
     const priorWasCollapsed = finalThinkingContainer ? finalThinkingContainer.classList.contains("collapsed") : true;
@@ -247,11 +246,11 @@ export function finalizeStreamedResponse(loadingMessage, contentObj) {
            <div class="thinking-content"></div>
          </div>`;
       contentWrapper.insertAdjacentHTML("beforeend", containerHTML);
-      finalThinkingContainer = document.getElementById(thinkingId) as any;
+      finalThinkingContainer = document.getElementById(thinkingId);
     }
 
     if (finalThinkingContainer) {
-      const contentDiv = finalThinkingContainer.querySelector(".thinking-content") as any;
+      const contentDiv = finalThinkingContainer.querySelector<HTMLElement>(".thinking-content");
       if (contentDiv) {
         contentDiv.innerHTML = processMainContentMarkdown(thinkingContent);
       }
@@ -263,9 +262,8 @@ export function finalizeStreamedResponse(loadingMessage, contentObj) {
     }
   }
 
-  let finalMainContentContainer = existingMainContentContainer;
-  if (!finalMainContentContainer) {
-    finalMainContentContainer = document.createElement("div");
+  const finalMainContentContainer: HTMLElement = existingMainContentContainer ?? document.createElement("div");
+  if (!existingMainContentContainer) {
     finalMainContentContainer.className = "main-response-content";
     contentWrapper.appendChild(finalMainContentContainer);
   }
@@ -291,7 +289,7 @@ export function finalizeStreamedResponse(loadingMessage, contentObj) {
   state.currentGeneratedImageHtml = [];
 }
 
-export function updateFinalMessage(loadingMessage) {
+export function updateFinalMessage(loadingMessage: HTMLElement | null) {
   if (!loadingMessage) {
     return;
   }
@@ -309,8 +307,8 @@ export function updateFinalMessage(loadingMessage) {
   addMessageCopyButton(loadingMessage, loadingMessage.id);
 }
 
-export function handleNonStreamingResponse(data, loadingId) {
-  const loadingMessage = document.getElementById(loadingId) as any;
+export function handleNonStreamingResponse(data: any, loadingId: string) {
+  const loadingMessage = document.getElementById(loadingId);
   const responsePayload = data && data.response ? data.response : data;
   if (!loadingMessage || !responsePayload) {
     handleInvalidResponse(loadingId);
@@ -318,13 +316,13 @@ export function handleNonStreamingResponse(data, loadingId) {
   }
 
   const outputText = Array.isArray(responsePayload.output)
-    ? responsePayload.output.filter(item => item && item.type === "output_text")
-      .map(item => item.text || item.content || "")
+    ? responsePayload.output.filter((item: any) => item && item.type === "output_text")
+      .map((item: any) => item.text || item.content || "")
       .join("")
     : (responsePayload.output_text || "");
 
   const reasoningText = responsePayload.reasoning && Array.isArray(responsePayload.reasoning.output)
-    ? responsePayload.reasoning.output.map(item => item?.content || "").join("")
+    ? responsePayload.reasoning.output.map((item: any) => item?.content || "").join("")
     : "";
 
   finalizeStreamedResponse(loadingMessage, {
@@ -335,7 +333,7 @@ export function handleNonStreamingResponse(data, loadingId) {
   resetSendButton();
 }
 
-export function hasValidAssistantMessage(data) {
+export function hasValidAssistantMessage(data: any) {
   if (!data) {
     return false;
   }
@@ -344,12 +342,12 @@ export function hasValidAssistantMessage(data) {
     return false;
   }
   if (Array.isArray(responsePayload.output)) {
-    return responsePayload.output.some(item => item && item.type === "output_text" && item.text);
+    return responsePayload.output.some((item: any) => item && item.type === "output_text" && item.text);
   }
   return typeof responsePayload.output_text === "string" && responsePayload.output_text.trim().length > 0;
 }
 
-export function addToConversationHistory(assistantMessage, reasoning) {
+export function addToConversationHistory(assistantMessage: string, reasoning: string) {
   const msgId = generateMessageId();
 
   state.conversationHistory.push({
@@ -363,12 +361,12 @@ export function addToConversationHistory(assistantMessage, reasoning) {
   return msgId;
 }
 
-export function updateLoadingIndicator(loadingMessage, assistantMessageObj) {
+export function updateLoadingIndicator(loadingMessage: HTMLElement | null, assistantMessageObj: any) {
   if (loadingMessage) {
     if (assistantMessageObj && assistantMessageObj.id) {
       loadingMessage.id = assistantMessageObj.id;
     }
-    const cursor = loadingMessage.querySelector(".streaming-cursor") as any;
+    const cursor = loadingMessage.querySelector<HTMLElement>(".streaming-cursor");
     if (cursor) {
       cursor.classList.add("fade-out");
       setTimeout(() => {
@@ -383,11 +381,11 @@ export function updateLoadingIndicator(loadingMessage, assistantMessageObj) {
   }
 }
 
-export function updateMessageContent(loadingMessage, assistantMessageObj) {
+export function updateMessageContent(loadingMessage: HTMLElement | null, assistantMessageObj: any) {
   if (!loadingMessage) {
     return;
   }
-  const contentWrapper = loadingMessage.querySelector(".message-content") as any;
+  const contentWrapper = loadingMessage.querySelector<HTMLElement>(".message-content");
   if (!contentWrapper) {
     return;
   }
@@ -424,13 +422,13 @@ export function updateMessageContent(loadingMessage, assistantMessageObj) {
          <div class="thinking-content"></div>
        </div>`;
     contentWrapper.insertAdjacentHTML("beforeend", containerHTML);
-    const thinkingContainer = document.getElementById(thinkingId) as any;
+    const thinkingContainer = document.getElementById(thinkingId);
     if (thinkingContainer) {
       const persistedExpanded = (state.userThinkingState && state.userThinkingState[thinkingId] === true);
       const hasPersisted = Boolean(state.userThinkingState && Object.prototype.hasOwnProperty.call(state.userThinkingState, thinkingId));
       const shouldCollapse = hasPersisted ? !persistedExpanded : true;
 
-      const contentDiv = thinkingContainer.querySelector(".thinking-content") as any;
+      const contentDiv = thinkingContainer.querySelector<HTMLElement>(".thinking-content");
       if (contentDiv) {
         contentDiv.innerHTML = processMainContentMarkdown(thinkingContent);
         if (!shouldCollapse) {
@@ -455,14 +453,14 @@ export function updateMessageContent(loadingMessage, assistantMessageObj) {
   updateFinalMessage(loadingMessage);
 }
 
-export function removeLoadingIndicator(loadingId) {
-  const loadingMessage = document.getElementById(loadingId) as any;
-  if (loadingMessage) {
+export function removeLoadingIndicator(loadingId: string) {
+  const loadingMessage = document.getElementById(loadingId);
+  if (loadingMessage && elements.chatBox) {
     elements.chatBox.removeChild(loadingMessage);
   }
 }
 
-export function handleInvalidResponse(loadingId) {
+export function handleInvalidResponse(loadingId: string) {
   removeLoadingIndicator(loadingId);
   if (showError) {
     showError("Unexpected API response format.");
