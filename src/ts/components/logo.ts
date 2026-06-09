@@ -2,14 +2,14 @@
 
 const SVG_NS = "http://www.w3.org/2000/svg";
 
-function clearContainer(container) {
+function clearContainer(container: Element | null) {
   if (!container) return;
   while (container.firstChild) {
     container.removeChild(container.firstChild);
   }
 }
 
-function buildWordmarkLogo(svgContainer) {
+function buildWordmarkLogo(svgContainer: Element | null) {
   if (!svgContainer) return;
 
   const accent = "var(--accent-color, currentColor)";

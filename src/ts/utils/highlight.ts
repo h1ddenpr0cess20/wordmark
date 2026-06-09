@@ -25,7 +25,7 @@ export function loadHighlightJS() {
   try {
     const codeBlocks = document.querySelectorAll("pre code") as any;
     if (codeBlocks.length > 0) {
-      codeBlocks.forEach((block) => {
+      codeBlocks.forEach((block: any) => {
         // Store original content for copying
         const originalContent = block.textContent;
         block.setAttribute("data-original-code", originalContent);
@@ -46,7 +46,7 @@ export function loadHighlightJS() {
  * Adds a copy button to code blocks
  * @param {HTMLElement} codeBlock - The code block element to add a button to
  */
-export function addCopyButton(codeBlock) {
+export function addCopyButton(codeBlock: any) {
   if (!codeBlock.parentNode.querySelector(".copy-btn")) {
     const copyButton = document.createElement("button");
     copyButton.className = "copy-btn";
@@ -54,7 +54,7 @@ export function addCopyButton(codeBlock) {
     copyButton.innerHTML = icon("copy", { width: 16, height: 16 });
     copyButton.addEventListener("click", () => {
       // Define the copy function with proper error handling
-      const copyText = function(text) {
+      const copyText = function(text: string) {
         // Make sure navigator and clipboard are fully initialized before using them
         if (navigator && navigator.clipboard && typeof navigator.clipboard.writeText === "function") {
           return navigator.clipboard.writeText(text)

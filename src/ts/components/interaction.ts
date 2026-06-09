@@ -304,11 +304,13 @@ export async function sendMessage() {
           state.activeVectorStore = vectorStoreId;
 
           // Save vector store metadata
-          saveVectorStoreMetadata(vectorStoreId, {
-            name: `Chat-${Date.now()}`,
-            createdAt: Date.now(),
-            fileCount: files.length,
-          });
+          if (vectorStoreId) {
+            saveVectorStoreMetadata(vectorStoreId, {
+              name: `Chat-${Date.now()}`,
+              createdAt: Date.now(),
+              fileCount: files.length,
+            });
+          }
 
           console.info("Documents uploaded to vector store:", vectorStoreId);
 
@@ -348,7 +350,7 @@ export async function sendMessage() {
       inputMessages: requestMessages,
       model: elements.modelSelector ? elements.modelSelector.value : undefined,
       verbosity: getVerbosity(),
-      reasoningEffort: getReasoningEffort(),
+      reasoningEffort: getReasoningEffort() ?? undefined,
       stream: true,
       loadingId,
       abortController,

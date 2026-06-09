@@ -110,7 +110,7 @@ export function optimizeScrolling() {
  * Scroll an element to a position, instantly on mobile and on the next frame
  * on desktop. Makes scrolling feel more immediate on touch devices.
  */
-export function fastScroll(element, to) {
+export function fastScroll(element: HTMLElement | null, to: number) {
   if (!element) {
     return;
   }
@@ -154,7 +154,7 @@ export function setupPromptTapExpand() {
   // Remove any existing event listeners first
   promptContainer.removeEventListener("click", handlePromptTap);
 
-  function handlePromptTap(e) {
+  function handlePromptTap(e: Event) {
     e.preventDefault();
     e.stopPropagation();
 

@@ -32,7 +32,7 @@ const DOMPURIFY_CONFIG = {
 };
 
 // Sanitize HTML allowing YouTube iframes and external image support.
-export function sanitizeWithMedia(html) {
+export function sanitizeWithMedia(html: any) {
   const config = {
     ...DOMPURIFY_CONFIG,
     // Allow external content protocols
@@ -49,7 +49,7 @@ export function sanitizeWithMedia(html) {
 
   // Validate and secure iframes (YouTube only)
   const iframes = tempDiv.querySelectorAll("iframe") as any;
-  iframes.forEach(iframe => {
+  iframes.forEach((iframe: any) => {
     const src = iframe.getAttribute("src");
     if (src && !(/^https:\/\/(www\.)?(youtube\.com\/embed\/|youtube-nocookie\.com\/embed\/)/.test(src))) {
     // Remove iframe if it's not from YouTube
@@ -63,7 +63,7 @@ export function sanitizeWithMedia(html) {
   });
   // Validate and secure images
   const images = tempDiv.querySelectorAll("img") as any;
-  images.forEach(img => {
+  images.forEach((img: any) => {
     const src = img.getAttribute("src");
     if (src) {
     // Allow HTTPS images, data URLs, and relative paths

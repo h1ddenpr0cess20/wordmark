@@ -254,7 +254,7 @@ export async function runTurn({
     try {
       if (stream) {
         const streamResponse = await executeStreamingRequest(body, abortController);
-        const result = await handleStreamedResponse(streamResponse, loadingId);
+        const result = await handleStreamedResponse(streamResponse, loadingId || "");
         responsePayload = result.response;
         streamedText = result.outputText || "";
         streamedReasoning = result.reasoningText || "";

@@ -4,7 +4,7 @@
  * logic can be unit-tested without a DOM.
  */
 
-function serviceHasKey(services, key) {
+function serviceHasKey(services: any, key: string) {
   const svc = services && services[key];
   return Boolean(svc && typeof svc.apiKey === "string" && svc.apiKey.trim() !== "");
 }
@@ -17,7 +17,7 @@ function serviceHasKey(services, key) {
  * @param {string} current - current default service key
  * @returns {string|null} the cloud service key to switch to, or null
  */
-export function pickCloudFallback(services, current) {
+export function pickCloudFallback(services: any, current: string) {
   const currentIsCloud = current === "openai" || current === "xai";
   if (!currentIsCloud || serviceHasKey(services, current)) {
     return null;

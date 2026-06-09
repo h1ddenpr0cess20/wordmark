@@ -2,7 +2,7 @@
  * Weather tool implementation using Open-Meteo API
  */
 
-async function fetchJson(url, options?) {
+async function fetchJson(url: string, options?: any) {
   const response = await fetch(url, options);
   if (!response.ok) {
     const text = await response.text().catch(() => "");
@@ -33,7 +33,7 @@ export async function openMeteoForecast(args: any = {}) {
     });
     geocode = await fetchJson(`https://geocoding-api.open-meteo.com/v1/search?${params.toString()}`);
   } catch (error) {
-    return { error: `geocoding request failed: ${error.message}` };
+    return { error: `geocoding request failed: ${error instanceof Error ? error.message : ""}` };
   }
 
   if (!geocode || !Array.isArray(geocode.results) || geocode.results.length === 0) {
@@ -58,7 +58,7 @@ export async function openMeteoForecast(args: any = {}) {
     });
     forecast = await fetchJson(`https://api.open-meteo.com/v1/forecast?${params.toString()}`);
   } catch (error) {
-    return { error: `forecast request failed: ${error.message}` };
+    return { error: `forecast request failed: ${error instanceof Error ? error.message : ""}` };
   }
 
   return {

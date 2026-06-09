@@ -28,13 +28,13 @@ export function getMemoryConfig() {
   };
 }
 
-export function setMemoryEnabled(enabled) {
+export function setMemoryEnabled(enabled: boolean) {
   localStorage.setItem(MEMORY_ENABLED_KEY, enabled ? "true" : "false");
   try { window.dispatchEvent(new CustomEvent("memories:config", { detail: { key: "enabled", value: Boolean(enabled) } })); } catch {}
 }
 
-export function setMemoryLimit(limit) {
-  const newLimit = Math.max(1, parseInt(limit, 10) || 25);
+export function setMemoryLimit(limit: string | number) {
+  const newLimit = Math.max(1, parseInt(String(limit), 10) || 25);
   localStorage.setItem(MEMORY_LIMIT_KEY, String(newLimit));
   // Trim existing memories if needed
   const mems = getMemories();
@@ -58,7 +58,7 @@ export function getMemories() {
   }
 }
 
-export function addMemory(text) {
+export function addMemory(text: string) {
   if (!text || typeof text !== "string") return { ok: false, reason: "invalid" };
   const trimmed = text.trim().slice(0, 600); // guardrail length ~ three long sentences
   if (!trimmed) return { ok: false, reason: "empty" };
@@ -77,7 +77,7 @@ export function clearAllMemories() {
   return { ok: true };
 }
 
-export function removeMemoryAt(index) {
+export function removeMemoryAt(index: number) {
   const mems = getMemories();
   if (index < 0 || index >= mems.length) return { ok: false, reason: "range" };
   mems.splice(index, 1);

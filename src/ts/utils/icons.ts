@@ -1,6 +1,6 @@
 // Simple helper to reference centralized SVG icons
 // Usage: icon('settings', { width: 16, height: 16, className: 'my-class' })
-export function icon(name, opts: any = {}) {
+export function icon(name: string, opts: any = {}) {
   const width = opts.width ?? 16;
   const height = opts.height ?? 16;
   const className = opts.className ? ` class="${opts.className}"` : "";

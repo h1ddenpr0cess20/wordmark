@@ -40,10 +40,10 @@ export function loadFromUrl() {
       return;
     }
 
-    const chatData = JSON.parse(decodeURIComponent(urlParams.get("chat")));
+    const chatData = JSON.parse(decodeURIComponent(urlParams.get("chat") || ""));
     state.conversationHistory = chatData.messages || [];
 
-    (chatData.messages || []).forEach((msg) => {
+    (chatData.messages || []).forEach((msg: any) => {
       if (msg.role !== "system") {
         appendMessage(msg.role === "user" ? "You" : "  ", msg.content, msg.role);
       }

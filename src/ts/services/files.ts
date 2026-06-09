@@ -32,7 +32,7 @@ export async function listAssistantFiles() {
 /**
  * Delete a file by ID
  */
-export async function deleteFile(fileId) {
+export async function deleteFile(fileId: string) {
   const apiKey = ensureApiKey();
   const baseUrl = getBaseUrl();
 
@@ -59,7 +59,7 @@ export async function deleteAllAssistantFiles() {
   const files = Array.isArray(list?.data) ? list.data : [];
 
   let deleted = 0;
-  const errors = [];
+  const errors: { id: any; error: string }[] = [];
 
   for (const f of files) {
     try {
@@ -67,7 +67,7 @@ export async function deleteAllAssistantFiles() {
       deleted++;
     } catch (e) {
       console.error("Error deleting file", f.id, e);
-      errors.push({ id: f.id, error: e?.message || String(e) });
+      errors.push({ id: f.id, error: (e instanceof Error ? e.message : "") || String(e) });
     }
   }
 

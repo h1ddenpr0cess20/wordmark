@@ -2,7 +2,7 @@ import { elements } from "../../init/state.ts";
 import { ttsConfig } from "./config.ts";
 import { config } from "../../../config/config.ts";
 
-export async function generateSpeech(text) {
+export async function generateSpeech(text: string) {
   if (!ttsConfig.enabled) {
     return null;
   }
@@ -20,7 +20,7 @@ export async function generateSpeech(text) {
   }
 }
 
-async function generateSpeechOpenai(text) {
+async function generateSpeechOpenai(text: string) {
   const openaiApiKey = config.services.openai?.apiKey;
 
   if (!openaiApiKey) {
@@ -71,7 +71,7 @@ async function generateSpeechOpenai(text) {
   return response.arrayBuffer();
 }
 
-async function generateSpeechXai(text) {
+async function generateSpeechXai(text: string) {
   const xaiApiKey = config.services.xai?.apiKey;
 
   if (!xaiApiKey) {

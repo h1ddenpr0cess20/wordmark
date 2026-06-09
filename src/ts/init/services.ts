@@ -42,7 +42,7 @@ export function initializeServicesAndModels() {
  */
 export async function selectDefaultService() {
   const services = config?.services || {};
-  const hasKey = (key) => {
+  const hasKey = (key: string) => {
     const svc = services[key];
     return Boolean(svc && typeof svc.apiKey === "string" && svc.apiKey.trim() !== "");
   };
@@ -55,7 +55,7 @@ export async function selectDefaultService() {
     return false;
   }
 
-  const applyService = (key) => {
+  const applyService = (key: string) => {
     config.defaultService = key;
     if (elements.serviceSelector) {
       elements.serviceSelector.value = key;
@@ -79,7 +79,7 @@ export async function selectDefaultService() {
     return false;
   }
 
-  const isUsableModel = (m) =>
+  const isUsableModel = (m: any) =>
     typeof m === "string" &&
     !m.startsWith("Error") &&
     !m.startsWith("No models") &&

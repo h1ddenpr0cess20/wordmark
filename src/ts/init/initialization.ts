@@ -220,8 +220,12 @@ export async function initialize() {
  * Setup scroll tracking for auto-scroll functionality
  */
 function setupScrollTracking() {
-  elements.chatBox.addEventListener("scroll", () => {
-    const wasAtBottom = elements.chatBox.scrollHeight - elements.chatBox.clientHeight - elements.chatBox.scrollTop < 20;
+  const chatBox = elements.chatBox;
+  if (!chatBox) {
+    return;
+  }
+  chatBox.addEventListener("scroll", () => {
+    const wasAtBottom = chatBox.scrollHeight - chatBox.clientHeight - chatBox.scrollTop < 20;
     state.shouldAutoScroll = wasAtBottom;
   });
 }

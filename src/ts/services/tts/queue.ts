@@ -51,7 +51,7 @@ export function playNextMessageInQueue() {
   setTimeout(() => playNextMessageInQueue(), 100);
 }
 
-export function addMessageToTtsQueue(messageId) {
+export function addMessageToTtsQueue(messageId: string) {
   if (!ttsConfig.enabled || !ttsConfig.autoplay) {
     return;
   }
