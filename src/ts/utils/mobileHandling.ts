@@ -40,7 +40,7 @@ export function scrollInputIntoView() {
   // Use a minimal timeout to ensure DOM is ready and keyboard has appeared
   setTimeout(() => {
     // Find the input container for better positioning
-    const inputContainer = document.querySelector(".input-container") as any;
+    const inputContainer = document.querySelector(".input-container");
 
     if (inputContainer) {
       // Scroll the input container into view with auto behavior for faster response
@@ -139,7 +139,7 @@ export function setupPromptTapExpand() {
     return;
   }
 
-  const promptContainer = document.getElementById("model-info") as any;
+  const promptContainer = document.getElementById("model-info");
   if (!promptContainer) {
     setTimeout(setupPromptTapExpand, 1000);
     return;
@@ -151,23 +151,26 @@ export function setupPromptTapExpand() {
     return;
   }
 
+  // Capture the non-null element so the handler closes over a narrowed reference.
+  const container = promptContainer;
+
   // Remove any existing event listeners first
-  promptContainer.removeEventListener("click", handlePromptTap);
+  container.removeEventListener("click", handlePromptTap);
 
   function handlePromptTap(e: Event) {
     e.preventDefault();
     e.stopPropagation();
 
     // Toggle expanded state
-    if (promptContainer.classList.contains("expanded")) {
-      promptContainer.classList.remove("expanded");
+    if (container.classList.contains("expanded")) {
+      container.classList.remove("expanded");
     } else {
-      promptContainer.classList.add("expanded");
+      container.classList.add("expanded");
     }
   }
 
   // Add click event listener
-  promptContainer.addEventListener("click", handlePromptTap);
+  container.addEventListener("click", handlePromptTap);
 
   // Close expanded state when tapping elsewhere
   document.addEventListener("click", (e) => {

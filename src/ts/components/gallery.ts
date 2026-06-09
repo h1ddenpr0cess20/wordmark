@@ -31,11 +31,11 @@ const initGallery = function() {
   }
 
   // Add event listeners for gallery controls
-  const galleryButton = document.getElementById("gallery-button") as any;
-  const closeGallery = document.querySelector(".close-gallery") as any;
-  const galleryPanel = document.getElementById("gallery-panel") as any;
-  const bulkDeleteBtn = document.getElementById("bulk-delete-images") as any;
-  const refreshGalleryBtn = document.getElementById("refresh-gallery") as any;
+  const galleryButton = document.getElementById("gallery-button");
+  const closeGallery = document.querySelector<HTMLElement>(".close-gallery");
+  const galleryPanel = document.getElementById("gallery-panel");
+  const bulkDeleteBtn = document.getElementById("bulk-delete-images");
+  const refreshGalleryBtn = document.getElementById("refresh-gallery");
 
   if (!galleryButton || !galleryPanel || !closeGallery) {
     console.error("Gallery elements not found in the DOM");
@@ -49,8 +49,8 @@ const initGallery = function() {
   // Toggle gallery visibility when the gallery button is clicked
   galleryButton.addEventListener("click", () => {
     const isExpanded = galleryButton.getAttribute("aria-expanded") === "true";
-    galleryButton.setAttribute("aria-expanded", !isExpanded);
-    galleryPanel.setAttribute("aria-hidden", isExpanded);
+    galleryButton.setAttribute("aria-expanded", String(!isExpanded));
+    galleryPanel.setAttribute("aria-hidden", String(isExpanded));
 
     if (!isExpanded) {
       galleryPanel.removeAttribute("inert"); // Ensure panel is not inert when opened
@@ -100,7 +100,7 @@ const initGallery = function() {
  * Show placeholder grid while media items are loading
  */
 const showGalleryPlaceholders = function() {
-  const galleryGrid = document.getElementById("gallery-grid") as any;
+  const galleryGrid = document.getElementById("gallery-grid");
   if (!galleryGrid) {
     return;
   }
@@ -111,9 +111,9 @@ const showGalleryPlaceholders = function() {
     state.galleryImages.length : 8;
 
   // Show count from last load
-  const galleryCount = document.getElementById("gallery-count") as any;
+  const galleryCount = document.getElementById("gallery-count");
   if (galleryCount && state.galleryImages) {
-    galleryCount.textContent = state.galleryImages.length || "...";
+    galleryCount.textContent = String(state.galleryImages.length || "...");
   } else if (galleryCount) {
     galleryCount.textContent = "...";
   }
@@ -139,7 +139,7 @@ const showGalleryPlaceholders = function() {
  * Load media from IndexedDB and display them in the gallery
  */
 const loadGalleryImages = async function() {
-  const galleryGrid = document.getElementById("gallery-grid") as any;
+  const galleryGrid = document.getElementById("gallery-grid");
   if (!galleryGrid) {
     return;
   }
@@ -164,18 +164,18 @@ const loadGalleryImages = async function() {
     const generatedImages = images.filter(img => !img.filename || !img.filename.startsWith("upload-"));
     const uploadedImages = images.filter(img => img.filename && img.filename.startsWith("upload-"));
 
-    const generatedCount = document.getElementById("generated-count") as any;
-    const uploadedCount = document.getElementById("uploaded-count") as any;
-    const galleryCount = document.getElementById("gallery-count") as any;
+    const generatedCount = document.getElementById("generated-count");
+    const uploadedCount = document.getElementById("uploaded-count");
+    const galleryCount = document.getElementById("gallery-count");
 
     if (generatedCount) {
-      generatedCount.textContent = generatedImages.length;
+      generatedCount.textContent = String(generatedImages.length);
     }
     if (uploadedCount) {
-      uploadedCount.textContent = uploadedImages.length;
+      uploadedCount.textContent = String(uploadedImages.length);
     }
     if (galleryCount) {
-      galleryCount.textContent = visibleImages.length;
+      galleryCount.textContent = String(visibleImages.length);
     }
 
     if (!visibleImages || visibleImages.length === 0) {
@@ -206,7 +206,7 @@ const loadGalleryImages = async function() {
     // Process images in batches to not block the UI
     const batchSize = 10;
 
-    function processBatch(startIndex: number) {
+    const processBatch = (startIndex: number) => {
       const endIndex = Math.min(startIndex + batchSize, visibleImages.length);
 
       for (let i = startIndex; i < endIndex; i++) {
@@ -272,19 +272,23 @@ const loadGalleryImages = async function() {
                 `;
 
         // Add event listeners to buttons
-        const deleteBtn = actions.querySelector(".gallery-delete-btn") as any;
-        deleteBtn.addEventListener("click", (e: Event) => {
-          e.stopPropagation();
-          if (confirm(`Delete this ${mediaType}?`)) {
-            deleteImageAndUpdateGallery(image.filename);
-          }
-        });
+        const deleteBtn = actions.querySelector<HTMLElement>(".gallery-delete-btn");
+        if (deleteBtn) {
+          deleteBtn.addEventListener("click", (e: Event) => {
+            e.stopPropagation();
+            if (confirm(`Delete this ${mediaType}?`)) {
+              deleteImageAndUpdateGallery(image.filename);
+            }
+          });
+        }
 
-        const downloadBtn = actions.querySelector(".gallery-download-btn") as any;
-        downloadBtn.addEventListener("click", (e: Event) => {
-          e.stopPropagation();
-          downloadGalleryImage(image.data, image.filename);
-        });
+        const downloadBtn = actions.querySelector<HTMLElement>(".gallery-download-btn");
+        if (downloadBtn) {
+          downloadBtn.addEventListener("click", (e: Event) => {
+            e.stopPropagation();
+            downloadGalleryImage(image.data, image.filename);
+          });
+        }
 
         // Add prompt truncated text (first few words) or "uploaded" label
         const truncatedPrompt = document.createElement("div");
@@ -308,7 +312,7 @@ const loadGalleryImages = async function() {
         itemFooter.appendChild(actions);
 
         // Stop propagation for checkbox to prevent triggering slideshow
-        const checkbox = selectContainer.querySelector(".gallery-select-checkbox") as any;
+        const checkbox = selectContainer.querySelector<HTMLElement>(".gallery-select-checkbox");
         if (checkbox) {
           checkbox.addEventListener("click", (e: Event) => {
             e.stopPropagation();
@@ -338,7 +342,7 @@ const loadGalleryImages = async function() {
       if (endIndex < visibleImages.length) {
         setTimeout(() => processBatch(endIndex), 0);
       }
-    }
+    };
 
     // Start processing the first batch
     processBatch(0);
@@ -370,11 +374,11 @@ const getAllImagesFromDb = function(): Promise<any[]> {
     const request = store.openCursor();
 
     request.onerror = (event) => {
-      reject((event.target as any).error);
+      reject((event.target as IDBRequest).error);
     };
 
     request.onsuccess = (event) => {
-      const cursor = (event.target as any).result;
+      const cursor = (event.target as IDBRequest).result;
       if (cursor) {
         const value = cursor.value;
         images.push({
@@ -399,19 +403,19 @@ const deleteImageAndUpdateGallery = async function(filename: string) {
     await deleteImageFromDb(filename);
 
     // Remove the media element from the gallery
-    const galleryItem = document.querySelector(`.gallery-item[data-filename="${filename}"]`) as any;
+    const galleryItem = document.querySelector<HTMLElement>(`.gallery-item[data-filename="${filename}"]`);
     if (galleryItem) {
       galleryItem.remove();
 
       // Update gallery count
-      const galleryCount = document.getElementById("gallery-count") as any;
+      const galleryCount = document.getElementById("gallery-count");
       if (galleryCount) {
-        const currentCount = parseInt(galleryCount.textContent);
-        galleryCount.textContent = currentCount - 1;
+        const currentCount = parseInt(galleryCount.textContent || "0", 10);
+        galleryCount.textContent = String(currentCount - 1);
       }
 
       // Show empty message if no more media
-      const galleryGrid = document.getElementById("gallery-grid") as any;
+      const galleryGrid = document.getElementById("gallery-grid");
       if (galleryGrid && galleryGrid.children.length === 0) {
         galleryGrid.innerHTML = "<div class=\"gallery-empty\">No media found in gallery</div>";
       }
@@ -453,7 +457,7 @@ const startGallerySlideshow = function(startIndex: number) {
  * Bulk delete selected media items
  */
 const bulkDeleteSelectedImages = async function() {
-  const selectedCheckboxes = document.querySelectorAll(".gallery-select-checkbox:checked") as any;
+  const selectedCheckboxes = document.querySelectorAll<HTMLInputElement>(".gallery-select-checkbox:checked");
 
   if (selectedCheckboxes.length === 0) {
     alert("No media selected");
@@ -465,7 +469,7 @@ const bulkDeleteSelectedImages = async function() {
   }
 
   // Show loading indicator
-  const galleryGrid = document.getElementById("gallery-grid") as any;
+  const galleryGrid = document.getElementById("gallery-grid");
   const loadingIndicator = document.createElement("div");
   loadingIndicator.className = "bulk-delete-indicator";
   loadingIndicator.textContent = `Deleting ${selectedCheckboxes.length} media item(s)...`;
@@ -478,8 +482,8 @@ const bulkDeleteSelectedImages = async function() {
   try {
     const deletePromises: Promise<any>[] = [];
 
-    selectedCheckboxes.forEach((checkbox: any) => {
-      const galleryItem = checkbox.closest(".gallery-item");
+    selectedCheckboxes.forEach((checkbox) => {
+      const galleryItem = checkbox.closest<HTMLElement>(".gallery-item");
       if (galleryItem) {
         const filename = galleryItem.dataset.filename;
         if (filename) {
@@ -509,8 +513,8 @@ function initializeGalleryTabs() {
   state.currentGalleryTab = "generated";
 
   // Get tab elements
-  const generatedTab = document.getElementById("gallery-tab-generated") as any;
-  const uploadedTab = document.getElementById("gallery-tab-uploaded") as any;
+  const generatedTab = document.getElementById("gallery-tab-generated");
+  const uploadedTab = document.getElementById("gallery-tab-uploaded");
 
   if (!generatedTab || !uploadedTab) {
     console.warn("Gallery tab elements not found");
@@ -535,8 +539,8 @@ const switchGalleryTab = function(tabName: string) {
   state.currentGalleryTab = tabName;
 
   // Update tab active states
-  const tabs = document.querySelectorAll(".gallery-tab") as any;
-  tabs.forEach((tab: any) => {
+  const tabs = document.querySelectorAll<HTMLElement>(".gallery-tab");
+  tabs.forEach((tab) => {
     if (tab.dataset.tab === tabName) {
       tab.classList.add("active");
     } else {
@@ -545,8 +549,8 @@ const switchGalleryTab = function(tabName: string) {
   });
 
   // Clear any selected checkboxes when switching tabs
-  const checkboxes = document.querySelectorAll(".gallery-select-checkbox:checked") as any;
-  checkboxes.forEach((checkbox: any) => {
+  const checkboxes = document.querySelectorAll<HTMLInputElement>(".gallery-select-checkbox:checked");
+  checkboxes.forEach((checkbox) => {
     checkbox.checked = false;
   });
 

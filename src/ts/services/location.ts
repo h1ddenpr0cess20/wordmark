@@ -259,8 +259,8 @@ export function initializeLocationService() {
  * Update location UI elements
  */
 export function updateLocationUI() {
-  const locationToggle = document.getElementById("location-toggle") as any;
-  const locationStatus = document.getElementById("location-status") as any;
+  const locationToggle = document.getElementById("location-toggle") as HTMLInputElement | null;
+  const locationStatus = document.getElementById("location-status");
 
   if (locationToggle) {
     locationToggle.checked = locationState.enabled;

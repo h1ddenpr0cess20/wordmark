@@ -36,7 +36,7 @@ function toggleDebugMode() {
 }
 
 function setupAboutTabDebugToggle() {
-  const aboutTab = document.getElementById("tab-about") as any;
+  const aboutTab = document.getElementById("tab-about");
   if (!aboutTab) {
     return;
   }

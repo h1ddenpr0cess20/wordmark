@@ -45,7 +45,7 @@ export const HTMLLoader = {
       console.error(`No bundled HTML registered for ${filePath}`);
       return;
     }
-    const container = document.getElementById(containerId) as any;
+    const container = document.getElementById(containerId);
     if (container) {
       container.innerHTML = htmlContent;
     } else {

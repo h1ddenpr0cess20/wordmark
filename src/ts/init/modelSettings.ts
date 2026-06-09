@@ -75,7 +75,7 @@ export function updateReasoningAvailability() {
     elements.reasoningEffortSelector.title = "";
     elements.reasoningEffortSelector.removeAttribute("aria-disabled");
   }
-  const info = document.getElementById("reasoning-effort-help") as any;
+  const info = document.getElementById("reasoning-effort-help");
   if (info) {
     info.textContent = supported ? DEFAULT_REASONING_HELP_TEXT : DISABLED_REASONING_HELP_TEXT;
   }

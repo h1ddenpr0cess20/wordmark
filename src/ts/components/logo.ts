@@ -36,14 +36,14 @@ function buildWordmarkLogo(svgContainer: Element | null) {
 }
 
 export function renderWordmarkLogo() {
-  const svgContainer = document.querySelector("#wordmark-logo g") as any;
+  const svgContainer = document.querySelector("#wordmark-logo g");
   if (!svgContainer) return;
 
   clearContainer(svgContainer);
 
   buildWordmarkLogo(svgContainer);
 
-  const logoContainer = document.getElementById("logo-container") as any;
+  const logoContainer = document.getElementById("logo-container");
   if (logoContainer) {
     logoContainer.classList.add("logo-ready");
   }

@@ -48,8 +48,8 @@ export function sanitizeWithMedia(html: any) {
   tempDiv.innerHTML = sanitized;
 
   // Validate and secure iframes (YouTube only)
-  const iframes = tempDiv.querySelectorAll("iframe") as any;
-  iframes.forEach((iframe: any) => {
+  const iframes = tempDiv.querySelectorAll("iframe");
+  iframes.forEach((iframe) => {
     const src = iframe.getAttribute("src");
     if (src && !(/^https:\/\/(www\.)?(youtube\.com\/embed\/|youtube-nocookie\.com\/embed\/)/.test(src))) {
     // Remove iframe if it's not from YouTube
@@ -62,8 +62,8 @@ export function sanitizeWithMedia(html: any) {
     }
   });
   // Validate and secure images
-  const images = tempDiv.querySelectorAll("img") as any;
-  images.forEach((img: any) => {
+  const images = tempDiv.querySelectorAll("img");
+  images.forEach((img) => {
     const src = img.getAttribute("src");
     if (src) {
     // Allow HTTPS images, data URLs, and relative paths

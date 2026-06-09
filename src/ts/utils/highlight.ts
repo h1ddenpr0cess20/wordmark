@@ -23,12 +23,12 @@ export function loadHighlightJS() {
 
   // Highlight any code blocks already present in the DOM.
   try {
-    const codeBlocks = document.querySelectorAll("pre code") as any;
+    const codeBlocks = document.querySelectorAll<HTMLElement>("pre code");
     if (codeBlocks.length > 0) {
-      codeBlocks.forEach((block: any) => {
+      codeBlocks.forEach((block) => {
         // Store original content for copying
         const originalContent = block.textContent;
-        block.setAttribute("data-original-code", originalContent);
+        block.setAttribute("data-original-code", originalContent || "");
 
         hljs.highlightElement(block);
       });

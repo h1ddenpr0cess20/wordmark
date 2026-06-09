@@ -9,7 +9,7 @@ import { state } from "./state.ts";
  */
 export function initializeAboutTab() {
   // Set up About tab information
-  const appVersionElement = document.getElementById("app-version") as any;
+  const appVersionElement = document.getElementById("app-version");
   if (appVersionElement) {
     appVersionElement.textContent = APP_VERSION || "0.0.0";
     if (state.verboseLogging) {
@@ -17,7 +17,7 @@ export function initializeAboutTab() {
     }
   }
 
-  const githubLinkElement = document.getElementById("github-link") as any;
+  const githubLinkElement = document.getElementById("github-link") as HTMLAnchorElement | null;
   if (githubLinkElement && GITHUB_URL) {
     githubLinkElement.href = GITHUB_URL;
     if (state.verboseLogging) {
