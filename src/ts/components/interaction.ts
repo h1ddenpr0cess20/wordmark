@@ -15,6 +15,7 @@ import { uploadFile, uploadAndAttachFiles, saveVectorStoreMetadata } from "../se
 import { generateMessageId, addMessageCopyButton } from "./messages.ts";
 import { appendMessage } from "./ui/chatMessages.ts";
 import { getVerbosity, getReasoningEffort, getHistoryTokenBudget } from "../init/modelSettings.ts";
+import type { Attachment } from "../../types/api.ts";
 
 // -----------------------------------------------------
 // Message sending and related functionality
@@ -24,7 +25,12 @@ import { getVerbosity, getReasoningEffort, getHistoryTokenBudget } from "../init
  * Sends a message to the API and handles the response
  */
 export async function sendMessage() {
-  const message = elements.userInput.value.trim();
+  const userInput = elements.userInput;
+  const sendButton = elements.sendButton;
+  if (!userInput || !sendButton) {
+    return;
+  }
+  const message = userInput.value.trim();
   const hasImages = state.pendingUploads && state.pendingUploads.length > 0;
   const hasDocuments = state.pendingDocuments && state.pendingDocuments.length > 0;
 
@@ -42,18 +48,18 @@ export async function sendMessage() {
   }
 
   // Transform send button into stop button
-  elements.sendButton.classList.add("stop-mode");
-  elements.sendButton.title = "Stop generation";
+  sendButton.classList.add("stop-mode");
+  sendButton.title = "Stop generation";
 
   // Change button action to stop generation
-  elements.sendButton.removeEventListener("click", sendMessage);
-  elements.sendButton.addEventListener("click", stopGeneration);
+  sendButton.removeEventListener("click", sendMessage);
+  sendButton.addEventListener("click", stopGeneration);
 
   // Handle standalone image uploads (not part of a directory)
   const uploads = state.pendingUploads || [];
   let uploadHtml = "";
-  const placeholders = [];
-  const attachmentsForHistory = [];
+  const placeholders: string[] = [];
+  const attachmentsForHistory: Attachment[] = [];
 
   // Only process standalone images (pendingUploads is cleared for directory uploads)
   uploads.forEach(up => {
@@ -85,7 +91,7 @@ export async function sendMessage() {
   let documentsHtml = "";
   const documents = state.pendingDocuments || [];
   const documentsToUpload = [...documents]; // Save copy before clearing
-  const formatFileSize = (bytes) => {
+  const formatFileSize = (bytes: number) => {
     if (bytes < 1024) return bytes + " B";
     if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + " KB";
     return (bytes / (1024 * 1024)).toFixed(1) + " MB";
@@ -96,17 +102,18 @@ export async function sendMessage() {
 
     if (doc.isDirectory) {
       // Display directory with file count
-      const totalSize = doc.files.reduce((sum, f) => sum + f.size, 0);
+      const directoryFiles = doc.files || [];
+      const totalSize = directoryFiles.reduce((sum, f) => sum + f.size, 0);
       const directoryMarkup = [
         "<div class=\"attached-document\">",
         `<span class="doc-icon">${icon}</span>`,
         `<span class="doc-name">${doc.directoryName}</span>`,
-        `<span class="doc-size">${doc.files.length} file${doc.files.length !== 1 ? "s" : ""} (${formatFileSize(totalSize)})</span>`,
+        `<span class="doc-size">${directoryFiles.length} file${directoryFiles.length !== 1 ? "s" : ""} (${formatFileSize(totalSize)})</span>`,
         "</div>",
       ].join("\n");
       documentsHtml += directoryMarkup;
       // Add all files from directory to history
-      doc.files.forEach(file => {
+      directoryFiles.forEach(file => {
         attachmentsForHistory.push({
           type: "document",
           filename: file.name,
@@ -124,7 +131,7 @@ export async function sendMessage() {
         "<div class=\"attached-document\">",
         `<span class="doc-icon">${icon}</span>`,
         `<span class="doc-name">${doc.name}</span>`,
-        `<span class="doc-size">${formatFileSize(doc.size)}</span>`,
+        `<span class="doc-size">${formatFileSize(doc.size || 0)}</span>`,
         "</div>",
       ].join("\n");
       documentsHtml += fileMarkup;
@@ -164,7 +171,7 @@ export async function sendMessage() {
     state.generatedImages = state.generatedImages || [];
     for (const up of uploads) {
       state.generatedImages.push({
-        url: up.dataUrl,
+        url: up.dataUrl ?? undefined,
         tool: "upload",
         prompt: "",
         timestamp: up.timestamp,
@@ -175,7 +182,7 @@ export async function sendMessage() {
         mimeType: (up.file && up.file.type) || "image/png",
         isStoredInDb: true,
       });
-      if (saveImageToDb) {
+      if (saveImageToDb && up.dataUrl && up.filename) {
         saveImageToDb(up.dataUrl, up.filename, {
           tool: "upload",
           prompt: "",
@@ -201,15 +208,17 @@ export async function sendMessage() {
   saveCurrentConversation();
 
   // Clear input and adjust height
-  elements.userInput.value = "";
-  elements.userInput.style.height = "auto";
+  userInput.value = "";
+  userInput.style.height = "auto";
 
   // Create loading message with pure animation
   const loadingId = `loading-${Date.now()}`;
   const loadingHTML = "<div class=\"loading-animation\"><div class=\"loading-dot\"></div><div class=\"loading-dot\"></div><div class=\"loading-dot\"></div></div>";
   appendMessage("Assistant", loadingHTML, "assistant", true);
-  const loadingElement = elements.chatBox.lastElementChild;
-  loadingElement.id = loadingId;
+  const loadingElement = elements.chatBox ? elements.chatBox.lastElementChild : null;
+  if (loadingElement) {
+    loadingElement.id = loadingId;
+  }
 
   // Update browser URL
   updateBrowserHistory();
@@ -225,11 +234,11 @@ export async function sendMessage() {
     console.log("Has documents:", documentsToUpload.length);
 
     // Flatten files from directories and individual uploads
-    const files = [];
+    const files: File[] = [];
     documentsToUpload.forEach(doc => {
       if (doc.isDirectory) {
-        doc.files.forEach(f => files.push(f.file));
-      } else {
+        (doc.files || []).forEach(f => files.push(f.file));
+      } else if (doc.file) {
         files.push(doc.file);
       }
     });
@@ -266,7 +275,7 @@ export async function sendMessage() {
       } catch (error) {
         console.error("Failed to upload files:", error);
         if (showError) {
-          showError(`Failed to upload files: ${error.message}`);
+          showError(`Failed to upload files: ${error instanceof Error ? error.message : ""}`);
         }
         removeLoadingIndicator(loadingId);
         resetSendButton();
@@ -313,7 +322,7 @@ export async function sendMessage() {
         } catch (error) {
           console.error("Failed to upload documents:", error);
           if (showError) {
-            showError(`Failed to upload documents: ${error.message}`);
+            showError(`Failed to upload documents: ${error instanceof Error ? error.message : ""}`);
           }
           removeLoadingIndicator(loadingId);
           resetSendButton();
@@ -351,7 +360,7 @@ export async function sendMessage() {
       return;
     }
 
-    const loadingMessage = document.getElementById(loadingId) as any;
+    const loadingMessage = document.getElementById(loadingId);
     if (!loadingMessage) {
       return;
     }
@@ -363,7 +372,7 @@ export async function sendMessage() {
     });
   } catch (error) {
     console.error("Error during message send:", error);
-    if (error.name === "AbortError") {
+    if (error instanceof Error && error.name === "AbortError") {
       removeLoadingIndicator(loadingId);
       if (showInfo) {
         showInfo("Generation stopped");
@@ -371,7 +380,7 @@ export async function sendMessage() {
     } else {
       removeLoadingIndicator(loadingId);
       if (showError) {
-        showError(`Error: ${error.message}`);
+        showError(`Error: ${error instanceof Error ? error.message : ""}`);
       }
     }
     return;
@@ -392,9 +401,11 @@ export function stopGeneration() {
     return;
   }
 
-  elements.sendButton.disabled = true;
-  elements.sendButton.classList.add("stopping");
-  elements.sendButton.classList.remove("stop-mode");
+  if (elements.sendButton) {
+    elements.sendButton.disabled = true;
+    elements.sendButton.classList.add("stopping");
+    elements.sendButton.classList.remove("stop-mode");
+  }
 
   state.shouldStopGeneration = true;
 
@@ -421,9 +432,11 @@ export function stopGeneration() {
  * Resets the send button to its original state
  */
 export function resetSendButton() {
-  elements.sendButton.classList.remove("stop-mode", "stopping");
-  elements.sendButton.title = "Send message";
-  elements.sendButton.disabled = false;
+  if (elements.sendButton) {
+    elements.sendButton.classList.remove("stop-mode", "stopping");
+    elements.sendButton.title = "Send message";
+    elements.sendButton.disabled = false;
+  }
 
   state.activeLoadingMessageId = null;
   state.isResponsePending = false;
@@ -431,8 +444,10 @@ export function resetSendButton() {
   state.activeAbortController = null;
 
   // Reset both button and enter key handlers
-  elements.sendButton.removeEventListener("click", stopGeneration);
-  elements.sendButton.addEventListener("click", sendMessage);
+  if (elements.sendButton) {
+    elements.sendButton.removeEventListener("click", stopGeneration);
+    elements.sendButton.addEventListener("click", sendMessage);
+  }
 
   // Make sure userInput is properly enabled but don't focus on mobile
   if (elements.userInput) {
