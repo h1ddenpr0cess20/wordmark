@@ -36,7 +36,7 @@ toolImplementations.remember = async function(args) {
     return {
       ok: Boolean(res.ok),
       stored: Boolean(res.ok) ? text : undefined,
-      total: (res as any).count || getMemories()?.length || 0,
+      total: ("count" in res ? res.count : undefined) || getMemories()?.length || 0,
     };
   } catch (e) {
     console.error("remember tool error:", e);

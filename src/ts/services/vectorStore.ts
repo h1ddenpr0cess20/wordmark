@@ -6,6 +6,16 @@ import { showInfo } from "../utils/notifications.ts";
 
 import { ensureApiKey, getBaseUrl } from "./api/clientConfig.ts";
 
+// Shape of the per-store metadata persisted in localStorage. Extra caller-
+// supplied fields are allowed; `lastUsed` is what we sort/evict on.
+interface VectorStoreMetadataEntry {
+  lastUsed?: number;
+  name?: string;
+  createdAt?: number;
+  fileCount?: number;
+  [key: string]: unknown;
+}
+
 /**
  * Supported file extensions for vector store uploads
  */
@@ -315,7 +325,7 @@ export const MAX_ACTIVE_VECTOR_STORES = 2;
 export function saveVectorStoreMetadata(vectorStoreId: string, metadata: any) {
   try {
     const stored = localStorage.getItem(VECTOR_STORE_STORAGE_KEY);
-    const stores = stored ? JSON.parse(stored) : {};
+    const stores: Record<string, VectorStoreMetadataEntry> = stored ? JSON.parse(stored) : {};
     stores[vectorStoreId] = {
       ...metadata,
       lastUsed: Date.now(),
@@ -324,11 +334,11 @@ export function saveVectorStoreMetadata(vectorStoreId: string, metadata: any) {
     if (entries.length > MAX_ACTIVE_VECTOR_STORES) {
       const activeId = typeof getActiveVectorStoreId === "function" ? getActiveVectorStoreId() : null;
       const sorted = entries.sort((a, b) => {
-        const aTime = (a[1] as any)?.lastUsed || 0;
-        const bTime = (b[1] as any)?.lastUsed || 0;
+        const aTime = a[1]?.lastUsed || 0;
+        const bTime = b[1]?.lastUsed || 0;
         return bTime - aTime;
       });
-      const limited: [string, unknown][] = [];
+      const limited: [string, VectorStoreMetadataEntry][] = [];
       if (activeId) {
         const activeEntry = sorted.find(([id]) => id === activeId);
         if (activeEntry) {
@@ -376,9 +386,9 @@ export function getActiveVectorStoreIds() {
     }
     const metadata = typeof getVectorStoreMetadata === "function" ? getVectorStoreMetadata() : {};
     if (metadata && typeof metadata === "object") {
-      const entries = Object.entries(metadata).sort((a, b) => {
-        const aTime = (a[1] as any)?.lastUsed || 0;
-        const bTime = (b[1] as any)?.lastUsed || 0;
+      const entries = Object.entries(metadata as Record<string, VectorStoreMetadataEntry>).sort((a, b) => {
+        const aTime = a[1]?.lastUsed || 0;
+        const bTime = b[1]?.lastUsed || 0;
         return bTime - aTime;
       });
       for (const [id] of entries) {
