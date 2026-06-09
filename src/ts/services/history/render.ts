@@ -8,7 +8,8 @@ import { renderWordmarkLogo } from "../../components/logo.ts";
 import { setupImageInteractions } from "../../components/ui/imageInteractions.ts";
 import { updateHeaderInfo, updateModelSelector } from "../../components/settings.ts";
 import { config } from "../../../config/config.ts";
-import type { ConversationRecord } from "../../../types/common.ts";
+import type { ConversationRecord, GeneratedImage } from "../../../types/common.ts";
+import type { Message } from "../../../types/api.ts";
 
 function createMissingMediaPlaceholder(filename: string, mediaType = "image") {
   const label = mediaType === "video" ? "Video" : "Image";
@@ -19,7 +20,7 @@ function findMediaRecord(convo: ConversationRecord, filename: string) {
   return (convo.images || []).find((imageRef) => imageRef.filename === filename) || null;
 }
 
-function resolveMediaSource(mediaRecord: any, filename: string, imageCache: any) {
+function resolveMediaSource(mediaRecord: GeneratedImage | null, filename: string, imageCache: Map<string, string>) {
   if (!mediaRecord) {
     return "";
   }
@@ -35,7 +36,7 @@ function resolveMediaSource(mediaRecord: any, filename: string, imageCache: any)
   return "";
 }
 
-function createMediaElement(mediaRecord: any, src: string, messageId = "") {
+function createMediaElement(mediaRecord: GeneratedImage, src: string, messageId = "") {
   const mediaType = detectMediaType(mediaRecord);
 
   if (mediaType === "video") {
@@ -49,7 +50,7 @@ function createMediaElement(mediaRecord: any, src: string, messageId = "") {
     videoEl.dataset.filename = mediaRecord.filename || "";
     videoEl.dataset.messageId = messageId;
     videoEl.dataset.prompt = mediaRecord.prompt || "";
-    videoEl.dataset.timestamp = mediaRecord.timestamp || "";
+    videoEl.dataset.timestamp = String(mediaRecord.timestamp || "");
     return videoEl;
   }
 
@@ -61,22 +62,25 @@ function createMediaElement(mediaRecord: any, src: string, messageId = "") {
   imgEl.dataset.filename = mediaRecord.filename || "";
   imgEl.dataset.messageId = messageId;
   imgEl.dataset.prompt = mediaRecord.prompt || "";
-  imgEl.dataset.timestamp = mediaRecord.timestamp || "";
+  imgEl.dataset.timestamp = String(mediaRecord.timestamp || "");
   return imgEl;
 }
 
-function extractTextContent(content: any) {
+function extractTextContent(content: Message["content"]): string {
   if (typeof content === "string") {
     return content;
   }
   if (Array.isArray(content)) {
     const part = content.find(p => p.type === "input_text" || p.type === "text");
-    return part ? (part.text || part.content || "") : "";
+    if (!part) {
+      return "";
+    }
+    return part.text || (typeof part.content === "string" ? part.content : "") || "";
   }
   return "";
 }
 
-function replaceImagePlaceholders(content: any, convo: any, imageCache: any) {
+function replaceImagePlaceholders(content: Message["content"], convo: ConversationRecord, imageCache: Map<string, string>) {
   const text = extractTextContent(content);
   if (!text) {
     return "";
@@ -106,7 +110,7 @@ function replaceImagePlaceholders(content: any, convo: any, imageCache: any) {
   });
 }
 
-export function renderConversationMessages(convo: ConversationRecord, imageCache: any) {
+export function renderConversationMessages(convo: ConversationRecord, imageCache: Map<string, string>) {
   const chatBox = elements.chatBox;
   if (!chatBox) {
     return;

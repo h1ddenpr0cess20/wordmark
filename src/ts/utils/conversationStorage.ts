@@ -95,8 +95,8 @@ export function saveConversationToDb(conversation: ConversationRecord): Promise<
  * @param {string} id - The conversation ID to retrieve
  * @returns {Promise<Object>} - Promise that resolves with the conversation object
  */
-export function loadConversationFromDb(id: string): Promise<any> {
-  return new Promise((resolve, reject) => {
+export function loadConversationFromDb(id: string): Promise<ConversationRecord> {
+  return new Promise<ConversationRecord>((resolve, reject) => {
     if (!conversationDb) {
       console.error("Conversation IndexedDB not initialized");
       // Try to initialize it now
@@ -137,8 +137,8 @@ export function loadConversationFromDb(id: string): Promise<any> {
  * Get all conversations from IndexedDB
  * @returns {Promise<Array>} - Promise that resolves with an array of conversation objects
  */
-export function getAllConversationsFromDb(): Promise<any[]> {
-  return new Promise((resolve, reject) => {
+export function getAllConversationsFromDb(): Promise<ConversationRecord[]> {
+  return new Promise<ConversationRecord[]>((resolve, reject) => {
     if (!conversationDb) {
       console.error("Conversation IndexedDB not initialized");
       // Try to initialize it now
@@ -149,7 +149,7 @@ export function getAllConversationsFromDb(): Promise<any[]> {
       return;
     }
 
-    const conversations: any[] = [];
+    const conversations: ConversationRecord[] = [];
     const transaction = conversationDb.transaction([CONVO_STORE_NAME], "readonly");
     const store = transaction.objectStore(CONVO_STORE_NAME);
 

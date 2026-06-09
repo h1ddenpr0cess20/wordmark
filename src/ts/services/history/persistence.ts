@@ -10,8 +10,10 @@ import { detectMediaType } from "../mediaTools.ts";
 import { ensureImagesHaveMessageIds } from "../streaming/imageGeneration.ts";
 import { renderChatHistoryList } from "./list.ts";
 import { renderConversationMessages } from "./render.ts";
+import type { Message } from "../../../types/api.ts";
+import type { ConversationRecord, GeneratedImage } from "../../../types/common.ts";
 
-function processImageForStorage(img: any, savePromises: Promise<any>[]) {
+function processImageForStorage(img: GeneratedImage, savePromises: Promise<unknown>[]) {
   const processedImg = { ...img };
   const mediaType = detectMediaType(processedImg);
   const mimeType = processedImg.mimeType
@@ -53,9 +55,9 @@ function processImageForStorage(img: any, savePromises: Promise<any>[]) {
         processedImg.filename = `${prefix}-${Date.now()}-${Math.random().toString(36).substring(2, 10)}.${extension}`;
       }
 
-      const savePayload = processedImg.pendingStorageData instanceof Blob
+      const savePayload: Blob | string = processedImg.pendingStorageData instanceof Blob
         ? processedImg.pendingStorageData
-        : processedImg.url;
+        : processedImg.url!;
       const savePromise = saveImageToDb?.(savePayload, processedImg.filename, {
         prompt: processedImg.prompt || "",
         tool: processedImg.tool || "",
@@ -104,12 +106,12 @@ function processImageForStorage(img: any, savePromises: Promise<any>[]) {
   return processedImg;
 }
 
-function markMessagesWithImages(baseHistory: any[], processedImages: any[]) {
-  return baseHistory.map((msg: any) => {
+function markMessagesWithImages(baseHistory: Message[], processedImages: GeneratedImage[]) {
+  return baseHistory.map((msg) => {
     const markedMsg = { ...msg };
 
     if (markedMsg.role === "assistant") {
-      const hasAssociatedImages = processedImages.some((img: any) => img.associatedMessageId === markedMsg.id);
+      const hasAssociatedImages = processedImages.some((img) => img.associatedMessageId === markedMsg.id);
       if (hasAssociatedImages) {
         markedMsg.hasImages = true;
         if (!markedMsg.id) {
@@ -146,23 +148,24 @@ function ensureLibrariesLoaded() {
   return Promise.resolve();
 }
 
-function preloadImages(convo: any) {
-  const imageLoadPromises: Promise<any>[] = [];
-  const imageCache = new Map<string, any>();
+function preloadImages(convo: ConversationRecord) {
+  const imageLoadPromises: Promise<void>[] = [];
+  const imageCache = new Map<string, string>();
 
-  (convo.images || []).forEach((imgRef: any) => {
-    if (imgRef.isStoredInDb && imgRef.filename) {
-      const loadPromise = loadImageFromDb?.(imgRef.filename)
+  (convo.images || []).forEach((imgRef) => {
+    const filename = imgRef.filename;
+    if (imgRef.isStoredInDb && filename) {
+      const loadPromise = loadImageFromDb?.(filename)
         .then((imageRecord) => {
           if (imageRecord?.data) {
-            imageCache.set(imgRef.filename, imageRecord.data);
+            imageCache.set(filename, imageRecord.data);
             if (state.verboseLogging) {
-              console.info(`Loaded image from IndexedDB: ${imgRef.filename}`);
+              console.info(`Loaded image from IndexedDB: ${filename}`);
             }
           }
         })
         .catch((err) => {
-          console.warn(`Failed to load image ${imgRef.filename} from IndexedDB:`, err);
+          console.warn(`Failed to load image ${filename} from IndexedDB:`, err);
         });
 
       if (loadPromise) {
@@ -173,7 +176,7 @@ function preloadImages(convo: any) {
 
   return Promise.all(imageLoadPromises).then(() => imageCache).catch((err) => {
     console.error("Error loading images from IndexedDB:", err);
-    return new Map();
+    return new Map<string, string>();
   });
 }
 
@@ -186,7 +189,7 @@ function resetConversationState() {
   state.userThinkingState = {};
 }
 
-export function saveCurrentConversation(meta: any = {}) {
+export function saveCurrentConversation(meta: { name?: string; created?: string } = {}) {
   if (!state.generatedImages) {
     state.generatedImages = [];
   }
@@ -202,7 +205,7 @@ export function saveCurrentConversation(meta: any = {}) {
     : [];
 
   const { promptType, promptContent } = normalizePromptState();
-  const savePromises: Promise<any>[] = [];
+  const savePromises: Promise<unknown>[] = [];
   const processedImages = (state.generatedImages || []).map(img => processImageForStorage(img, savePromises));
   const markedMessages = markMessagesWithImages(baseHistory, processedImages);
 
@@ -298,16 +301,16 @@ export function loadConversation(id: string) {
     });
 };
 
-function loadConversationIntoUI(convo: any, imageCache: any) {
+function loadConversationIntoUI(convo: ConversationRecord, imageCache: Map<string, string>) {
   const filteredMessages = Array.isArray(convo.messages)
-    ? convo.messages.filter((msg: any) => msg && msg.role !== "developer")
+    ? convo.messages.filter((msg) => msg && msg.role !== "developer")
     : [];
 
   state.conversationHistory = filteredMessages;
   state.generatedImages = convo.images || [];
-  state.currentConversationId = convo.id;
-  state.currentConversationName = convo.name;
-  state.loadedSystemPrompt = convo.systemPrompt;
+  state.currentConversationId = convo.id || null;
+  state.currentConversationName = convo.name || null;
+  state.loadedSystemPrompt = convo.systemPrompt || null;
   state.userThinkingState = {};
 
   if (elements.chatBox) {

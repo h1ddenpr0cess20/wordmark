@@ -3,6 +3,7 @@ import { saveConversationToDb } from "../../utils/conversationStorage.ts";
 import { appendMessage } from "../../components/ui/chatMessages.ts";
 import { updateHeaderInfo } from "../../components/settings.ts";
 import { config } from "../../../config/config.ts";
+import type { Message } from "../../../types/api.ts";
 
 export function updateBrowserHistory() {
   let systemPromptValue = "";
@@ -43,9 +44,10 @@ export function loadFromUrl() {
     const chatData = JSON.parse(decodeURIComponent(urlParams.get("chat") || ""));
     state.conversationHistory = chatData.messages || [];
 
-    (chatData.messages || []).forEach((msg: any) => {
+    (chatData.messages || []).forEach((msg: Message) => {
       if (msg.role !== "system") {
-        appendMessage(msg.role === "user" ? "You" : "  ", msg.content, msg.role);
+        const content = typeof msg.content === "string" ? msg.content : "";
+        appendMessage(msg.role === "user" ? "You" : "  ", content, msg.role || "");
       }
     });
 

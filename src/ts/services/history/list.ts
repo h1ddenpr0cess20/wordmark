@@ -21,7 +21,7 @@ export function renderChatHistoryList() {
         return;
       }
 
-      convos.sort((a: any, b: any) => new Date(b.updated).getTime() - new Date(a.updated).getTime());
+      convos.sort((a, b) => new Date(b.updated || 0).getTime() - new Date(a.updated || 0).getTime());
 
       const toolbarDiv = document.createElement("div");
       toolbarDiv.className = "history-toolbar";
@@ -222,27 +222,28 @@ export function renderChatHistoryList() {
       convos.forEach((convo) => {
         const row = document.createElement("tr");
         row.className = "history-row";
-        row.dataset.conversationId = convo.id;
+        row.dataset.conversationId = convo.id || "";
 
         if (state.currentConversationId === convo.id) {
           row.classList.add("current-conversation");
         }
 
         let title = "";
-        const userMsg = (convo.messages || []).find((m: any) => m.role === "user");
+        const userMsg = (convo.messages || []).find((m) => m.role === "user");
         if (userMsg) {
-          let text = userMsg.content;
-          if (Array.isArray(text)) {
-            const part = text.find(p => p.type === "input_text" || p.type === "text");
-            text = part ? (part.text || part.content || "") : "";
+          let text = "";
+          if (typeof userMsg.content === "string") {
+            text = userMsg.content;
+          } else if (Array.isArray(userMsg.content)) {
+            const part = userMsg.content.find(p => p.type === "input_text" || p.type === "text");
+            text = part ? (part.text || (typeof part.content === "string" ? part.content : "") || "") : "";
           }
-          text = typeof text === "string" ? text : "";
           title = text.substring(0, 50) + (text.length > 50 ? "..." : "");
         } else {
           title = "(No user message)";
         }
 
-        const date = new Date(convo.updated);
+        const date = new Date(convo.updated || 0);
         const now = new Date();
         const yesterday = new Date();
         yesterday.setDate(now.getDate() - 1);
