@@ -20,9 +20,7 @@ import {
   separateThinkingSegments,
 } from "./thinkingUtils.ts";
 import { highlightAndAddCopyButtons, generateMessageId, addMessageCopyButton } from "../../components/messages.ts";
-import { appendAssistantMessage } from "../../components/ui/chatMessages.ts";
 import { setupImageInteractions } from "../../components/ui/imageInteractions.ts";
-import { resetSendButton } from "../../components/interaction.ts";
 
 export function finalizeStreamedResponse(loadingMessage: HTMLElement | null, contentObj: any) {
   if (!loadingMessage) {
@@ -305,80 +303,6 @@ export function updateFinalMessage(loadingMessage: HTMLElement | null) {
     loadingMessage.id = `msg-${Date.now()}`;
   }
   addMessageCopyButton(loadingMessage, loadingMessage.id);
-}
-
-export function handleNonStreamingResponse(data: any, loadingId: string) {
-  const loadingMessage = document.getElementById(loadingId);
-  const responsePayload = data && data.response ? data.response : data;
-  if (!loadingMessage || !responsePayload) {
-    handleInvalidResponse(loadingId);
-    return;
-  }
-
-  const outputText = Array.isArray(responsePayload.output)
-    ? responsePayload.output.filter((item: any) => item && item.type === "output_text")
-      .map((item: any) => item.text || item.content || "")
-      .join("")
-    : (responsePayload.output_text || "");
-
-  const reasoningText = responsePayload.reasoning && Array.isArray(responsePayload.reasoning.output)
-    ? responsePayload.reasoning.output.map((item: any) => item?.content || "").join("")
-    : "";
-
-  finalizeStreamedResponse(loadingMessage, {
-    content: outputText,
-    reasoning: reasoningText,
-    response: responsePayload,
-  });
-  resetSendButton();
-}
-
-export function hasValidAssistantMessage(data: any) {
-  if (!data) {
-    return false;
-  }
-  const responsePayload = data && data.response ? data.response : data;
-  if (!responsePayload) {
-    return false;
-  }
-  if (Array.isArray(responsePayload.output)) {
-    return responsePayload.output.some((item: any) => item && item.type === "output_text" && item.text);
-  }
-  return typeof responsePayload.output_text === "string" && responsePayload.output_text.trim().length > 0;
-}
-
-export function addToConversationHistory(assistantMessage: string, reasoning: string) {
-  const msgId = generateMessageId();
-
-  state.conversationHistory.push({
-    role: "assistant",
-    content: assistantMessage,
-    reasoning: reasoning || "",
-    id: msgId,
-    timestamp: new Date().toISOString(),
-  });
-
-  return msgId;
-}
-
-export function updateLoadingIndicator(loadingMessage: HTMLElement | null, assistantMessageObj: any) {
-  if (loadingMessage) {
-    if (assistantMessageObj && assistantMessageObj.id) {
-      loadingMessage.id = assistantMessageObj.id;
-    }
-    const cursor = loadingMessage.querySelector<HTMLElement>(".streaming-cursor");
-    if (cursor) {
-      cursor.classList.add("fade-out");
-      setTimeout(() => {
-        updateMessageContent(loadingMessage, assistantMessageObj);
-      }, 250);
-    } else {
-      updateMessageContent(loadingMessage, assistantMessageObj);
-    }
-  } else {
-    const processedMessage = processMainContentMarkdown(assistantMessageObj.content);
-    appendAssistantMessage(processedMessage);
-  }
 }
 
 export function updateMessageContent(loadingMessage: HTMLElement | null, assistantMessageObj: any) {

@@ -1,9 +1,7 @@
 import { elements, state } from "../../init/state.ts";
 import {
-  getAllConversationsFromDb,
   saveConversationToDb,
   loadConversationFromDb,
-  deleteConversationFromDb,
   renameConversationInDb,
 } from "../../utils/conversationStorage.ts";
 import { config } from "../../../config/config.ts";
@@ -188,10 +186,6 @@ function resetConversationState() {
   state.userThinkingState = {};
 }
 
-export function getAllConversations() {
-  return getAllConversationsFromDb?.();
-};
-
 export function saveCurrentConversation(meta: any = {}) {
   if (!state.generatedImages) {
     state.generatedImages = [];
@@ -248,20 +242,6 @@ export function saveCurrentConversation(meta: any = {}) {
     })
     .catch((err) => {
       console.error("Failed to save conversation to IndexedDB:", err);
-    });
-};
-
-export function deleteConversation(id: string) {
-  deleteConversationFromDb?.(id)
-    .then(() => {
-      if (state.currentConversationId === id) {
-        state.currentConversationId = null;
-        state.currentConversationName = null;
-      }
-      renderChatHistoryList();
-    })
-    .catch((err) => {
-      console.error("Failed to delete conversation from IndexedDB:", err);
     });
 };
 

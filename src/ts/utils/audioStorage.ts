@@ -153,37 +153,6 @@ export function loadAudioForMessage(messageId: string): Promise<any> {
 }
 
 /**
- * Delete audio from IndexedDB
- * @param {string} id - The ID of the audio record to delete
- * @returns {Promise<boolean>} - Promise that resolves when deleted
- */
-export function deleteAudioFromDb(id: string): Promise<boolean> {
-  return new Promise<boolean>((resolve, reject) => {
-    if (!audioDb) {
-      console.error("Audio IndexedDB not initialized");
-      reject(new Error("Audio IndexedDB not initialized"));
-      return;
-    }
-    // Start a transaction
-    const transaction = audioDb.transaction([AUDIO_STORE_NAME], "readwrite");
-    const store = transaction.objectStore(AUDIO_STORE_NAME);
-
-    // Delete the record
-    const request = store.delete(id);
-
-    request.onerror = () => {
-      console.error("Error deleting audio from IndexedDB:", request.error);
-      reject(request.error);
-    };
-
-    request.onsuccess = () => {
-      console.info("Audio deleted from IndexedDB:", id);
-      resolve(true);
-    };
-  });
-}
-
-/**
  * Clean up old audio files, keeping only the most recent MAX_STORED_AUDIO files
  * @returns {Promise<number>} - Promise that resolves with the number of deleted files
  */

@@ -228,24 +228,6 @@ export function getHistoryTokenBudget() {
   return normalizeHistoryTokenBudget(state.historyTokenBudget);
 }
 
-export function setHistoryTokenBudget(value: string | number) {
-  const normalized = normalizeHistoryTokenBudget(value);
-  state.historyTokenBudget = normalized;
-  persistHistoryTokenBudget(normalized);
-  if (elements.historyTokenBudgetInput) {
-    elements.historyTokenBudgetInput.value = String(normalized);
-  }
-}
-
 export function getVerbosity() {
   return normalizeVerbosity(state.currentVerbosity);
-}
-
-export function setVerbosity(value: string) {
-  const normalized = normalizeVerbosity(value);
-  state.currentVerbosity = normalized;
-  persistVerbosity(normalized);
-  if (elements.verbositySelector) {
-    elements.verbositySelector.value = normalized;
-  }
 }

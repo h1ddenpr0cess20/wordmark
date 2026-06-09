@@ -640,20 +640,3 @@ export function renderCodeInterpreterOutputs(messageElement: HTMLElement | null,
   });
 }
 
-export function getCodeInterpreterOutputsForMessage(message: any) {
-  if (!message || typeof message !== "object") {
-    return { attachments: [], logs: [] };
-  }
-  if (message.codeInterpreterOutputs && typeof message.codeInterpreterOutputs === "object") {
-    return {
-      attachments: Array.isArray(message.codeInterpreterOutputs.attachments)
-        ? message.codeInterpreterOutputs.attachments
-        : [],
-      logs: Array.isArray(message.codeInterpreterOutputs.logs)
-        ? message.codeInterpreterOutputs.logs
-        : [],
-    };
-  }
-  return { attachments: [], logs: [] };
-}
-
