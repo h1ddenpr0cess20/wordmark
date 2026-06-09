@@ -14,7 +14,7 @@ export function initializeTts() {
 
   // Initialize TTS provider selector
   if (elements.ttsProviderSelector) {
-    const provider = availableTtsVoices?.[ttsConfig.provider] ? ttsConfig.provider : "openai";
+    const provider = (availableTtsVoices as Record<string, any>)?.[ttsConfig.provider] ? ttsConfig.provider : "openai";
     ttsConfig.provider = provider;
     elements.ttsProviderSelector.value = provider;
   }
@@ -54,17 +54,17 @@ export function populateTtsVoiceSelector() {
     elements.ttsVoiceSelector.innerHTML = "";
 
     const provider = ttsConfig.provider || "openai";
-    const voices = availableTtsVoices[provider];
+    const voices = (availableTtsVoices as Record<string, any>)[provider];
     if (!voices) return;
 
     const categories = ["neutral", "male", "female"];
-    const labels = { neutral: "Neutral", male: "Male", female: "Female" };
+    const labels: Record<string, string> = { neutral: "Neutral", male: "Male", female: "Female" };
 
     for (const category of categories) {
       if (voices[category] && voices[category].length > 0) {
         const group = document.createElement("optgroup");
         group.label = labels[category];
-        voices[category].forEach(voice => {
+        voices[category].forEach((voice: any) => {
           const option = document.createElement("option");
           option.value = voice.id;
           option.textContent = voice.name;
@@ -75,7 +75,7 @@ export function populateTtsVoiceSelector() {
     }
 
     // If current voice isn't in the new provider's list, select the first available
-    const allVoiceIds = categories.flatMap(c => (voices[c] || []).map(v => v.id));
+    const allVoiceIds = categories.flatMap(c => (voices[c] || []).map((v: any) => v.id));
     if (!allVoiceIds.includes(ttsConfig.voice)) {
       ttsConfig.voice = allVoiceIds[0] || "";
     }

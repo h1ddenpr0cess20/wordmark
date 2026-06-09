@@ -39,8 +39,8 @@ export const HTMLLoader = {
    * @param {string} filePath - Source path of the HTML fragment
    * @param {string} containerId - ID of the container element
    */
-  async loadHTML(filePath, containerId) {
-    const htmlContent = PANEL_HTML[filePath];
+  async loadHTML(filePath: string, containerId: string) {
+    const htmlContent = (PANEL_HTML as Record<string, string>)[filePath];
     if (typeof htmlContent !== "string") {
       console.error(`No bundled HTML registered for ${filePath}`);
       return;
@@ -57,8 +57,8 @@ export const HTMLLoader = {
    * Load multiple HTML fragments into their respective containers
    * @param {Array} loadConfigs - Array of {filePath, containerId} objects
    */
-  async loadMultiple(loadConfigs) {
-    const promises = loadConfigs.map(config =>
+  async loadMultiple(loadConfigs: { filePath: string; containerId: string }[]) {
+    const promises = loadConfigs.map((config) =>
       this.loadHTML(config.filePath, config.containerId),
     );
     await Promise.all(promises);

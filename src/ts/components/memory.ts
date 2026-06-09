@@ -50,7 +50,7 @@ export function initMemorySettings() {
   });
 
   if (clearBtn) {
-    clearBtn.addEventListener("click", (e) => {
+    clearBtn.addEventListener("click", (e: Event) => {
       if (e && typeof e.stopPropagation === "function") e.stopPropagation();
       if (e && typeof e.preventDefault === "function") e.preventDefault();
       if (confirm("Clear all saved memories? This cannot be undone.")) {
@@ -61,7 +61,7 @@ export function initMemorySettings() {
   }
 
   if (addButton && addInput) {
-    const doAdd = (evt) => {
+    const doAdd = (evt: Event) => {
       if (evt && typeof evt.stopPropagation === "function") evt.stopPropagation();
       if (evt && typeof evt.preventDefault === "function") evt.preventDefault();
       const text = (addInput.value || "").trim();
@@ -74,7 +74,7 @@ export function initMemorySettings() {
     };
     addButton.addEventListener("click", doAdd);
     // Ctrl/Cmd+Enter support
-    addInput.addEventListener("keydown", (e) => {
+    addInput.addEventListener("keydown", (e: KeyboardEvent) => {
       if ((e.ctrlKey || e.metaKey) && e.key === "Enter") {
         e.preventDefault();
         doAdd(e);

@@ -14,7 +14,7 @@ import { addCopyButton } from "../utils/highlight.ts";
  * Highlights code blocks in a message element and adds copy buttons
  * @param {HTMLElement} messageElement - The message element to process
  */
-export function highlightAndAddCopyButtons(messageElement) {
+export function highlightAndAddCopyButtons(messageElement: HTMLElement | null) {
   if (!messageElement) {
     return;
   }
@@ -24,7 +24,7 @@ export function highlightAndAddCopyButtons(messageElement) {
     return;
   }
 
-  codeBlocks.forEach((codeBlock) => {
+  codeBlocks.forEach((codeBlock: any) => {
     // Check if code block has no language class or only has the default hljs class
     const hasLanguageClass = Array.from(codeBlock.classList).some((cls: any) =>
       cls.startsWith("language-") && cls !== "language-plaintext" && cls !== "language-");
@@ -55,7 +55,7 @@ export function generateMessageId() {
  * @param {string} messageId - The ID of the message
  * @returns {string} Raw text content
  */
-function getRawMessageContent(messageId) {
+function getRawMessageContent(messageId: string) {
   if (!state.conversationHistory) {
     return "";
   }
@@ -82,7 +82,7 @@ function getRawMessageContent(messageId) {
  * @param {HTMLElement} messageElement - Target message element
  * @param {string} messageId - ID used to look up raw content
  */
-export function addMessageCopyButton(messageElement, messageId) {
+export function addMessageCopyButton(messageElement: HTMLElement | null, messageId: string) {
   if (!messageElement) {
     return;
   }
