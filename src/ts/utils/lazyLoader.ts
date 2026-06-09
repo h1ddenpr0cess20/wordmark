@@ -6,7 +6,7 @@ import { initializeVectorStore } from "../services/vectorStore.ts";
 
 export const lazyModulesLoaded: Record<string, boolean> = {};
 
-let galleryModule: any = null;
+let galleryModule: typeof import("../components/gallery.ts") | null = null;
 
 export function loadGalleryModule() {
   if (galleryModule) {

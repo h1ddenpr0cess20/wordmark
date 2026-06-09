@@ -13,6 +13,7 @@ import {
 } from "../utils/imageStorage.ts";
 import { detectMediaType, getMediaDisplayUrl, downloadMediaSource } from "../services/mediaTools.ts";
 import { createImageSlideshow } from "./ui/imageInteractions.ts";
+import type { GeneratedImage } from "../../types/common.ts";
 import { updatePanelOpenState } from "../init/eventListeners/settingsPanel.ts";
 
 // -----------------------------------------------------
@@ -150,7 +151,7 @@ const loadGalleryImages = async function() {
 
     // Filter images based on current tab
     const currentTab = state.currentGalleryTab || "generated";
-    let visibleImages: any[];
+    let visibleImages: GeneratedImage[];
 
     if (currentTab === "uploaded") {
       // Show only uploaded images
@@ -230,7 +231,7 @@ const loadGalleryImages = async function() {
 
         if (mediaType === "video") {
           const video = document.createElement("video");
-          video.src = image.data;
+          video.src = image.data || "";
           video.preload = "metadata";
           video.muted = true;
           video.playsInline = true;
@@ -244,7 +245,7 @@ const loadGalleryImages = async function() {
         } else {
           const img = document.createElement("img");
           img.loading = "lazy";
-          img.src = image.data;
+          img.src = image.data || "";
           img.alt = image.prompt || "Generated image";
           img.title = image.prompt || "";
           imageContainer.appendChild(img);
@@ -276,7 +277,7 @@ const loadGalleryImages = async function() {
         if (deleteBtn) {
           deleteBtn.addEventListener("click", (e: Event) => {
             e.stopPropagation();
-            if (confirm(`Delete this ${mediaType}?`)) {
+            if (image.filename && confirm(`Delete this ${mediaType}?`)) {
               deleteImageAndUpdateGallery(image.filename);
             }
           });
@@ -286,7 +287,7 @@ const loadGalleryImages = async function() {
         if (downloadBtn) {
           downloadBtn.addEventListener("click", (e: Event) => {
             e.stopPropagation();
-            downloadGalleryImage(image.data, image.filename);
+            downloadGalleryImage(image.data || "", image.filename);
           });
         }
 
@@ -357,7 +358,7 @@ const loadGalleryImages = async function() {
  * Get all media records from IndexedDB
  * @returns {Promise<Array>} Promise resolving to an array of media objects
  */
-const getAllImagesFromDb = function(): Promise<any[]> {
+const getAllImagesFromDb = function(): Promise<GeneratedImage[]> {
   return new Promise((resolve, reject) => {
     if (!getImageDb()) {
       initImageDb()
@@ -366,7 +367,7 @@ const getAllImagesFromDb = function(): Promise<any[]> {
         .catch(reject);
       return;
     }
-    const images: any[] = [];
+    const images: GeneratedImage[] = [];
     const storeName = IMAGE_STORE_NAME || "images";
     const transaction = getImageDb()!.transaction([storeName], "readonly");
     const store = transaction.objectStore(storeName);
@@ -431,7 +432,7 @@ const deleteImageAndUpdateGallery = async function(filename: string) {
  * @param {string|Blob} imageData - Media data or display URL
  * @param {string} filename - The filename to save as
  */
-const downloadGalleryImage = function(imageData: any, filename: string) {
+const downloadGalleryImage = function(imageData: string | Blob, filename?: string) {
   downloadMediaSource(imageData, filename)
     .catch(error => {
       console.error("Failed to download gallery media:", error);

@@ -10,9 +10,9 @@ import type { Attachment } from "../../types/api.ts";
  * @param {number} wait - Time to wait in milliseconds
  * @returns {Function} - The debounced function
  */
-export function debounce(func: (...args: any[]) => any, wait: number) {
+export function debounce<A extends unknown[]>(func: (...args: A) => unknown, wait: number) {
   let timeout: ReturnType<typeof setTimeout> | undefined;
-  return function(this: unknown, ...args: any[]) {
+  return function(this: unknown, ...args: A) {
     const context = this;
     clearTimeout(timeout);
     timeout = setTimeout(() => func.apply(context, args), wait);
