@@ -14,12 +14,12 @@ export const ttsAudioResources = {
     });
 
     if (audioData) {
-      const messageElement = document.getElementById(messageId) as any;
+      const messageElement = document.getElementById(messageId);
       let text = "";
       let voice = ttsConfig.voice;
 
       if (messageElement) {
-        const controlsContainer = messageElement.querySelector(".tts-controls") as any;
+        const controlsContainer = messageElement.querySelector(".tts-controls");
         if (controlsContainer) {
           text = controlsContainer.getAttribute("data-original-text") || "";
           voice = controlsContainer.getAttribute("data-voice") || voice;

@@ -20,14 +20,14 @@ export function stopTtsAudio() {
 
     ttsRuntime.activeTtsAudio = null;
 
-    document.querySelectorAll(".tts-play-pause").forEach((btn: any) => {
+    document.querySelectorAll<HTMLElement>(".tts-play-pause").forEach((btn) => {
       const svgContent = btn.innerHTML;
       if (svgContent.includes("pause") || !svgContent.includes("polygon")) {
         btn.innerHTML = ttsSvgIcons.play;
         btn.title = "Play voice";
         btn.setAttribute("aria-label", "Play voice");
 
-        const statusText = btn.parentElement?.querySelector(".tts-status") as any;
+        const statusText = btn.parentElement?.querySelector<HTMLElement>(".tts-status");
         if (statusText && statusText.style.display === "inline") {
           statusText.textContent = "Stopped";
           setTimeout(() => {

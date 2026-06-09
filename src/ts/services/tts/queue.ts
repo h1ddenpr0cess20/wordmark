@@ -24,11 +24,11 @@ export function playNextMessageInQueue() {
   }
 
   const nextMessageId = ttsMessageQueue[0];
-  const messageElement = document.getElementById(nextMessageId) as any;
+  const messageElement = document.getElementById(nextMessageId);
 
   if (messageElement) {
-    const controlsContainer = messageElement.querySelector(".tts-controls") as any;
-    const playButton = controlsContainer?.querySelector(".tts-play-pause") as any;
+    const controlsContainer = messageElement.querySelector(".tts-controls");
+    const playButton = controlsContainer?.querySelector<HTMLElement>(".tts-play-pause");
 
     if (playButton) {
       ttsMessageQueue.shift();

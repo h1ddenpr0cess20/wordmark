@@ -70,15 +70,15 @@ export async function generateTtsForMessage(text: string, messageId: string) {
 };
 
 export function addPlaceholderTtsControls(messageId: string, text: string) {
-  const messageElement = document.getElementById(messageId) as any;
+  const messageElement = document.getElementById(messageId);
   if (!messageElement) {
     return;
   }
 
-  const existingControls = messageElement.querySelector(".tts-controls") as any;
+  const existingControls = messageElement.querySelector(".tts-controls");
   if (existingControls) {
     try {
-      existingControls.parentNode.removeChild(existingControls);
+      existingControls.remove();
     } catch (error) {
       console.error("Error removing existing TTS controls:", error);
     }
@@ -115,8 +115,8 @@ export function addPlaceholderTtsControls(messageId: string, text: string) {
       if (audioData) {
         addTtsControlsToMessage(audioData, messageId, text);
         setTimeout(() => {
-          const newControls = document.getElementById(messageId)?.querySelector(".tts-controls") as any;
-          const newPlayButton = newControls?.querySelector(".tts-play-pause") as any;
+          const newControls = document.getElementById(messageId)?.querySelector(".tts-controls");
+          const newPlayButton = newControls?.querySelector<HTMLElement>(".tts-play-pause");
           if (newPlayButton) {
             newPlayButton.click();
           }
@@ -142,7 +142,7 @@ export function addPlaceholderTtsControls(messageId: string, text: string) {
   controlsContainer.appendChild(playButton);
   controlsContainer.appendChild(statusText);
 
-  const contentElement = messageElement.querySelector(".message-content") as any;
+  const contentElement = messageElement.querySelector(".message-content");
   if (contentElement) {
     contentElement.appendChild(controlsContainer);
   } else {
@@ -151,15 +151,15 @@ export function addPlaceholderTtsControls(messageId: string, text: string) {
 };
 
 export function addTtsControlsToMessage(audioData: any, messageId: string, originalText: string) {
-  const messageElement = document.getElementById(messageId) as any;
+  const messageElement = document.getElementById(messageId);
   if (!messageElement) {
     return;
   }
 
-  const existingControls = messageElement.querySelector(".tts-controls") as any;
+  const existingControls = messageElement.querySelector(".tts-controls");
   if (existingControls) {
     try {
-      existingControls.parentNode.removeChild(existingControls);
+      existingControls.remove();
     } catch (error) {
       console.error("Error removing existing TTS controls:", error);
     }
@@ -244,8 +244,8 @@ export function addTtsControlsToMessage(audioData: any, messageId: string, origi
             URL.revokeObjectURL(audioUrl);
             addTtsControlsToMessage(newAudioData, messageId, messageText);
             setTimeout(() => {
-              const newControls = document.getElementById(messageId)?.querySelector(".tts-controls") as any;
-              const newPlayButton = newControls?.querySelector(".tts-play-pause") as any;
+              const newControls = document.getElementById(messageId)?.querySelector(".tts-controls");
+              const newPlayButton = newControls?.querySelector<HTMLElement>(".tts-play-pause");
               if (newPlayButton) {
                 newPlayButton.click();
               }
@@ -435,7 +435,7 @@ export function addTtsControlsToMessage(audioData: any, messageId: string, origi
   controlsContainer.appendChild(downloadButton);
   controlsContainer.appendChild(statusText);
 
-  const contentElement = messageElement.querySelector(".message-content") as any;
+  const contentElement = messageElement.querySelector(".message-content");
   if (contentElement) {
     contentElement.appendChild(controlsContainer);
   } else {

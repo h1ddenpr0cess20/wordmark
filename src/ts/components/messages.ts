@@ -19,14 +19,14 @@ export function highlightAndAddCopyButtons(messageElement: HTMLElement | null) {
     return;
   }
 
-  const codeBlocks = messageElement.querySelectorAll("pre code") as any;
+  const codeBlocks = messageElement.querySelectorAll<HTMLElement>("pre code");
   if (codeBlocks.length === 0) {
     return;
   }
 
-  codeBlocks.forEach((codeBlock: any) => {
+  codeBlocks.forEach((codeBlock) => {
     // Check if code block has no language class or only has the default hljs class
-    const hasLanguageClass = Array.from(codeBlock.classList).some((cls: any) =>
+    const hasLanguageClass = Array.from(codeBlock.classList).some((cls) =>
       cls.startsWith("language-") && cls !== "language-plaintext" && cls !== "language-");
 
     // If no language specified, explicitly set it as plaintext to prevent auto-detection
@@ -55,19 +55,29 @@ export function generateMessageId() {
  * @param {string} messageId - The ID of the message
  * @returns {string} Raw text content
  */
-function getRawMessageContent(messageId: string) {
+function getRawMessageContent(messageId: string): string {
   if (!state.conversationHistory) {
     return "";
   }
   const entry = state.conversationHistory.find(msg => msg.id === messageId);
   if (entry) {
-    return entry.content || "";
+    const content = entry.content;
+    if (typeof content === "string") {
+      return content;
+    }
+    if (Array.isArray(content)) {
+      return content.map(part => part?.text || "").join("");
+    }
+    if (content && typeof content === "object") {
+      return content.text || "";
+    }
+    return "";
   }
 
   // If not found in conversation history, check if we can get it from the DOM
-  const messageElement = document.getElementById(messageId) as any;
+  const messageElement = document.getElementById(messageId);
   if (messageElement) {
-    const contentElement = messageElement.querySelector(".message-content") as any;
+    const contentElement = messageElement.querySelector<HTMLElement>(".message-content");
     if (contentElement) {
       // Get text content, stripping HTML but preserving basic structure
       return contentElement.innerText || contentElement.textContent || "";

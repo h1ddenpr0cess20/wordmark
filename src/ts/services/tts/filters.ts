@@ -1,6 +1,6 @@
 import { state } from "../../init/state.ts";
 export function shouldSkipTts(messageId: string) {
-  const messageElement = document.getElementById(`message-${messageId}`) || document.getElementById(messageId) as any;
+  const messageElement = document.getElementById(`message-${messageId}`) || document.getElementById(messageId);
   if (!messageElement) {
     return true;
   }
@@ -12,7 +12,7 @@ export function shouldSkipTts(messageId: string) {
     return true;
   }
 
-  const messageText = messageElement.querySelector(".message-text")?.innerText || "";
+  const messageText = messageElement.querySelector<HTMLElement>(".message-text")?.innerText || "";
 
   const triggerKeywords = [
     "tool_code\nprint(",
