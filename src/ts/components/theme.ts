@@ -15,7 +15,7 @@ import countryThemeCss from "../../css/themes/base/country.css?raw";
 import specialThemeCss from "../../css/themes/base/special.css?raw";
 
 // Initialize theme variables
-let themeSelector = null;
+let themeSelector: HTMLSelectElement | null = null;
 let currentTheme = "theme-dark-blue"; // Default theme
 
 // Theme categories - will be populated dynamically from CSS files
@@ -160,7 +160,7 @@ function updateThemeColorTriplets() {
  * Populate the theme selector with organized optgroups
  */
 async function populateThemeSelector() {
-  const themeSelector = document.getElementById("theme-selector") as any;
+  const themeSelector = document.getElementById("theme-selector") as HTMLSelectElement | null;
   if (!themeSelector) {
     console.error("Theme selector not found");
     return;
@@ -205,7 +205,7 @@ export async function initTheme() {
   await populateThemeSelector();
 
   // Get theme selector
-  themeSelector = document.getElementById("theme-selector") as any;
+  themeSelector = document.getElementById("theme-selector") as HTMLSelectElement | null;
 
   if (!themeSelector) {
     console.error("Theme selector not found");
@@ -224,7 +224,7 @@ export async function initTheme() {
 
   // Add event listener for theme changes
   themeSelector.addEventListener("change", (e: Event) => {
-    const newTheme = (e.target as any).value;
+    const newTheme = (e.target as HTMLSelectElement).value;
     applyTheme(newTheme);
     currentTheme = newTheme;
     localStorage.setItem("selectedTheme", newTheme);
@@ -249,7 +249,10 @@ export function applyTheme(themeName: string) {
   localStorage.setItem("selectedTheme", themeName);
 
   // Update the theme selector dropdown
-  (document.getElementById("theme-selector") as any).value = themeName;
+  const selector = document.getElementById("theme-selector") as HTMLSelectElement | null;
+  if (selector) {
+    selector.value = themeName;
+  }
 
   // Update code highlighting to match the theme
   updateCodeHighlighting();
@@ -263,7 +266,7 @@ export function applyTheme(themeName: string) {
  */
 function rehighlightCodeBlocks() {
   try {
-    const codeBlocks = document.querySelectorAll("pre code") as any;
+    const codeBlocks = document.querySelectorAll<HTMLElement>("pre code");
 
     if (codeBlocks && codeBlocks.length > 0) {
       console.log(`Rehighlighting ${codeBlocks.length} code blocks with current theme`);
@@ -273,11 +276,11 @@ function rehighlightCodeBlocks() {
         ignoreUnescapedHTML: true,
       });
 
-      codeBlocks.forEach((codeBlock: any) => {
+      codeBlocks.forEach((codeBlock) => {
         try {
           // Store original content if not already stored
           if (!codeBlock.hasAttribute("data-original-code")) {
-            codeBlock.setAttribute("data-original-code", codeBlock.textContent);
+            codeBlock.setAttribute("data-original-code", codeBlock.textContent || "");
           }
 
           // Apply highlighting
@@ -304,7 +307,7 @@ function rehighlightCodeBlocks() {
  */
 function updateThemePreview() {
   // Update color dots to reflect current theme
-  const colorDots = document.querySelectorAll(".color-dot") as any;
+  const colorDots = document.querySelectorAll<HTMLElement>(".color-dot");
   if (colorDots && colorDots.length > 0) {
     colorDots[0].style.backgroundColor = "var(--bg-primary)";
     colorDots[1].style.backgroundColor = "var(--bg-secondary)";

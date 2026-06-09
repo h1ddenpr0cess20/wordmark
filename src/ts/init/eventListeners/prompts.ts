@@ -55,9 +55,9 @@ function setupInputFieldEventListeners() {
 }
 
 function setupPersonalityPresetEventListeners(closeSettingsPanel: (() => void) | undefined) {
-  const presetButtons = document.querySelectorAll(".preset-button") as any;
+  const presetButtons = document.querySelectorAll<HTMLElement>(".preset-button");
 
-  presetButtons.forEach((button: HTMLElement) => {
+  presetButtons.forEach((button) => {
     const personality = button.getAttribute("data-personality");
     if (personality) {
       button.title = personality;

@@ -7,12 +7,12 @@ import { updateToolDefinitions } from "./tools.ts";
 
 export function initMemorySettings() {
   // Grab elements
-  const toggle = document.getElementById("memory-toggle") as any;
-  const limitInput = document.getElementById("memory-limit") as any;
-  const clearBtn = document.getElementById("clear-memories") as any;
-  const listContainer = document.getElementById("memory-list") as any;
-  const addInput = document.getElementById("memory-add-input") as any;
-  const addButton = document.getElementById("memory-add-button") as any;
+  const toggle = document.getElementById("memory-toggle") as HTMLInputElement | null;
+  const limitInput = document.getElementById("memory-limit") as HTMLInputElement | null;
+  const clearBtn = document.getElementById("clear-memories");
+  const listContainer = document.getElementById("memory-list");
+  const addInput = document.getElementById("memory-add-input") as HTMLInputElement | null;
+  const addButton = document.getElementById("memory-add-button");
 
   if (!toggle || !limitInput) {
     return; // Memory section not present
@@ -21,7 +21,7 @@ export function initMemorySettings() {
   // Initialize from storage
   const cfg = getMemoryConfig ? getMemoryConfig() : { enabled: false, limit: 25 };
   toggle.checked = Boolean(cfg.enabled);
-  limitInput.value = cfg.limit;
+  limitInput.value = String(cfg.limit);
   renderList();
 
   // Set max length on input (about three long sentences)
@@ -91,7 +91,7 @@ export function initMemorySettings() {
       // update limit/toggle display from source of truth if needed
       const cfg = getMemoryConfig ? getMemoryConfig() : { enabled: false, limit: 25 };
       if (toggle) toggle.checked = Boolean(cfg.enabled);
-      if (limitInput) limitInput.value = cfg.limit;
+      if (limitInput) limitInput.value = String(cfg.limit);
       renderList();
     });
   }

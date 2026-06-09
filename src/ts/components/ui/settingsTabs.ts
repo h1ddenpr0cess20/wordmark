@@ -3,8 +3,8 @@ import { openSettingsAndSwitch } from "../../init/eventListeners/settingsPanel.t
 import { config } from "../../../config/config.ts";
 import { state } from "../../init/state.ts";
 export function initTabs() {
-  const tabButtons = document.querySelectorAll(".tab-button") as any;
-  const tabContents = document.querySelectorAll(".tab-content") as any;
+  const tabButtons = document.querySelectorAll<HTMLElement>(".tab-button");
+  const tabContents = document.querySelectorAll<HTMLElement>(".tab-content");
 
   if (!tabButtons.length || !tabContents.length) {
     console.warn("Tab elements not found, skipping tab initialization");
@@ -26,7 +26,7 @@ export function initTabs() {
       button.setAttribute("aria-selected", "true");
 
       const contentId = button.getAttribute("aria-controls");
-      const content = contentId ? document.getElementById(contentId) as any : null;
+      const content = contentId ? document.getElementById(contentId) : null;
       if (content) {
         content.classList.add("active");
       }
@@ -35,8 +35,8 @@ export function initTabs() {
 }
 
 export function switchToTab(tabId: string) {
-  const tabButtons = document.querySelectorAll(".tab-button") as any;
-  const tabContents = document.querySelectorAll(".tab-content") as any;
+  const tabButtons = document.querySelectorAll<HTMLElement>(".tab-button");
+  const tabContents = document.querySelectorAll<HTMLElement>(".tab-content");
 
   tabButtons.forEach((btn: HTMLElement) => {
     btn.classList.remove("active");
@@ -47,7 +47,7 @@ export function switchToTab(tabId: string) {
     content.classList.remove("active");
   });
 
-  const targetButton = document.getElementById(tabId) as any;
+  const targetButton = document.getElementById(tabId);
   const targetContentId = targetButton ? targetButton.getAttribute("aria-controls") : null;
   const targetContent = targetContentId ? document.getElementById(targetContentId) : null;
 

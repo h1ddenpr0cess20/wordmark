@@ -1,9 +1,9 @@
 import { elements } from "../../init/state.ts";
 import { config } from "../../../config/config.ts";
 export function updatePromptVisibility() {
-  const personalityContainer = document.getElementById("personality-container") as any;
-  const customPromptContainer = document.getElementById("custom-prompt-container") as any;
-  const noPromptContainer = document.getElementById("no-prompt-container") as any;
+  const personalityContainer = document.getElementById("personality-container");
+  const customPromptContainer = document.getElementById("custom-prompt-container");
+  const noPromptContainer = document.getElementById("no-prompt-container");
 
   if (elements.personalityPromptRadio?.checked) {
     if (personalityContainer) {
@@ -43,8 +43,8 @@ export function updateParameterControls() {
   const serviceConfig = currentService ? config?.services?.[currentService] : null;
   const hasDynamicModels = serviceConfig && typeof serviceConfig.fetchAndUpdateModels === "function";
 
-  const refreshButton = document.getElementById("refresh-models") as any;
-  const refreshInfo = document.querySelector(".refresh-models-info") as any;
+  const refreshButton = document.getElementById("refresh-models");
+  const refreshInfo = document.querySelector<HTMLElement>(".refresh-models-info");
 
   if (refreshButton) {
     refreshButton.style.display = hasDynamicModels ? "flex" : "none";
