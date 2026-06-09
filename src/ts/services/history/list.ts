@@ -118,7 +118,7 @@ export function renderChatHistoryList() {
         if (selectedRow) {
           const conversationId = selectedRow.dataset.conversationId;
           if (conversationId) {
-              loadConversation(conversationId)?.then(() => {
+            loadConversation(conversationId)?.then(() => {
               elements.historyPanel?.setAttribute("aria-hidden", "true");
               elements.historyButton?.setAttribute("aria-expanded", "false");
             });
