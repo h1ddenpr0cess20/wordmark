@@ -4,8 +4,8 @@
  */
 
 // Global tooltip instance
-let tooltipElement = null;
-let tooltipTimeout = null;
+let tooltipElement: HTMLElement | null = null;
+let tooltipTimeout: ReturnType<typeof setTimeout> | null = null;
 const TOOLTIP_DELAY = 500; // 500ms delay before showing tooltip
 
 /**
@@ -32,10 +32,10 @@ function initTooltipSystem() {
   document.addEventListener("touchend", handleTooltipTouchEnd, true);
 
   // Add touch event listener to hide tooltips when touching outside
-  document.addEventListener("touchstart", (event) => {
+  document.addEventListener("touchstart", (event: Event) => {
     // If touching outside a help icon and a tooltip is visible, hide it
     if (tooltipElement && tooltipElement.classList.contains("visible")) {
-      if (!(event.target as any).classList.contains("tool-help-icon")) {
+      if (!(event.target as HTMLElement).classList.contains("tool-help-icon")) {
         hideTooltip();
       }
     }
@@ -51,12 +51,12 @@ function initTooltipSystem() {
         if (!m.addedNodes) continue;
         m.addedNodes.forEach((node) => {
           if (node && node.nodeType === Node.ELEMENT_NODE) {
-            const el = node as any;
+            const el = node as HTMLElement;
             if (el.hasAttribute && el.hasAttribute("title")) {
               migrateTitle(el);
             }
             if (el.querySelectorAll) {
-              el.querySelectorAll("[title]").forEach(migrateTitle);
+              el.querySelectorAll<HTMLElement>("[title]").forEach(migrateTitle);
             }
           }
         });
@@ -69,14 +69,15 @@ function initTooltipSystem() {
 /**
  * Handle mouse enter events for elements with tooltips
  */
-function handleTooltipMouseEnter(event) {
+function handleTooltipMouseEnter(event: Event) {
   // Check if event.target is an element node and has closest method
-  if (!event.target || event.target.nodeType !== Node.ELEMENT_NODE || typeof (event.target as any).closest !== "function") {
+  const target = event.target as HTMLElement | null;
+  if (!target || target.nodeType !== Node.ELEMENT_NODE || typeof target.closest !== "function") {
     return;
   }
 
   // For tool help icons, only show on desktop (not mobile)
-  if (event.target.classList.contains("tool-help-icon")) {
+  if (target.classList.contains("tool-help-icon")) {
     // Check if this is a mobile device
     const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) ||
                      window.innerWidth <= 768;
@@ -87,7 +88,7 @@ function handleTooltipMouseEnter(event) {
   }
 
   // Support both custom data-tooltip and native title attributes
-  const element = (event.target as any).closest("[data-tooltip], [title]");
+  const element = target.closest<HTMLElement>("[data-tooltip], [title]");
   if (!element) {
     return;
   }
@@ -119,13 +120,14 @@ function handleTooltipMouseEnter(event) {
 /**
  * Handle mouse leave events for elements with tooltips
  */
-function handleTooltipMouseLeave(event) {
+function handleTooltipMouseLeave(event: Event) {
   // Check if event.target is an element node and has closest method
-  if (!event.target || event.target.nodeType !== Node.ELEMENT_NODE || typeof (event.target as any).closest !== "function") {
+  const target = event.target as HTMLElement | null;
+  if (!target || target.nodeType !== Node.ELEMENT_NODE || typeof target.closest !== "function") {
     return;
   }
 
-  const element = (event.target as any).closest("[data-tooltip], [title]");
+  const element = target.closest<HTMLElement>("[data-tooltip], [title]");
   if (!element) {
     return;
   }
@@ -151,9 +153,10 @@ function handleTooltipMouseLeave(event) {
 /**
  * Handle focusin events to show custom tooltips for keyboard users
  */
-function handleTooltipFocusIn(event) {
-  if (!event.target || event.target.nodeType !== Node.ELEMENT_NODE || typeof (event.target as any).closest !== "function") return;
-  const element = (event.target as any).closest("[data-tooltip], [title]");
+function handleTooltipFocusIn(event: Event) {
+  const target = event.target as HTMLElement | null;
+  if (!target || target.nodeType !== Node.ELEMENT_NODE || typeof target.closest !== "function") return;
+  const element = target.closest<HTMLElement>("[data-tooltip], [title]");
   if (!element) return;
   // Migrate title to data-tooltip if needed
   if (!element.getAttribute("data-tooltip") && element.hasAttribute("title")) {
@@ -172,9 +175,10 @@ function handleTooltipFocusIn(event) {
 /**
  * Handle focusout: hide tooltip and restore original title if migrated
  */
-function handleTooltipFocusOut(event) {
-  if (!event.target || event.target.nodeType !== Node.ELEMENT_NODE || typeof (event.target as any).closest !== "function") return;
-  const element = (event.target as any).closest("[data-tooltip], [title]");
+function handleTooltipFocusOut(event: Event) {
+  const target = event.target as HTMLElement | null;
+  if (!target || target.nodeType !== Node.ELEMENT_NODE || typeof target.closest !== "function") return;
+  const element = target.closest<HTMLElement>("[data-tooltip], [title]");
   if (!element) return;
   hideTooltip();
   if (element.dataset && element.dataset.tooltipRestoreTitle) {
@@ -188,7 +192,7 @@ function handleTooltipFocusOut(event) {
 /**
  * Helper: migrate a single element's native title to data-tooltip unless opted out
  */
-function migrateTitle(el) {
+function migrateTitle(el: HTMLElement) {
   if (!el || !el.getAttribute) return;
   if (el.hasAttribute("data-native-title") || el.dataset.nativeTitle === "true") return; // allow opt-out
   const title = el.getAttribute("title");
@@ -202,13 +206,13 @@ function migrateTitle(el) {
  * Convert all current [title] attributes to data-tooltip globally
  */
 function migrateAllTitlesToCustomTooltips() {
-  document.querySelectorAll("[title]").forEach(migrateTitle);
+  document.querySelectorAll<HTMLElement>("[title]").forEach(migrateTitle);
 }
 
 /**
  * Show tooltip for the given element
  */
-function showTooltip(element, text) {
+function showTooltip(element: HTMLElement, text: string) {
   if (!tooltipElement || !text) {
     return;
   }
@@ -247,7 +251,7 @@ function hideTooltip() {
 /**
  * Position tooltip relative to the target element
  */
-function positionTooltip(element) {
+function positionTooltip(element: HTMLElement) {
   if (!tooltipElement) {
     return;
   }
@@ -340,13 +344,14 @@ function positionTooltip(element) {
 /**
  * Handle touch start events for mobile tooltip support
  */
-function handleTooltipTouchStart(event) {
+function handleTooltipTouchStart(event: Event) {
   // Only handle touch events on help icons
-  if (!event.target || !event.target.classList.contains("tool-help-icon")) {
+  const target = event.target as HTMLElement | null;
+  if (!target || !target.classList.contains("tool-help-icon")) {
     return;
   }
 
-  const element = event.target;
+  const element = target;
   const tooltipText = element.getAttribute("data-tooltip");
   if (!tooltipText) {
     return;
@@ -371,11 +376,12 @@ function handleTooltipTouchStart(event) {
 /**
  * Handle touch end events for mobile tooltip support
  */
-function handleTooltipTouchEnd(event) {
+function handleTooltipTouchEnd(event: Event) {
   // Only handle if we have an active touch tooltip
-  if (event.target && (event.target as any).dataset.tooltipTouchActive) {
+  const target = event.target as HTMLElement | null;
+  if (target && target.dataset.tooltipTouchActive) {
     // Clear the touch active flag
-    delete (event.target as any).dataset.tooltipTouchActive;
+    delete target.dataset.tooltipTouchActive;
 
     // Hide tooltip after a short delay
     if (tooltipTimeout) {
@@ -391,7 +397,7 @@ function handleTooltipTouchEnd(event) {
 /**
  * Add tooltip to an element
  */
-function addTooltip(element, text) {
+function addTooltip(element: HTMLElement, text: string) {
   if (!element || !text) {
     return;
   }
@@ -401,7 +407,7 @@ function addTooltip(element, text) {
 /**
  * Remove tooltip from an element
  */
-function removeTooltip(element) {
+function removeTooltip(element: HTMLElement) {
   if (!element) {
     return;
   }
@@ -411,7 +417,7 @@ function removeTooltip(element) {
 /**
  * Update tooltip text for an element
  */
-function updateTooltip(element, text) {
+function updateTooltip(element: HTMLElement, text: string) {
   if (!element) {
     return;
   }

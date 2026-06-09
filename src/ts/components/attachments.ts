@@ -180,7 +180,7 @@ async function handleFiles(files: File[], options: { isDirectory?: boolean } = {
     const groups = new Map<string, DirectoryFile[]>();
     for (const file of supported) {
       // Prefer File.webkitRelativePath or custom _relativePath set via drag-and-drop traversal
-      const rel = file.webkitRelativePath || file._relativePath || file.name;
+      const rel = file.webkitRelativePath || (file as FileWithRelativePath)._relativePath || file.name;
       const parts = rel.split("/");
       const top = parts[0] || "Directory";
       // Path inside the selected folder
@@ -199,7 +199,7 @@ async function handleFiles(files: File[], options: { isDirectory?: boolean } = {
 
     // If we couldn't infer any directory structure, treat as individual documents
     const hasStructure = Array.from(groups.keys()).some(k => k && k !== "Directory") ||
-                         supported.some(f => (f.webkitRelativePath || f._relativePath || "").includes("/"));
+                         supported.some(f => (f.webkitRelativePath || (f as FileWithRelativePath)._relativePath || "").includes("/"));
 
     if (!hasStructure) {
       // Append as individual document attachments

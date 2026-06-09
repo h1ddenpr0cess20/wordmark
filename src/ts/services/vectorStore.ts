@@ -18,19 +18,19 @@ const SUPPORTED_FILE_EXTENSIONS = [
 /**
  * Check if a file has a supported extension
  */
-function isSupportedFileType(filename) {
-  const ext = filename.split(".").pop().toLowerCase();
-  return SUPPORTED_FILE_EXTENSIONS.includes(ext);
+function isSupportedFileType(filename: string) {
+  const ext = filename.split(".").pop()?.toLowerCase();
+  return ext ? SUPPORTED_FILE_EXTENSIONS.includes(ext) : false;
 }
 
 /**
  * Filter files to only include supported types
  */
-export function filterSupportedFiles(files) {
-  const supported = [];
-  const unsupported = [];
+export function filterSupportedFiles(files: File[]) {
+  const supported: File[] = [];
+  const unsupported: File[] = [];
 
-  files.forEach(file => {
+  files.forEach((file) => {
     if (isSupportedFileType(file.name)) {
       supported.push(file);
     } else {
@@ -44,7 +44,7 @@ export function filterSupportedFiles(files) {
 /**
  * Upload a file to the selected service
  */
-export async function uploadFile(file) {
+export async function uploadFile(file: File) {
   const apiKey = ensureApiKey();
   const baseUrl = getBaseUrl();
   const formData = new FormData();
@@ -71,7 +71,7 @@ export async function uploadFile(file) {
 /**
  * Create a vector store
  */
-export async function createVectorStore(name) {
+export async function createVectorStore(name: string) {
   const apiKey = ensureApiKey();
   const baseUrl = getBaseUrl();
 
@@ -96,7 +96,7 @@ export async function createVectorStore(name) {
 /**
  * Attach file to vector store
  */
-export async function attachFileToVectorStore(vectorStoreId, fileId) {
+export async function attachFileToVectorStore(vectorStoreId: string, fileId: string) {
   const apiKey = ensureApiKey();
   const baseUrl = getBaseUrl();
 
@@ -121,7 +121,7 @@ export async function attachFileToVectorStore(vectorStoreId, fileId) {
 /**
  * Get vector store file status
  */
-export async function getVectorStoreFileStatus(vectorStoreId, fileId) {
+export async function getVectorStoreFileStatus(vectorStoreId: string, fileId: string) {
   const apiKey = ensureApiKey();
   const baseUrl = getBaseUrl();
 
@@ -144,7 +144,7 @@ export async function getVectorStoreFileStatus(vectorStoreId, fileId) {
 /**
  * Batch upload and attach files to vector store
  */
-export async function uploadAndAttachFiles(files, vectorStoreName = "Chat Documents") {
+export async function uploadAndAttachFiles(files: File[], vectorStoreName = "Chat Documents") {
   try {
     // Filter files to only include supported types
     const { supported, unsupported } = filterSupportedFiles(files);
@@ -168,7 +168,7 @@ export async function uploadAndAttachFiles(files, vectorStoreName = "Chat Docume
     const vectorStore = await createVectorStore(vectorStoreName);
 
     // Upload files and attach to vector store
-    const attachments = [];
+    const attachments: any[] = [];
     for (const file of supported) {
       const uploadedFile = await uploadFile(file);
       const attachment = await attachFileToVectorStore(vectorStore.id, uploadedFile.id);
@@ -194,7 +194,7 @@ export async function uploadAndAttachFiles(files, vectorStoreName = "Chat Docume
 /**
  * Poll for file processing completion
  */
-export async function waitForFileProcessing(vectorStoreId, fileId, maxAttempts = 30, interval = 1000) {
+export async function waitForFileProcessing(vectorStoreId: string, fileId: string, maxAttempts = 30, interval = 1000) {
   for (let i = 0; i < maxAttempts; i++) {
     const status = await getVectorStoreFileStatus(vectorStoreId, fileId);
 
@@ -237,7 +237,7 @@ export async function listVectorStores(limit = 20) {
 /**
  * Get vector store details
  */
-export async function getVectorStore(vectorStoreId) {
+export async function getVectorStore(vectorStoreId: string) {
   const apiKey = ensureApiKey();
   const baseUrl = getBaseUrl();
 
@@ -260,7 +260,7 @@ export async function getVectorStore(vectorStoreId) {
 /**
  * Delete a vector store
  */
-export async function deleteVectorStore(vectorStoreId) {
+export async function deleteVectorStore(vectorStoreId: string) {
   const apiKey = ensureApiKey();
   const baseUrl = getBaseUrl();
 
@@ -283,7 +283,7 @@ export async function deleteVectorStore(vectorStoreId) {
 /**
  * List files in a vector store
  */
-export async function listVectorStoreFiles(vectorStoreId, limit = 20) {
+export async function listVectorStoreFiles(vectorStoreId: string, limit = 20) {
   const apiKey = ensureApiKey();
   const baseUrl = getBaseUrl();
 
@@ -312,7 +312,7 @@ export const MAX_ACTIVE_VECTOR_STORES = 2;
 /**
  * Save vector store metadata to local storage
  */
-export function saveVectorStoreMetadata(vectorStoreId, metadata) {
+export function saveVectorStoreMetadata(vectorStoreId: string, metadata: any) {
   try {
     const stored = localStorage.getItem(VECTOR_STORE_STORAGE_KEY);
     const stores = stored ? JSON.parse(stored) : {};
@@ -328,7 +328,7 @@ export function saveVectorStoreMetadata(vectorStoreId, metadata) {
         const bTime = (b[1] as any)?.lastUsed || 0;
         return bTime - aTime;
       });
-      const limited = [];
+      const limited: [string, unknown][] = [];
       if (activeId) {
         const activeEntry = sorted.find(([id]) => id === activeId);
         if (activeEntry) {
@@ -369,7 +369,7 @@ export function getVectorStoreMetadata() {
  */
 export function getActiveVectorStoreIds() {
   try {
-    const orderedIds = [];
+    const orderedIds: string[] = [];
     const active = typeof getActiveVectorStoreId === "function" ? getActiveVectorStoreId() : null;
     if (active) {
       orderedIds.push(active);
@@ -400,7 +400,7 @@ export function getActiveVectorStoreIds() {
 /**
  * Remove vector store metadata from local storage
  */
-export function removeVectorStoreMetadata(vectorStoreId) {
+export function removeVectorStoreMetadata(vectorStoreId: string) {
   try {
     const stored = localStorage.getItem(VECTOR_STORE_STORAGE_KEY);
     if (!stored) return;
@@ -427,7 +427,7 @@ export function getActiveVectorStoreId() {
 /**
  * Set the active vector store ID
  */
-export function setActiveVectorStoreId(vectorStoreId) {
+export function setActiveVectorStoreId(vectorStoreId: string | null) {
   state.activeVectorStore = vectorStoreId;
   if (vectorStoreId) {
     localStorage.setItem("active_vector_store", vectorStoreId);

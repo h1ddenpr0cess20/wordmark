@@ -259,6 +259,7 @@ async function activateVectorStore(storeId: string) {
  * View vector store details
  */
 async function viewVectorStoreDetails(storeId: string | null) {
+  if (!storeId) return;
   try {
     const store = await getVectorStore(storeId);
     const filesResponse = await listVectorStoreFiles(storeId, 100);
@@ -306,6 +307,7 @@ function confirmDeleteVectorStore(storeId: string | null) {
  * Delete a vector store
  */
 async function deleteVectorStoreById(storeId: string | null) {
+  if (!storeId) return;
   try {
     await enforceVectorStoreApiCooldown();
     await deleteVectorStore(storeId);
