@@ -1,13 +1,13 @@
-import { elements } from "../state.js";
-import { icon } from "../../utils/icons.js";
-import { isMobileDevice, focusUserInputSafely } from "../../utils/mobileHandling.js";
-import { exportChat, handleExportFormatChange } from "../../services/export.js";
-import { updateBrowserHistory } from "../../services/history/state.js";
-import { startNewConversation } from "../../services/history/persistence.js";
-import { updatePromptVisibility } from "../../components/ui/settingsControls.js";
-import { updateHeaderInfo, updateModelSelector } from "../../components/settings.js";
-import { setReasoningEffort, DEFAULT_REASONING_EFFORT } from "../modelSettings.js";
-import { DEFAULT_PERSONALITY, config } from "../../../config/config.js";
+import { elements } from "../state.ts";
+import { icon } from "../../utils/icons.ts";
+import { isMobileDevice, focusUserInputSafely } from "../../utils/mobileHandling.ts";
+import { exportChat, handleExportFormatChange } from "../../services/export.ts";
+import { updateBrowserHistory } from "../../services/history/state.ts";
+import { startNewConversation } from "../../services/history/persistence.ts";
+import { updatePromptVisibility } from "../../components/ui/settingsControls.ts";
+import { updateHeaderInfo, updateModelSelector } from "../../components/settings.ts";
+import { setReasoningEffort, DEFAULT_REASONING_EFFORT } from "../modelSettings.ts";
+import { DEFAULT_PERSONALITY, config } from "../../../config/config.ts";
 function closePanelIfActive(closeSettingsPanel) {
   if (typeof closeSettingsPanel === "function" && elements.settingsPanel && elements.settingsPanel.classList.contains("active")) {
     closeSettingsPanel();

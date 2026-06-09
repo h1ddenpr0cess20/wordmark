@@ -1,7 +1,7 @@
-import { ttsConfig, ttsRuntime, ttsMessageQueue } from "./config.js";
-import { shouldSkipTts } from "./filters.js";
-import { stopTtsAudio } from "./playback.js";
-import { state } from "../../init/state.js";
+import { ttsConfig, ttsRuntime, ttsMessageQueue } from "./config.ts";
+import { shouldSkipTts } from "./filters.ts";
+import { stopTtsAudio } from "./playback.ts";
+import { state } from "../../init/state.ts";
 
 export function playNextMessageInQueue() {
   if (!ttsMessageQueue.length || !ttsConfig.autoplay) {

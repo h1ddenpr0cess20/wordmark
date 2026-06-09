@@ -2,11 +2,11 @@
  * Client-side media generation/display helpers for xAI Grok Imagine images.
  */
 
-import { state } from "../init/state.js";
-import { loadImageFromDb, saveImageToDb } from "../utils/imageStorage.js";
-import { toolImplementations } from "./toolImplementations.js";
-import { getApiKey } from "./apiKeys.js";
-import { config } from "../../config/config.js";
+import { state } from "../init/state.ts";
+import { loadImageFromDb, saveImageToDb } from "../utils/imageStorage.ts";
+import { toolImplementations } from "./toolImplementations.ts";
+import { getApiKey } from "./apiKeys.ts";
+import { config } from "../../config/config.ts";
 
 const XAI_IMAGE_MODEL = "grok-imagine-image";
 

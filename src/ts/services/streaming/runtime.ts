@@ -1,12 +1,12 @@
-import { elements, state } from "../../init/state.js";
+import { elements, state } from "../../init/state.ts";
 import {
   IMAGE_GENERATION_CALL_TYPE,
   collectImageCandidates,
   imageDebugLog,
-} from "./imageGeneration.js";
-import { processMainContentMarkdown, separateThinkingSegments } from "./thinkingUtils.js";
-import { highlightAndAddCopyButtons } from "../../components/messages.js";
-import { fastScroll } from "../../utils/mobileHandling.js";
+} from "./imageGeneration.ts";
+import { processMainContentMarkdown, separateThinkingSegments } from "./thinkingUtils.ts";
+import { highlightAndAddCopyButtons } from "../../components/messages.ts";
+import { fastScroll } from "../../utils/mobileHandling.ts";
 
 /**
  * Builds the runtime helpers responsible for tracking streaming state and

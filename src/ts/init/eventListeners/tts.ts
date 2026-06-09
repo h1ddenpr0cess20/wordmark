@@ -1,4 +1,4 @@
-import { elements } from "../state.js";
+import { elements } from "../state.ts";
 import {
   ttsConfig,
   availableTtsVoices,
@@ -9,10 +9,10 @@ import {
   stopTtsAudio,
   clearTtsAudioResources,
   playNextMessageInQueue,
-} from "../../services/tts.js";
-import { config } from "../../../config/config.js";
-import { initializeTts, populateTtsVoiceSelector } from "../ttsInitialization.js";
-import { updateFeatureStatus } from "../../components/settings.js";
+} from "../../services/tts.ts";
+import { config } from "../../../config/config.ts";
+import { initializeTts, populateTtsVoiceSelector } from "../ttsInitialization.ts";
+import { updateFeatureStatus } from "../../components/settings.ts";
 
 export function setupTtsEventListeners() {
   if (elements.ttsToggle) {

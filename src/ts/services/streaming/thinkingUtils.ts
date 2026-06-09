@@ -3,7 +3,7 @@
  */
 
 import { marked } from "marked";
-import { sanitizeWithMedia } from "../../utils/sanitize.js";
+import { sanitizeWithMedia } from "../../utils/sanitize.ts";
 
 export function processMainContentMarkdown(mainText) {
   let html = mainText;

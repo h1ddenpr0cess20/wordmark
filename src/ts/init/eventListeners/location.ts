@@ -1,7 +1,7 @@
-import { elements, state } from "../state.js";
-import { showError } from "../../utils/notifications.js";
-import { updateFeatureStatus } from "../../components/settings.js";
-import { requestLocation, disableLocation, updateLocationUI } from "../../services/location.js";
+import { elements, state } from "../state.ts";
+import { showError } from "../../utils/notifications.ts";
+import { updateFeatureStatus } from "../../components/settings.ts";
+import { requestLocation, disableLocation, updateLocationUI } from "../../services/location.ts";
 export function setupLocationEventListeners() {
   if (!elements.locationToggle) {
     return;

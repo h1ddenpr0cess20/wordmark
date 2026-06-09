@@ -1,20 +1,20 @@
-import { elements, state } from "../init/state.js";
-import { showError,showInfo } from "../utils/notifications.js";
+import { elements, state } from "../init/state.ts";
+import { showError,showInfo } from "../utils/notifications.ts";
 /**
  * User interaction handling for the chatbot application
  */
 
-import { sanitizeInput, stripBase64FromHistory } from "../utils/utils.js";
-import { saveImageToDb } from "../utils/imageStorage.js";
-import { scrollInputIntoView } from "../utils/mobileHandling.js";
-import { finalizeStreamedResponse, removeLoadingIndicator } from "../services/streaming/messageLifecycle.js";
-import { updateBrowserHistory } from "../services/history/state.js";
-import { saveCurrentConversation } from "../services/history/persistence.js";
-import { responsesClient } from "../services/api.js";
-import { uploadFile, uploadAndAttachFiles, saveVectorStoreMetadata } from "../services/vectorStore.js";
-import { generateMessageId, addMessageCopyButton } from "./messages.js";
-import { appendMessage } from "./ui/chatMessages.js";
-import { getVerbosity, getReasoningEffort, getHistoryTokenBudget } from "../init/modelSettings.js";
+import { sanitizeInput, stripBase64FromHistory } from "../utils/utils.ts";
+import { saveImageToDb } from "../utils/imageStorage.ts";
+import { scrollInputIntoView } from "../utils/mobileHandling.ts";
+import { finalizeStreamedResponse, removeLoadingIndicator } from "../services/streaming/messageLifecycle.ts";
+import { updateBrowserHistory } from "../services/history/state.ts";
+import { saveCurrentConversation } from "../services/history/persistence.ts";
+import { responsesClient } from "../services/api.ts";
+import { uploadFile, uploadAndAttachFiles, saveVectorStoreMetadata } from "../services/vectorStore.ts";
+import { generateMessageId, addMessageCopyButton } from "./messages.ts";
+import { appendMessage } from "./ui/chatMessages.ts";
+import { getVerbosity, getReasoningEffort, getHistoryTokenBudget } from "../init/modelSettings.ts";
 
 // -----------------------------------------------------
 // Message sending and related functionality

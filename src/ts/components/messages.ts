@@ -1,7 +1,7 @@
 import hljs from "highlight.js";
-import { state } from "../init/state.js";
-import { icon } from "../utils/icons.js";
-import { addCopyButton } from "../utils/highlight.js";
+import { state } from "../init/state.ts";
+import { icon } from "../utils/icons.ts";
+import { addCopyButton } from "../utils/highlight.ts";
 /**
  * Message handling and display functions
  */

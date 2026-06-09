@@ -1,6 +1,6 @@
-import { elements } from "../state.js";
-import { renderChatHistoryList } from "../../services/history/list.js";
-import { updatePanelOpenState } from "./settingsPanel.js";
+import { elements } from "../state.ts";
+import { renderChatHistoryList } from "../../services/history/list.ts";
+import { updatePanelOpenState } from "./settingsPanel.ts";
 export function setupChatHistoryEventListeners() {
   if (elements.historyButton && elements.historyPanel) {
     elements.historyButton.addEventListener("click", () => {

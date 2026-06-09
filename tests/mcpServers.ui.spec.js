@@ -59,7 +59,7 @@ globalThis.document = {
 };
 
 const { getMCPServers, addMCPServer, requestMcpServerRemoval } =
-  await import("../src/ts/services/mcpServers.js");
+  await import("../src/ts/services/mcpServers.ts");
 
 test("addMCPServer persists unique servers and rejects duplicates", () => {
   const storage = createLocalStorage();

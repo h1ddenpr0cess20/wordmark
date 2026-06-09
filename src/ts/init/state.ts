@@ -1,12 +1,12 @@
 /**
  * Centralized application state and DOM element references.
  *
- * Modules should `import { state, elements } from "../init/state.js"` and read
+ * Modules should `import { state, elements } from "../init/state.ts"` and read
  * or write properties on these objects. This is the authoritative store for
  * shared runtime state and DOM references.
  */
 
-import type { AppState, Elements } from "../../types/state.js";
+import type { AppState, Elements } from "../../types/state.ts";
 
 // Mutable runtime state.
 export const state: AppState = {

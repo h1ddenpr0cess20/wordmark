@@ -1,5 +1,5 @@
-import { icon } from "../../utils/icons.js";
-import { showError } from "../../utils/notifications.js";
+import { icon } from "../../utils/icons.ts";
+import { showError } from "../../utils/notifications.ts";
 /**
  * Helpers for handling Code Interpreter outputs (files, logs) within responses.
  */
@@ -7,7 +7,7 @@ import { showError } from "../../utils/notifications.js";
 import {
   ensureApiKey,
   getBaseUrl,
-} from "../api/clientConfig.js";
+} from "../api/clientConfig.ts";
 
 const FILE_METADATA_CACHE = new Map();
 const FILE_METADATA_PROMISES = new Map();

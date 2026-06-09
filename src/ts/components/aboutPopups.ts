@@ -4,7 +4,7 @@ import privacyPolicyHtml from "../../html/privacy-policy.html?raw";
 import contactHtml from "../../html/contact.html?raw";
 import termsOfServiceHtml from "../../html/terms-of-service.html?raw";
 import helpGuideHtml from "../../html/help-guide.html?raw";
-import { state } from "../init/state.js";
+import { state } from "../init/state.ts";
 
 // Bundled standalone page markup keyed by their source path.
 const ABOUT_PAGE_HTML = {

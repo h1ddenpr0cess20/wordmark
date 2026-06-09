@@ -1,7 +1,7 @@
-import { saveAudioToDb } from "../../utils/audioStorage.js";
-import { ttsConfig, ttsRuntime } from "./config.js";
-import { stopTtsAudio } from "./playback.js";
-import { state } from "../../init/state.js";
+import { saveAudioToDb } from "../../utils/audioStorage.ts";
+import { ttsConfig, ttsRuntime } from "./config.ts";
+import { stopTtsAudio } from "./playback.ts";
+import { state } from "../../init/state.ts";
 
 export const ttsAudioResources = {
   activeUrls: new Map(),

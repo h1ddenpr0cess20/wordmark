@@ -1,5 +1,5 @@
-import { elements } from "../../init/state.js";
-import { config } from "../../../config/config.js";
+import { elements } from "../../init/state.ts";
+import { config } from "../../../config/config.ts";
 export function updatePromptVisibility() {
   const personalityContainer = document.getElementById("personality-container") as any;
   const customPromptContainer = document.getElementById("custom-prompt-container") as any;

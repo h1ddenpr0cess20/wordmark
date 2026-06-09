@@ -12,8 +12,8 @@ globalThis.document = globalThis.document || {
 };
 
 const { debounce, sanitizeInput, stripBase64FromHistory, toggleThinking } =
-  await import("../src/ts/utils/utils.js");
-const { state } = await import("../src/ts/init/state.js");
+  await import("../src/ts/utils/utils.ts");
+const { state } = await import("../src/ts/init/state.ts");
 
 test("sanitizeInput escapes angle brackets", () => {
   const raw = "<script>alert(1)</script>"; // eslint-disable-line no-script-url

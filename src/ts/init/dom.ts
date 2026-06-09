@@ -2,7 +2,7 @@
  * DOM initialization for chatbot application
  */
 
-import { elements, state } from "./state.js";
+import { elements, state } from "./state.ts";
 
 // Element lookups are cast through `any` because the concrete element types are
 // declared on the `Elements` interface (state.ts); the DOM APIs only return the

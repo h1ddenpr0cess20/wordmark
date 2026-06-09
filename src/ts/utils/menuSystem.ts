@@ -14,7 +14,7 @@ import ttsHtml from "../../html/panels/settings/tts.html?raw";
 import themeHtml from "../../html/panels/settings/theme.html?raw";
 import apiKeysHtml from "../../html/panels/settings/apiKeys.html?raw";
 import locationHtml from "../../html/panels/settings/location.html?raw";
-import { initTheme } from "../components/theme.js";
+import { initTheme } from "../components/theme.ts";
 import aboutHtml from "../../html/panels/settings/about.html?raw";
 
 // Map of source path -> bundled markup so callers can keep referring to files.

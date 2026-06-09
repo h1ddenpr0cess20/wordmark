@@ -1,6 +1,6 @@
-import { elements, state } from "../state.js";
-import { loadGalleryModule } from "../../utils/lazyLoader.js";
-import { sendMessage } from "../../components/interaction.js";
+import { elements, state } from "../state.ts";
+import { loadGalleryModule } from "../../utils/lazyLoader.ts";
+import { sendMessage } from "../../components/interaction.ts";
 export function initializeConversationInput() {
   if (!elements.userInput || !elements.sendButton) {
     return;

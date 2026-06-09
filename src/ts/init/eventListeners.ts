@@ -1,18 +1,18 @@
-import { elements, state } from "./state.js";
-import { showError } from "../utils/notifications.js";
-import { getDataSettingsEnabled, setDataSettingsEnabled, updateFeatureStatus } from "../components/settings.js";
-import { loadVectorStoreModule, lazyModulesLoaded } from "../utils/lazyLoader.js";
-import { initializeConversationInput } from "./eventListeners/conversationInput.js";
-import { initializeSettingsPanelControls } from "./eventListeners/settingsPanel.js";
-import { setupButtonEventListeners } from "./eventListeners/buttons.js";
-import { setupSelectorEventListeners } from "./eventListeners/selectors.js";
-import { setupPromptEventListeners } from "./eventListeners/prompts.js";
-import { setupTtsEventListeners } from "./eventListeners/tts.js";
-import { setupToolCallingEventListeners } from "./eventListeners/tools.js";
-import { setupLocationEventListeners } from "./eventListeners/location.js";
-import { setupChatHistoryEventListeners } from "./eventListeners/history.js";
-import { setupDebugEventListeners } from "./eventListeners/debug.js";
-import { DEFAULT_SHORT_RESPONSE_GUIDELINE } from "../../config/config.js";
+import { elements, state } from "./state.ts";
+import { showError } from "../utils/notifications.ts";
+import { getDataSettingsEnabled, setDataSettingsEnabled, updateFeatureStatus } from "../components/settings.ts";
+import { loadVectorStoreModule, lazyModulesLoaded } from "../utils/lazyLoader.ts";
+import { initializeConversationInput } from "./eventListeners/conversationInput.ts";
+import { initializeSettingsPanelControls } from "./eventListeners/settingsPanel.ts";
+import { setupButtonEventListeners } from "./eventListeners/buttons.ts";
+import { setupSelectorEventListeners } from "./eventListeners/selectors.ts";
+import { setupPromptEventListeners } from "./eventListeners/prompts.ts";
+import { setupTtsEventListeners } from "./eventListeners/tts.ts";
+import { setupToolCallingEventListeners } from "./eventListeners/tools.ts";
+import { setupLocationEventListeners } from "./eventListeners/location.ts";
+import { setupChatHistoryEventListeners } from "./eventListeners/history.ts";
+import { setupDebugEventListeners } from "./eventListeners/debug.ts";
+import { DEFAULT_SHORT_RESPONSE_GUIDELINE } from "../../config/config.ts";
 
 export function setupEventListeners() {
   if (state.verboseLogging) {

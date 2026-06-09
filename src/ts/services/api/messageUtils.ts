@@ -1,9 +1,9 @@
-import { elements, state } from "../../init/state.js";
-import { getMemoriesForPrompt } from "../../utils/memoryStorage.js";
-import { getLocationForPrompt } from "../location.js";
-import { getMediaToolInstructions } from "../mediaTools.js";
-import { getToolsDescription } from "../../components/tools.js";
-import { DEFAULT_PERSONALITY, DEFAULT_SYSTEM_PROMPT, PERSONALITY_PROMPT_TEMPLATE, config } from "../../../config/config.js";
+import { elements, state } from "../../init/state.ts";
+import { getMemoriesForPrompt } from "../../utils/memoryStorage.ts";
+import { getLocationForPrompt } from "../location.ts";
+import { getMediaToolInstructions } from "../mediaTools.ts";
+import { getToolsDescription } from "../../components/tools.ts";
+import { DEFAULT_PERSONALITY, DEFAULT_SYSTEM_PROMPT, PERSONALITY_PROMPT_TEMPLATE, config } from "../../../config/config.ts";
 /**
  * Message preparation helpers for the Responses API.
  */

@@ -1,7 +1,7 @@
-import { getApiKey } from "../../services/apiKeys.js";
-import { openSettingsAndSwitch } from "../../init/eventListeners/settingsPanel.js";
-import { config } from "../../../config/config.js";
-import { state } from "../../init/state.js";
+import { getApiKey } from "../../services/apiKeys.ts";
+import { openSettingsAndSwitch } from "../../init/eventListeners/settingsPanel.ts";
+import { config } from "../../../config/config.ts";
+import { state } from "../../init/state.ts";
 export function initTabs() {
   const tabButtons = document.querySelectorAll(".tab-button") as any;
   const tabContents = document.querySelectorAll(".tab-content") as any;

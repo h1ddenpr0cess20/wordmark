@@ -1,4 +1,4 @@
-import { state } from "../init/state.js";
+import { state } from "../init/state.ts";
 /**
  * Location service for browser geolocation functionality
  * Provides location awareness for AI prompts

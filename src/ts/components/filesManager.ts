@@ -1,11 +1,11 @@
-import { showError,showInfo } from "../utils/notifications.js";
+import { showError,showInfo } from "../utils/notifications.ts";
 /**
  * Assistants File Manager UI Component
  * Mirrors the Python utility (upload/list/delete/delete-all) for browser usage.
  */
 
-import { listAssistantFiles, deleteFile as deleteAssistantFile, deleteAllAssistantFiles } from "../services/files.js";
-import { uploadFile as uploadAssistantFile } from "../services/vectorStore.js"; // reuse existing upload implementation
+import { listAssistantFiles, deleteFile as deleteAssistantFile, deleteAllAssistantFiles } from "../services/files.ts";
+import { uploadFile as uploadAssistantFile } from "../services/vectorStore.ts"; // reuse existing upload implementation
 
 /**
  * Initialize the Assistants File Manager

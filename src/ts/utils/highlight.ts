@@ -1,5 +1,5 @@
-import { state } from "../init/state.js";
-import { icon } from "./icons.js";
+import { state } from "../init/state.ts";
+import { icon } from "./icons.ts";
 /**
  * Highlight.js integration and code formatting utilities
  */

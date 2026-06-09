@@ -3,8 +3,8 @@
  * Provides functions for storing and retrieving images from IndexedDB
  */
 
-import { state } from "../init/state.js";
-import { getMediaDisplayUrl } from "../services/mediaTools.js";
+import { state } from "../init/state.ts";
+import { getMediaDisplayUrl } from "../services/mediaTools.ts";
 
 // IndexedDB database configuration
 const IMAGE_DB_NAME = "wordmark-images";

@@ -1,10 +1,10 @@
-import { state } from "../init/state.js";
-import { showInfo } from "../utils/notifications.js";
+import { state } from "../init/state.ts";
+import { showInfo } from "../utils/notifications.ts";
 /**
  * File upload and attachment handling (images and documents)
  */
 
-import { filterSupportedFiles } from "../services/vectorStore.js";
+import { filterSupportedFiles } from "../services/vectorStore.ts";
 
 state.pendingUploads = [];
 state.pendingDocuments = [];

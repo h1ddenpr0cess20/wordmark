@@ -1,5 +1,5 @@
-import { elements } from "../../init/state.js";
-import { config } from "../../../config/config.js";
+import { elements } from "../../init/state.ts";
+import { config } from "../../../config/config.ts";
 /**
  * Responses client configuration helpers.
  * Provides access to defaults and active service/model selectors.

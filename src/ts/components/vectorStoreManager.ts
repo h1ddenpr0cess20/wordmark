@@ -1,4 +1,4 @@
-import { showError,showInfo } from "../utils/notifications.js";
+import { showError,showInfo } from "../utils/notifications.ts";
 /**
  * Vector Store Management UI Component
  */
@@ -16,7 +16,7 @@ import {
   getVectorStoreMetadata,
   removeVectorStoreMetadata,
   MAX_ACTIVE_VECTOR_STORES,
-} from "../services/vectorStore.js";
+} from "../services/vectorStore.ts";
 
 const VECTOR_STORE_API_COOLDOWN_MS = 3000;
 let lastVectorStoreApiCall = 0;

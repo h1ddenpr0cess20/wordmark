@@ -3,25 +3,25 @@
  * This file loads all initialization modules and coordinates the startup process
  */
 
-import { elements, state } from "./state.js";
-import { focusUserInputSafely } from "../utils/mobileHandling.js";
-import { initializeLocationService } from "../services/location.js";
-import { initMCPServers } from "../services/mcpServers.js";
-import { ensureApiKeysLoaded } from "../services/apiKeys.js";
-import { loadFromUrl } from "../services/history/state.js";
-import { renderChatHistoryList } from "../services/history/list.js";
-import { initializeTts, initializeMobileKeyboardHandling } from "./ttsInitialization.js";
-import { updateParameterControls } from "../components/ui/settingsControls.js";
-import { initTabs, openApiKeysTabIfNeeded } from "../components/ui/settingsTabs.js";
-import { initMemorySettings } from "../components/memory.js";
-import { updateHeaderInfo, updateModelSelector, updateFeatureStatus, initializePersonalityInput, applyDataSettingsState } from "../components/settings.js";
-import { initToolsSettings } from "../components/tools.js";
-import { initImageUploads } from "../components/attachments.js";
-import { initializeModelSettings } from "./modelSettings.js";
-import { setupEventListeners } from "./eventListeners.js";
-import { initializeDOMReferences } from "./dom.js";
-import { initializeAboutTab } from "./aboutTab.js";
-import { initializeMarked } from "./marked.js";
+import { elements, state } from "./state.ts";
+import { focusUserInputSafely } from "../utils/mobileHandling.ts";
+import { initializeLocationService } from "../services/location.ts";
+import { initMCPServers } from "../services/mcpServers.ts";
+import { ensureApiKeysLoaded } from "../services/apiKeys.ts";
+import { loadFromUrl } from "../services/history/state.ts";
+import { renderChatHistoryList } from "../services/history/list.ts";
+import { initializeTts, initializeMobileKeyboardHandling } from "./ttsInitialization.ts";
+import { updateParameterControls } from "../components/ui/settingsControls.ts";
+import { initTabs, openApiKeysTabIfNeeded } from "../components/ui/settingsTabs.ts";
+import { initMemorySettings } from "../components/memory.ts";
+import { updateHeaderInfo, updateModelSelector, updateFeatureStatus, initializePersonalityInput, applyDataSettingsState } from "../components/settings.ts";
+import { initToolsSettings } from "../components/tools.ts";
+import { initImageUploads } from "../components/attachments.ts";
+import { initializeModelSettings } from "./modelSettings.ts";
+import { setupEventListeners } from "./eventListeners.ts";
+import { initializeDOMReferences } from "./dom.ts";
+import { initializeAboutTab } from "./aboutTab.ts";
+import { initializeMarked } from "./marked.ts";
 import {
   initializeServicesAndModels,
   initializeConversationName,
@@ -30,7 +30,7 @@ import {
   initializeVerboseMode,
   initializeServiceModels,
   selectDefaultService,
-} from "./services.js";
+} from "./services.ts";
 
 // Main initialization function
 export async function initialize() {

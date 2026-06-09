@@ -6,8 +6,8 @@
  * (state.debug / state.verboseLogging / state.shortResponseGuideline) so they
  * can be toggled at runtime from anywhere.
  */
-import { state } from "../ts/init/state.js";
-import { uiHooks } from "../ts/init/uiHooks.js";
+import { state } from "../ts/init/state.ts";
+import { uiHooks } from "../ts/init/uiHooks.ts";
 
 // MCP client behavior to avoid browser CORS requirements on MCP endpoints.
 // When true, the app will NOT make browser pings to MCP servers and will assume

@@ -1,8 +1,8 @@
-import { elements, state } from "../init/state.js";
-import { ensureImagesHaveMessageIds } from "./streaming/imageGeneration.js";
-import { createStreamingRuntime } from "./streaming/runtime.js";
-import { createStreamingEventProcessor } from "./streaming/eventProcessor.js";
-import { setupImageInteractions } from "../components/ui/imageInteractions.js";
+import { elements, state } from "../init/state.ts";
+import { ensureImagesHaveMessageIds } from "./streaming/imageGeneration.ts";
+import { createStreamingRuntime } from "./streaming/runtime.ts";
+import { createStreamingEventProcessor } from "./streaming/eventProcessor.ts";
+import { setupImageInteractions } from "../components/ui/imageInteractions.ts";
 
 export { ensureImagesHaveMessageIds };
 

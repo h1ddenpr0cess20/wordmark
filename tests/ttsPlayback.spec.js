@@ -49,8 +49,8 @@ globalThis.setTimeout = (fn, ms) => { timeouts.push({ fn, ms }); return 0; };
 // Minimal indexedDB so resources.addUrl -> saveAudioToDb doesn't throw synchronously.
 globalThis.indexedDB = { open: () => ({ onsuccess: null, onerror: null, onupgradeneeded: null }) };
 
-const { ttsConfig, ttsRuntime, ttsSvgIcons } = await import("../src/ts/services/tts/config.js");
-const { stopTtsAudio, playTtsAudio, handleTtsAudioEnded } = await import("../src/ts/services/tts/playback.js");
+const { ttsConfig, ttsRuntime, ttsSvgIcons } = await import("../src/ts/services/tts/config.ts");
+const { stopTtsAudio, playTtsAudio, handleTtsAudioEnded } = await import("../src/ts/services/tts/playback.ts");
 
 function reset() {
   ttsRuntime.activeTtsAudio = null;

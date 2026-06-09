@@ -1,5 +1,5 @@
-import "./ui/settingsTabs.js";
-import "./ui/imageInteractions.js";
-import "./ui/chatMessages.js";
-import "./ui/settingsControls.js";
+import "./ui/settingsTabs.ts";
+import "./ui/imageInteractions.ts";
+import "./ui/chatMessages.ts";
+import "./ui/settingsControls.ts";
 

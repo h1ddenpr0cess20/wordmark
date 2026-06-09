@@ -1,11 +1,11 @@
-import { elements } from "../init/state.js";
-import { uiHooks } from "../init/uiHooks.js";
-import { DEFAULT_PERSONALITY, config } from "../../config/config.js";
-import { getMemoryConfig, setMemoryEnabled } from "../utils/memoryStorage.js";
-import { locationState, requestLocation, disableLocation } from "../services/location.js";
-import { ttsConfig } from "../services/tts.js";
-import { updateReasoningAvailability } from "../init/modelSettings.js";
-import { openSettingsAndSwitch } from "../init/eventListeners/settingsPanel.js";
+import { elements } from "../init/state.ts";
+import { uiHooks } from "../init/uiHooks.ts";
+import { DEFAULT_PERSONALITY, config } from "../../config/config.ts";
+import { getMemoryConfig, setMemoryEnabled } from "../utils/memoryStorage.ts";
+import { locationState, requestLocation, disableLocation } from "../services/location.ts";
+import { ttsConfig } from "../services/tts.ts";
+import { updateReasoningAvailability } from "../init/modelSettings.ts";
+import { openSettingsAndSwitch } from "../init/eventListeners/settingsPanel.ts";
 /**
  * Settings panel related functionality
  */

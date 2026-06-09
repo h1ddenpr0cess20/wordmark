@@ -44,8 +44,8 @@ function installDom(elems) {
   };
 }
 
-const storage = await import("../src/ts/utils/memoryStorage.js");
-const { initMemorySettings } = await import("../src/ts/components/memory.js");
+const storage = await import("../src/ts/utils/memoryStorage.ts");
+const { initMemorySettings } = await import("../src/ts/components/memory.ts");
 
 test("initMemorySettings attaches listeners and toggling updates enabled", () => {
   storage.clearAllMemories();

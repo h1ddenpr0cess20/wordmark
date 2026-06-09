@@ -1,17 +1,17 @@
-import { elements, state } from "../../init/state.js";
+import { elements, state } from "../../init/state.ts";
 import {
   getAllConversationsFromDb,
   saveConversationToDb,
   loadConversationFromDb,
   deleteConversationFromDb,
   renameConversationInDb,
-} from "../../utils/conversationStorage.js";
-import { config } from "../../../config/config.js";
-import { saveImageToDb, loadImageFromDb } from "../../utils/imageStorage.js";
-import { detectMediaType } from "../mediaTools.js";
-import { ensureImagesHaveMessageIds } from "../streaming/imageGeneration.js";
-import { renderChatHistoryList } from "./list.js";
-import { renderConversationMessages } from "./render.js";
+} from "../../utils/conversationStorage.ts";
+import { config } from "../../../config/config.ts";
+import { saveImageToDb, loadImageFromDb } from "../../utils/imageStorage.ts";
+import { detectMediaType } from "../mediaTools.ts";
+import { ensureImagesHaveMessageIds } from "../streaming/imageGeneration.ts";
+import { renderChatHistoryList } from "./list.ts";
+import { renderConversationMessages } from "./render.ts";
 
 function processImageForStorage(img, savePromises) {
   const processedImg = { ...img };

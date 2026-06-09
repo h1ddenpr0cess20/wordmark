@@ -1,13 +1,13 @@
-import { elements, state } from "../../init/state.js";
-import { detectMediaType, getMediaDisplayUrl } from "../mediaTools.js";
-import { updateMessageContent } from "../streaming/messageLifecycle.js";
-import { updatePromptVisibility } from "../../components/ui/settingsControls.js";
-import { highlightAndAddCopyButtons, addMessageCopyButton } from "../../components/messages.js";
-import { appendMessage } from "../../components/ui/chatMessages.js";
-import { renderWordmarkLogo } from "../../components/logo.js";
-import { setupImageInteractions } from "../../components/ui/imageInteractions.js";
-import { updateHeaderInfo, updateModelSelector } from "../../components/settings.js";
-import { config } from "../../../config/config.js";
+import { elements, state } from "../../init/state.ts";
+import { detectMediaType, getMediaDisplayUrl } from "../mediaTools.ts";
+import { updateMessageContent } from "../streaming/messageLifecycle.ts";
+import { updatePromptVisibility } from "../../components/ui/settingsControls.ts";
+import { highlightAndAddCopyButtons, addMessageCopyButton } from "../../components/messages.ts";
+import { appendMessage } from "../../components/ui/chatMessages.ts";
+import { renderWordmarkLogo } from "../../components/logo.ts";
+import { setupImageInteractions } from "../../components/ui/imageInteractions.ts";
+import { updateHeaderInfo, updateModelSelector } from "../../components/settings.ts";
+import { config } from "../../../config/config.ts";
 
 function createMissingMediaPlaceholder(filename, mediaType = "image") {
   const label = mediaType === "video" ? "Video" : "Image";

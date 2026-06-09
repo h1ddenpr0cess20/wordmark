@@ -1,10 +1,10 @@
-import { elements, state } from "../../init/state.js";
+import { elements, state } from "../../init/state.ts";
 import {
   getAllConversationsFromDb,
   deleteConversationFromDb,
-} from "../../utils/conversationStorage.js";
-import { DEFAULT_PERSONALITY } from "../../../config/config.js";
-import { startNewConversation, loadConversation, renameConversation } from "./persistence.js";
+} from "../../utils/conversationStorage.ts";
+import { DEFAULT_PERSONALITY } from "../../../config/config.ts";
+import { startNewConversation, loadConversation, renameConversation } from "./persistence.ts";
 
 export function renderChatHistoryList() {
   if (!elements.historyList) {

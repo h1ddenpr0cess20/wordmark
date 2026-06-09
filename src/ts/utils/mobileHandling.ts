@@ -1,4 +1,4 @@
-import { elements } from "../init/state.js";
+import { elements } from "../init/state.ts";
 /**
  * Utility functions to handle mobile keyboard behavior and scrolling optimization
  */

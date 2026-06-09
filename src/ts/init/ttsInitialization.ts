@@ -2,9 +2,9 @@
  * TTS initialization for the chatbot application
  */
 
-import { elements, state } from "./state.js";
-import { setupMobileKeyboardHandling } from "../utils/mobileHandling.js";
-import { ttsConfig, availableTtsVoices, initTtsReferences } from "../services/tts.js";
+import { elements, state } from "./state.ts";
+import { setupMobileKeyboardHandling } from "../utils/mobileHandling.ts";
+import { ttsConfig, availableTtsVoices, initTtsReferences } from "../services/tts.ts";
 
 /**
  * Initialize TTS functionality

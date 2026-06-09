@@ -1,6 +1,6 @@
-import { getMemoryConfig, setMemoryEnabled, setMemoryLimit, getMemories, addMemory, clearAllMemories, removeMemoryAt } from "../utils/memoryStorage.js";
-import { updateFeatureStatus } from "./settings.js";
-import { updateToolDefinitions } from "./tools.js";
+import { getMemoryConfig, setMemoryEnabled, setMemoryLimit, getMemories, addMemory, clearAllMemories, removeMemoryAt } from "../utils/memoryStorage.ts";
+import { updateFeatureStatus } from "./settings.ts";
+import { updateToolDefinitions } from "./tools.ts";
 /**
  * Memory settings panel functionality
  */

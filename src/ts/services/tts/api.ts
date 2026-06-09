@@ -1,6 +1,6 @@
-import { elements } from "../../init/state.js";
-import { ttsConfig } from "./config.js";
-import { config } from "../../../config/config.js";
+import { elements } from "../../init/state.ts";
+import { ttsConfig } from "./config.ts";
+import { config } from "../../../config/config.ts";
 
 export async function generateSpeech(text) {
   if (!ttsConfig.enabled) {

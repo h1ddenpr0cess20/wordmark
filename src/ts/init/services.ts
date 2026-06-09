@@ -2,12 +2,12 @@
  * Service and model initialization for the chatbot application
  */
 
-import { elements, state } from "./state.js";
-import { updateParameterControls } from "../components/ui/settingsControls.js";
-import { updateHeaderInfo, updateModelSelector, updateFeatureStatus, populateServiceSelector } from "../components/settings.js";
-import { updateMasterToolCallingStatus, refreshToolSettingsUI } from "../components/tools.js";
-import { DEFAULT_PERSONALITY, DEFAULT_SHORT_RESPONSE_GUIDELINE, DEFAULT_SYSTEM_PROMPT, config } from "../../config/config.js";
-import { pickCloudFallback } from "./serviceSelection.js";
+import { elements, state } from "./state.ts";
+import { updateParameterControls } from "../components/ui/settingsControls.ts";
+import { updateHeaderInfo, updateModelSelector, updateFeatureStatus, populateServiceSelector } from "../components/settings.ts";
+import { updateMasterToolCallingStatus, refreshToolSettingsUI } from "../components/tools.ts";
+import { DEFAULT_PERSONALITY, DEFAULT_SHORT_RESPONSE_GUIDELINE, DEFAULT_SYSTEM_PROMPT, config } from "../../config/config.ts";
+import { pickCloudFallback } from "./serviceSelection.ts";
 
 /**
  * Initialize services and models

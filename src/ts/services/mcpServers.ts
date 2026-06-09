@@ -1,7 +1,7 @@
-import { icon } from "../utils/icons.js";
-import { showNotification } from "../utils/notifications.js";
-import { responsesClient } from "./api.js";
-import { refreshToolSettingsUI } from "../components/tools.js";
+import { icon } from "../utils/icons.ts";
+import { showNotification } from "../utils/notifications.ts";
+import { responsesClient } from "./api.ts";
+import { refreshToolSettingsUI } from "../components/tools.ts";
 /**
  * MCP Server Management
  * Handles configuration and management of URL-based Model Context Protocol servers

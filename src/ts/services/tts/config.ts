@@ -1,4 +1,4 @@
-import { icon } from "../../utils/icons.js";
+import { icon } from "../../utils/icons.ts";
 
 // TTS configuration object and basic runtime state
 export const ttsConfig = {

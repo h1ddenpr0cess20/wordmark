@@ -1,5 +1,5 @@
-import { APP_VERSION, GITHUB_URL } from "../../config/config.js";
-import { state } from "./state.js";
+import { APP_VERSION, GITHUB_URL } from "../../config/config.ts";
+import { state } from "./state.ts";
 /**
  * About tab and configuration initialization for the chatbot application
  */

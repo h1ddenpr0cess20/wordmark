@@ -2,7 +2,7 @@
  * Utility functions for the chatbot application
  */
 
-import { state } from "../init/state.js";
+import { state } from "../init/state.ts";
 /**
  * Debounces a function call
  * @param {Function} func - The function to debounce

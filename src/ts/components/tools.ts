@@ -1,10 +1,10 @@
-import { elements } from "../init/state.js";
-import { showInfo } from "../utils/notifications.js";
-import { getMemoryConfig } from "../utils/memoryStorage.js";
-import { updateFeatureStatus } from "./settings.js";
-import { requestMcpServerRemoval } from "../services/mcpServers.js";
-import { responsesClient } from "../services/api.js";
-import { config } from "../../config/config.js";
+import { elements } from "../init/state.ts";
+import { showInfo } from "../utils/notifications.ts";
+import { getMemoryConfig } from "../utils/memoryStorage.ts";
+import { updateFeatureStatus } from "./settings.ts";
+import { requestMcpServerRemoval } from "../services/mcpServers.ts";
+import { responsesClient } from "../services/api.ts";
+import { config } from "../../config/config.ts";
 /**
  * Tool settings management for Responses API integrations.
  * Renders the tool list, persists toggle state, and synchronises with the

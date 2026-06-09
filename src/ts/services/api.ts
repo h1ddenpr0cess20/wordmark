@@ -3,15 +3,15 @@
  * Composes configuration, message preparation, network, and tool helpers.
  */
 
-import { getActiveServiceKey } from "./api/clientConfig.js";
+import { getActiveServiceKey } from "./api/clientConfig.ts";
 import {
   buildInstructions,
   collectFunctionCalls,
   serializeMessagesForRequest,
-} from "./api/messageUtils.js";
+} from "./api/messageUtils.ts";
 import {
   runTurn,
-} from "./api/requestClient.js";
+} from "./api/requestClient.ts";
 import {
   TOOL_DEFINITIONS,
   TOOL_HANDLERS,
@@ -25,7 +25,7 @@ import {
   getEnabledToolDefinitions,
   refreshMcpAvailability,
   supportsClientSideTools,
-} from "./api/toolManager.js";
+} from "./api/toolManager.ts";
 
 export const responsesClient = {
   buildInstructions,

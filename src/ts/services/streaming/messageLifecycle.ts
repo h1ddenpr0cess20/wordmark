@@ -1,8 +1,8 @@
-import { elements, state } from "../../init/state.js";
-import { showError } from "../../utils/notifications.js";
-import { updateBrowserHistory } from "../history/state.js";
-import { saveCurrentConversation } from "../history/persistence.js";
-import { ttsConfig, generateTtsForMessage } from "../tts.js";
+import { elements, state } from "../../init/state.ts";
+import { showError } from "../../utils/notifications.ts";
+import { updateBrowserHistory } from "../history/state.ts";
+import { saveCurrentConversation } from "../history/persistence.ts";
+import { ttsConfig, generateTtsForMessage } from "../tts.ts";
 /**
  * Message lifecycle helpers used during streaming and finalization.
  */
@@ -10,19 +10,19 @@ import { ttsConfig, generateTtsForMessage } from "../tts.js";
 import {
   imageDebugLog,
   processImageGenerationOutputs,
-} from "./imageGeneration.js";
+} from "./imageGeneration.ts";
 import {
   extractCodeInterpreterOutputs,
   renderCodeInterpreterOutputs,
-} from "./codeInterpreter.js";
+} from "./codeInterpreter.ts";
 import {
   processMainContentMarkdown,
   separateThinkingSegments,
-} from "./thinkingUtils.js";
-import { highlightAndAddCopyButtons, generateMessageId, addMessageCopyButton } from "../../components/messages.js";
-import { appendAssistantMessage } from "../../components/ui/chatMessages.js";
-import { setupImageInteractions } from "../../components/ui/imageInteractions.js";
-import { resetSendButton } from "../../components/interaction.js";
+} from "./thinkingUtils.ts";
+import { highlightAndAddCopyButtons, generateMessageId, addMessageCopyButton } from "../../components/messages.ts";
+import { appendAssistantMessage } from "../../components/ui/chatMessages.ts";
+import { setupImageInteractions } from "../../components/ui/imageInteractions.ts";
+import { resetSendButton } from "../../components/interaction.ts";
 
 export function finalizeStreamedResponse(loadingMessage, contentObj) {
   if (!loadingMessage) {

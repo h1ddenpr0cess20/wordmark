@@ -1,10 +1,10 @@
-import { state } from "../init/state.js";
-import { showInfo } from "../utils/notifications.js";
+import { state } from "../init/state.ts";
+import { showInfo } from "../utils/notifications.ts";
 /**
  * Vector Store and File Management Service
  */
 
-import { ensureApiKey, getBaseUrl } from "./api/clientConfig.js";
+import { ensureApiKey, getBaseUrl } from "./api/clientConfig.ts";
 
 /**
  * Supported file extensions for vector store uploads

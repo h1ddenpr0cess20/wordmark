@@ -1,9 +1,9 @@
-import { icon } from "../utils/icons.js";
-import { updateFeatureStatus, updateModelSelector } from "../components/settings.js";
-import { refreshToolSettingsUI } from "../components/tools.js";
-import { config } from "../../config/config.js";
-import { state } from "../init/state.js";
-import { API_KEYS_STORAGE_PREFIX, loadApiKeysIntoConfig } from "./apiKeyStorage.js";
+import { icon } from "../utils/icons.ts";
+import { updateFeatureStatus, updateModelSelector } from "../components/settings.ts";
+import { refreshToolSettingsUI } from "../components/tools.ts";
+import { config } from "../../config/config.ts";
+import { state } from "../init/state.ts";
+import { API_KEYS_STORAGE_PREFIX, loadApiKeysIntoConfig } from "./apiKeyStorage.ts";
 /**
  * API key management functionality
  */

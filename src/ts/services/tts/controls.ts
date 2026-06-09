@@ -1,11 +1,11 @@
-import { elements, state } from "../../init/state.js";
-import { showError } from "../../utils/notifications.js";
-import { exportAudioForDownload } from "../../utils/audioStorage.js";
-import { ttsConfig, ttsRuntime, ttsSvgIcons, ttsMessageQueue } from "./config.js";
-import { ttsAudioResources } from "./resources.js";
-import { generateSpeech } from "./api.js";
-import { stopTtsAudio, handleTtsAudioEnded } from "./playback.js";
-import { playNextMessageInQueue } from "./queue.js";
+import { elements, state } from "../../init/state.ts";
+import { showError } from "../../utils/notifications.ts";
+import { exportAudioForDownload } from "../../utils/audioStorage.ts";
+import { ttsConfig, ttsRuntime, ttsSvgIcons, ttsMessageQueue } from "./config.ts";
+import { ttsAudioResources } from "./resources.ts";
+import { generateSpeech } from "./api.ts";
+import { stopTtsAudio, handleTtsAudioEnded } from "./playback.ts";
+import { playNextMessageInQueue } from "./queue.ts";
 export async function generateTtsForMessage(text, messageId) {
   if (!ttsConfig.enabled) {
     return;

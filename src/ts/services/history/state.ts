@@ -1,8 +1,8 @@
-import { elements, state } from "../../init/state.js";
-import { saveConversationToDb } from "../../utils/conversationStorage.js";
-import { appendMessage } from "../../components/ui/chatMessages.js";
-import { updateHeaderInfo } from "../../components/settings.js";
-import { config } from "../../../config/config.js";
+import { elements, state } from "../../init/state.ts";
+import { saveConversationToDb } from "../../utils/conversationStorage.ts";
+import { appendMessage } from "../../components/ui/chatMessages.ts";
+import { updateHeaderInfo } from "../../components/settings.ts";
+import { config } from "../../../config/config.ts";
 
 export function updateBrowserHistory() {
   let systemPromptValue = "";

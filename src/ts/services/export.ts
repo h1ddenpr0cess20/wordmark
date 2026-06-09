@@ -1,4 +1,4 @@
-import { elements, state } from "../init/state.js";
+import { elements, state } from "../init/state.ts";
 /**
  * Chat export functionality
  */

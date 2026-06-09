@@ -1,7 +1,7 @@
-import { elements, state } from "../state.js";
-import { switchToTab } from "../../components/ui/settingsTabs.js";
-import { updateHeaderInfo, organizeSettingsLayout } from "../../components/settings.js";
-import { DEFAULT_PERSONALITY } from "../../../config/config.js";
+import { elements, state } from "../state.ts";
+import { switchToTab } from "../../components/ui/settingsTabs.ts";
+import { updateHeaderInfo, organizeSettingsLayout } from "../../components/settings.ts";
+import { DEFAULT_PERSONALITY } from "../../../config/config.ts";
 
 // Single settings panel — original prompt values are stashed here while the
 // panel is open so they can be restored if the user dismisses without saving.

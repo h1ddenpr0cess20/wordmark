@@ -1,8 +1,8 @@
-import { state } from "../../init/state.js";
-import { icon } from "../../utils/icons.js";
-import { deleteImageFromDb } from "../../utils/imageStorage.js";
-import { isMobileDevice } from "../../utils/mobileHandling.js";
-import { detectMediaType, downloadMediaSource } from "../../services/mediaTools.js";
+import { state } from "../../init/state.ts";
+import { icon } from "../../utils/icons.ts";
+import { deleteImageFromDb } from "../../utils/imageStorage.ts";
+import { isMobileDevice } from "../../utils/mobileHandling.ts";
+import { detectMediaType, downloadMediaSource } from "../../services/mediaTools.ts";
 
 function elementMediaType(element) {
   const explicit = element?.dataset?.mediaType;

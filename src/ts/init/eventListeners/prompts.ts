@@ -1,10 +1,10 @@
-import { elements } from "../state.js";
-import { debounce } from "../../utils/utils.js";
-import { focusUserInputSafely } from "../../utils/mobileHandling.js";
-import { updateBrowserHistory } from "../../services/history/state.js";
-import { startNewConversation } from "../../services/history/persistence.js";
-import { updatePromptVisibility } from "../../components/ui/settingsControls.js";
-import { updateHeaderInfo } from "../../components/settings.js";
+import { elements } from "../state.ts";
+import { debounce } from "../../utils/utils.ts";
+import { focusUserInputSafely } from "../../utils/mobileHandling.ts";
+import { updateBrowserHistory } from "../../services/history/state.ts";
+import { startNewConversation } from "../../services/history/persistence.ts";
+import { updatePromptVisibility } from "../../components/ui/settingsControls.ts";
+import { updateHeaderInfo } from "../../components/settings.ts";
 
 function setupPromptRadioEventListeners() {
   if (elements.personalityPromptRadio) {

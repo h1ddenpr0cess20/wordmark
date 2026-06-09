@@ -2,7 +2,7 @@
  * Network layer for the Responses API.
  */
 
-import { state } from "../../init/state.js";
+import { state } from "../../init/state.ts";
 import {
   DEFAULT_VERBOSITY,
   DEFAULT_REASONING_EFFORT,
@@ -11,23 +11,23 @@ import {
   getActiveServiceKey,
   getBaseUrl,
   supportsReasoningEffort,
-} from "./clientConfig.js";
+} from "./clientConfig.ts";
 import {
   buildDeveloperMessage,
   collectFunctionCalls,
   serializeMessagesForRequest,
   windowMessagesByTokenBudget,
-} from "./messageUtils.js";
+} from "./messageUtils.ts";
 import {
   getEnabledToolDefinitions,
   isClientSideToolType,
   refreshMcpAvailability,
   supportsClientSideTools,
   TOOL_HANDLERS,
-} from "./toolManager.js";
-import { getActiveVectorStoreIds } from "../vectorStore.js";
-import { toolImplementations } from "../toolImplementations.js";
-import { handleStreamedResponse } from "../streaming.js";
+} from "./toolManager.ts";
+import { getActiveVectorStoreIds } from "../vectorStore.ts";
+import { toolImplementations } from "../toolImplementations.ts";
+import { handleStreamedResponse } from "../streaming.ts";
 
 const DEFAULT_INCLUDE_FIELDS = [
   "code_interpreter_call.outputs",

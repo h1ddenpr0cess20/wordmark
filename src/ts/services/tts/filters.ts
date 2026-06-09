@@ -1,4 +1,4 @@
-import { state } from "../../init/state.js";
+import { state } from "../../init/state.ts";
 export function shouldSkipTts(messageId) {
   const messageElement = document.getElementById(`message-${messageId}`) || document.getElementById(messageId) as any;
   if (!messageElement) {

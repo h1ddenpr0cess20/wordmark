@@ -1,5 +1,5 @@
-import { applyConsoleLogging } from "../../../config/config.js";
-import { state } from "../state.js";
+import { applyConsoleLogging } from "../../../config/config.ts";
+import { state } from "../state.ts";
 function showDebugToggleNotification(status) {
   const notification = document.createElement("div");
   notification.className = "debug-toggle-notification";

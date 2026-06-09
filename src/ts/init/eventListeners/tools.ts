@@ -1,9 +1,9 @@
-import { elements } from "../state.js";
-import { showInfo } from "../../utils/notifications.js";
-import { loadToolScripts } from "../../utils/toolLoader.js";
-import { updateFeatureStatus } from "../../components/settings.js";
-import { updateMasterToolCallingStatus } from "../../components/tools.js";
-import { config } from "../../../config/config.js";
+import { elements } from "../state.ts";
+import { showInfo } from "../../utils/notifications.ts";
+import { loadToolScripts } from "../../utils/toolLoader.ts";
+import { updateFeatureStatus } from "../../components/settings.ts";
+import { updateMasterToolCallingStatus } from "../../components/tools.ts";
+import { config } from "../../../config/config.ts";
 export function setupToolCallingEventListeners() {
   if (!elements.toolCallingToggle) {
     return;

@@ -1,11 +1,11 @@
-import { elements, state } from "../../init/state.js";
-import { icon } from "../../utils/icons.js";
+import { elements, state } from "../../init/state.ts";
+import { icon } from "../../utils/icons.ts";
 import { marked } from "marked";
-import { fastScroll } from "../../utils/mobileHandling.js";
-import { renderWordmarkLogo } from "../logo.js";
-import { generateMessageId, highlightAndAddCopyButtons } from "../messages.js";
-import { setupImageInteractions } from "./imageInteractions.js";
-import { sanitizeWithMedia } from "../../utils/sanitize.js";
+import { fastScroll } from "../../utils/mobileHandling.ts";
+import { renderWordmarkLogo } from "../logo.ts";
+import { generateMessageId, highlightAndAddCopyButtons } from "../messages.ts";
+import { setupImageInteractions } from "./imageInteractions.ts";
+import { sanitizeWithMedia } from "../../utils/sanitize.ts";
 function renderAssistantIcon(senderElement) {
   senderElement.innerHTML = `
     <svg class="sender-icon assistant-icon" width="32" height="32" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">

@@ -1,14 +1,14 @@
-import { getMemoryConfig } from "../../utils/memoryStorage.js";
+import { getMemoryConfig } from "../../utils/memoryStorage.ts";
 /**
  * Tool catalog, preference management, and MCP availability helpers.
  */
 
-import { getActiveServiceKey, getActiveModel } from "./clientConfig.js";
-import { weatherToolHandler } from "../weather.js";
-import { memoryToolDefinition, forgetToolDefinition } from "../memory.js";
-import { getApiKey } from "../apiKeys.js";
-import { MCP_ASSUME_ONLINE, config } from "../../../config/config.js";
-import { state } from "../../init/state.js";
+import { getActiveServiceKey, getActiveModel } from "./clientConfig.ts";
+import { weatherToolHandler } from "../weather.ts";
+import { memoryToolDefinition, forgetToolDefinition } from "../memory.ts";
+import { getApiKey } from "../apiKeys.ts";
+import { MCP_ASSUME_ONLINE, config } from "../../../config/config.ts";
+import { state } from "../../init/state.ts";
 
 const TOOL_STORAGE_KEY = "wordmark_tool_preferences";
 

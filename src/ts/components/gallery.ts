@@ -1,5 +1,5 @@
-import { state } from "../init/state.js";
-import { icon } from "../utils/icons.js";
+import { state } from "../init/state.ts";
+import { icon } from "../utils/icons.ts";
 /**
  * Media Gallery functionality for the chatbot application.
  * Displays and manages generated or uploaded images and videos from IndexedDB.
@@ -10,10 +10,10 @@ import {
   deleteImageFromDb,
   getImageDb,
   IMAGE_STORE_NAME,
-} from "../utils/imageStorage.js";
-import { detectMediaType, getMediaDisplayUrl, downloadMediaSource } from "../services/mediaTools.js";
-import { createImageSlideshow } from "./ui/imageInteractions.js";
-import { updatePanelOpenState } from "../init/eventListeners/settingsPanel.js";
+} from "../utils/imageStorage.ts";
+import { detectMediaType, getMediaDisplayUrl, downloadMediaSource } from "../services/mediaTools.ts";
+import { createImageSlideshow } from "./ui/imageInteractions.ts";
+import { updatePanelOpenState } from "../init/eventListeners/settingsPanel.ts";
 
 // -----------------------------------------------------
 // Gallery functionality

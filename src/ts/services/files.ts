@@ -4,7 +4,7 @@
  * Uses the same API config pattern as vectorStore.js.
  */
 
-import { ensureApiKey, getBaseUrl } from "./api/clientConfig.js";
+import { ensureApiKey, getBaseUrl } from "./api/clientConfig.ts";
 
 /**
  * List files with purpose "assistants"

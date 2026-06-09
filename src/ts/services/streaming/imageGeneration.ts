@@ -2,8 +2,8 @@
  * Image generation and attachment helpers used during streaming.
  */
 
-import { state } from "../../init/state.js";
-import { registerGeneratedMedia } from "../mediaTools.js";
+import { state } from "../../init/state.ts";
+import { registerGeneratedMedia } from "../mediaTools.ts";
 
 export const IMAGE_GENERATION_CALL_TYPE = "image_generation_call";
 

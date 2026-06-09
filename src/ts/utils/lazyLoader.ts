@@ -2,7 +2,7 @@
  * Lazy loading utilities for optional modules to reduce initial page weight.
  */
 
-import { initializeVectorStore } from "../services/vectorStore.js";
+import { initializeVectorStore } from "../services/vectorStore.ts";
 
 export const lazyModulesLoaded: Record<string, boolean> = {};
 
@@ -12,7 +12,7 @@ export function loadGalleryModule() {
   if (galleryModule) {
     return Promise.resolve(galleryModule);
   }
-  return import("../components/gallery.js").then((mod) => {
+  return import("../components/gallery.ts").then((mod) => {
     galleryModule = mod;
     lazyModulesLoaded.gallery = true;
     return mod;
@@ -31,9 +31,9 @@ export function loadVectorStoreModule() {
   // are code-split into separate chunks.
   initializeVectorStore();
 
-  return import("../components/vectorStoreManager.js").then(({ initVectorStoreManager }) => {
+  return import("../components/vectorStoreManager.ts").then(({ initVectorStoreManager }) => {
     return initVectorStoreManager().then(() => {
-      return import("../components/filesManager.js").then(({ initFilesManager }) => {
+      return import("../components/filesManager.ts").then(({ initFilesManager }) => {
         return initFilesManager().then(() => {
           lazyModulesLoaded.vectorStore = true;
         }).catch(fe => {

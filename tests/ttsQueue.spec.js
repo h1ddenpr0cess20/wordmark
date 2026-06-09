@@ -12,8 +12,8 @@ globalThis.window = { VERBOSE_LOGGING: false };
 globalThis.document = { getElementById: (id) => elements.get(id) || null };
 globalThis.setTimeout = (fn, ms) => { timeouts.push({ fn, ms }); return 0; };
 
-const { ttsConfig, ttsRuntime, ttsMessageQueue } = await import("../src/ts/services/tts/config.js");
-const { playNextMessageInQueue, addMessageToTtsQueue } = await import("../src/ts/services/tts/queue.js");
+const { ttsConfig, ttsRuntime, ttsMessageQueue } = await import("../src/ts/services/tts/config.ts");
+const { playNextMessageInQueue, addMessageToTtsQueue } = await import("../src/ts/services/tts/queue.ts");
 
 function reset() {
   ttsConfig.enabled = true;

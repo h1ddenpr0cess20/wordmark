@@ -1,5 +1,5 @@
-import { getMemories, addMemory, removeMemoryAt, getMemoryConfig } from "../utils/memoryStorage.js";
-import { toolImplementations } from "./toolImplementations.js";
+import { getMemories, addMemory, removeMemoryAt, getMemoryConfig } from "../utils/memoryStorage.ts";
+import { toolImplementations } from "./toolImplementations.ts";
 /**
  * Memory function definition and implementation
  * Exposes a separate function-call tool: `remember`

@@ -1,7 +1,7 @@
-import { ttsConfig, ttsRuntime, ttsSvgIcons } from "./config.js";
-import { ttsAudioResources } from "./resources.js";
-import { playNextMessageInQueue, playQueuedTtsMessage } from "./queue.js";
-import { state } from "../../init/state.js";
+import { ttsConfig, ttsRuntime, ttsSvgIcons } from "./config.ts";
+import { ttsAudioResources } from "./resources.ts";
+import { playNextMessageInQueue, playQueuedTtsMessage } from "./queue.ts";
+import { state } from "../../init/state.ts";
 
 export function stopTtsAudio() {
   if (!ttsRuntime.activeTtsAudio) {

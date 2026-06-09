@@ -2,8 +2,8 @@
  * Model settings initialization for the chatbot application
  */
 
-import { state, elements } from "./state.js";
-import { config } from "../../config/config.js";
+import { state, elements } from "./state.ts";
+import { config } from "../../config/config.ts";
 
 const REASONING_EFFORT_STORAGE_KEY = "reasoningEffort";
 export const DEFAULT_REASONING_EFFORT = "medium";
