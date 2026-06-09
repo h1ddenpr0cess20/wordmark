@@ -4,7 +4,17 @@ import { deleteImageFromDb } from "../../utils/imageStorage.ts";
 import { isMobileDevice } from "../../utils/mobileHandling.ts";
 import { detectMediaType, downloadMediaSource } from "../../services/mediaTools.ts";
 
-function elementMediaType(element: any) {
+// Normalized media descriptor consumed by the slideshow viewer.
+interface ViewerItem {
+  mediaType: string;
+  url: string;
+  prompt: string;
+  timestamp: string | number | null;
+  filename: string | null;
+  uploaded: boolean;
+}
+
+function elementMediaType(element: HTMLElement): "video" | "image" {
   const explicit = element?.dataset?.mediaType;
   if (explicit === "video" || explicit === "image") {
     return explicit;
@@ -12,7 +22,7 @@ function elementMediaType(element: any) {
   return element?.tagName?.toLowerCase() === "video" ? "video" : "image";
 }
 
-function buildViewerMediaElement(item: any) {
+function buildViewerMediaElement(item: ViewerItem) {
   const mediaType = item.mediaType;
   if (mediaType === "video") {
     const video = document.createElement("video");
@@ -31,7 +41,7 @@ function buildViewerMediaElement(item: any) {
   return img;
 }
 
-function normalizeViewerItem(source: any, isGalleryMode: boolean) {
+function normalizeViewerItem(source: any, isGalleryMode: boolean): ViewerItem {
   if (isGalleryMode) {
     const mediaType = detectMediaType(source);
     return {
@@ -378,9 +388,9 @@ export function createImageSlideshow(images: any[], startIndex: number, isGaller
   });
 }
 
-function gatherAllConversationMedia(clickedElement: any) {
+function gatherAllConversationMedia(clickedElement: Element) {
   const allMessages = Array.from(document.querySelectorAll(".message"));
-  const allMedia: any[] = [];
+  const allMedia: Element[] = [];
   let clickedIndex = -1;
 
   allMessages.forEach((message) => {
