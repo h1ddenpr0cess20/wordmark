@@ -1,14 +1,18 @@
-function bufferAppend(map, key, delta) {
+import type { createStreamingRuntime } from "./runtime.ts";
+
+type StreamingRuntime = ReturnType<typeof createStreamingRuntime>;
+
+function bufferAppend(map: Map<string, string>, key: string, delta: string) {
   if (!delta) return;
   const prev = map.get(key) || "";
   map.set(key, prev + delta);
 }
 
-function bufferGet(map, key) {
+function bufferGet(map: Map<string, string>, key: string) {
   return map.get(key) || "";
 }
 
-function safeTruncate(str, max = 800) {
+function safeTruncate(str: any, max = 800) {
   if (typeof str !== "string") {
     try {
       str = JSON.stringify(str, null, 2);
@@ -19,7 +23,7 @@ function safeTruncate(str, max = 800) {
   return str.length > max ? `${str.slice(0, max)}…` : str;
 }
 
-function formatToolArgs(args, inline = false) {
+function formatToolArgs(args: any, inline = false) {
   if (!args) return "";
   let parsed = null;
   if (typeof args === "string") {
@@ -51,8 +55,8 @@ function formatToolArgs(args, inline = false) {
   }
 }
 
-function extractQueriesFromArgs(argsStr) {
-  const queries = [];
+function extractQueriesFromArgs(argsStr: any) {
+  const queries: string[] = [];
   if (!argsStr) return queries;
   let parsed = null;
   if (typeof argsStr === "string") {
@@ -66,18 +70,18 @@ function extractQueriesFromArgs(argsStr) {
   }
   if (!parsed || typeof parsed !== "object") return queries;
 
-  const candidates = [];
+  const candidates: string[] = [];
   if (typeof parsed.query === "string") candidates.push(parsed.query);
   if (Array.isArray(parsed.queries)) {
-    parsed.queries.forEach(q => { if (typeof q === "string") candidates.push(q); });
+    parsed.queries.forEach((q: any) => { if (typeof q === "string") candidates.push(q); });
   }
   if (Array.isArray(parsed.searches)) {
-    parsed.searches.forEach(q => { if (typeof q === "string") candidates.push(q); });
+    parsed.searches.forEach((q: any) => { if (typeof q === "string") candidates.push(q); });
   }
   if (typeof parsed.q === "string") candidates.push(parsed.q);
 
-  const seen = new Set();
-  candidates.forEach(q => {
+  const seen = new Set<string>();
+  candidates.forEach((q: string) => {
     const trimmed = q.trim();
     if (trimmed && !seen.has(trimmed)) {
       seen.add(trimmed);
@@ -87,7 +91,7 @@ function extractQueriesFromArgs(argsStr) {
   return queries;
 }
 
-function extractDeltaText(payload) {
+function extractDeltaText(payload: any) {
   if (!payload) return "";
   if (typeof payload.delta === "string") {
     return payload.delta;
@@ -97,7 +101,7 @@ function extractDeltaText(payload) {
       return payload.delta.text;
     }
     if (Array.isArray(payload.delta) && payload.delta.length > 0) {
-      return payload.delta.map(item => (typeof item === "string" ? item : "")).join("");
+      return payload.delta.map((item: any) => (typeof item === "string" ? item : "")).join("");
     }
   }
   if (typeof payload.text === "string") {
@@ -106,11 +110,11 @@ function extractDeltaText(payload) {
   return "";
 }
 
-function flattenContentArray(items) {
-  return items.map(item => pluckReasoningValue(item)).join("");
+function flattenContentArray(items: any[]): string {
+  return items.map((item: any) => pluckReasoningValue(item)).join("");
 }
 
-function pluckReasoningValue(value) {
+function pluckReasoningValue(value: any): string {
   if (!value) return "";
   if (typeof value === "string") return value;
   if (Array.isArray(value)) return flattenContentArray(value);
@@ -127,11 +131,11 @@ function pluckReasoningValue(value) {
   return "";
 }
 
-function getNestedValue(source, path) {
-  return path.reduce((value, key) => (value == null ? undefined : value[key]), source);
+function getNestedValue(source: any, path: string[]) {
+  return path.reduce((value: any, key: string) => (value == null ? undefined : value[key]), source);
 }
 
-function extractReasoningText(payload) {
+function extractReasoningText(payload: any) {
   if (!payload) return "";
 
   const candidatePaths = [
@@ -162,21 +166,21 @@ function extractReasoningText(payload) {
   return "";
 }
 
-export function createStreamingEventProcessor(runtime) {
-  const argBuffers = new Map();
-  const mcpArgBuffers = new Map();
-  const codeBuffers = new Map();
-  const webSearchQueue = [];
-  const webSearchById = new Map();
-  const xSearchQueue = [];
-  const xSearchById = new Map();
-  const activeFnArgs = new Set();
-  const activeMcpArgs = new Set();
-  const activeCodeStreams = new Set();
-  const activeCustomInput = new Set();
-  const toolExecutions = new Map();
+export function createStreamingEventProcessor(runtime: StreamingRuntime) {
+  const argBuffers = new Map<string, string>();
+  const mcpArgBuffers = new Map<string, string>();
+  const codeBuffers = new Map<string, string>();
+  const webSearchQueue: string[] = [];
+  const webSearchById = new Map<string, string>();
+  const xSearchQueue: string[] = [];
+  const xSearchById = new Map<string, string>();
+  const activeFnArgs = new Set<string>();
+  const activeMcpArgs = new Set<string>();
+  const activeCodeStreams = new Set<string>();
+  const activeCustomInput = new Set<string>();
+  const toolExecutions = new Map<string, { name: string; status: string; startTime: number }>();
 
-  let finalResponsePayload = null;
+  let finalResponsePayload: any = null;
   let responseStartOffset = 0;
   let expectNewResponse = false;
 
@@ -190,7 +194,7 @@ export function createStreamingEventProcessor(runtime) {
     expectNewResponse = false;
   }
 
-  function processEvent(eventType, dataLines) {
+  function processEvent(eventType: string | null, dataLines: string[]) {
     if (!dataLines.length) {
       return;
     }
@@ -329,7 +333,7 @@ export function createStreamingEventProcessor(runtime) {
               ? [...lines.slice(0, 15), `… (${lines.length - 15} more lines)`]
               : lines;
             runtime.appendReasoningLine("  ```");
-            preview.forEach(line => runtime.appendReasoningLine(`  ${line}`));
+            preview.forEach((line: string) => runtime.appendReasoningLine(`  ${line}`));
             runtime.appendReasoningLine("  ```");
           }
           if (stderr) {
@@ -339,7 +343,7 @@ export function createStreamingEventProcessor(runtime) {
               : lines;
             runtime.appendReasoningLine("  ⚠️ stderr:");
             runtime.appendReasoningLine("  ```");
-            preview.forEach(line => runtime.appendReasoningLine(`  ${line}`));
+            preview.forEach((line: string) => runtime.appendReasoningLine(`  ${line}`));
             runtime.appendReasoningLine("  ```");
           }
           if (outcome.type === "exit" && typeof outcome.exit_code === "number" && outcome.exit_code !== 0) {
@@ -362,7 +366,7 @@ export function createStreamingEventProcessor(runtime) {
             : lines;
           runtime.appendReasoningLine("  📄 output:");
           runtime.appendReasoningLine("  ```");
-          preview.forEach(line => runtime.appendReasoningLine(`  ${line}`));
+          preview.forEach((line: string) => runtime.appendReasoningLine(`  ${line}`));
           runtime.appendReasoningLine("  ```");
         }
         for (const out of outputArr) {
@@ -378,7 +382,7 @@ export function createStreamingEventProcessor(runtime) {
                 : lines;
               runtime.appendReasoningLine("  📄 output:");
               runtime.appendReasoningLine("  ```");
-              preview.forEach(line => runtime.appendReasoningLine(`  ${line}`));
+              preview.forEach((line: string) => runtime.appendReasoningLine(`  ${line}`));
               runtime.appendReasoningLine("  ```");
             }
           } else if (outType.includes("image") || outType.includes("file")) {
@@ -510,7 +514,7 @@ export function createStreamingEventProcessor(runtime) {
       if (webSearchById.has(id)) {
         q = webSearchById.get(id) || "";
       } else if (webSearchQueue.length > 0) {
-        q = webSearchQueue.shift();
+        q = webSearchQueue.shift() || "";
         if (id) webSearchById.set(id, q);
       }
       runtime.appendReasoningLine(`**🌐 web_search${q ? ` "${safeTruncate(q, 60)}"` : ""}**:`);
@@ -544,7 +548,7 @@ export function createStreamingEventProcessor(runtime) {
       if (xSearchById.has(id)) {
         q = xSearchById.get(id) || "";
       } else if (xSearchQueue.length > 0) {
-        q = xSearchQueue.shift();
+        q = xSearchQueue.shift() || "";
         if (id) xSearchById.set(id, q);
       }
       runtime.appendReasoningLine(`**🐦 x_search${q ? ` "${safeTruncate(q, 60)}"` : ""}**:`);
@@ -609,7 +613,7 @@ export function createStreamingEventProcessor(runtime) {
       if (code && code.length > 0) {
         const lines = code.split("\n");
         runtime.appendReasoningLine("  ```python");
-        lines.forEach(line => runtime.appendReasoningLine(`  ${line}`));
+        lines.forEach((line: string) => runtime.appendReasoningLine(`  ${line}`));
         runtime.appendReasoningLine("  ```");
       }
       activeCodeStreams.delete(itemId);
@@ -724,6 +728,6 @@ export function createStreamingEventProcessor(runtime) {
       runtime.ensureReasoningTrailingNewline();
     },
     getFinalResponsePayload: () => (finalResponsePayload ? { ...finalResponsePayload } : null),
-    attachImages: payload => runtime.attachImagesToPayload(payload),
+    attachImages: (payload: Record<string, any> | null) => runtime.attachImagesToPayload(payload),
   };
 }
