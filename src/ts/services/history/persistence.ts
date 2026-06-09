@@ -13,7 +13,7 @@ import { ensureImagesHaveMessageIds } from "../streaming/imageGeneration.ts";
 import { renderChatHistoryList } from "./list.ts";
 import { renderConversationMessages } from "./render.ts";
 
-function processImageForStorage(img, savePromises) {
+function processImageForStorage(img: any, savePromises: Promise<any>[]) {
   const processedImg = { ...img };
   const mediaType = detectMediaType(processedImg);
   const mimeType = processedImg.mimeType
@@ -96,7 +96,7 @@ function processImageForStorage(img, savePromises) {
         prompt: processedImg.prompt || "",
         timestamp: new Date().toISOString(),
         imageUnavailable: true,
-        error: error.message,
+        error: error instanceof Error ? error.message : "",
         mediaType,
         mimeType,
       };
@@ -106,12 +106,12 @@ function processImageForStorage(img, savePromises) {
   return processedImg;
 }
 
-function markMessagesWithImages(baseHistory, processedImages) {
-  return baseHistory.map((msg) => {
+function markMessagesWithImages(baseHistory: any[], processedImages: any[]) {
+  return baseHistory.map((msg: any) => {
     const markedMsg = { ...msg };
 
     if (markedMsg.role === "assistant") {
-      const hasAssociatedImages = processedImages.some((img) => img.associatedMessageId === markedMsg.id);
+      const hasAssociatedImages = processedImages.some((img: any) => img.associatedMessageId === markedMsg.id);
       if (hasAssociatedImages) {
         markedMsg.hasImages = true;
         if (!markedMsg.id) {
@@ -148,11 +148,11 @@ function ensureLibrariesLoaded() {
   return Promise.resolve();
 }
 
-function preloadImages(convo) {
-  const imageLoadPromises = [];
-  const imageCache = new Map();
+function preloadImages(convo: any) {
+  const imageLoadPromises: Promise<any>[] = [];
+  const imageCache = new Map<string, any>();
 
-  (convo.images || []).forEach((imgRef) => {
+  (convo.images || []).forEach((imgRef: any) => {
     if (imgRef.isStoredInDb && imgRef.filename) {
       const loadPromise = loadImageFromDb?.(imgRef.filename)
         .then((imageRecord) => {
@@ -208,7 +208,7 @@ export function saveCurrentConversation(meta: any = {}) {
     : [];
 
   const { promptType, promptContent } = normalizePromptState();
-  const savePromises = [];
+  const savePromises: Promise<any>[] = [];
   const processedImages = (state.generatedImages || []).map(img => processImageForStorage(img, savePromises));
   const markedMessages = markMessagesWithImages(baseHistory, processedImages);
 
@@ -251,7 +251,7 @@ export function saveCurrentConversation(meta: any = {}) {
     });
 };
 
-export function deleteConversation(id) {
+export function deleteConversation(id: string) {
   deleteConversationFromDb?.(id)
     .then(() => {
       if (state.currentConversationId === id) {
@@ -265,7 +265,7 @@ export function deleteConversation(id) {
     });
 };
 
-export function renameConversation(id, newName) {
+export function renameConversation(id: string, newName: string) {
   renameConversationInDb?.(id, newName)
     .then(() => {
       if (state.currentConversationId === id) {
@@ -298,7 +298,7 @@ export function startNewConversation(name = null) {
   }
 };
 
-export function loadConversation(id) {
+export function loadConversation(id: string) {
   return loadConversationFromDb?.(id)
     .then((convo) => {
       if (!convo) {
@@ -318,9 +318,9 @@ export function loadConversation(id) {
     });
 };
 
-function loadConversationIntoUI(convo, imageCache) {
+function loadConversationIntoUI(convo: any, imageCache: any) {
   const filteredMessages = Array.isArray(convo.messages)
-    ? convo.messages.filter(msg => msg && msg.role !== "developer")
+    ? convo.messages.filter((msg: any) => msg && msg.role !== "developer")
     : [];
 
   state.conversationHistory = filteredMessages;

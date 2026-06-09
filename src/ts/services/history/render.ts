@@ -9,16 +9,16 @@ import { setupImageInteractions } from "../../components/ui/imageInteractions.ts
 import { updateHeaderInfo, updateModelSelector } from "../../components/settings.ts";
 import { config } from "../../../config/config.ts";
 
-function createMissingMediaPlaceholder(filename, mediaType = "image") {
+function createMissingMediaPlaceholder(filename: string, mediaType = "image") {
   const label = mediaType === "video" ? "Video" : "Image";
   return `<div class='image-placeholder' style='padding:40px;background:#f1f1f1;border-radius:8px;margin:8px 0;text-align:center;font-style:italic;color:#666;'>${label} could not be loaded: ${filename}</div>`;
 }
 
-function findMediaRecord(convo, filename) {
-  return (convo.images || []).find(imageRef => imageRef.filename === filename) || null;
+function findMediaRecord(convo: any, filename: string) {
+  return (convo.images || []).find((imageRef: any) => imageRef.filename === filename) || null;
 }
 
-function resolveMediaSource(mediaRecord, filename, imageCache) {
+function resolveMediaSource(mediaRecord: any, filename: string, imageCache: any) {
   if (!mediaRecord) {
     return "";
   }
@@ -34,7 +34,7 @@ function resolveMediaSource(mediaRecord, filename, imageCache) {
   return "";
 }
 
-function createMediaElement(mediaRecord, src, messageId = "") {
+function createMediaElement(mediaRecord: any, src: string, messageId = "") {
   const mediaType = detectMediaType(mediaRecord);
 
   if (mediaType === "video") {
@@ -64,7 +64,7 @@ function createMediaElement(mediaRecord, src, messageId = "") {
   return imgEl;
 }
 
-function extractTextContent(content) {
+function extractTextContent(content: any) {
   if (typeof content === "string") {
     return content;
   }
@@ -75,13 +75,13 @@ function extractTextContent(content) {
   return "";
 }
 
-function replaceImagePlaceholders(content, convo, imageCache) {
+function replaceImagePlaceholders(content: any, convo: any, imageCache: any) {
   const text = extractTextContent(content);
   if (!text) {
     return "";
   }
 
-  return text.replace(/\[\[IMAGE: ([^\]]+)\]\]/g, (match, filename) => {
+  return text.replace(/\[\[IMAGE: ([^\]]+)\]\]/g, (match: string, filename: string) => {
     const trimmed = filename.trim();
     const img = findMediaRecord(convo, trimmed);
     if (!img) {
@@ -105,12 +105,13 @@ function replaceImagePlaceholders(content, convo, imageCache) {
   });
 }
 
-export function renderConversationMessages(convo, imageCache) {
-  if (!elements.chatBox) {
+export function renderConversationMessages(convo: any, imageCache: any) {
+  const chatBox = elements.chatBox;
+  if (!chatBox) {
     return;
   }
 
-  (convo.messages || []).forEach((msg) => {
+  (convo.messages || []).forEach((msg: any) => {
     if (msg.role === "system" || msg.role === "developer") {
       return;
     }
@@ -146,7 +147,7 @@ export function renderConversationMessages(convo, imageCache) {
     `;
 
     const originalSelector = document.querySelector;
-    document.querySelector = function(selector) {
+    document.querySelector = function(selector: string) {
       if (selector === "#wordmark-logo g") {
         return sender.querySelector("g") as any;
       }
@@ -164,13 +165,13 @@ export function renderConversationMessages(convo, imageCache) {
     const contentWrapper = document.createElement("div");
     contentWrapper.className = "message-content";
     messageElement.appendChild(contentWrapper);
-    elements.chatBox.appendChild(messageElement);
+    chatBox.appendChild(messageElement);
 
     let displayContent = msg.content || "";
-    const imageFilenames = [];
-    const seenFilenames = new Set();
+    const imageFilenames: string[] = [];
+    const seenFilenames = new Set<string>();
     const extractRegex = new RegExp("\\[\\[(?:MEDIA|IMAGE): ([^\\]]+)\\]\\]", "g");
-    let match;
+    let match: RegExpExecArray | null;
 
     while ((match = extractRegex.exec(displayContent)) !== null) {
       const trimmedFilename = match[1].trim();
@@ -180,14 +181,14 @@ export function renderConversationMessages(convo, imageCache) {
       }
     }
 
-    displayContent = displayContent.replace(new RegExp("\\[\\[(?:MEDIA|IMAGE): ([^\\]]+)\\]\\]", "g"), (placeholder) => `
+    displayContent = displayContent.replace(new RegExp("\\[\\[(?:MEDIA|IMAGE): ([^\\]]+)\\]\\]", "g"), (placeholder: string) => `
       <span class="hidden-image-placeholder">${placeholder}</span>
     `);
 
     if (imageFilenames.length > 0) {
       const imagesContainer = document.createElement("div");
       imagesContainer.className = "generated-images";
-      const imgHtmlArray = [];
+      const imgHtmlArray: string[] = [];
 
       imageFilenames.forEach((filename) => {
         const img = findMediaRecord(convo, filename);
