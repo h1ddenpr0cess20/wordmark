@@ -11,7 +11,7 @@ globalThis.localStorage = {
 };
 
 const { config } = await import('../src/config/config.js');
-const { elements } = await import('../src/js/init/state.js');
+const { elements } = await import('../src/ts/init/state.js');
 
 function setupWindow() {
   config.defaultService = 'openai';
@@ -22,7 +22,7 @@ function setupWindow() {
 
 test('listAssistantFiles returns data on success', async () => {
   setupWindow();
-  const { listAssistantFiles } = await import('../src/js/services/files.js');
+  const { listAssistantFiles } = await import('../src/ts/services/files.js');
 
   const calls = [];
   global.fetch = async (url, options = {}) => {
@@ -46,7 +46,7 @@ test('listAssistantFiles returns data on success', async () => {
 
 test('listAssistantFiles throws when request fails', async () => {
   setupWindow();
-  const { listAssistantFiles } = await import('../src/js/services/files.js');
+  const { listAssistantFiles } = await import('../src/ts/services/files.js');
 
   global.fetch = async () => ({
     ok: false,
@@ -65,7 +65,7 @@ test('listAssistantFiles throws when request fails', async () => {
 
 test('deleteFile sends delete request and returns payload', async () => {
   setupWindow();
-  const { deleteFile } = await import('../src/js/services/files.js');
+  const { deleteFile } = await import('../src/ts/services/files.js');
 
   const calls = [];
   global.fetch = async (url, options = {}) => {
@@ -88,7 +88,7 @@ test('deleteFile sends delete request and returns payload', async () => {
 
 test('deleteAllAssistantFiles aggregates successes and errors', async () => {
   setupWindow();
-  const { deleteAllAssistantFiles } = await import('../src/js/services/files.js');
+  const { deleteAllAssistantFiles } = await import('../src/ts/services/files.js');
 
   const responses = [
     {

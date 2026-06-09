@@ -17,14 +17,14 @@ globalThis.document = globalThis.document || {
 };
 
 const { config } = await import('../src/config/config.js');
-const { elements } = await import('../src/js/init/state.js');
+const { elements } = await import('../src/ts/init/state.js');
 const {
   getActiveServiceKey,
   getActiveModel,
   ensureApiKey,
   getBaseUrl,
   supportsReasoningEffort,
-} = await import('../src/js/services/api/clientConfig.js');
+} = await import('../src/ts/services/api/clientConfig.js');
 
 // Seed the active service for the tests.
 config.defaultService = 'openai';

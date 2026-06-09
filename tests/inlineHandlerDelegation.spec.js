@@ -34,8 +34,8 @@ globalThis.document = {
 };
 
 // Importing these modules attaches their delegated click listeners.
-await import("../src/js/utils/utils.js");
-await import("../src/js/components/aboutPopups.js");
+await import("../src/ts/utils/utils.js");
+await import("../src/ts/components/aboutPopups.js");
 
 function dispatchClick(event) {
   for (const handler of clickHandlers) handler(event);

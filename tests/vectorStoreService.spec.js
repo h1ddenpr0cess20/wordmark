@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { state, elements } from '../src/js/init/state.js';
+import { state, elements } from '../src/ts/init/state.js';
 import { config } from '../src/config/config.js';
 
 const originalFetch = global.fetch;
@@ -42,7 +42,7 @@ function setupEnvironment() {
 }
 
 test('filterSupportedFiles separates extensions correctly', async () => {
-  const { filterSupportedFiles } = await import('../src/js/services/vectorStore.js');
+  const { filterSupportedFiles } = await import('../src/ts/services/vectorStore.js');
 
   const result = filterSupportedFiles([
     { name: 'document.pdf' },
@@ -58,7 +58,7 @@ test('filterSupportedFiles separates extensions correctly', async () => {
 
 test('uploadAndAttachFiles processes supported files and skips unsupported', async () => {
   const showInfoCalls = setupEnvironment();
-  const { uploadAndAttachFiles } = await import('../src/js/services/vectorStore.js');
+  const { uploadAndAttachFiles } = await import('../src/ts/services/vectorStore.js');
 
   const fetchCalls = [];
   global.fetch = async (url, options = {}) => {
@@ -92,7 +92,7 @@ test('uploadAndAttachFiles processes supported files and skips unsupported', asy
 
 test('uploadAndAttachFiles throws when no supported files remain', async () => {
   const showInfoCalls = setupEnvironment();
-  const { uploadAndAttachFiles } = await import('../src/js/services/vectorStore.js');
+  const { uploadAndAttachFiles } = await import('../src/ts/services/vectorStore.js');
 
   global.fetch = async () => {
     throw new Error('fetch should not be called');
@@ -120,7 +120,7 @@ test('waitForFileProcessing resolves when status completed', async () => {
     json: async () => responses.shift(),
   });
 
-  const { waitForFileProcessing } = await import('../src/js/services/vectorStore.js');
+  const { waitForFileProcessing } = await import('../src/ts/services/vectorStore.js');
 
   try {
     const status = await waitForFileProcessing('vs-1', 'file-1', 5, 0);
@@ -137,7 +137,7 @@ test('waitForFileProcessing throws on failure status', async () => {
     json: async () => ({ status: 'failed', last_error: { message: 'bad' } }),
   });
 
-  const { waitForFileProcessing } = await import('../src/js/services/vectorStore.js');
+  const { waitForFileProcessing } = await import('../src/ts/services/vectorStore.js');
 
   try {
     await assert.rejects(
@@ -156,7 +156,7 @@ test('waitForFileProcessing times out when attempts exhausted', async () => {
     json: async () => ({ status: 'processing' }),
   });
 
-  const { waitForFileProcessing } = await import('../src/js/services/vectorStore.js');
+  const { waitForFileProcessing } = await import('../src/ts/services/vectorStore.js');
 
   try {
     await assert.rejects(
@@ -179,7 +179,7 @@ test('vector store metadata helpers persist to localStorage', async () => {
     clearActiveVectorStore,
     initializeVectorStore,
     getActiveVectorStoreIds,
-  } = await import('../src/js/services/vectorStore.js');
+  } = await import('../src/ts/services/vectorStore.js');
 
   saveVectorStoreMetadata('vs-a', { name: 'Store A' });
   setActiveVectorStoreId('vs-a');

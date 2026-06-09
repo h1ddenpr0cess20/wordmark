@@ -29,7 +29,7 @@ async function loadMenuSystem(windowStub, document) {
   globalThis.window = windowStub;
   globalThis.document = document;
   // Cache-bust so the module re-evaluates against the new stubs.
-  const mod = await import(`../src/js/utils/menuSystem.js?case=${importCounter++}`);
+  const mod = await import(`../src/ts/utils/menuSystem.js?case=${importCounter++}`);
   return mod;
 }
 

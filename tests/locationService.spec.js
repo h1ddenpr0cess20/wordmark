@@ -26,7 +26,7 @@ const {
   formatLocationString,
   initializeLocationService,
   disableLocation,
-} = await import('../src/js/services/location.js');
+} = await import('../src/ts/services/location.js');
 
 function resetLocationState() {
   locationState.enabled = false;

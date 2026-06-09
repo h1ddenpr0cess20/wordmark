@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 
 globalThis.window = globalThis.window || {};
 
-const { createStreamingEventProcessor } = await import('../src/js/services/streaming/eventProcessor.js');
+const { createStreamingEventProcessor } = await import('../src/ts/services/streaming/eventProcessor.js');
 
 function createRuntimeStub() {
   const state = {

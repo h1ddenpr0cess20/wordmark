@@ -58,7 +58,7 @@ globalThis.document = {
 globalThis.requestAnimationFrame = (cb) => cb();
 
 const { initNotificationSystem, showSuccess, clearAllNotifications } =
-  await import("../src/js/utils/notifications.js");
+  await import("../src/ts/utils/notifications.js");
 
 test("initNotificationSystem creates container once", () => {
   const nc = globalThis.document.getElementById("notification-container");

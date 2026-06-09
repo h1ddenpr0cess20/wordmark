@@ -17,7 +17,7 @@ globalThis.document = {
   },
 };
 
-const { processMainContentMarkdown } = await import('../src/js/services/streaming/thinkingUtils.js');
+const { processMainContentMarkdown } = await import('../src/ts/services/streaming/thinkingUtils.js');
 
 test('processMainContentMarkdown handles basic text', () => {
   const result = processMainContentMarkdown('Hello world');

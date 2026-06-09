@@ -1,13 +1,13 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { state } from '../src/js/init/state.js';
+import { state } from '../src/ts/init/state.js';
 
 globalThis.window = globalThis.window || {};
 
 const {
   collectImageCandidates,
   ensureImagesHaveMessageIds,
-} = await import('../src/js/services/streaming/imageGeneration.js');
+} = await import('../src/ts/services/streaming/imageGeneration.js');
 
 test('collectImageCandidates gathers nested data URLs and deduplicates', () => {
   const payload = {

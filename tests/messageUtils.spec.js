@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { state } from '../src/js/init/state.js';
+import { state } from '../src/ts/init/state.js';
 
 globalThis.window = globalThis.window || {};
 
@@ -9,7 +9,7 @@ const {
   estimateTokens,
   estimateMessageTokens,
   windowMessagesByTokenBudget,
-} = await import('../src/js/services/api/messageUtils.js');
+} = await import('../src/ts/services/api/messageUtils.js');
 
 test('windowMessagesByTokenBudget returns all messages when budget is 0 (no limit)', () => {
   const messages = [

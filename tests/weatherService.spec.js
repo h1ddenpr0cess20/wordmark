@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 
 // weather.js uses the global fetch/URL/URLSearchParams. URL/URLSearchParams are
 // Node globals; swap globalThis.fetch per test.
-const { weatherToolHandler } = await import('../src/js/services/weather.js');
+const { weatherToolHandler } = await import('../src/ts/services/weather.js');
 
 test('weatherToolHandler requires city argument', async () => {
   globalThis.fetch = async () => { throw new Error('should not fetch'); };

@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { state, elements } from '../src/js/init/state.js';
+import { state, elements } from '../src/ts/init/state.js';
 
 function createLocalStorage(initial = {}) {
   const store = new Map(Object.entries(initial));
@@ -26,7 +26,7 @@ globalThis.window = {};
 globalThis.localStorage = createLocalStorage();
 
 const { handleExportFormatChange, initializeExportControls, exportChat } =
-  await import('../src/js/services/export.js');
+  await import('../src/ts/services/export.js');
 
 test('handleExportFormatChange normalises aliases and persists preference', () => {
   const storage = createLocalStorage();

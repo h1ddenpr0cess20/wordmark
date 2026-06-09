@@ -46,9 +46,9 @@ globalThis.localStorage = {
   setItem() {},
 };
 
-const { state, elements } = await import("../src/js/init/state.js");
+const { state, elements } = await import("../src/ts/init/state.js");
 const { initializeSettingsPanelControls } = await import(
-  "../src/js/init/eventListeners/settingsPanel.js"
+  "../src/ts/init/eventListeners/settingsPanel.js"
 );
 
 function makeGalleryPanel() {

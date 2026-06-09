@@ -4,7 +4,7 @@ import assert from "node:assert/strict";
 // pickCloudFallback is the pure decision behind the default-service auto-pick.
 // It must move off a keyless cloud default to another cloud provider that has a
 // key, before any local-service fallback happens.
-const { pickCloudFallback } = await import("../src/js/init/serviceSelection.js");
+const { pickCloudFallback } = await import("../src/ts/init/serviceSelection.js");
 
 const withKeys = ({ openai = "", xai = "" } = {}) => ({
   openai: { apiKey: openai },

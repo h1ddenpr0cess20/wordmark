@@ -8,9 +8,9 @@ import {
   initConversationDb,
   saveConversationToDb,
   getAllConversationsFromDb,
-} from "../src/js/utils/conversationStorage.js";
-import { saveImageToDb } from "../src/js/utils/imageStorage.js";
-import { state, elements } from "../src/js/init/state.js";
+} from "../src/ts/utils/conversationStorage.js";
+import { saveImageToDb } from "../src/ts/utils/imageStorage.js";
+import { state, elements } from "../src/ts/init/state.js";
 
 // Minimal fake IndexedDB (mirrors conversationStorage.spec.js)
 function createFakeIndexedDB() {
@@ -133,7 +133,7 @@ const {
   saveCurrentConversation,
   loadConversation,
   startNewConversation,
-} = await import("../src/js/services/history/persistence.js");
+} = await import("../src/ts/services/history/persistence.js");
 
 function flush() {
   return new Promise((resolve) => setImmediate(resolve));

@@ -13,7 +13,7 @@ globalThis.localStorage = {
 globalThis.window = globalThis.window || {};
 
 const { config } = await import("../src/config/config.js");
-const { loadApiKeysIntoConfig } = await import("../src/js/services/apiKeyStorage.js");
+const { loadApiKeysIntoConfig } = await import("../src/ts/services/apiKeyStorage.js");
 
 test("loads a saved xAI key into config without any DOM input cached", () => {
   config.services.openai.apiKey = "";

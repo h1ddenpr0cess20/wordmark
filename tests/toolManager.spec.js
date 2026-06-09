@@ -33,7 +33,7 @@ const {
   registerMcpServer,
   unregisterMcpServer,
   getEnabledToolDefinitions,
-} = await import('../src/js/services/api/toolManager.js');
+} = await import('../src/ts/services/api/toolManager.js');
 
 config.enableFunctionCalling = true;
 

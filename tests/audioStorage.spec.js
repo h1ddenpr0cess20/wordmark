@@ -106,7 +106,7 @@ const {
   loadAudioForMessage,
   cleanupOldAudio,
   exportAudioForDownload,
-} = await import('../src/js/utils/audioStorage.js');
+} = await import('../src/ts/utils/audioStorage.js');
 
 test('exportAudioForDownload creates anchor and triggers click', () => {
   const buffer = new ArrayBuffer(4);

@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { icon } from '../src/js/utils/icons.js';
+import { icon } from '../src/ts/utils/icons.js';
 
 test('icon helper renders expected SVG attributes', () => {
   const svg = icon('settings', { width: 24, height: 24, className: 'c', style: 'opacity:1' });

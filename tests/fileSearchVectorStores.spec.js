@@ -52,7 +52,7 @@ test('file_search attaches provided vectorStoreId when no stored IDs exist', asy
     };
   };
 
-  const { runTurn } = await import('../src/js/services/api/requestClient.js');
+  const { runTurn } = await import('../src/ts/services/api/requestClient.js');
 
   await runTurn({
     inputMessages: [{ role: 'user', content: 'Search docs' }],
@@ -112,7 +112,7 @@ test('file_search attaches all active vector stores from storage when none provi
   };
 
   // Import after env is prepared
-  const { runTurn } = await import('../src/js/services/api/requestClient.js');
+  const { runTurn } = await import('../src/ts/services/api/requestClient.js');
 
   await runTurn({
     inputMessages: [{ role: 'user', content: 'Search docs' }],
@@ -174,7 +174,7 @@ test('file_search dedupes and merges storage + explicit vectorStoreId', async (t
     };
   };
 
-  const { runTurn } = await import('../src/js/services/api/requestClient.js');
+  const { runTurn } = await import('../src/ts/services/api/requestClient.js');
 
   await runTurn({
     inputMessages: [{ role: 'user', content: 'Search docs' }],
