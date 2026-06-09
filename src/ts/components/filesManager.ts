@@ -52,7 +52,7 @@ export async function refreshAssistantFileList() {
     }
 
     // Build list
-    const listHtml = files.map((file) => {
+    const listHtml = files.map((file: any) => {
       const createdDate = file.created_at ? new Date(file.created_at * 1000).toLocaleDateString() : "Unknown";
       const name = escapeHtml(file.filename || file.name || "(no name)");
       const id = escapeHtml(file.id || "");
@@ -77,9 +77,9 @@ export async function refreshAssistantFileList() {
     listContainer.innerHTML = listHtml;
 
     // Wire per-file delete
-    listContainer.querySelectorAll(".btn-delete-file").forEach(btn => {
-      btn.addEventListener("click", async (e) => {
-        const fileId = e.currentTarget.getAttribute("data-file-id");
+    listContainer.querySelectorAll(".btn-delete-file").forEach((btn: Element) => {
+      btn.addEventListener("click", async (e: Event) => {
+        const fileId = (e.currentTarget as HTMLElement).getAttribute("data-file-id");
         if (!fileId) return;
         const confirmed = confirm("Delete this file? This action cannot be undone.");
         if (!confirmed) return;
@@ -90,7 +90,7 @@ export async function refreshAssistantFileList() {
           await refreshAssistantFileList();
         } catch (err) {
           console.error("Failed to delete file:", err);
-          if (showError) showError(`Failed to delete: ${err.message}`);
+          if (showError) showError(`Failed to delete: ${err instanceof Error ? err.message : ""}`);
         }
       });
     });
@@ -98,9 +98,10 @@ export async function refreshAssistantFileList() {
   } catch (error) {
     console.error("Failed to load assistant files:", error);
 
-    const isCorsError = error.message.includes("CORS") ||
-                        error.message.includes("fetch") ||
-                        error.name === "TypeError";
+    const errorMessage = error instanceof Error ? error.message : "";
+    const isCorsError = errorMessage.includes("CORS") ||
+                        errorMessage.includes("fetch") ||
+                        (error instanceof Error && error.name === "TypeError");
 
     if (isCorsError) {
       listContainer.innerHTML = `
@@ -109,7 +110,7 @@ export async function refreshAssistantFileList() {
         </div>
       `;
     } else {
-      listContainer.innerHTML = `<div class="error-message">Failed to load files: ${escapeHtml(error.message)}</div>`;
+      listContainer.innerHTML = `<div class="error-message">Failed to load files: ${escapeHtml(errorMessage)}</div>`;
     }
   }
 }
@@ -166,14 +167,14 @@ async function handleDeleteAllAssistantFiles() {
     await refreshAssistantFileList();
   } catch (err) {
     console.error("Failed to delete all assistant files:", err);
-    if (showError) showError(`Failed to delete all: ${err.message}`);
+    if (showError) showError(`Failed to delete all: ${err instanceof Error ? err.message : ""}`);
   }
 }
 
 /**
  * Escape HTML to prevent XSS
  */
-function escapeHtml(text) {
+function escapeHtml(text: unknown) {
   const div = document.createElement("div");
   div.textContent = String(text ?? "");
   return div.innerHTML;

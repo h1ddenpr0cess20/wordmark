@@ -18,7 +18,7 @@ const HISTORY_TOKEN_BUDGET_STORAGE_KEY = "historyTokenBudget";
 // (~10-20 exchanges) while capping cost on long threads. 0 = no limit.
 export const DEFAULT_HISTORY_TOKEN_BUDGET = 8000;
 
-function normalizeReasoningEffort(value) {
+function normalizeReasoningEffort(value: string) {
   return VALID_REASONING_EFFORTS.includes(value) ? value : DEFAULT_REASONING_EFFORT;
 }
 
@@ -36,7 +36,7 @@ function loadReasoningEffortFromStorage() {
   return DEFAULT_REASONING_EFFORT;
 }
 
-function persistReasoningEffort(value) {
+function persistReasoningEffort(value: string) {
   try {
     localStorage.setItem(REASONING_EFFORT_STORAGE_KEY, value);
   } catch (error) {
@@ -46,7 +46,7 @@ function persistReasoningEffort(value) {
   }
 }
 
-function modelSupportsReasoning(modelName) {
+function modelSupportsReasoning(modelName: string) {
   if (!modelName) {
     return true;
   }
@@ -81,7 +81,7 @@ export function updateReasoningAvailability() {
   }
 }
 
-function normalizeVerbosity(value) {
+function normalizeVerbosity(value: string) {
   return VALID_VERBOSITY_LEVELS.includes(value) ? value : DEFAULT_VERBOSITY;
 }
 
@@ -99,7 +99,7 @@ function loadVerbosityFromStorage() {
   return DEFAULT_VERBOSITY;
 }
 
-function persistVerbosity(value) {
+function persistVerbosity(value: string) {
   try {
     localStorage.setItem(VERBOSITY_STORAGE_KEY, value);
   } catch (error) {
@@ -109,8 +109,8 @@ function persistVerbosity(value) {
   }
 }
 
-function normalizeHistoryTokenBudget(value) {
-  const parsed = parseInt(value, 10);
+function normalizeHistoryTokenBudget(value: string | number) {
+  const parsed = parseInt(String(value), 10);
   // 0 is a valid, explicit "no limit". Blank/negative/invalid falls back to default.
   if (!Number.isFinite(parsed) || parsed < 0) {
     return DEFAULT_HISTORY_TOKEN_BUDGET;
@@ -132,7 +132,7 @@ function loadHistoryTokenBudgetFromStorage() {
   return DEFAULT_HISTORY_TOKEN_BUDGET;
 }
 
-function persistHistoryTokenBudget(value) {
+function persistHistoryTokenBudget(value: number) {
   try {
     localStorage.setItem(HISTORY_TOKEN_BUDGET_STORAGE_KEY, String(value));
   } catch (error) {
@@ -214,7 +214,7 @@ export function getReasoningEffort() {
   return normalizeReasoningEffort(state.currentReasoningEffort);
 }
 
-export function setReasoningEffort(value) {
+export function setReasoningEffort(value: string) {
   const normalized = normalizeReasoningEffort(value);
   state.currentReasoningEffort = normalized;
   persistReasoningEffort(normalized);
@@ -227,7 +227,7 @@ export function getHistoryTokenBudget() {
   return normalizeHistoryTokenBudget(state.historyTokenBudget);
 }
 
-export function setHistoryTokenBudget(value) {
+export function setHistoryTokenBudget(value: string | number) {
   const normalized = normalizeHistoryTokenBudget(value);
   state.historyTokenBudget = normalized;
   persistHistoryTokenBudget(normalized);
@@ -240,7 +240,7 @@ export function getVerbosity() {
   return normalizeVerbosity(state.currentVerbosity);
 }
 
-export function setVerbosity(value) {
+export function setVerbosity(value: string) {
   const normalized = normalizeVerbosity(value);
   state.currentVerbosity = normalized;
   persistVerbosity(normalized);
