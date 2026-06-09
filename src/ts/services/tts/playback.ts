@@ -41,7 +41,7 @@ export function stopTtsAudio() {
   }
 }
 
-export function playTtsAudio(audioData: any) {
+export function playTtsAudio(audioData: ArrayBuffer) {
   if (!audioData) {
     return;
   }

@@ -3,10 +3,16 @@ import { ttsConfig, ttsRuntime } from "./config.ts";
 import { stopTtsAudio } from "./playback.ts";
 import { state } from "../../init/state.ts";
 
-export const ttsAudioResources = {
-  activeUrls: new Map<string, any>(),
+interface TtsAudioResource {
+  url: string;
+  timestamp: number;
+  audioData: ArrayBuffer;
+}
 
-  addUrl(url: string, messageId: string, audioData: any) {
+export const ttsAudioResources = {
+  activeUrls: new Map<string, TtsAudioResource>(),
+
+  addUrl(url: string, messageId: string, audioData: ArrayBuffer) {
     this.activeUrls.set(messageId, {
       url,
       timestamp: Date.now(),

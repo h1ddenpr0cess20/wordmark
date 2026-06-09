@@ -150,7 +150,7 @@ export function addPlaceholderTtsControls(messageId: string, text: string) {
   }
 };
 
-export function addTtsControlsToMessage(audioData: any, messageId: string, originalText: string) {
+export function addTtsControlsToMessage(audioData: ArrayBuffer, messageId: string, originalText: string) {
   const messageElement = document.getElementById(messageId);
   if (!messageElement) {
     return;

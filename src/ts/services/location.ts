@@ -4,10 +4,18 @@ import { state } from "../init/state.ts";
  * Provides location awareness for AI prompts
  */
 
+// Structural position type covering both a real GeolocationPosition (from
+// getCurrentPosition) and the lightweight object reconstructed from localStorage.
+// Only coordinates and timestamp are ever read.
+interface GeoPositionLike {
+  coords: { latitude: number; longitude: number };
+  timestamp: number;
+}
+
 // Location state management
 export const locationState: {
   enabled: boolean;
-  position: any;
+  position: GeoPositionLike | null;
   locationString: string;
   lastFetched: string | null;
   error: string | null;
@@ -130,7 +138,7 @@ export async function requestLocation(): Promise<any> {
  * @param {Position} position - Geolocation position object
  * @returns {Promise<string>} - Formatted location string
  */
-export async function formatLocationString(position: any) {
+export async function formatLocationString(position: GeoPositionLike) {
   const { latitude, longitude } = position.coords;
 
   try {
