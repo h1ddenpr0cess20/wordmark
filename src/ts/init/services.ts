@@ -79,7 +79,7 @@ export async function selectDefaultService() {
     return false;
   }
 
-  const isUsableModel = (m: any) =>
+  const isUsableModel = (m: unknown) =>
     typeof m === "string" &&
     !m.startsWith("Error") &&
     !m.startsWith("No models") &&

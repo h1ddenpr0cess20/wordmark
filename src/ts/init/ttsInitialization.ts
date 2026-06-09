@@ -6,6 +6,12 @@ import { elements, state } from "./state.ts";
 import { setupMobileKeyboardHandling } from "../utils/mobileHandling.ts";
 import { ttsConfig, availableTtsVoices, initTtsReferences } from "../services/tts.ts";
 
+interface TtsVoice {
+  id: string;
+  name: string;
+  gender?: string;
+}
+
 /**
  * Initialize TTS functionality
  */
@@ -64,7 +70,7 @@ export function populateTtsVoiceSelector() {
       if (voices[category] && voices[category].length > 0) {
         const group = document.createElement("optgroup");
         group.label = labels[category];
-        voices[category].forEach((voice: any) => {
+        voices[category].forEach((voice: TtsVoice) => {
           const option = document.createElement("option");
           option.value = voice.id;
           option.textContent = voice.name;
@@ -75,7 +81,7 @@ export function populateTtsVoiceSelector() {
     }
 
     // If current voice isn't in the new provider's list, select the first available
-    const allVoiceIds = categories.flatMap(c => (voices[c] || []).map((v: any) => v.id));
+    const allVoiceIds = categories.flatMap(c => (voices[c] || []).map((v: TtsVoice) => v.id));
     if (!allVoiceIds.includes(ttsConfig.voice)) {
       ttsConfig.voice = allVoiceIds[0] || "";
     }
