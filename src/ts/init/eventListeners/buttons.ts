@@ -8,7 +8,7 @@ import { updatePromptVisibility } from "../../components/ui/settingsControls.ts"
 import { updateHeaderInfo, updateModelSelector } from "../../components/settings.ts";
 import { setReasoningEffort, DEFAULT_REASONING_EFFORT } from "../modelSettings.ts";
 import { DEFAULT_PERSONALITY, config } from "../../../config/config.ts";
-function closePanelIfActive(closeSettingsPanel) {
+function closePanelIfActive(closeSettingsPanel: (() => void) | undefined) {
   if (typeof closeSettingsPanel === "function" && elements.settingsPanel && elements.settingsPanel.classList.contains("active")) {
     closeSettingsPanel();
   } else if (elements.settingsPanel && elements.settingsButton) {
@@ -143,7 +143,7 @@ export function setupButtonEventListeners({ closeSettingsPanel }: any = {}) {
 
   const refreshModelsButton = document.getElementById("refresh-models") as any;
   if (refreshModelsButton) {
-    refreshModelsButton.addEventListener("click", async(event) => {
+    refreshModelsButton.addEventListener("click", async(event: Event) => {
       event.preventDefault();
       event.stopPropagation();
       event.stopImmediatePropagation();
@@ -151,7 +151,7 @@ export function setupButtonEventListeners({ closeSettingsPanel }: any = {}) {
       const serviceKey = config?.defaultService;
       const serviceConfig = serviceKey ? config?.services?.[serviceKey] : null;
       if (serviceConfig && typeof serviceConfig.fetchAndUpdateModels === "function") {
-        const serviceLabelMap = { lmstudio: "LM Studio", ollama: "Ollama", openai: "OpenAI", xai: "xAI" };
+        const serviceLabelMap: Record<string, string> = { lmstudio: "LM Studio", ollama: "Ollama", openai: "OpenAI", xai: "xAI" };
         const serviceLabel = serviceLabelMap[serviceKey] || serviceKey;
         refreshModelsButton.disabled = true;
         refreshModelsButton.innerHTML = icon("refresh-cw", { width: 16, height: 16, className: "rotating-svg" });
@@ -161,7 +161,7 @@ export function setupButtonEventListeners({ closeSettingsPanel }: any = {}) {
           updateModelSelector();
 
           const models = serviceConfig.models || [];
-          const hasError = models.length === 0 || models.some(m => typeof m === "string" && (m.startsWith("Error:") || m.startsWith("No models")));
+          const hasError = models.length === 0 || models.some((m: any) => typeof m === "string" && (m.startsWith("Error:") || m.startsWith("No models")));
 
           const existingStatus = document.querySelector(".service-status") as any;
           if (existingStatus) {

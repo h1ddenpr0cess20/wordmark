@@ -7,25 +7,28 @@ import { updatePromptVisibility } from "../../components/ui/settingsControls.ts"
 import { updateHeaderInfo } from "../../components/settings.ts";
 
 function setupPromptRadioEventListeners() {
-  if (elements.personalityPromptRadio) {
-    elements.personalityPromptRadio.addEventListener("change", () => {
-      if (elements.personalityPromptRadio.checked) {
+  const personalityPromptRadio = elements.personalityPromptRadio;
+  if (personalityPromptRadio) {
+    personalityPromptRadio.addEventListener("change", () => {
+      if (personalityPromptRadio.checked) {
         updatePromptVisibility();
       }
     });
   }
 
-  if (elements.customPromptRadio) {
-    elements.customPromptRadio.addEventListener("change", () => {
-      if (elements.customPromptRadio.checked) {
+  const customPromptRadio = elements.customPromptRadio;
+  if (customPromptRadio) {
+    customPromptRadio.addEventListener("change", () => {
+      if (customPromptRadio.checked) {
         updatePromptVisibility();
       }
     });
   }
 
-  if (elements.noPromptRadio) {
-    elements.noPromptRadio.addEventListener("change", () => {
-      if (elements.noPromptRadio.checked) {
+  const noPromptRadio = elements.noPromptRadio;
+  if (noPromptRadio) {
+    noPromptRadio.addEventListener("change", () => {
+      if (noPromptRadio.checked) {
         updatePromptVisibility();
       }
     });
@@ -51,10 +54,10 @@ function setupInputFieldEventListeners() {
   }
 }
 
-function setupPersonalityPresetEventListeners(closeSettingsPanel) {
+function setupPersonalityPresetEventListeners(closeSettingsPanel: (() => void) | undefined) {
   const presetButtons = document.querySelectorAll(".preset-button") as any;
 
-  presetButtons.forEach((button) => {
+  presetButtons.forEach((button: HTMLElement) => {
     const personality = button.getAttribute("data-personality");
     if (personality) {
       button.title = personality;
@@ -77,7 +80,7 @@ function setupPersonalityPresetEventListeners(closeSettingsPanel) {
 
       if (typeof closeSettingsPanel === "function") {
         closeSettingsPanel();
-      } else if (elements.settingsPanel && elements.settingsPanel.classList.contains("active")) {
+      } else if (elements.settingsPanel && elements.settingsButton && elements.settingsPanel.classList.contains("active")) {
         elements.settingsPanel.classList.remove("active");
         elements.settingsButton.setAttribute("aria-expanded", "false");
         elements.settingsPanel.setAttribute("aria-hidden", "true");

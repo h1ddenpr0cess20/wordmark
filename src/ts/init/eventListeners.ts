@@ -48,13 +48,14 @@ export function setupEventListeners() {
     });
   }
 
-  if (elements.dataSettingsToggle) {
+  const dataSettingsToggle = elements.dataSettingsToggle;
+  if (dataSettingsToggle) {
     try {
       const enabled = getDataSettingsEnabled();
-      elements.dataSettingsToggle.checked = enabled;
+      dataSettingsToggle.checked = enabled;
     } catch {}
 
-    elements.dataSettingsToggle.addEventListener("change", (e) => {
+    dataSettingsToggle.addEventListener("change", (e) => {
       const on = (e.target as any).checked;
       setDataSettingsEnabled(on);
       updateFeatureStatus();
@@ -62,16 +63,16 @@ export function setupEventListeners() {
 
     const dataToggleLabel = document.querySelector("label[for=\"data-settings-toggle\"]") as any;
     if (dataToggleLabel) {
-      dataToggleLabel.addEventListener("click", (ev) => {
+      dataToggleLabel.addEventListener("click", (ev: Event) => {
         ev.preventDefault();
-        const newVal = !elements.dataSettingsToggle.checked;
-        elements.dataSettingsToggle.checked = newVal;
-        elements.dataSettingsToggle.dispatchEvent(new Event("change", { bubbles: true }));
+        const newVal = !dataSettingsToggle.checked;
+        dataSettingsToggle.checked = newVal;
+        dataSettingsToggle.dispatchEvent(new Event("change", { bubbles: true }));
       });
     }
   }
 
-  let vectorStoreModuleLoadingPromise = null;
+  let vectorStoreModuleLoadingPromise: Promise<any> | null = null;
 
   async function ensureVectorStoreModuleLoaded() {
     if (lazyModulesLoaded && lazyModulesLoaded.vectorStore) {
@@ -90,7 +91,7 @@ export function setupEventListeners() {
     } catch (error) {
       console.error("Vector store module failed to load:", error);
       if (showError) {
-        showError(`Failed to load vector store manager: ${error.message}`);
+        showError(`Failed to load vector store manager: ${error instanceof Error ? error.message : ""}`);
       }
       return false;
     }
@@ -108,14 +109,15 @@ export function setupEventListeners() {
     const el = document.querySelector(selector) as any;
     if (!el) return;
 
-    el.addEventListener("click", async(event) => {
+    el.addEventListener("click", async(event: Event) => {
       if (lazyModulesLoaded && lazyModulesLoaded.vectorStore) {
         return;
       }
 
       event.preventDefault();
 
-      const triggerId = event.currentTarget && event.currentTarget.id ? event.currentTarget.id : "";
+      const currentTarget = event.currentTarget as HTMLElement | null;
+      const triggerId = currentTarget && currentTarget.id ? currentTarget.id : "";
       const loaded = await ensureVectorStoreModuleLoaded();
 
       if (!loaded) {
@@ -127,8 +129,8 @@ export function setupEventListeners() {
       }
 
       requestAnimationFrame(() => {
-        if (event.currentTarget && typeof event.currentTarget.click === "function") {
-          event.currentTarget.click();
+        if (currentTarget && typeof currentTarget.click === "function") {
+          currentTarget.click();
         }
       });
     }, true);

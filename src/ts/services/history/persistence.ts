@@ -278,7 +278,7 @@ export function renameConversation(id: string, newName: string) {
     });
 };
 
-export function startNewConversation(name = null) {
+export function startNewConversation(name: string | null = null) {
   if (state.conversationHistory?.length > 0 && state.currentConversationId) {
     saveCurrentConversation();
   }
