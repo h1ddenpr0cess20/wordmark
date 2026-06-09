@@ -14,6 +14,7 @@ import {
 import {
   extractCodeInterpreterOutputs,
   renderCodeInterpreterOutputs,
+  type CodeInterpreterOutputs,
 } from "./codeInterpreter.ts";
 import {
   processMainContentMarkdown,
@@ -21,13 +22,15 @@ import {
 } from "./thinkingUtils.ts";
 import { highlightAndAddCopyButtons, generateMessageId, addMessageCopyButton } from "../../components/messages.ts";
 import { setupImageInteractions } from "../../components/ui/imageInteractions.ts";
+import type { StreamedMessageContent } from "../../../types/api.ts";
 
-export function finalizeStreamedResponse(loadingMessage: HTMLElement | null, contentObj: any) {
+export function finalizeStreamedResponse(loadingMessage: HTMLElement | null, contentObj: string | StreamedMessageContent) {
   if (!loadingMessage) {
     return;
   }
 
-  const responsePayload = contentObj && typeof contentObj === "object" ? contentObj.response || null : null;
+  // Raw provider payload: parsed below at the provider-response boundary.
+  const responsePayload: any = contentObj && typeof contentObj === "object" ? contentObj.response || null : null;
   let content = contentObj && typeof contentObj === "object" ? (contentObj.content || "") : (contentObj || "");
   let reasoning = contentObj && typeof contentObj === "object" ? (contentObj.reasoning || "") : "";
 
@@ -305,7 +308,7 @@ export function updateFinalMessage(loadingMessage: HTMLElement | null) {
   addMessageCopyButton(loadingMessage, loadingMessage.id);
 }
 
-export function updateMessageContent(loadingMessage: HTMLElement | null, assistantMessageObj: any) {
+export function updateMessageContent(loadingMessage: HTMLElement | null, assistantMessageObj: string | StreamedMessageContent) {
   if (!loadingMessage) {
     return;
   }
@@ -317,7 +320,7 @@ export function updateMessageContent(loadingMessage: HTMLElement | null, assista
   const reasoning = typeof assistantMessageObj === "string" ? "" : (assistantMessageObj.reasoning || "");
   const codeOutputs = typeof assistantMessageObj === "string"
     ? null
-    : (assistantMessageObj.codeInterpreterOutputs || null);
+    : ((assistantMessageObj.codeInterpreterOutputs as CodeInterpreterOutputs) || null);
   const parsedThinking = separateThinkingSegments(content);
   let processedText = parsedThinking.content;
   let thinkingContent = reasoning;

@@ -48,6 +48,18 @@ export interface Message {
   [key: string]: unknown;
 }
 
+/**
+ * The internal "rendered message" object passed to the message-content
+ * updaters. All fields are optional; `response` carries the raw provider
+ * payload (parsed at that boundary) and is intentionally untyped.
+ */
+export interface StreamedMessageContent {
+  content?: string;
+  reasoning?: string;
+  codeInterpreterOutputs?: unknown;
+  response?: unknown;
+}
+
 /** A function/tool call as embedded in a provider response. */
 export interface ToolCallLike {
   type?: string;
