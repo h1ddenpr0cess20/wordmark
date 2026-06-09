@@ -5,3 +5,5 @@ node_modules
 dist
 CLAUDE.md
 REFACTOR_PLAN.md
+package-lock.json
+docs/typescript-conversion.md
