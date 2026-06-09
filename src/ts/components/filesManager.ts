@@ -11,12 +11,12 @@ import { uploadFile as uploadAssistantFile } from "../services/vectorStore.ts"; 
  * Initialize the Assistants File Manager
  */
 export async function initFilesManager() {
-  const listContainer = document.getElementById("assistant-file-list") as any;
+  const listContainer = document.getElementById("assistant-file-list");
   if (!listContainer) return;
 
-  const refreshButton = document.getElementById("refresh-assistant-files") as any;
-  const uploadButton = document.getElementById("upload-assistant-files") as any;
-  const deleteAllButton = document.getElementById("delete-all-assistant-files") as any;
+  const refreshButton = document.getElementById("refresh-assistant-files");
+  const uploadButton = document.getElementById("upload-assistant-files");
+  const deleteAllButton = document.getElementById("delete-all-assistant-files");
 
   if (refreshButton) {
     refreshButton.addEventListener("click", refreshAssistantFileList);
@@ -37,7 +37,7 @@ export async function initFilesManager() {
  * Refresh the assistants file list
  */
 export async function refreshAssistantFileList() {
-  const listContainer = document.getElementById("assistant-file-list") as any;
+  const listContainer = document.getElementById("assistant-file-list");
   if (!listContainer) return;
 
   listContainer.innerHTML = "<div class=\"loading-text\">Loading assistant files...</div>";
@@ -119,7 +119,7 @@ export async function refreshAssistantFileList() {
  * Upload files selected in the input
  */
 async function uploadSelectedAssistantFiles() {
-  const input = document.getElementById("assistant-file-upload") as any;
+  const input = document.getElementById("assistant-file-upload") as HTMLInputElement | null;
   if (!input || !input.files || input.files.length === 0) {
     if (showInfo) showInfo("Select one or more files first.");
     return;
@@ -129,7 +129,7 @@ async function uploadSelectedAssistantFiles() {
   let success = 0;
   let fail = 0;
 
-  for (const file of Array.from(input.files) as any[]) {
+  for (const file of Array.from(input.files)) {
     try {
       await uploadAssistantFile(file); // purpose=assistants handled by service
       success++;

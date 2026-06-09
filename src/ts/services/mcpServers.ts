@@ -81,7 +81,7 @@ export function removeMCPServer(serverLabel: string) {
  * Render the list of MCP servers in the UI
  */
 function renderMCPServersList() {
-  const container = document.getElementById("mcp-servers-list") as any;
+  const container = document.getElementById("mcp-servers-list");
   if (!container) return;
 
   const servers = getMCPServers();
@@ -214,11 +214,11 @@ function handleRemoveServer(event: Event) {
  * Handle adding a new server from the form
  */
 function handleAddServer() {
-  const nameInput = document.getElementById("mcp-server-name") as any;
-  const labelInput = document.getElementById("mcp-server-label") as any;
-  const urlInput = document.getElementById("mcp-server-url") as any;
-  const approvalInput = document.getElementById("mcp-server-approval") as any;
-  const descriptionInput = document.getElementById("mcp-server-description") as any;
+  const nameInput = document.getElementById("mcp-server-name") as HTMLInputElement | null;
+  const labelInput = document.getElementById("mcp-server-label") as HTMLInputElement | null;
+  const urlInput = document.getElementById("mcp-server-url") as HTMLInputElement | null;
+  const approvalInput = document.getElementById("mcp-server-approval") as HTMLSelectElement | null;
+  const descriptionInput = document.getElementById("mcp-server-description") as HTMLTextAreaElement | null;
 
   if (!nameInput || !labelInput || !urlInput || !approvalInput) {
     console.error("Required form elements not found");
@@ -314,7 +314,7 @@ export function initMCPServers() {
   renderMCPServersList();
 
   // Setup add server button
-  const addButton = document.getElementById("add-mcp-server") as any;
+  const addButton = document.getElementById("add-mcp-server");
   if (addButton) {
     addButton.addEventListener("click", handleAddServer);
   }

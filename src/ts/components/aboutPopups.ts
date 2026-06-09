@@ -52,7 +52,7 @@ const ABOUT_FALLBACKS = {
 };
 
 function applyFallbackContent(containerId: string) {
-  const container = document.getElementById(containerId) as any;
+  const container = document.getElementById(containerId);
   if (!container) {
     return null;
   }
@@ -86,8 +86,7 @@ async function loadContentIntoContainer(url: string, containerId: string) {
     const mainContent = tempDiv.querySelector(".privacy-content")
       || tempDiv.querySelector(".terms-content")
       || tempDiv.querySelector(".help-content")
-      || tempDiv.querySelector(".contact-content")
-      || (tempDiv as any).body;
+      || tempDiv.querySelector(".contact-content");
 
     if (mainContent) {
       container.innerHTML = mainContent.innerHTML;
@@ -104,8 +103,8 @@ async function loadContentIntoContainer(url: string, containerId: string) {
 }
 
 async function showPrivacyPopup() {
-  const aboutContent = document.querySelector("#content-about .about-content") as any;
-  const privacyPopup = document.getElementById("privacy-popup") as any;
+  const aboutContent = document.querySelector<HTMLElement>("#content-about .about-content");
+  const privacyPopup = document.getElementById("privacy-popup");
 
   if (aboutContent && privacyPopup) {
     aboutContent.style.display = "none";
@@ -121,8 +120,8 @@ async function showPrivacyPopup() {
 }
 
 function hidePrivacyPopup() {
-  const aboutContent = document.querySelector("#content-about .about-content") as any;
-  const privacyPopup = document.getElementById("privacy-popup") as any;
+  const aboutContent = document.querySelector<HTMLElement>("#content-about .about-content");
+  const privacyPopup = document.getElementById("privacy-popup");
 
   if (aboutContent && privacyPopup) {
     privacyPopup.classList.remove("active");
@@ -134,8 +133,8 @@ function hidePrivacyPopup() {
 }
 
 async function showContactPopup() {
-  const aboutContent = document.querySelector("#content-about .about-content") as any;
-  const contactPopup = document.getElementById("contact-popup") as any;
+  const aboutContent = document.querySelector<HTMLElement>("#content-about .about-content");
+  const contactPopup = document.getElementById("contact-popup");
 
   if (aboutContent && contactPopup) {
     aboutContent.style.display = "none";
@@ -151,8 +150,8 @@ async function showContactPopup() {
 }
 
 function hideContactPopup() {
-  const aboutContent = document.querySelector("#content-about .about-content") as any;
-  const contactPopup = document.getElementById("contact-popup") as any;
+  const aboutContent = document.querySelector<HTMLElement>("#content-about .about-content");
+  const contactPopup = document.getElementById("contact-popup");
 
   if (aboutContent && contactPopup) {
     contactPopup.classList.remove("active");
@@ -164,8 +163,8 @@ function hideContactPopup() {
 }
 
 async function showTermsPopup() {
-  const aboutContent = document.querySelector("#content-about .about-content") as any;
-  const termsPopup = document.getElementById("terms-popup") as any;
+  const aboutContent = document.querySelector<HTMLElement>("#content-about .about-content");
+  const termsPopup = document.getElementById("terms-popup");
 
   if (aboutContent && termsPopup) {
     aboutContent.style.display = "none";
@@ -181,8 +180,8 @@ async function showTermsPopup() {
 }
 
 function hideTermsPopup() {
-  const aboutContent = document.querySelector("#content-about .about-content") as any;
-  const termsPopup = document.getElementById("terms-popup") as any;
+  const aboutContent = document.querySelector<HTMLElement>("#content-about .about-content");
+  const termsPopup = document.getElementById("terms-popup");
 
   if (aboutContent && termsPopup) {
     termsPopup.classList.remove("active");
@@ -194,8 +193,8 @@ function hideTermsPopup() {
 }
 
 async function showHelpPopup() {
-  const aboutContent = document.querySelector("#content-about .about-content") as any;
-  const helpPopup = document.getElementById("help-popup") as any;
+  const aboutContent = document.querySelector<HTMLElement>("#content-about .about-content");
+  const helpPopup = document.getElementById("help-popup");
 
   if (aboutContent && helpPopup) {
     aboutContent.style.display = "none";
@@ -211,8 +210,8 @@ async function showHelpPopup() {
 }
 
 function hideHelpPopup() {
-  const aboutContent = document.querySelector("#content-about .about-content") as any;
-  const helpPopup = document.getElementById("help-popup") as any;
+  const aboutContent = document.querySelector<HTMLElement>("#content-about .about-content");
+  const helpPopup = document.getElementById("help-popup");
 
   if (aboutContent && helpPopup) {
     helpPopup.classList.remove("active");
@@ -240,11 +239,12 @@ const POPUP_ACTIONS = {
 
 if (typeof document !== "undefined" && typeof document.addEventListener === "function") {
   document.addEventListener("click", (event) => {
-    const trigger = (event.target as any).closest("[data-popup-action]");
+    const target = event.target as HTMLElement | null;
+    const trigger = target?.closest("[data-popup-action]");
     if (!trigger) {
       return;
     }
-    const handler = (POPUP_ACTIONS as Record<string, () => void>)[trigger.getAttribute("data-popup-action")];
+    const handler = (POPUP_ACTIONS as Record<string, () => void>)[trigger.getAttribute("data-popup-action") || ""];
     if (handler) {
       event.preventDefault();
       handler();

@@ -10,6 +10,9 @@ import { openSettingsAndSwitch } from "../init/eventListeners/settingsPanel.ts";
  * Settings panel related functionality
  */
 
+// Form controls share a `disabled` property; used when toggling tab UI.
+type FormControl = HTMLInputElement | HTMLButtonElement | HTMLSelectElement | HTMLTextAreaElement;
+
 // -----------------------------------------------------
 // Settings panel functions
 // -----------------------------------------------------
@@ -30,7 +33,7 @@ export function updateModelsDropdown(fetchError: boolean) {
   // Show status message if there was an error
   if (fetchError) {
     // Remove any existing status message
-    const existingStatus = document.querySelector(".service-status") as any;
+    const existingStatus = document.querySelector(".service-status");
     if (existingStatus) {
       existingStatus.remove();
     }
@@ -41,7 +44,7 @@ export function updateModelsDropdown(fetchError: boolean) {
     statusElement.textContent = `Failed to fetch ${serviceLabel} models. Check server connection.`;
 
     // Add status message to the DOM
-    const statusAnchor = document.querySelector(".model-selector-container") || document.querySelector(".lmstudio-action-buttons") as any;
+    const statusAnchor = document.querySelector(".model-selector-container") || document.querySelector(".lmstudio-action-buttons");
     if (statusAnchor) {
       statusAnchor.insertAdjacentElement("afterend", statusElement);
 
@@ -61,8 +64,8 @@ uiHooks.updateModelsDropdown = updateModelsDropdown;
  * Updates the header information
  */
 export function updateHeaderInfo() {
-  const headerTitle = document.getElementById("header-title") as any;
-  const modelInfo = document.getElementById("model-info") as any;
+  const headerTitle = document.getElementById("header-title");
+  const modelInfo = document.getElementById("model-info");
 
   // Check if required elements exist
   if (!headerTitle || !modelInfo || !elements.modelSelector) {
@@ -161,7 +164,7 @@ export function setDataSettingsEnabled(enabled: boolean) {
   } catch { /* noop */ }
 
   // Reflect state in the Data tab toggle without re-triggering change handler
-  const toggle = elements.dataSettingsToggle || document.getElementById("data-settings-toggle") as any;
+  const toggle = elements.dataSettingsToggle || (document.getElementById("data-settings-toggle") as HTMLInputElement | null);
   if (toggle) {
     toggle.checked = enabled;
   }
@@ -173,20 +176,20 @@ export function setDataSettingsEnabled(enabled: boolean) {
 }
 
 export function applyDataSettingsState() {
-  const content = document.getElementById("content-data") as any;
+  const content = document.getElementById("content-data");
   if (!content) return;
   const enabled = getDataSettingsEnabled();
 
   if (enabled) {
     // Re-enable tab UI
     content.removeAttribute("data-disabled");
-    const banner = content.querySelector(".data-disabled-banner") as any;
+    const banner = content.querySelector(".data-disabled-banner");
     if (banner) banner.remove();
 
     // Enable all interactive elements
-    content.querySelectorAll(".settings-group").forEach((group: any) => {
+    content.querySelectorAll<HTMLElement>(".settings-group").forEach((group) => {
       group.removeAttribute("inert");
-      group.querySelectorAll("input, button, select, textarea").forEach((el: any) => {
+      group.querySelectorAll<FormControl>("input, button, select, textarea").forEach((el) => {
         el.disabled = false;
         el.removeAttribute("aria-disabled");
       });
@@ -204,31 +207,31 @@ export function applyDataSettingsState() {
     }
 
     // Disable all groups except the one containing the master toggle
-    const groups = Array.from(content.querySelectorAll(".settings-group"));
-    groups.forEach((group: any) => {
+    const groups = Array.from(content.querySelectorAll<HTMLElement>(".settings-group"));
+    groups.forEach((group) => {
       const hasMasterToggle = Boolean(group.querySelector("#data-settings-toggle"));
       if (hasMasterToggle) {
         // Keep the master toggle interactive
         group.removeAttribute("inert");
-        const toggle = group.querySelector("#data-settings-toggle") as any;
+        const toggle = group.querySelector<HTMLInputElement>("#data-settings-toggle");
         if (toggle) {
           toggle.disabled = false;
           toggle.removeAttribute("aria-disabled");
         }
         // Ensure the visual switch and container remain clickable
-        const switchEl = group.querySelector("label[for=\"data-settings-toggle\"], #data-settings-toggle + .toggle-switch, .toggle-container") as any;
+        const switchEl = group.querySelector<HTMLElement>("label[for=\"data-settings-toggle\"], #data-settings-toggle + .toggle-switch, .toggle-container");
         if (switchEl) {
           switchEl.removeAttribute("aria-disabled");
         }
         // Do not disable any elements in this group
-        group.querySelectorAll("input, button, select, textarea").forEach((el: any) => {
+        group.querySelectorAll<FormControl>("input, button, select, textarea").forEach((el) => {
           el.disabled = false;
           el.removeAttribute("aria-disabled");
         });
       } else {
         // Make other groups inert and disable their controls
         group.setAttribute("inert", "");
-        group.querySelectorAll("input, button, select, textarea").forEach((el: any) => {
+        group.querySelectorAll<FormControl>("input, button, select, textarea").forEach((el) => {
           el.disabled = true;
           el.setAttribute("aria-disabled", "true");
         });
@@ -241,7 +244,7 @@ export function applyDataSettingsState() {
  * Updates the small feature status line under the header.
  */
 export function updateFeatureStatus() {
-  const el = document.getElementById("feature-status") as any;
+  const el = document.getElementById("feature-status");
   if (!el) return;
 
   const state = {
@@ -276,7 +279,7 @@ export function updateFeatureStatus() {
     const toggleFeature = async() => {
       switch (key) {
       case "tools": {
-        const toggle = elements.toolCallingToggle || document.getElementById("tool-calling-toggle") as any;
+        const toggle = elements.toolCallingToggle || (document.getElementById("tool-calling-toggle") as HTMLInputElement | null);
         if (toggle) {
           toggle.checked = !isOn;
           toggle.dispatchEvent(new Event("change", { bubbles: true }));
@@ -286,7 +289,7 @@ export function updateFeatureStatus() {
         break;
       }
       case "memory": {
-        const toggle = document.getElementById("memory-toggle") as any;
+        const toggle = document.getElementById("memory-toggle") as HTMLInputElement | null;
         if (toggle) {
           toggle.checked = !isOn;
           toggle.dispatchEvent(new Event("change", { bubbles: true }));
@@ -297,7 +300,7 @@ export function updateFeatureStatus() {
         break;
       }
       case "location": {
-        const toggle = document.getElementById("location-toggle") as any;
+        const toggle = document.getElementById("location-toggle") as HTMLInputElement | null;
         if (!isOn) {
           if (toggle) {
             toggle.checked = true;
@@ -322,7 +325,7 @@ export function updateFeatureStatus() {
         break;
       }
       case "tts": {
-        const toggle = document.getElementById("tts-toggle") as any;
+        const toggle = document.getElementById("tts-toggle") as HTMLInputElement | null;
         if (toggle) {
           toggle.checked = !isOn;
           toggle.dispatchEvent(new Event("change", { bubbles: true }));
@@ -520,11 +523,11 @@ export function initializePersonalityInput() {
  */
 export function organizeSettingsLayout() {
   // Apply to the Model tab
-  const modelTab = document.getElementById("model-settings") as any;
+  const modelTab = document.getElementById("model-settings");
   if (modelTab) {
     // Create wrapper if it doesn't exist
     if (!modelTab.querySelector(".settings-tab-columns")) {
-      const groups = Array.from(modelTab.querySelectorAll(".settings-group"));
+      const groups = Array.from(modelTab.querySelectorAll<HTMLElement>(".settings-group"));
       const midpoint = Math.ceil(groups.length / 2);
 
       // Create column wrapper
@@ -539,7 +542,7 @@ export function organizeSettingsLayout() {
       column2.className = "settings-column";
 
       // Distribute groups between columns
-      groups.forEach((group: any, index) => {
+      groups.forEach((group, index) => {
         if (index < midpoint) {
           column1.appendChild(group);
         } else {
@@ -552,7 +555,7 @@ export function organizeSettingsLayout() {
       wrapper.appendChild(column2);
 
       // Replace content with the new layout
-      const content = modelTab.querySelector(".tab-content-container") as any;
+      const content = modelTab.querySelector(".tab-content-container");
       if (content) {
         // Add new layout
         content.appendChild(wrapper);
