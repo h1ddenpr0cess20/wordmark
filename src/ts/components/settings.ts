@@ -20,9 +20,9 @@ import { openSettingsAndSwitch } from "../init/eventListeners/settingsPanel.ts";
  * provider models without importing the component graph.
  * @param {boolean} fetchError - Whether there was an error fetching models
  */
-export function updateModelsDropdown(fetchError) {
+export function updateModelsDropdown(fetchError: boolean) {
   const serviceKey = elements.serviceSelector ? elements.serviceSelector.value : "";
-  const serviceLabelMap = { lmstudio: "LM Studio", ollama: "Ollama", openai: "OpenAI", xai: "xAI" };
+  const serviceLabelMap: Record<string, string> = { lmstudio: "LM Studio", ollama: "Ollama", openai: "OpenAI", xai: "xAI" };
   const serviceLabel = serviceLabelMap[serviceKey] || serviceKey;
 
   updateModelSelector();
@@ -104,14 +104,16 @@ export function updateHeaderInfo() {
 
     // Show personality or prompt info in the modelInfo area
     let promptInfo = "";
-    if (elements.personalityPromptRadio.checked && elements.personalityInput.value.trim() !== "") {
+    const personalityInput = elements.personalityInput;
+    const systemPromptCustom = elements.systemPromptCustom;
+    if (elements.personalityPromptRadio?.checked && personalityInput && personalityInput.value.trim() !== "") {
       // Only show personality if the user has actively set it
-      if (elements.personalityInput.hasAttribute("data-explicitly-set") &&
-          elements.personalityInput.getAttribute("data-explicitly-set") === "true") {
-        promptInfo = `Personality: ${elements.personalityInput.value.trim()}`;
+      if (personalityInput.hasAttribute("data-explicitly-set") &&
+          personalityInput.getAttribute("data-explicitly-set") === "true") {
+        promptInfo = `Personality: ${personalityInput.value.trim()}`;
       }
-    } else if (elements.customPromptRadio.checked && elements.systemPromptCustom.value.trim() !== "") {
-      promptInfo = elements.systemPromptCustom.value.trim();
+    } else if (elements.customPromptRadio?.checked && systemPromptCustom && systemPromptCustom.value.trim() !== "") {
+      promptInfo = systemPromptCustom.value.trim();
     } else if (elements.noPromptRadio && elements.noPromptRadio.checked) {
       promptInfo = "No system prompt";
     }
@@ -153,7 +155,7 @@ export function getDataSettingsEnabled() {
   }
 }
 
-export function setDataSettingsEnabled(enabled) {
+export function setDataSettingsEnabled(enabled: boolean) {
   try {
     localStorage.setItem("dataSettingsEnabled", enabled ? "true" : "false");
   } catch { /* noop */ }
@@ -182,7 +184,7 @@ export function applyDataSettingsState() {
     if (banner) banner.remove();
 
     // Enable all interactive elements
-    content.querySelectorAll(".settings-group").forEach(group => {
+    content.querySelectorAll(".settings-group").forEach((group: any) => {
       group.removeAttribute("inert");
       group.querySelectorAll("input, button, select, textarea").forEach((el: any) => {
         el.disabled = false;
@@ -253,7 +255,7 @@ export function updateFeatureStatus() {
   // Rebuild to bind handlers
   el.innerHTML = "";
 
-  function makeBadge(label, key, isOn, tabId) {
+  function makeBadge(label: string, key: string, isOn: boolean, tabId: string) {
     const badge = document.createElement("span");
     badge.className = "feature-badge";
     badge.setAttribute("data-state", isOn ? "on" : "off");
@@ -362,11 +364,12 @@ export function updateModelSelector() {
     console.warn("Model selector not found, skipping updateModelSelector");
     return;
   }
+  const modelSelector = elements.modelSelector;
 
-  const currentlySelectedModel = elements.modelSelector.value;
-  const savedModel = elements.modelSelector.getAttribute("data-last-selected");
+  const currentlySelectedModel = modelSelector.value;
+  const savedModel = modelSelector.getAttribute("data-last-selected");
 
-  elements.modelSelector.innerHTML = "";
+  modelSelector.innerHTML = "";
 
   try {
     const activeServiceKey = config?.defaultService;
@@ -395,7 +398,7 @@ export function updateModelSelector() {
       const option = document.createElement("option");
       option.value = model;
       option.textContent = model;
-      elements.modelSelector.appendChild(option);
+      modelSelector.appendChild(option);
     });
 
     // First try to use the currently selected model
@@ -452,9 +455,10 @@ export function populateServiceSelector() {
     console.warn("Service selector or config not found, skipping populateServiceSelector");
     return;
   }
+  const serviceSelector = elements.serviceSelector;
 
   // Clear existing options
-  elements.serviceSelector.innerHTML = "";
+  serviceSelector.innerHTML = "";
 
   // Create and append options for each service in config
   Object.keys(config.services).forEach(serviceKey => {
@@ -490,7 +494,7 @@ export function populateServiceSelector() {
     }
 
     option.textContent = displayName;
-    elements.serviceSelector.appendChild(option);
+    serviceSelector.appendChild(option);
   });
 
   if (typeof config.normalizeServiceKey === "function") {

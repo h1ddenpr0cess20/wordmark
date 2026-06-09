@@ -150,7 +150,7 @@ const loadGalleryImages = async function() {
 
     // Filter images based on current tab
     const currentTab = state.currentGalleryTab || "generated";
-    let visibleImages;
+    let visibleImages: any[];
 
     if (currentTab === "uploaded") {
       // Show only uploaded images
@@ -206,7 +206,7 @@ const loadGalleryImages = async function() {
     // Process images in batches to not block the UI
     const batchSize = 10;
 
-    function processBatch(startIndex) {
+    function processBatch(startIndex: number) {
       const endIndex = Math.min(startIndex + batchSize, visibleImages.length);
 
       for (let i = startIndex; i < endIndex; i++) {
@@ -217,7 +217,7 @@ const loadGalleryImages = async function() {
         const galleryItem = document.createElement("div");
         galleryItem.className = "gallery-item";
         galleryItem.dataset.filename = image.filename;
-        galleryItem.dataset.index = i;
+        galleryItem.dataset.index = String(i);
         galleryItem.dataset.mediaType = mediaType;
 
         // Create selection bar at the top
@@ -273,7 +273,7 @@ const loadGalleryImages = async function() {
 
         // Add event listeners to buttons
         const deleteBtn = actions.querySelector(".gallery-delete-btn") as any;
-        deleteBtn.addEventListener("click", (e) => {
+        deleteBtn.addEventListener("click", (e: Event) => {
           e.stopPropagation();
           if (confirm(`Delete this ${mediaType}?`)) {
             deleteImageAndUpdateGallery(image.filename);
@@ -281,7 +281,7 @@ const loadGalleryImages = async function() {
         });
 
         const downloadBtn = actions.querySelector(".gallery-download-btn") as any;
-        downloadBtn.addEventListener("click", (e) => {
+        downloadBtn.addEventListener("click", (e: Event) => {
           e.stopPropagation();
           downloadGalleryImage(image.data, image.filename);
         });
@@ -310,12 +310,12 @@ const loadGalleryImages = async function() {
         // Stop propagation for checkbox to prevent triggering slideshow
         const checkbox = selectContainer.querySelector(".gallery-select-checkbox") as any;
         if (checkbox) {
-          checkbox.addEventListener("click", (e) => {
+          checkbox.addEventListener("click", (e: Event) => {
             e.stopPropagation();
           });
 
           // Also prevent propagation from the label
-          selectContainer.addEventListener("click", (e) => {
+          selectContainer.addEventListener("click", (e: Event) => {
             e.stopPropagation();
           });
         }
@@ -362,9 +362,9 @@ const getAllImagesFromDb = function(): Promise<any[]> {
         .catch(reject);
       return;
     }
-    const images = [];
+    const images: any[] = [];
     const storeName = IMAGE_STORE_NAME || "images";
-    const transaction = getImageDb().transaction([storeName], "readonly");
+    const transaction = getImageDb()!.transaction([storeName], "readonly");
     const store = transaction.objectStore(storeName);
 
     const request = store.openCursor();
@@ -394,7 +394,7 @@ const getAllImagesFromDb = function(): Promise<any[]> {
  * Delete a media item from IndexedDB and remove it from the gallery
  * @param {string} filename - The filename of the media item to delete
  */
-const deleteImageAndUpdateGallery = async function(filename) {
+const deleteImageAndUpdateGallery = async function(filename: string) {
   try {
     await deleteImageFromDb(filename);
 
@@ -427,7 +427,7 @@ const deleteImageAndUpdateGallery = async function(filename) {
  * @param {string|Blob} imageData - Media data or display URL
  * @param {string} filename - The filename to save as
  */
-const downloadGalleryImage = function(imageData, filename) {
+const downloadGalleryImage = function(imageData: any, filename: string) {
   downloadMediaSource(imageData, filename)
     .catch(error => {
       console.error("Failed to download gallery media:", error);
@@ -439,7 +439,7 @@ const downloadGalleryImage = function(imageData, filename) {
  * Start the gallery slideshow from a specific index
  * @param {number} startIndex - The index to start from
  */
-const startGallerySlideshow = function(startIndex) {
+const startGallerySlideshow = function(startIndex: number) {
   if (!state.galleryImages || state.galleryImages.length === 0) {
     console.error("No media available for viewer");
     return;
@@ -476,9 +476,9 @@ const bulkDeleteSelectedImages = async function() {
   }
 
   try {
-    const deletePromises = [];
+    const deletePromises: Promise<any>[] = [];
 
-    selectedCheckboxes.forEach(checkbox => {
+    selectedCheckboxes.forEach((checkbox: any) => {
       const galleryItem = checkbox.closest(".gallery-item");
       if (galleryItem) {
         const filename = galleryItem.dataset.filename;
@@ -531,12 +531,12 @@ function initializeGalleryTabs() {
  * Switch between gallery tabs
  * @param {string} tabName - 'generated' or 'uploaded'
  */
-const switchGalleryTab = function(tabName) {
+const switchGalleryTab = function(tabName: string) {
   state.currentGalleryTab = tabName;
 
   // Update tab active states
   const tabs = document.querySelectorAll(".gallery-tab") as any;
-  tabs.forEach(tab => {
+  tabs.forEach((tab: any) => {
     if (tab.dataset.tab === tabName) {
       tab.classList.add("active");
     } else {
@@ -546,7 +546,7 @@ const switchGalleryTab = function(tabName) {
 
   // Clear any selected checkboxes when switching tabs
   const checkboxes = document.querySelectorAll(".gallery-select-checkbox:checked") as any;
-  checkboxes.forEach(checkbox => {
+  checkboxes.forEach((checkbox: any) => {
     checkbox.checked = false;
   });
 
