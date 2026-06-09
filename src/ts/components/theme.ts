@@ -22,7 +22,7 @@ let currentTheme = "theme-dark-blue"; // Default theme
 let themeCategories: Record<string, string[]> = {};
 
 // Cached canvas context for CSS color parsing
-let colorParsingContext = null;
+let colorParsingContext: CanvasRenderingContext2D | null = null;
 
 /**
  * Extract theme names from CSS files
@@ -37,7 +37,7 @@ function extractThemesFromCSS() {
     "Special Themes": specialThemeCss,
   };
 
-  const categories = {
+  const categories: Record<string, string[]> = {
     "Dark Themes": [],
     "Light Themes": [],
     "Metal Themes": [],
@@ -60,7 +60,7 @@ function extractThemesFromCSS() {
 }
 
 // Special cases for theme display names
-const themeNameOverrides = {
+const themeNameOverrides: Record<string, string> = {
   "theme-usa": "USA",
   "theme-uk": "United Kingdom",
 };
@@ -70,7 +70,7 @@ const themeNameOverrides = {
  * @param {string} themeId - The theme ID (e.g., 'theme-dark-red')
  * @returns {string} - The display name (e.g., 'Dark Red')
  */
-function getThemeDisplayName(themeId) {
+function getThemeDisplayName(themeId: string) {
   // Check for overrides first
   if (themeNameOverrides[themeId]) {
     return themeNameOverrides[themeId];
@@ -94,7 +94,7 @@ function getThemeClasses() {
  * @param {string} colorValue
  * @returns {string|null}
  */
-function toRgbTriplet(colorValue) {
+function toRgbTriplet(colorValue: string) {
   if (!colorValue) {
     return null;
   }
@@ -131,7 +131,7 @@ function updateThemeColorTriplets() {
 
   const computedStyles = getComputedStyle(document.body);
 
-  const syncColor = (sourceVar, targetVar) => {
+  const syncColor = (sourceVar: string, targetVar: string) => {
     const colorValue = computedStyles.getPropertyValue(sourceVar).trim();
     if (!colorValue) {
       document.body.style.removeProperty(targetVar);
@@ -223,7 +223,7 @@ export async function initTheme() {
   applyTheme(currentTheme);
 
   // Add event listener for theme changes
-  themeSelector.addEventListener("change", (e) => {
+  themeSelector.addEventListener("change", (e: Event) => {
     const newTheme = (e.target as any).value;
     applyTheme(newTheme);
     currentTheme = newTheme;
@@ -235,7 +235,7 @@ export async function initTheme() {
  * Apply a theme to the document
  * @param {string} themeName - The name/class of the theme to apply
  */
-export function applyTheme(themeName) {
+export function applyTheme(themeName: string) {
   // Remove all theme classes from body
   document.body.classList.remove(...getThemeClasses());
 
@@ -273,7 +273,7 @@ function rehighlightCodeBlocks() {
         ignoreUnescapedHTML: true,
       });
 
-      codeBlocks.forEach((codeBlock) => {
+      codeBlocks.forEach((codeBlock: any) => {
         try {
           // Store original content if not already stored
           if (!codeBlock.hasAttribute("data-original-code")) {

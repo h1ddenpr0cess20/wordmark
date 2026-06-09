@@ -4,7 +4,7 @@ import { deleteImageFromDb } from "../../utils/imageStorage.ts";
 import { isMobileDevice } from "../../utils/mobileHandling.ts";
 import { detectMediaType, downloadMediaSource } from "../../services/mediaTools.ts";
 
-function elementMediaType(element) {
+function elementMediaType(element: any) {
   const explicit = element?.dataset?.mediaType;
   if (explicit === "video" || explicit === "image") {
     return explicit;
@@ -12,7 +12,7 @@ function elementMediaType(element) {
   return element?.tagName?.toLowerCase() === "video" ? "video" : "image";
 }
 
-function buildViewerMediaElement(item) {
+function buildViewerMediaElement(item: any) {
   const mediaType = item.mediaType;
   if (mediaType === "video") {
     const video = document.createElement("video");
@@ -31,7 +31,7 @@ function buildViewerMediaElement(item) {
   return img;
 }
 
-function normalizeViewerItem(source, isGalleryMode) {
+function normalizeViewerItem(source: any, isGalleryMode: boolean) {
   if (isGalleryMode) {
     const mediaType = detectMediaType(source);
     return {
@@ -55,7 +55,7 @@ function normalizeViewerItem(source, isGalleryMode) {
   };
 }
 
-export function setupImageInteractions(messageElement) {
+export function setupImageInteractions(messageElement: HTMLElement | null) {
   if (!messageElement) {
     return;
   }
@@ -67,7 +67,7 @@ export function setupImageInteractions(messageElement) {
 
   const downloadIconSvg = icon("download", { width: 16, height: 16 });
 
-  mediaElements.forEach((media, index) => {
+  mediaElements.forEach((media: any, index: number) => {
     if (media.parentNode?.classList?.contains("image-container")) {
       return;
     }
@@ -104,7 +104,7 @@ export function setupImageInteractions(messageElement) {
   });
 
   const images = messageElement.querySelectorAll(".message-content img") as any;
-  images.forEach((img) => {
+  images.forEach((img: any) => {
     if (img.dataset.viewerBound === "true") {
       return;
     }
@@ -121,7 +121,7 @@ export function setupImageInteractions(messageElement) {
   });
 
   const videos = messageElement.querySelectorAll(".message-content video") as any;
-  videos.forEach((video) => {
+  videos.forEach((video: any) => {
     if (video.dataset.viewerBound === "true") {
       return;
     }
@@ -152,7 +152,7 @@ export function setupImageInteractions(messageElement) {
   });
 }
 
-export function createImageSlideshow(images, startIndex, isGalleryMode = false) {
+export function createImageSlideshow(images: any[], startIndex: number, isGalleryMode = false) {
   if (!images || !images.length) {
     return;
   }
@@ -223,6 +223,9 @@ export function createImageSlideshow(images, startIndex, isGalleryMode = false) 
       if (!confirm(`Delete this ${mediaType}?`)) {
         return;
       }
+      if (!image.filename) {
+        return;
+      }
 
       deleteImageFromDb?.(image.filename)
         .then(() => {
@@ -280,7 +283,7 @@ export function createImageSlideshow(images, startIndex, isGalleryMode = false) 
     }, 50);
   };
 
-  const showSlide = (index) => {
+  const showSlide = (index: number) => {
     if (index < 0) {
       index = images.length - 1;
     }
@@ -323,7 +326,7 @@ export function createImageSlideshow(images, startIndex, isGalleryMode = false) 
   prevBtn.addEventListener("click", () => showSlide(currentIndex - 1));
   nextBtn.addEventListener("click", () => showSlide(currentIndex + 1));
 
-  const handleKeydown = (event) => {
+  const handleKeydown = (event: KeyboardEvent) => {
     if (event.key === "ArrowLeft") {
       showSlide(currentIndex - 1);
     } else if (event.key === "ArrowRight") {
@@ -371,9 +374,9 @@ export function createImageSlideshow(images, startIndex, isGalleryMode = false) 
   });
 }
 
-function gatherAllConversationMedia(clickedElement) {
+function gatherAllConversationMedia(clickedElement: any) {
   const allMessages = Array.from(document.querySelectorAll(".message"));
-  const allMedia = [];
+  const allMedia: any[] = [];
   let clickedIndex = -1;
 
   allMessages.forEach((message) => {
