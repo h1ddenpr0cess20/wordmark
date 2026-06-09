@@ -2,28 +2,30 @@ import { elements } from "../state.ts";
 import { renderChatHistoryList } from "../../services/history/list.ts";
 import { updatePanelOpenState } from "./settingsPanel.ts";
 export function setupChatHistoryEventListeners() {
-  if (elements.historyButton && elements.historyPanel) {
-    elements.historyButton.addEventListener("click", () => {
-      const isExpanded = elements.historyButton.getAttribute("aria-expanded") === "true";
-      elements.historyButton.setAttribute("aria-expanded", String(!isExpanded));
-      elements.historyPanel.setAttribute("aria-hidden", String(isExpanded));
+  const historyButton = elements.historyButton;
+  const historyPanel = elements.historyPanel;
+  if (historyButton && historyPanel) {
+    historyButton.addEventListener("click", () => {
+      const isExpanded = historyButton.getAttribute("aria-expanded") === "true";
+      historyButton.setAttribute("aria-expanded", String(!isExpanded));
+      historyPanel.setAttribute("aria-hidden", String(isExpanded));
       if (!isExpanded) {
-        elements.historyPanel.removeAttribute("inert");
+        historyPanel.removeAttribute("inert");
         renderChatHistoryList();
       } else {
-        elements.historyPanel.setAttribute("inert", "true");
+        historyPanel.setAttribute("inert", "true");
       }
 
       updatePanelOpenState();
     });
   }
 
-  if (elements.closeHistoryButton && elements.historyPanel) {
+  if (elements.closeHistoryButton && historyPanel && historyButton) {
     elements.closeHistoryButton.addEventListener("click", () => {
-      elements.historyPanel.setAttribute("aria-hidden", "true");
-      elements.historyPanel.setAttribute("inert", "true");
-      elements.historyButton.setAttribute("aria-expanded", "false");
-      elements.historyButton.focus();
+      historyPanel.setAttribute("aria-hidden", "true");
+      historyPanel.setAttribute("inert", "true");
+      historyButton.setAttribute("aria-expanded", "false");
+      historyButton.focus();
       updatePanelOpenState();
     });
   }

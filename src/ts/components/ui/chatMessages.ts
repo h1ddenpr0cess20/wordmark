@@ -6,7 +6,7 @@ import { renderWordmarkLogo } from "../logo.ts";
 import { generateMessageId, highlightAndAddCopyButtons } from "../messages.ts";
 import { setupImageInteractions } from "./imageInteractions.ts";
 import { sanitizeWithMedia } from "../../utils/sanitize.ts";
-function renderAssistantIcon(senderElement) {
+function renderAssistantIcon(senderElement: HTMLElement) {
   senderElement.innerHTML = `
     <svg class="sender-icon assistant-icon" width="32" height="32" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
       <g stroke="var(--accent-color)" stroke-width="1"></g>
@@ -14,7 +14,7 @@ function renderAssistantIcon(senderElement) {
   `;
 
   const originalSelector = document.querySelector;
-  document.querySelector = function(selector) {
+  document.querySelector = function(selector: string) {
     if (selector === "#wordmark-logo g") {
       return senderElement.querySelector("g") as any;
     }
@@ -28,7 +28,7 @@ function renderAssistantIcon(senderElement) {
   }
 }
 
-export function appendMessage(sender, content, type, skipHistory = false) {
+export function appendMessage(sender: string, content: any, type: string, skipHistory = false) {
   const messageElement = document.createElement("div");
   messageElement.classList.add("message");
   if (type) {
@@ -54,11 +54,12 @@ export function appendMessage(sender, content, type, skipHistory = false) {
 
   messageElement.appendChild(senderElement);
   messageElement.appendChild(contentElement);
-  elements.chatBox.appendChild(messageElement);
+  const chatBox = elements.chatBox;
+  chatBox?.appendChild(messageElement);
 
   // Mobile/optimized fast-scroll once the message element is in the DOM.
-  if (state.shouldAutoScroll && elements.chatBox) {
-    fastScroll(elements.chatBox, elements.chatBox.scrollHeight);
+  if (state.shouldAutoScroll && chatBox) {
+    fastScroll(chatBox, chatBox.scrollHeight);
   }
 
   setTimeout(() => {
@@ -79,8 +80,8 @@ export function appendMessage(sender, content, type, skipHistory = false) {
         console.error("Error setting up image interactions:", error);
       }
 
-      if (state.shouldAutoScroll) {
-        elements.chatBox.scrollTop = elements.chatBox.scrollHeight;
+      if (state.shouldAutoScroll && chatBox) {
+        chatBox.scrollTop = chatBox.scrollHeight;
       }
 
       if ((type === "user" || type === "system") && !skipHistory) {
@@ -92,8 +93,8 @@ export function appendMessage(sender, content, type, skipHistory = false) {
   return messageElement;
 }
 
-export function appendAssistantMessage(assistantMessage, skipHistory = false) {
-  let msgId = null;
+export function appendAssistantMessage(assistantMessage: any, skipHistory = false) {
+  let msgId: string | null = null;
   if (!skipHistory) {
     msgId = generateMessageId();
 
