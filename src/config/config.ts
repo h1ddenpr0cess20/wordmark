@@ -8,6 +8,9 @@
  */
 import { state } from "../ts/init/state.ts";
 import { uiHooks } from "../ts/init/uiHooks.ts";
+import type { Config, ModelListItem } from "../types/config.ts";
+
+type ConsoleMethod = "log" | "info" | "warn" | "error";
 
 // MCP client behavior to avoid browser CORS requirements on MCP endpoints.
 // When true, the app will NOT make browser pings to MCP servers and will assume
@@ -54,13 +57,13 @@ const originalConsole = {
 
 // Lightweight dedupe cache to prevent duplicate console entries.
 const LOG_DEDUPE = {
-  lastTimes: new Map(), // key -> timestamp
-  suppressed: new Map(), // key -> count
+  lastTimes: new Map<string, number>(), // key -> timestamp
+  suppressed: new Map<string, number>(), // key -> count
   windowMs: 1500,
   maxEntries: 500,
 };
 
-function serializeArgs(args) {
+function serializeArgs(args: unknown[]): string {
   try {
     return JSON.stringify(args, (k, v) => {
       if (typeof v === "function") return "ƒ";
@@ -75,9 +78,9 @@ function serializeArgs(args) {
   }
 }
 
-function makeWrapper(method, gateVerbose) {
+function makeWrapper(method: ConsoleMethod, gateVerbose: boolean) {
   const orig = originalConsole[method] || console[method];
-  return function(...args) {
+  return function(...args: unknown[]) {
     // Apply verbose gating for log/info
     if (gateVerbose && !state.verboseLogging) return;
 
@@ -150,7 +153,7 @@ if (typeof window !== "undefined" && typeof window.addEventListener === "functio
 }
 
 // OpenAI API Configuration
-export const config = {
+export const config: Config = {
     // Default service to use
     defaultService: "openai",
 
@@ -206,8 +209,8 @@ export const config = {
                         const data = await response.json();
                         if (data && Array.isArray(data.data)) {
                             this.models = data.data
-                                .map(item => item.id)
-                                .filter(id => id && this._isChatModel(id))
+                                .map((item: ModelListItem) => item.id)
+                                .filter((id: unknown): id is string => typeof id === "string" && this._isChatModel?.(id) === true)
                                 .sort();
                         } else {
                             this.models = ["Error: Invalid response"];
@@ -253,14 +256,14 @@ export const config = {
                     } else {
                         const data = await response.json();
                         // LM Studio returns { "data": [ { "id": "model-id", ... }, ... ] } similar to OpenAI list
-                        const isEmbeddingModel = (id) => /embed/i.test(id);
+                        const isEmbeddingModel = (id: string) => /embed/i.test(id);
                         if (data && Array.isArray(data.data)) {
-                            this.models = data.data.map(item => item.id).filter(id => id && !isEmbeddingModel(id)).sort();
+                            this.models = data.data.map((item: ModelListItem) => item.id).filter((id: unknown): id is string => typeof id === "string" && !isEmbeddingModel(id)).sort();
                         } else if (Array.isArray(data)) {
                             // fallback: array of string ids
-                            this.models = data.filter(id => !isEmbeddingModel(id)).sort();
+                            this.models = data.filter((id: string) => !isEmbeddingModel(id)).sort();
                         } else if (Array.isArray(data.models)) {
-                            this.models = data.models.filter(id => !isEmbeddingModel(id)).sort();
+                            this.models = data.models.filter((id: string) => !isEmbeddingModel(id)).sort();
                         } else {
                             console.error("Unexpected LM Studio /models response format:", data);
                             this.models = ["Error: Invalid server response"];
@@ -310,22 +313,22 @@ export const config = {
                 console.info(`Fetching Ollama models from: ${endpoint}`);
                 let fetchError = false;
 
-                const isEmbeddingModel = (id) => /embed/i.test(id);
-                const parseModels = (data) => {
+                const isEmbeddingModel = (id: string) => /embed/i.test(id);
+                const parseModels = (data: any): string[] | null => {
                     if (data && Array.isArray(data.data)) {
-                        return data.data.map(item => item.id).filter(id => id && !isEmbeddingModel(id)).sort();
+                        return data.data.map((item: ModelListItem) => item.id).filter((id: unknown): id is string => typeof id === "string" && !isEmbeddingModel(id)).sort();
                     }
                     if (Array.isArray(data)) {
-                        return data.filter(id => !isEmbeddingModel(id)).sort();
+                        return data.filter((id: string) => !isEmbeddingModel(id)).sort();
                     }
                     if (data && Array.isArray(data.models)) {
                         return data.models
-                            .map(item => {
+                            .map((item: string | ModelListItem) => {
                                 if (typeof item === "string") return item;
                                 if (item && typeof item === "object") return item.id || item.name || item.model;
                                 return null;
                             })
-                            .filter(id => id && !isEmbeddingModel(id))
+                            .filter((id: unknown): id is string => typeof id === "string" && !isEmbeddingModel(id))
                             .sort();
                     }
                     return null;
@@ -430,8 +433,8 @@ export const config = {
                         const data = await response.json();
                         if (data && Array.isArray(data.data)) {
                             this.models = data.data
-                                .map(item => item.id)
-                                .filter(id => id && this._isChatModel(id))
+                                .map((item: ModelListItem) => item.id)
+                                .filter((id: unknown): id is string => typeof id === "string" && this._isChatModel?.(id) === true)
                                 .sort();
                         } else {
                             this.models = ["Error: Invalid response"];
