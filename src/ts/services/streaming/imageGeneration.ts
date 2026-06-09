@@ -7,6 +7,11 @@ import { registerGeneratedMedia } from "../mediaTools.ts";
 
 export const IMAGE_GENERATION_CALL_TYPE = "image_generation_call";
 
+export interface ImageCandidate {
+  dataUrl: string;
+  mimeType: string;
+}
+
 export function ensureImagesHaveMessageIds() {
   if (!state.generatedImages || !state.conversationHistory) {
     return 0;
@@ -22,8 +27,8 @@ export function ensureImagesHaveMessageIds() {
   const assistantMessages = state.conversationHistory
     .filter(msg => msg.role === "assistant" && msg.id)
     .sort((a, b) => {
-      const timeA = a.timestamp ? new Date(a.timestamp).getTime() : 0;
-      const timeB = b.timestamp ? new Date(b.timestamp).getTime() : 0;
+      const timeA = a.timestamp ? new Date(a.timestamp as string | number).getTime() : 0;
+      const timeB = b.timestamp ? new Date(b.timestamp as string | number).getTime() : 0;
       return timeB - timeA;
     });
 
@@ -31,7 +36,7 @@ export function ensureImagesHaveMessageIds() {
     let associatedMessage = null;
 
     for (const msg of assistantMessages) {
-      if (msg.content && (msg.content.includes(`[[IMAGE: ${img.filename}]]`) || msg.content.includes(`[[MEDIA: ${img.filename}]]`))) {
+      if (typeof msg.content === "string" && (msg.content.includes(`[[IMAGE: ${img.filename}]]`) || msg.content.includes(`[[MEDIA: ${img.filename}]]`))) {
         associatedMessage = msg;
         break;
       }
@@ -47,7 +52,7 @@ export function ensureImagesHaveMessageIds() {
             continue;
           }
           const timeDiff = Math.abs(
-            new Date(msg.timestamp).getTime() - new Date(img.timestamp).getTime(),
+            new Date(msg.timestamp as string | number).getTime() - new Date(img.timestamp as string | number).getTime(),
           );
           if (timeDiff < smallestTimeDiff) {
             smallestTimeDiff = timeDiff;
@@ -73,7 +78,7 @@ export function ensureImagesHaveMessageIds() {
   return updatedCount;
 }
 
-function isProbablyBase64(value) {
+function isProbablyBase64(value: unknown) {
   if (typeof value !== "string") {
     return false;
   }
@@ -87,13 +92,13 @@ function isProbablyBase64(value) {
   return /^[A-Za-z0-9+/=]+$/.test(sanitized);
 }
 
-export function imageDebugLog(...args) {
+export function imageDebugLog(...args: unknown[]) {
   if (typeof window !== "undefined" && state.verboseLogging) {
     console.info("[image-debug]", ...args);
   }
 }
 
-function extractMimeFromDataUrl(dataUrl) {
+function extractMimeFromDataUrl(dataUrl: unknown) {
   if (typeof dataUrl !== "string") {
     return null;
   }
@@ -101,14 +106,14 @@ function extractMimeFromDataUrl(dataUrl) {
   return match ? match[1].toLowerCase() : null;
 }
 
-function normaliseMimeType(mimeType) {
+function normaliseMimeType(mimeType: unknown) {
   if (typeof mimeType === "string" && mimeType.trim()) {
     return mimeType.trim().toLowerCase();
   }
   return "image/png";
 }
 
-function coerceImageDataUrl(rawValue, mimeTypeHint) {
+function coerceImageDataUrl(rawValue: unknown, mimeTypeHint: unknown) {
   if (typeof rawValue !== "string") {
     return null;
   }
@@ -128,7 +133,13 @@ function coerceImageDataUrl(rawValue, mimeTypeHint) {
   return `data:${mimeType};base64,${base64}`;
 }
 
-export function collectImageCandidates(value, accumulator, defaultMime, seen, visited) {
+export function collectImageCandidates(
+  value: any,
+  accumulator: ImageCandidate[],
+  defaultMime: string | undefined,
+  seen: Set<string>,
+  visited: WeakSet<object> | null,
+) {
   if (value === null || value === undefined) {
     return;
   }
@@ -146,7 +157,7 @@ export function collectImageCandidates(value, accumulator, defaultMime, seen, vi
     }
   }
 
-  const pushCandidate = (candidate, mimeType) => {
+  const pushCandidate = (candidate: unknown, mimeType: string | undefined) => {
     const dataUrl = coerceImageDataUrl(candidate, mimeType || defaultMime);
     if (!dataUrl) {
       return;
@@ -215,7 +226,7 @@ export function collectImageCandidates(value, accumulator, defaultMime, seen, vi
   }
 }
 
-function extractPromptFromImageCall(call) {
+function extractPromptFromImageCall(call: any) {
   if (!call || typeof call !== "object") {
     return "";
   }
@@ -255,7 +266,7 @@ function extractPromptFromImageCall(call) {
   return "";
 }
 
-function detectImageCallMode(call) {
+function detectImageCallMode(call: any) {
   const candidates = [
     call?.mode,
     call?.metadata?.mode,
@@ -283,7 +294,7 @@ function detectImageCallMode(call) {
   return found ? found.trim().toLowerCase() : "";
 }
 
-function determineSourceLabel(node, mode) {
+function determineSourceLabel(node: any, mode: string) {
   if (mode) {
     if (mode.includes("edit")) {
       return "image_edit";
@@ -304,7 +315,7 @@ function determineSourceLabel(node, mode) {
   return "image_generation";
 }
 
-export function processImageGenerationOutputs(responsePayload) {
+export function processImageGenerationOutputs(responsePayload: any) {
   if (!responsePayload || typeof responsePayload !== "object") {
     imageDebugLog("Skipping image extraction: response payload missing or invalid.");
     return;
@@ -313,7 +324,7 @@ export function processImageGenerationOutputs(responsePayload) {
   const outputs = Array.isArray(responsePayload.output) ? responsePayload.output : [];
   imageDebugLog("Scanning response payload for image calls.", {
     outputLength: outputs.length,
-    rawOutputKeys: outputs.map(item => item && item.type),
+    rawOutputKeys: outputs.map((item: any) => item && item.type),
   });
 
   if (!Array.isArray(state.currentGeneratedImageHtml)) {
@@ -325,7 +336,7 @@ export function processImageGenerationOutputs(responsePayload) {
 
   const globalSeen = new Set();
 
-  const imageGenerationOutputs = outputs.filter(entry => {
+  const imageGenerationOutputs = outputs.filter((entry: any) => {
     if (!entry || typeof entry !== "object") {
       return false;
     }
@@ -339,18 +350,18 @@ export function processImageGenerationOutputs(responsePayload) {
   imageDebugLog("Filtered to image generation outputs only.", {
     totalOutputs: outputs.length,
     imageGenerationOutputs: imageGenerationOutputs.length,
-    types: imageGenerationOutputs.map(item => item.type),
+    types: imageGenerationOutputs.map((item: any) => item.type),
   });
 
   const candidateEntries = imageGenerationOutputs.length ? imageGenerationOutputs : [];
 
-  candidateEntries.forEach((entry, idx) => {
+  candidateEntries.forEach((entry: any, idx: number) => {
     if (!entry || typeof entry !== "object") {
       return;
     }
-    const entrySeen = new Set();
+    const entrySeen = new Set<string>();
     const localVisited = typeof WeakSet !== "undefined" ? new WeakSet() : null;
-    const collected = [];
+    const collected: ImageCandidate[] = [];
 
     imageDebugLog("Inspecting response output entry", {
       index: idx,

@@ -4,6 +4,7 @@ import {
   collectImageCandidates,
   imageDebugLog,
 } from "./imageGeneration.ts";
+import type { ImageCandidate } from "./imageGeneration.ts";
 import { processMainContentMarkdown, separateThinkingSegments } from "./thinkingUtils.ts";
 import { highlightAndAddCopyButtons } from "../../components/messages.ts";
 import { fastScroll } from "../../utils/mobileHandling.ts";
@@ -15,12 +16,6 @@ interface StreamingRuntimeOptions {
   mainContentContainer: HTMLElement;
   thinkingId: string;
   existingThinkingContainer: HTMLElement | null;
-}
-
-interface ImageCandidate {
-  dataUrl?: string;
-  mimeType?: string;
-  [key: string]: unknown;
 }
 
 interface AccumulatedImage {
