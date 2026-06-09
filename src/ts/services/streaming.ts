@@ -6,23 +6,28 @@ import { setupImageInteractions } from "../components/ui/imageInteractions.ts";
 
 export { ensureImagesHaveMessageIds };
 
-export async function handleStreamedResponse(response, loadingId) {
-  const loadingMessage = document.getElementById(loadingId) as any;
+export async function handleStreamedResponse(response: Response, loadingId: string) {
+  const loadingMessage = document.getElementById(loadingId);
   if (!loadingMessage) {
     return { response: null, outputText: "", reasoningText: "" };
   }
 
-  const contentWrapper = loadingMessage.querySelector(".message-content") as any;
+  const contentWrapper = loadingMessage.querySelector<HTMLElement>(".message-content");
   if (!contentWrapper) {
     return { response: null, outputText: "", reasoningText: "" };
   }
 
   const placeholderElement = (() => {
-    const childArray = Array.from(contentWrapper.children || []);
-    return childArray.find((node: any) => node.nodeType === 1 && node.classList && node.classList.contains("loading-animation")) || null;
+    const childArray = Array.from(contentWrapper.children);
+    return (
+      childArray.find(
+        (node): node is HTMLElement =>
+          node.nodeType === 1 && node instanceof HTMLElement && node.classList.contains("loading-animation"),
+      ) || null
+    );
   })();
 
-  let mainContentContainer = contentWrapper.querySelector(".main-response-content") as any;
+  let mainContentContainer = contentWrapper.querySelector<HTMLElement>(".main-response-content");
   if (!mainContentContainer) {
     mainContentContainer = document.createElement("div");
     mainContentContainer.className = "main-response-content";
@@ -57,12 +62,14 @@ export async function handleStreamedResponse(response, loadingId) {
   const processor = createStreamingEventProcessor(runtime);
 
   state.shouldAutoScroll = true;
-  elements.chatBox.scrollTop = elements.chatBox.scrollHeight;
+  if (elements.chatBox) {
+    elements.chatBox.scrollTop = elements.chatBox.scrollHeight;
+  }
 
   const decoder = new TextDecoder();
   let buffer = "";
-  let currentEventType = null;
-  let currentEventData = [];
+  let currentEventType: string | null = null;
+  let currentEventData: string[] = [];
 
   function flushEvent() {
     if (currentEventType || currentEventData.length) {
@@ -98,7 +105,7 @@ export async function handleStreamedResponse(response, loadingId) {
       }
     }
   } catch (streamError) {
-    if (streamError.name === "AbortError") {
+    if (streamError instanceof Error && streamError.name === "AbortError") {
       flushEvent();
     } else {
       console.error("Stream reading error:", streamError);
