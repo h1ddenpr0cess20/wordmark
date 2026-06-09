@@ -37,11 +37,11 @@ function markVectorStoreApiCall() {
  * Initialize vector store manager
  */
 export async function initVectorStoreManager() {
-  const managerContainer = document.getElementById("vector-store-manager") as any;
+  const managerContainer = document.getElementById("vector-store-manager");
   if (!managerContainer) return;
 
-  const refreshButton = document.getElementById("refresh-vector-stores") as any;
-  const clearActiveButton = document.getElementById("clear-active-vector-store") as any;
+  const refreshButton = document.getElementById("refresh-vector-stores");
+  const clearActiveButton = document.getElementById("clear-active-vector-store");
 
   if (refreshButton) {
     refreshButton.addEventListener("click", () => refreshVectorStoreList(true));
@@ -65,7 +65,7 @@ export async function initVectorStoreManager() {
     });
   }
 
-  const listContainer = document.getElementById("vector-store-list") as any;
+  const listContainer = document.getElementById("vector-store-list");
   if (listContainer) {
     listContainer.innerHTML = "<div class=\"loading-text\">Loading vector stores...</div>";
   }
@@ -77,7 +77,7 @@ export async function initVectorStoreManager() {
  * Refresh the vector store list
  */
 export async function refreshVectorStoreList(applyCooldown = true) {
-  const listContainer = document.getElementById("vector-store-list") as any;
+  const listContainer = document.getElementById("vector-store-list");
   if (!listContainer) return;
 
   const activeIds = getActiveVectorStoreIds();
@@ -100,7 +100,7 @@ export async function refreshVectorStoreList(applyCooldown = true) {
     }
 
     // Build the list
-    const listHtml = stores.map((store, index) => {
+    const listHtml = stores.map((store: any, index: number) => {
       const isActive = Array.isArray(activeIds) ? activeIds.includes(store.id) : (store.id === getActiveVectorStoreId());
       const meta = metadata[store.id] || {};
       const createdDate = new Date(store.created_at * 1000).toLocaleDateString();
@@ -140,14 +140,16 @@ export async function refreshVectorStoreList(applyCooldown = true) {
     // Attach event listeners
     listContainer.querySelectorAll(".store-enable-toggle").forEach(input => {
       input.addEventListener("change", async (e) => {
-        const storeId = (e.target as any).getAttribute("data-store-id");
-        const checked = (e.target as any).checked;
+        const target = e.target as HTMLInputElement;
+        const storeId = target.getAttribute("data-store-id");
+        const checked = target.checked;
+        if (!storeId) return;
         try {
           if (checked) {
-            const container = document.getElementById("vector-store-list") as any;
+            const container = document.getElementById("vector-store-list");
             const currentlyChecked = container ? container.querySelectorAll(".store-enable-toggle:checked").length : 0;
             if (currentlyChecked > MAX_ACTIVE_VECTOR_STORES) {
-              (e.target as any).checked = false;
+              target.checked = false;
               if (showError) {
                 showError(`You can enable up to ${MAX_ACTIVE_VECTOR_STORES} vector stores at a time.`);
               } else {
@@ -184,7 +186,7 @@ export async function refreshVectorStoreList(applyCooldown = true) {
         } catch (error) {
           console.error("Failed to toggle vector store:", error);
           if (showError) {
-            showError(`Failed to toggle vector store: ${error.message}`);
+            showError(`Failed to toggle vector store: ${error instanceof Error ? error.message : ""}`);
           }
         } finally {
           refreshVectorStoreList(false);
@@ -194,14 +196,14 @@ export async function refreshVectorStoreList(applyCooldown = true) {
 
     listContainer.querySelectorAll(".btn-view").forEach(btn => {
       btn.addEventListener("click", (e) => {
-        const storeId = (e.target as any).getAttribute("data-store-id");
+        const storeId = (e.target as HTMLElement).getAttribute("data-store-id");
         viewVectorStoreDetails(storeId);
       });
     });
 
     listContainer.querySelectorAll(".btn-delete").forEach(btn => {
       btn.addEventListener("click", (e) => {
-        const storeId = (e.target as any).getAttribute("data-store-id");
+        const storeId = (e.target as HTMLElement).getAttribute("data-store-id");
         confirmDeleteVectorStore(storeId);
       });
     });
@@ -210,9 +212,11 @@ export async function refreshVectorStoreList(applyCooldown = true) {
     console.error("Failed to load vector stores:", error);
 
     // Check if it's a CORS error
-    const isCorsError = error.message.includes("CORS") ||
-                        error.message.includes("fetch") ||
-                        error.name === "TypeError";
+    const errorMessage = error instanceof Error ? error.message : "";
+    const errorName = error instanceof Error ? error.name : "";
+    const isCorsError = errorMessage.includes("CORS") ||
+                        errorMessage.includes("fetch") ||
+                        errorName === "TypeError";
 
     if (isCorsError) {
       listContainer.innerHTML = `
@@ -221,13 +225,13 @@ export async function refreshVectorStoreList(applyCooldown = true) {
         </div>
       `;
     } else {
-      listContainer.innerHTML = `<div class="error-message">Failed to load vector stores: ${escapeHtml(error.message)}</div>`;
+      listContainer.innerHTML = `<div class="error-message">Failed to load vector stores: ${escapeHtml(errorMessage)}</div>`;
     }
   }
 }
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
-async function activateVectorStore(storeId) {
+async function activateVectorStore(storeId: string) {
   try {
     const store = await getVectorStore(storeId);
 
@@ -246,7 +250,7 @@ async function activateVectorStore(storeId) {
   } catch (error) {
     console.error("Failed to activate vector store:", error);
     if (showError) {
-      showError(`Failed to activate vector store: ${error.message}`);
+      showError(`Failed to activate vector store: ${error instanceof Error ? error.message : ""}`);
     }
   }
 }
@@ -254,14 +258,14 @@ async function activateVectorStore(storeId) {
 /**
  * View vector store details
  */
-async function viewVectorStoreDetails(storeId) {
+async function viewVectorStoreDetails(storeId: string | null) {
   try {
     const store = await getVectorStore(storeId);
     const filesResponse = await listVectorStoreFiles(storeId, 100);
     const files = filesResponse.data || [];
 
     const fileList = files.length > 0
-      ? files.map(f => `<li>${f.id} (${f.status})</li>`).join("")
+      ? files.map((f: any) => `<li>${f.id} (${f.status})</li>`).join("")
       : "<li>No files in this vector store</li>";
 
     const detailsHtml = `
@@ -283,7 +287,7 @@ async function viewVectorStoreDetails(storeId) {
   } catch (error) {
     console.error("Failed to view vector store details:", error);
     if (showError) {
-      showError(`Failed to view vector store: ${error.message}`);
+      showError(`Failed to view vector store: ${error instanceof Error ? error.message : ""}`);
     }
   }
 }
@@ -291,7 +295,7 @@ async function viewVectorStoreDetails(storeId) {
 /**
  * Confirm and delete a vector store
  */
-function confirmDeleteVectorStore(storeId) {
+function confirmDeleteVectorStore(storeId: string | null) {
   const confirmed = confirm("Are you sure you want to delete this vector store? This action cannot be undone.");
   if (confirmed) {
     deleteVectorStoreById(storeId);
@@ -301,7 +305,7 @@ function confirmDeleteVectorStore(storeId) {
 /**
  * Delete a vector store
  */
-async function deleteVectorStoreById(storeId) {
+async function deleteVectorStoreById(storeId: string | null) {
   try {
     await enforceVectorStoreApiCooldown();
     await deleteVectorStore(storeId);
@@ -323,20 +327,20 @@ async function deleteVectorStoreById(storeId) {
   } catch (error) {
     console.error("Failed to delete vector store:", error);
     if (showError) {
-      showError(`Failed to delete vector store: ${error.message}`);
+      showError(`Failed to delete vector store: ${error instanceof Error ? error.message : ""}`);
     }
   }
 }
 
-function normalizeVectorStoreLabel(str) {
+function normalizeVectorStoreLabel(str: unknown) {
   return String(str || "").replace(/[_\-]+/g, " ").replace(/\s+/g, " ").trim();
 }
 
-function toTitleCase(str) {
+function toTitleCase(str: string) {
   return str.replace(/\w\S*/g, (word) => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase());
 }
 
-function deriveFriendlyVectorStoreName(store) {
+function deriveFriendlyVectorStoreName(store: any) {
   if (!store) {
     return "Document Set";
   }
@@ -364,7 +368,7 @@ function deriveFriendlyVectorStoreName(store) {
   return "Document Set";
 }
 
-function buildFriendlyVectorStoreName(store, meta, index) {
+function buildFriendlyVectorStoreName(store: any, meta: any, index: number) {
   if (meta && typeof meta.friendlyName === "string" && meta.friendlyName.trim()) {
     return meta.friendlyName.trim();
   }
@@ -387,7 +391,7 @@ function buildFriendlyVectorStoreName(store, meta, index) {
 /**
  * Format bytes to human readable format
  */
-function formatBytes(bytes) {
+function formatBytes(bytes: number) {
   if (bytes === 0) return "0 Bytes";
   const k = 1024;
   const sizes = ["Bytes", "KB", "MB", "GB"];
@@ -398,7 +402,7 @@ function formatBytes(bytes) {
 /**
  * Escape HTML to prevent XSS
  */
-function escapeHtml(text) {
+function escapeHtml(text: string) {
   const div = document.createElement("div");
   div.textContent = text;
   return div.innerHTML;

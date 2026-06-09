@@ -1,4 +1,5 @@
 import { elements, state } from "../init/state.ts";
+import type { Message } from "../../types/api.ts";
 /**
  * Chat export functionality
  */
@@ -7,7 +8,29 @@ import { elements, state } from "../init/state.ts";
 // Export functions
 // -----------------------------------------------------
 
-const EXPORT_FORMAT_ALIASES = {
+/** Per-export metadata shared with every format builder. */
+interface ExportMeta {
+  iso: string;
+}
+
+/** A conversation message normalised into the shape the format builders consume. */
+interface ExportMessage {
+  role: string;
+  senderLabel: string;
+  content: string;
+  rawContent: string;
+  reasoning: string[];
+  timestamp: string;
+}
+
+/** A registered export format and its serializer. */
+interface ExportFormat {
+  extension: string;
+  mime: string;
+  build(messages: ExportMessage[], includeThinking: boolean, meta: ExportMeta): string;
+}
+
+const EXPORT_FORMAT_ALIASES: Record<string, string> = {
   txt: "txt",
   text: "txt",
   plaintext: "txt",
@@ -19,7 +42,7 @@ const EXPORT_FORMAT_ALIASES = {
   csv: "csv",
 };
 
-const EXPORT_FORMATS = {
+const EXPORT_FORMATS: Record<string, ExportFormat> = {
   txt: {
     extension: "txt",
     mime: "text/plain",
@@ -153,7 +176,7 @@ const EXPORT_FORMATS = {
   },
 };
 
-function normaliseExportFormat(input) {
+function normaliseExportFormat(input: string | null): string | null {
   if (!input) {
     return null;
   }
@@ -161,13 +184,13 @@ function normaliseExportFormat(input) {
   return EXPORT_FORMAT_ALIASES[key] || null;
 }
 
-function formatCsvValue(value) {
+function formatCsvValue(value: unknown) {
   const stringValue = value === null || value === undefined ? "" : String(value);
   const escaped = stringValue.replace(/"/g, "\"\"");
   return `"${escaped}"`;
 }
 
-function escapeHtml(value) {
+function escapeHtml(value: unknown) {
   if (value === null || value === undefined) {
     return "";
   }
@@ -179,10 +202,10 @@ function escapeHtml(value) {
     .replace(/'/g, "&#39;");
 }
 
-function separateThinkingSegments(text) {
+function separateThinkingSegments(text: unknown) {
   // Thinking filters disabled - responses API provides reasoning separately
   // No longer need to parse/filter <think> tags from content
-  const thinkingSegments = [];
+  const thinkingSegments: string[] = [];
   if (typeof text !== "string") {
     return { stripped: "", thinking: thinkingSegments };
   }
@@ -190,7 +213,7 @@ function separateThinkingSegments(text) {
   return { stripped: text.trim(), thinking: thinkingSegments };
 }
 
-function normaliseMessagesForExport(history) {
+function normaliseMessagesForExport(history: Message[]): ExportMessage[] {
   if (!Array.isArray(history)) {
     return [];
   }
@@ -201,10 +224,10 @@ function normaliseMessagesForExport(history) {
         ? msg.content
         : JSON.stringify(msg.content, null, 2);
       const { stripped, thinking } = separateThinkingSegments(baseContent || "");
-      const reasoningParts = [];
+      const reasoningParts: string[] = [];
 
       if (Array.isArray(msg.reasoning)) {
-        msg.reasoning.forEach((part) => {
+        msg.reasoning.forEach((part: unknown) => {
           if (typeof part === "string" && part.trim()) {
             reasoningParts.push(part.trim());
           }
@@ -217,8 +240,8 @@ function normaliseMessagesForExport(history) {
         reasoningParts.push(...thinking);
       }
 
-      const seenReasoning = new Set();
-      const dedupedReasoning = [];
+      const seenReasoning = new Set<string>();
+      const dedupedReasoning: string[] = [];
       reasoningParts.forEach((part) => {
         const key = part;
         if (!seenReasoning.has(key)) {
@@ -228,12 +251,12 @@ function normaliseMessagesForExport(history) {
       });
 
       return {
-        role: msg.role,
+        role: msg.role || "",
         senderLabel: msg.role === "user" ? "You" : "Assistant",
         content: stripped,
         rawContent: (baseContent || "").trim(),
         reasoning: dedupedReasoning,
-        timestamp: msg.timestamp || "",
+        timestamp: typeof msg.timestamp === "string" ? msg.timestamp : "",
       };
     });
 }
@@ -243,7 +266,7 @@ function getStoredExportFormat() {
   return normaliseExportFormat(stored) || "md";
 }
 
-function persistExportFormatPreference(formatKey) {
+function persistExportFormatPreference(formatKey: string) {
   if (typeof localStorage === "undefined") {
     return;
   }
@@ -267,15 +290,16 @@ function resolveSelectedExportFormat() {
   return "md";
 }
 
-export function handleExportFormatChange(event) {
-  const value = event && event.target ? (event.target as any).value : null;
+export function handleExportFormatChange(event: Event) {
+  const target = event ? (event.target as HTMLSelectElement | null) : null;
+  const value = target ? target.value : null;
   const formatKey = normaliseExportFormat(value);
   if (!formatKey || !EXPORT_FORMATS[formatKey]) {
     return;
   }
   persistExportFormatPreference(formatKey);
-  if (event && event.target && (event.target as any).value !== formatKey) {
-    (event.target as any).value = formatKey;
+  if (target && target.value !== formatKey) {
+    target.value = formatKey;
   }
 }
 
@@ -301,7 +325,7 @@ export function exportChat() {
 
   persistExportFormatPreference(formatKey);
 
-  const includeThinkingCheckbox = document.getElementById("include-thinking") as any;
+  const includeThinkingCheckbox = document.getElementById("include-thinking") as HTMLInputElement | null;
   const includeThinking = includeThinkingCheckbox ? includeThinkingCheckbox.checked : false;
 
   const normalisedMessages = normaliseMessagesForExport(state.conversationHistory);
