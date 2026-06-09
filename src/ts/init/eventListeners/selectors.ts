@@ -9,9 +9,10 @@ import { updateReasoningAvailability } from "../modelSettings.ts";
 import { config } from "../../../config/config.ts";
 
 export function setupSelectorEventListeners() {
-  if (elements.modelSelector) {
-    elements.modelSelector.addEventListener("change", () => {
-      elements.modelSelector.setAttribute("data-last-selected", elements.modelSelector.value);
+  const modelSelector = elements.modelSelector;
+  if (modelSelector) {
+    modelSelector.addEventListener("change", () => {
+      modelSelector.setAttribute("data-last-selected", modelSelector.value);
       updateHeaderInfo();
 
       updateReasoningAvailability();
@@ -21,11 +22,12 @@ export function setupSelectorEventListeners() {
     });
   }
 
-  if (elements.serviceSelector) {
-    elements.serviceSelector.addEventListener("change", async() => {
-      const selectedService = elements.serviceSelector.value;
+  const serviceSelector = elements.serviceSelector;
+  if (serviceSelector) {
+    serviceSelector.addEventListener("change", async() => {
+      const selectedService = serviceSelector.value;
       if (config && typeof config.isServiceEnabled === "function" && !config.isServiceEnabled(selectedService)) {
-        elements.serviceSelector.value = config.normalizeServiceKey?.(config.defaultService) || "openai";
+        serviceSelector.value = config.normalizeServiceKey?.(config.defaultService) || "openai";
         return;
       }
       config.defaultService = selectedService;

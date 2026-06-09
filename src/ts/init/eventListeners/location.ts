@@ -3,11 +3,12 @@ import { showError } from "../../utils/notifications.ts";
 import { updateFeatureStatus } from "../../components/settings.ts";
 import { requestLocation, disableLocation, updateLocationUI } from "../../services/location.ts";
 export function setupLocationEventListeners() {
-  if (!elements.locationToggle) {
+  const locationToggle = elements.locationToggle;
+  if (!locationToggle) {
     return;
   }
 
-  elements.locationToggle.addEventListener("change", async(event) => {
+  locationToggle.addEventListener("change", async(event) => {
     const isEnabled = (event.target as any).checked;
 
     if (isEnabled) {
@@ -19,7 +20,7 @@ export function setupLocationEventListeners() {
           console.info("Location enabled:", result.locationString);
         }
       } else {
-        elements.locationToggle.checked = false;
+        locationToggle.checked = false;
         updateLocationUI();
 
         showError(`Location request failed: ${result.error}`);

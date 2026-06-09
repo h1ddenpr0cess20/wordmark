@@ -1,6 +1,6 @@
 import { applyConsoleLogging } from "../../../config/config.ts";
 import { state } from "../state.ts";
-function showDebugToggleNotification(status) {
+function showDebugToggleNotification(status: string) {
   const notification = document.createElement("div");
   notification.className = "debug-toggle-notification";
   notification.textContent = `Debug Mode ${status.charAt(0).toUpperCase() + status.slice(1)}`;
@@ -42,10 +42,10 @@ function setupAboutTabDebugToggle() {
   }
 
   let clickCount = 0;
-  let clickTimer = null;
+  let clickTimer: ReturnType<typeof setTimeout> | null = null;
   const clickTimeout = 1000;
 
-  aboutTab.addEventListener("click", (event) => {
+  aboutTab.addEventListener("click", (event: Event) => {
     clickCount++;
 
     if (clickTimer) {

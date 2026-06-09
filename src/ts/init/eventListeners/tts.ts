@@ -41,7 +41,7 @@ export function setupTtsEventListeners() {
 
   if (elements.ttsProviderSelector) {
     elements.ttsProviderSelector.addEventListener("change", (event) => {
-      ttsConfig.provider = availableTtsVoices?.[(event.target as any).value] ? (event.target as any).value : "openai";
+      ttsConfig.provider = (availableTtsVoices as Record<string, any>)?.[(event.target as any).value] ? (event.target as any).value : "openai";
       (event.target as any).value = ttsConfig.provider;
       populateTtsVoiceSelector();
       // xAI TTS doesn't support voice instructions
@@ -71,7 +71,7 @@ export function setupTtsEventListeners() {
         return;
       }
 
-      const provider = availableTtsVoices?.[ttsConfig.provider] ? ttsConfig.provider : "openai";
+      const provider = (availableTtsVoices as Record<string, any>)?.[ttsConfig.provider] ? ttsConfig.provider : "openai";
       ttsConfig.provider = provider;
       const apiKey = provider === "xai"
         ? config.services.xai?.apiKey

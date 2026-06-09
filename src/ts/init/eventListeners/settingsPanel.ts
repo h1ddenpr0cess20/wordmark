@@ -5,7 +5,12 @@ import { DEFAULT_PERSONALITY } from "../../../config/config.ts";
 
 // Single settings panel — original prompt values are stashed here while the
 // panel is open so they can be restored if the user dismisses without saving.
-const panelState = {
+interface PanelState {
+  originalPersonalityValue: string;
+  originalCustomPromptValue: string;
+}
+
+const panelState: PanelState = {
   originalPersonalityValue: "",
   originalCustomPromptValue: "",
 };
@@ -20,12 +25,12 @@ export function updatePanelOpenState() {
   }
 }
 
-function storeOriginalValues(panelState) {
+function storeOriginalValues(panelState: PanelState) {
   panelState.originalPersonalityValue = elements.personalityInput ? elements.personalityInput.value : "";
   panelState.originalCustomPromptValue = elements.systemPromptCustom ? elements.systemPromptCustom.value : "";
 }
 
-function restoreOriginalValues(panelState) {
+function restoreOriginalValues(panelState: PanelState) {
   if (elements.personalityPromptRadio && elements.personalityPromptRadio.checked && elements.personalityInput) {
     elements.personalityInput.value = panelState.originalPersonalityValue;
     if (panelState.originalPersonalityValue === DEFAULT_PERSONALITY) {
@@ -79,7 +84,7 @@ function hideSettingsPanel({ focusButton = false } = {}) {
   updatePanelOpenState();
 }
 
-function setupQuickAccessTargets(openSettingsAndSwitch) {
+function setupQuickAccessTargets(openSettingsAndSwitch: (tabId: string) => void) {
   const targets = [
     { selector: "#wordmark-logo", tabId: "tab-about" },
     { selector: "#logo-wordmark", tabId: "tab-about" },
@@ -151,7 +156,7 @@ function setupOutsideClickHandler() {
 
     if (!state.isSlideshowOpen &&
         elements.galleryPanel && elements.galleryPanel.getAttribute("aria-hidden") === "false" &&
-        !elements.galleryPanel.contains(event.target as Node) && event.target !== elements.galleryButton) {
+        !elements.galleryPanel.contains(event.target as Node) && event.target !== elements.galleryButton && elements.galleryButton) {
       elements.galleryPanel.setAttribute("aria-hidden", "true");
       elements.galleryPanel.setAttribute("inert", "true");
       elements.galleryButton.setAttribute("aria-expanded", "false");
@@ -171,7 +176,7 @@ function setupOutsideClickHandler() {
   });
 }
 
-export function openSettingsAndSwitch(tabId, attempt = 0) {
+export function openSettingsAndSwitch(tabId: string, attempt = 0) {
   if (!elements.settingsPanel || !elements.settingsButton) {
     if (attempt < 10) {
       setTimeout(() => openSettingsAndSwitch(tabId, attempt + 1), 100);
