@@ -11,14 +11,14 @@ export function initTabs() {
     return;
   }
 
-  tabButtons.forEach((button) => {
+  tabButtons.forEach((button: HTMLElement) => {
     button.addEventListener("click", () => {
-      tabButtons.forEach((btn) => {
+      tabButtons.forEach((btn: HTMLElement) => {
         btn.classList.remove("active");
         btn.setAttribute("aria-selected", "false");
       });
 
-      tabContents.forEach((content) => {
+      tabContents.forEach((content: HTMLElement) => {
         content.classList.remove("active");
       });
 
@@ -26,7 +26,7 @@ export function initTabs() {
       button.setAttribute("aria-selected", "true");
 
       const contentId = button.getAttribute("aria-controls");
-      const content = document.getElementById(contentId) as any;
+      const content = contentId ? document.getElementById(contentId) as any : null;
       if (content) {
         content.classList.add("active");
       }
@@ -34,16 +34,16 @@ export function initTabs() {
   });
 }
 
-export function switchToTab(tabId) {
+export function switchToTab(tabId: string) {
   const tabButtons = document.querySelectorAll(".tab-button") as any;
   const tabContents = document.querySelectorAll(".tab-content") as any;
 
-  tabButtons.forEach((btn) => {
+  tabButtons.forEach((btn: HTMLElement) => {
     btn.classList.remove("active");
     btn.setAttribute("aria-selected", "false");
   });
 
-  tabContents.forEach((content) => {
+  tabContents.forEach((content: HTMLElement) => {
     content.classList.remove("active");
   });
 

@@ -51,25 +51,26 @@ const ABOUT_FALLBACKS = {
   `,
 };
 
-function applyFallbackContent(containerId) {
+function applyFallbackContent(containerId: string) {
   const container = document.getElementById(containerId) as any;
   if (!container) {
     return null;
   }
-  if (!container.dataset.fallbackApplied && ABOUT_FALLBACKS[containerId]) {
-    container.innerHTML = ABOUT_FALLBACKS[containerId];
+  const fallbacks = ABOUT_FALLBACKS as Record<string, string>;
+  if (!container.dataset.fallbackApplied && fallbacks[containerId]) {
+    container.innerHTML = fallbacks[containerId];
     container.dataset.fallbackApplied = "true";
   }
   return container;
 }
 
-async function loadContentIntoContainer(url, containerId) {
+async function loadContentIntoContainer(url: string, containerId: string) {
   const container = applyFallbackContent(containerId);
   if (!container) {
     return;
   }
 
-  const html = ABOUT_PAGE_HTML[url];
+  const html = (ABOUT_PAGE_HTML as Record<string, string>)[url];
   if (typeof html !== "string") {
     if (state.verboseLogging) {
       console.warn("No bundled content registered for", url);
@@ -243,7 +244,7 @@ if (typeof document !== "undefined" && typeof document.addEventListener === "fun
     if (!trigger) {
       return;
     }
-    const handler = POPUP_ACTIONS[trigger.getAttribute("data-popup-action")];
+    const handler = (POPUP_ACTIONS as Record<string, () => void>)[trigger.getAttribute("data-popup-action")];
     if (handler) {
       event.preventDefault();
       handler();

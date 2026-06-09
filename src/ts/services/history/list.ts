@@ -7,20 +7,21 @@ import { DEFAULT_PERSONALITY } from "../../../config/config.ts";
 import { startNewConversation, loadConversation, renameConversation } from "./persistence.ts";
 
 export function renderChatHistoryList() {
-  if (!elements.historyList) {
+  const historyList = elements.historyList;
+  if (!historyList) {
     return;
   }
 
   getAllConversationsFromDb?.()
     .then((convos) => {
-      elements.historyList.innerHTML = "";
+      historyList.innerHTML = "";
 
       if (!convos || convos.length === 0) {
-        elements.historyList.innerHTML = "<div class=\"history-empty\">No saved conversations yet.</div>";
+        historyList.innerHTML = "<div class=\"history-empty\">No saved conversations yet.</div>";
         return;
       }
 
-      convos.sort((a, b) => new Date(b.updated).getTime() - new Date(a.updated).getTime());
+      convos.sort((a: any, b: any) => new Date(b.updated).getTime() - new Date(a.updated).getTime());
 
       const toolbarDiv = document.createElement("div");
       toolbarDiv.className = "history-toolbar";
@@ -167,9 +168,9 @@ export function renderChatHistoryList() {
           });
       };
 
-      elements.historyList.appendChild(toolbarDiv);
+      historyList.appendChild(toolbarDiv);
 
-      const handleKeydown = (e) => {
+      const handleKeydown = (e: KeyboardEvent) => {
         if (elements.historyPanel?.getAttribute("aria-hidden") === "true") {
           return;
         }
@@ -224,7 +225,7 @@ export function renderChatHistoryList() {
         }
 
         let title = "";
-        const userMsg = (convo.messages || []).find(m => m.role === "user");
+        const userMsg = (convo.messages || []).find((m: any) => m.role === "user");
         if (userMsg) {
           let text = userMsg.content;
           if (Array.isArray(text)) {
@@ -332,10 +333,10 @@ export function renderChatHistoryList() {
 
       table.appendChild(tbody);
       tableContainer.appendChild(table);
-      elements.historyList.appendChild(tableContainer);
+      historyList.appendChild(tableContainer);
     })
     .catch((err) => {
       console.error("Error loading conversations for history list:", err);
-      elements.historyList.innerHTML = "<div class=\"history-error\">Error loading conversation history.</div>";
+      historyList.innerHTML = "<div class=\"history-error\">Error loading conversation history.</div>";
     });
 };

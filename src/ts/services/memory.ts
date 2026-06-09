@@ -40,7 +40,7 @@ toolImplementations.remember = async function(args) {
     };
   } catch (e) {
     console.error("remember tool error:", e);
-    return { ok: false, message: e.message || "Unknown error" };
+    return { ok: false, message: (e instanceof Error ? e.message : "") || "Unknown error" };
   }
 };
 
@@ -72,9 +72,9 @@ toolImplementations.forget = async function(args) {
     if (!keyword) return { ok: false, message: "Missing keyword" };
 
     const mems = getMemories ? getMemories() : [];
-    const matches = [];
+    const matches: { index: number; memory: any }[] = [];
     const lower = keyword.toLowerCase();
-    mems.forEach((m, i) => {
+    mems.forEach((m: any, i: number) => {
       if (typeof m === "string" && m.toLowerCase().includes(lower)) {
         matches.push({ index: i, memory: m });
       }
@@ -90,6 +90,6 @@ toolImplementations.forget = async function(args) {
     return { ok: true, keyword, removed, removed_index: removedIndex, matches, remaining };
   } catch (e) {
     console.error("forget tool error:", e);
-    return { ok: false, message: e.message || "Unknown error" };
+    return { ok: false, message: (e instanceof Error ? e.message : "") || "Unknown error" };
   }
 };

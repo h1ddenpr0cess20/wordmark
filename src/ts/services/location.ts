@@ -5,7 +5,13 @@ import { state } from "../init/state.ts";
  */
 
 // Location state management
-export const locationState = {
+export const locationState: {
+  enabled: boolean;
+  position: any;
+  locationString: string;
+  lastFetched: string | null;
+  error: string | null;
+} = {
   enabled: false,
   position: null,
   locationString: "",
@@ -124,7 +130,7 @@ export async function requestLocation(): Promise<any> {
  * @param {Position} position - Geolocation position object
  * @returns {Promise<string>} - Formatted location string
  */
-export async function formatLocationString(position) {
+export async function formatLocationString(position: any) {
   const { latitude, longitude } = position.coords;
 
   try {

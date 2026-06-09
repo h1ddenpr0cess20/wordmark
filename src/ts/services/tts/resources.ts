@@ -4,9 +4,9 @@ import { stopTtsAudio } from "./playback.ts";
 import { state } from "../../init/state.ts";
 
 export const ttsAudioResources = {
-  activeUrls: new Map(),
+  activeUrls: new Map<string, any>(),
 
-  addUrl(url, messageId, audioData) {
+  addUrl(url: string, messageId: string, audioData: any) {
     this.activeUrls.set(messageId, {
       url,
       timestamp: Date.now(),
@@ -32,7 +32,7 @@ export const ttsAudioResources = {
     }
   },
 
-  removeUrl(url) {
+  removeUrl(url: string) {
     for (const [messageId, data] of this.activeUrls.entries()) {
       if (data.url === url) {
         this.activeUrls.delete(messageId);
@@ -41,19 +41,19 @@ export const ttsAudioResources = {
     }
   },
 
-  getUrl(messageId) {
+  getUrl(messageId: string) {
     const data = this.activeUrls.get(messageId);
     return data ? data.url : null;
   },
 
-  getAudioData(messageId) {
+  getAudioData(messageId: string) {
     const data = this.activeUrls.get(messageId);
     return data ? data.audioData : null;
   },
 
   clearAll() {
     const currentlyPlaying = ttsRuntime.activeTtsAudioUrl;
-    const urlsToRevoke = [];
+    const urlsToRevoke: string[] = [];
 
     for (const [messageId, data] of this.activeUrls.entries()) {
       if (data.url !== currentlyPlaying) {
