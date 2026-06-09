@@ -32,8 +32,8 @@ export interface AppState {
   pendingUploads: PendingUpload[];
   pendingDocuments: PendingDocument[];
 
-  userThinkingState: Record<string, any>;
-  messageImages: Record<string, any>;
+  userThinkingState: Record<string, boolean>;
+  messageImages: Record<string, string[]>;
 
   galleryImages: GeneratedImage[];
   galleryImagesLoaded: boolean;

@@ -20,7 +20,7 @@ export function initializeTts() {
 
   // Initialize TTS provider selector
   if (elements.ttsProviderSelector) {
-    const provider = (availableTtsVoices as Record<string, any>)?.[ttsConfig.provider] ? ttsConfig.provider : "openai";
+    const provider = (availableTtsVoices as Record<string, unknown>)?.[ttsConfig.provider] ? ttsConfig.provider : "openai";
     ttsConfig.provider = provider;
     elements.ttsProviderSelector.value = provider;
   }
@@ -60,7 +60,7 @@ export function populateTtsVoiceSelector() {
     elements.ttsVoiceSelector.innerHTML = "";
 
     const provider = ttsConfig.provider || "openai";
-    const voices = (availableTtsVoices as Record<string, any>)[provider];
+    const voices = (availableTtsVoices as Record<string, Record<string, TtsVoice[]>>)[provider];
     if (!voices) return;
 
     const categories = ["neutral", "male", "female"];

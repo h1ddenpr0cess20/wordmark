@@ -481,7 +481,7 @@ const bulkDeleteSelectedImages = async function() {
   }
 
   try {
-    const deletePromises: Promise<any>[] = [];
+    const deletePromises: Promise<unknown>[] = [];
 
     selectedCheckboxes.forEach((checkbox) => {
       const galleryItem = checkbox.closest<HTMLElement>(".gallery-item");

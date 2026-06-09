@@ -72,7 +72,7 @@ export function setupEventListeners() {
     }
   }
 
-  let vectorStoreModuleLoadingPromise: Promise<any> | null = null;
+  let vectorStoreModuleLoadingPromise: Promise<unknown> | null = null;
 
   async function ensureVectorStoreModuleLoaded() {
     if (lazyModulesLoaded && lazyModulesLoaded.vectorStore) {

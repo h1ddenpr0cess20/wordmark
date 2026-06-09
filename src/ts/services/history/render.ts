@@ -20,7 +20,7 @@ function findMediaRecord(convo: ConversationRecord, filename: string) {
   return (convo.images || []).find((imageRef) => imageRef.filename === filename) || null;
 }
 
-function resolveMediaSource(mediaRecord: GeneratedImage | null, filename: string, imageCache: Map<string, string>) {
+function resolveMediaSource(mediaRecord: GeneratedImage | null, filename: string, imageCache: Map<string, string | Blob>): string {
   if (!mediaRecord) {
     return "";
   }
@@ -30,7 +30,7 @@ function resolveMediaSource(mediaRecord: GeneratedImage | null, filename: string
   }
 
   if (mediaRecord.isStoredInDb && imageCache?.has(filename)) {
-    return getMediaDisplayUrl(imageCache.get(filename), filename) || imageCache.get(filename);
+    return getMediaDisplayUrl(imageCache.get(filename), filename);
   }
 
   return "";
@@ -80,7 +80,7 @@ function extractTextContent(content: Message["content"]): string {
   return "";
 }
 
-function replaceImagePlaceholders(content: Message["content"], convo: ConversationRecord, imageCache: Map<string, string>) {
+function replaceImagePlaceholders(content: Message["content"], convo: ConversationRecord, imageCache: Map<string, string | Blob>) {
   const text = extractTextContent(content);
   if (!text) {
     return "";
@@ -110,7 +110,7 @@ function replaceImagePlaceholders(content: Message["content"], convo: Conversati
   });
 }
 
-export function renderConversationMessages(convo: ConversationRecord, imageCache: Map<string, string>) {
+export function renderConversationMessages(convo: ConversationRecord, imageCache: Map<string, string | Blob>) {
   const chatBox = elements.chatBox;
   if (!chatBox) {
     return;

@@ -183,7 +183,7 @@ export function requestMcpServerRemoval(serverLabel: string, fallbackDisplayName
   }
 }
 
-function refreshToolingState(options: any = {}) {
+function refreshToolingState(options: { checkAvailability?: boolean } = {}) {
   const { checkAvailability = false } = options;
 
   refreshToolSettingsUI();

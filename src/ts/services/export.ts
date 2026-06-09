@@ -138,7 +138,7 @@ const EXPORT_FORMATS: Record<string, ExportFormat> = {
     mime: "application/json",
     build(messages, includeThinking) {
       const payload = messages.map((msg) => {
-        const entry: any = {
+        const entry: Record<string, unknown> = {
           role: msg.role,
           sender: msg.senderLabel,
           content: includeThinking ? msg.rawContent : msg.content,

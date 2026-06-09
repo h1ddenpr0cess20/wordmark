@@ -11,6 +11,14 @@ export const IMAGE_STORE_NAME = "images";
 // Module-level handle to the open database (was window.imageDb)
 let imageDb: IDBDatabase | null = null;
 
+/** An image/media record as persisted in the IndexedDB image store. */
+export interface StoredImage {
+  filename: string;
+  data: string | Blob;
+  timestamp: string;
+  [key: string]: unknown;
+}
+
 /**
  * Accessor for the open image database handle (used by the gallery to run its
  * own cursor queries).
@@ -105,8 +113,8 @@ export function saveImageToDb(base64Data: string | Blob, filename: string, metad
  * @param {string} filename - The filename key to retrieve
  * @returns {Promise<Object>} - Promise that resolves with the image record
  */
-export function loadImageFromDb(filename: string): Promise<any> {
-  return new Promise((resolve, reject) => {
+export function loadImageFromDb(filename: string): Promise<StoredImage> {
+  return new Promise<StoredImage>((resolve, reject) => {
     if (!imageDb) {
       console.error("IndexedDB not initialized");
       // Try to initialize it now
@@ -268,11 +276,12 @@ export async function getImageDataForUpload(imageId: string): Promise<string | A
 
     // If it's a Blob, convert it to data URL
     if (imageRecord.data instanceof Blob) {
+      const blob = imageRecord.data;
       return new Promise<string | ArrayBuffer | null>((resolve, reject) => {
         const reader = new FileReader();
         reader.onloadend = () => resolve(reader.result);
         reader.onerror = reject;
-        reader.readAsDataURL(imageRecord.data);
+        reader.readAsDataURL(blob);
       });
     }
 

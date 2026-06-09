@@ -178,7 +178,7 @@ export async function uploadAndAttachFiles(files: File[], vectorStoreName = "Cha
     const vectorStore = await createVectorStore(vectorStoreName);
 
     // Upload files and attach to vector store
-    const attachments: any[] = [];
+    const attachments: { fileId: string; fileName: string; vectorStoreId: string; status: unknown }[] = [];
     for (const file of supported) {
       const uploadedFile = await uploadFile(file);
       const attachment = await attachFileToVectorStore(vectorStore.id, uploadedFile.id);
@@ -322,7 +322,7 @@ export const MAX_ACTIVE_VECTOR_STORES = 2;
 /**
  * Save vector store metadata to local storage
  */
-export function saveVectorStoreMetadata(vectorStoreId: string, metadata: any) {
+export function saveVectorStoreMetadata(vectorStoreId: string, metadata: Partial<VectorStoreMetadataEntry>) {
   try {
     const stored = localStorage.getItem(VECTOR_STORE_STORAGE_KEY);
     const stores: Record<string, VectorStoreMetadataEntry> = stored ? JSON.parse(stored) : {};

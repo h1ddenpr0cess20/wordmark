@@ -12,6 +12,16 @@ const MAX_STORED_AUDIO = 15;
 // Module-level handle to the open database (was window.audioDb)
 let audioDb: IDBDatabase | null = null;
 
+/** A TTS audio clip as persisted in the IndexedDB audio store. */
+export interface StoredAudio {
+  id: string;
+  messageId: string;
+  audioData: ArrayBuffer;
+  text: string;
+  voice: string;
+  timestamp: number;
+}
+
 /**
  * Initialize the IndexedDB database for audio storage
  * @returns {Promise} - Promise that resolves when the database is ready
@@ -61,8 +71,8 @@ export function initAudioDb() {
  * @param {string} voice - Voice used for TTS
  * @returns {Promise<Object>} - Promise that resolves with the stored audio record
  */
-export function saveAudioToDb(audioData: ArrayBuffer, messageId: string, text: string, voice: string): Promise<any> {
-  return new Promise<any>((resolve, reject) => {
+export function saveAudioToDb(audioData: ArrayBuffer, messageId: string, text: string, voice: string): Promise<StoredAudio> {
+  return new Promise<StoredAudio>((resolve, reject) => {
     if (!audioDb) {
       console.error("Audio IndexedDB not initialized");
       // Try to initialize it now
@@ -112,8 +122,8 @@ export function saveAudioToDb(audioData: ArrayBuffer, messageId: string, text: s
  * @param {string} messageId - The message ID to retrieve audio for
  * @returns {Promise<Object>} - Promise that resolves with the audio record
  */
-export function loadAudioForMessage(messageId: string): Promise<any> {
-  return new Promise<any>((resolve, reject) => {
+export function loadAudioForMessage(messageId: string): Promise<StoredAudio> {
+  return new Promise<StoredAudio>((resolve, reject) => {
     if (!audioDb) {
       console.error("Audio IndexedDB not initialized");
       // Try to initialize it now

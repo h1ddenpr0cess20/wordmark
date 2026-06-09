@@ -150,7 +150,7 @@ function ensureLibrariesLoaded() {
 
 function preloadImages(convo: ConversationRecord) {
   const imageLoadPromises: Promise<void>[] = [];
-  const imageCache = new Map<string, string>();
+  const imageCache = new Map<string, string | Blob>();
 
   (convo.images || []).forEach((imgRef) => {
     const filename = imgRef.filename;
@@ -176,7 +176,7 @@ function preloadImages(convo: ConversationRecord) {
 
   return Promise.all(imageLoadPromises).then(() => imageCache).catch((err) => {
     console.error("Error loading images from IndexedDB:", err);
-    return new Map<string, string>();
+    return new Map<string, string | Blob>();
   });
 }
 
@@ -301,7 +301,7 @@ export function loadConversation(id: string) {
     });
 };
 
-function loadConversationIntoUI(convo: ConversationRecord, imageCache: Map<string, string>) {
+function loadConversationIntoUI(convo: ConversationRecord, imageCache: Map<string, string | Blob>) {
   const filteredMessages = Array.isArray(convo.messages)
     ? convo.messages.filter((msg) => msg && msg.role !== "developer")
     : [];

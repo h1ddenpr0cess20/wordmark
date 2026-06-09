@@ -163,7 +163,7 @@ export function setupButtonEventListeners(
           updateModelSelector();
 
           const models = serviceConfig.models || [];
-          const hasError = models.length === 0 || models.some((m: any) => typeof m === "string" && (m.startsWith("Error:") || m.startsWith("No models")));
+          const hasError = models.length === 0 || models.some((m: unknown) => typeof m === "string" && (m.startsWith("Error:") || m.startsWith("No models")));
 
           const existingStatus = document.querySelector(".service-status");
           if (existingStatus) {
