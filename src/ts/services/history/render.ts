@@ -8,14 +8,15 @@ import { renderWordmarkLogo } from "../../components/logo.ts";
 import { setupImageInteractions } from "../../components/ui/imageInteractions.ts";
 import { updateHeaderInfo, updateModelSelector } from "../../components/settings.ts";
 import { config } from "../../../config/config.ts";
+import type { ConversationRecord } from "../../../types/common.ts";
 
 function createMissingMediaPlaceholder(filename: string, mediaType = "image") {
   const label = mediaType === "video" ? "Video" : "Image";
   return `<div class='image-placeholder' style='padding:40px;background:#f1f1f1;border-radius:8px;margin:8px 0;text-align:center;font-style:italic;color:#666;'>${label} could not be loaded: ${filename}</div>`;
 }
 
-function findMediaRecord(convo: any, filename: string) {
-  return (convo.images || []).find((imageRef: any) => imageRef.filename === filename) || null;
+function findMediaRecord(convo: ConversationRecord, filename: string) {
+  return (convo.images || []).find((imageRef) => imageRef.filename === filename) || null;
 }
 
 function resolveMediaSource(mediaRecord: any, filename: string, imageCache: any) {
@@ -105,13 +106,13 @@ function replaceImagePlaceholders(content: any, convo: any, imageCache: any) {
   });
 }
 
-export function renderConversationMessages(convo: any, imageCache: any) {
+export function renderConversationMessages(convo: ConversationRecord, imageCache: any) {
   const chatBox = elements.chatBox;
   if (!chatBox) {
     return;
   }
 
-  (convo.messages || []).forEach((msg: any) => {
+  (convo.messages || []).forEach((msg) => {
     if (msg.role === "system" || msg.role === "developer") {
       return;
     }
@@ -167,7 +168,7 @@ export function renderConversationMessages(convo: any, imageCache: any) {
     messageElement.appendChild(contentWrapper);
     chatBox.appendChild(messageElement);
 
-    let displayContent = msg.content || "";
+    let displayContent = typeof msg.content === "string" ? msg.content : "";
     const imageFilenames: string[] = [];
     const seenFilenames = new Set<string>();
     const extractRegex = new RegExp("\\[\\[(?:MEDIA|IMAGE): ([^\\]]+)\\]\\]", "g");

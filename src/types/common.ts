@@ -9,6 +9,10 @@ export interface ConversationRecord {
   created?: string;
   updated?: string;
   messages?: Message[];
+  images?: GeneratedImage[];
+  systemPrompt?: { type: string; content: string };
+  model?: string;
+  service?: string;
   [key: string]: unknown;
 }
 

@@ -42,6 +42,9 @@ export interface Message {
   tool_calls?: ToolCallLike[];
   responseId?: string;
   hasImages?: boolean;
+  reasoning?: string;
+  codeInterpreterOutputs?: unknown;
+  timestamp?: string;
   [key: string]: unknown;
 }
 
