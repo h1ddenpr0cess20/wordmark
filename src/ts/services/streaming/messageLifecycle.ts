@@ -113,7 +113,7 @@ export function finalizeStreamedResponse(loadingMessage: HTMLElement | null, con
     }
   }
 
-  let codeInterpreterOutputs: { attachments: any[]; logs: any[] } = { attachments: [], logs: [] };
+  let codeInterpreterOutputs: CodeInterpreterOutputs = { attachments: [], logs: [] };
   if (responsePayload) {
     try {
       processImageGenerationOutputs(responsePayload);
