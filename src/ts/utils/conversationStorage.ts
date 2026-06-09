@@ -3,6 +3,8 @@
  * Provides functions for storing and retrieving conversations from IndexedDB
  */
 
+import type { ConversationRecord } from "../../types/common.ts";
+
 // IndexedDB database configuration
 const CONVO_DB_NAME = "wordmark-conversations";
 const CONVO_DB_VERSION = 1;
@@ -25,13 +27,13 @@ export function initConversationDb() {
 
     const request = window.indexedDB.open(CONVO_DB_NAME, CONVO_DB_VERSION);
 
-    request.onerror = (event) => {
-      console.error("Conversation IndexedDB error:", (event.target as any).error);
-      reject((event.target as any).error);
+    request.onerror = () => {
+      console.error("Conversation IndexedDB error:", request.error);
+      reject(request.error);
     };
 
-    request.onupgradeneeded = (event) => {
-      const db = (event.target as any).result;
+    request.onupgradeneeded = () => {
+      const db = request.result;
       // Create an object store for conversations if it doesn't exist
       if (!db.objectStoreNames.contains(CONVO_STORE_NAME)) {
         db.createObjectStore(CONVO_STORE_NAME, { keyPath: "id" });
@@ -39,8 +41,8 @@ export function initConversationDb() {
       }
     };
 
-    request.onsuccess = (event) => {
-      conversationDb = (event.target as any).result;
+    request.onsuccess = () => {
+      conversationDb = request.result;
       console.info("IndexedDB initialized for conversation storage");
       resolve();
     };
@@ -52,8 +54,8 @@ export function initConversationDb() {
  * @param {Object} conversation - The conversation object to save
  * @returns {Promise<string>} - Promise that resolves with the conversation id
  */
-export function saveConversationToDb(conversation) {
-  return new Promise((resolve, reject) => {
+export function saveConversationToDb(conversation: ConversationRecord): Promise<string> {
+  return new Promise<string>((resolve, reject) => {
     if (!conversationDb) {
       console.error("Conversation IndexedDB not initialized");
       // Try to initialize it now
@@ -76,14 +78,14 @@ export function saveConversationToDb(conversation) {
     // Add to the store
     const request = store.put(conversation);
 
-    request.onerror = (event) => {
-      console.error("Error saving conversation to IndexedDB:", (event.target as any).error);
-      reject((event.target as any).error);
+    request.onerror = () => {
+      console.error("Error saving conversation to IndexedDB:", request.error);
+      reject(request.error);
     };
 
     request.onsuccess = () => {
       console.info("Conversation saved to IndexedDB with ID:", conversation.id);
-      resolve(conversation.id);
+      resolve(conversation.id!);
     };
   });
 }
@@ -93,7 +95,7 @@ export function saveConversationToDb(conversation) {
  * @param {string} id - The conversation ID to retrieve
  * @returns {Promise<Object>} - Promise that resolves with the conversation object
  */
-export function loadConversationFromDb(id): Promise<any> {
+export function loadConversationFromDb(id: string): Promise<any> {
   return new Promise((resolve, reject) => {
     if (!conversationDb) {
       console.error("Conversation IndexedDB not initialized");
@@ -112,13 +114,13 @@ export function loadConversationFromDb(id): Promise<any> {
     // Get the conversation
     const request = store.get(id);
 
-    request.onerror = (event) => {
-      console.error("Error loading conversation from IndexedDB:", (event.target as any).error);
-      reject((event.target as any).error);
+    request.onerror = () => {
+      console.error("Error loading conversation from IndexedDB:", request.error);
+      reject(request.error);
     };
 
-    request.onsuccess = (event) => {
-      const result = (event.target as any).result;
+    request.onsuccess = () => {
+      const result = request.result;
       if (result) {
         console.info("Conversation loaded from IndexedDB:", id);
         resolve(result);
@@ -147,19 +149,19 @@ export function getAllConversationsFromDb(): Promise<any[]> {
       return;
     }
 
-    const conversations = [];
+    const conversations: any[] = [];
     const transaction = conversationDb.transaction([CONVO_STORE_NAME], "readonly");
     const store = transaction.objectStore(CONVO_STORE_NAME);
 
     const request = store.openCursor();
 
-    request.onerror = (event) => {
-      console.error("Error getting conversations from IndexedDB:", (event.target as any).error);
-      reject((event.target as any).error);
+    request.onerror = () => {
+      console.error("Error getting conversations from IndexedDB:", request.error);
+      reject(request.error);
     };
 
-    request.onsuccess = (event) => {
-      const cursor = (event.target as any).result;
+    request.onsuccess = () => {
+      const cursor = request.result;
       if (cursor) {
         conversations.push(cursor.value);
         cursor.continue();
@@ -176,8 +178,8 @@ export function getAllConversationsFromDb(): Promise<any[]> {
  * @param {string} id - The conversation ID to delete
  * @returns {Promise<boolean>} - Promise that resolves when deleted
  */
-export function deleteConversationFromDb(id) {
-  return new Promise((resolve, reject) => {
+export function deleteConversationFromDb(id: string): Promise<boolean> {
+  return new Promise<boolean>((resolve, reject) => {
     if (!conversationDb) {
       console.error("Conversation IndexedDB not initialized");
       reject(new Error("Conversation IndexedDB not initialized"));
@@ -191,9 +193,9 @@ export function deleteConversationFromDb(id) {
     // Delete the conversation
     const request = store.delete(id);
 
-    request.onerror = (event) => {
-      console.error("Error deleting conversation from IndexedDB:", (event.target as any).error);
-      reject((event.target as any).error);
+    request.onerror = () => {
+      console.error("Error deleting conversation from IndexedDB:", request.error);
+      reject(request.error);
     };
 
     request.onsuccess = () => {
@@ -209,8 +211,8 @@ export function deleteConversationFromDb(id) {
  * @param {string} newName - The new name for the conversation
  * @returns {Promise<boolean>} - Promise that resolves when renamed
  */
-export function renameConversationInDb(id, newName) {
-  return new Promise((resolve, reject) => {
+export function renameConversationInDb(id: string, newName: string): Promise<boolean> {
+  return new Promise<boolean>((resolve, reject) => {
     // First load the conversation
     loadConversationFromDb(id)
       .then(conversation => {

@@ -36,13 +36,13 @@ export function initImageDb() {
     }
     const request = window.indexedDB.open(IMAGE_DB_NAME, IMAGE_DB_VERSION);
 
-    request.onerror = (event) => {
-      console.error("IndexedDB error:", (event.target as any).error);
-      reject((event.target as any).error);
+    request.onerror = () => {
+      console.error("IndexedDB error:", request.error);
+      reject(request.error);
     };
 
-    request.onupgradeneeded = (event) => {
-      const db = (event.target as any).result;
+    request.onupgradeneeded = () => {
+      const db = request.result;
       // Create an object store for images if it doesn't exist
       if (!db.objectStoreNames.contains(IMAGE_STORE_NAME)) {
         db.createObjectStore(IMAGE_STORE_NAME, { keyPath: "filename" });
@@ -50,8 +50,8 @@ export function initImageDb() {
       }
     };
 
-    request.onsuccess = (event) => {
-      imageDb = (event.target as any).result;
+    request.onsuccess = () => {
+      imageDb = request.result;
       console.info("IndexedDB initialized for image storage");
       resolve();
     };
@@ -65,8 +65,8 @@ export function initImageDb() {
  * @param {string} metadata - Any additional metadata about the image
  * @returns {Promise<string>} - Promise that resolves with the filename
  */
-export function saveImageToDb(base64Data, filename, metadata = {}) {
-  return new Promise((resolve, reject) => {
+export function saveImageToDb(base64Data: string, filename: string, metadata: Record<string, unknown> = {}): Promise<string> {
+  return new Promise<string>((resolve, reject) => {
     if (!imageDb) {
       console.error("IndexedDB not initialized");
       // Try to initialize it now
@@ -91,9 +91,9 @@ export function saveImageToDb(base64Data, filename, metadata = {}) {
     // Add to the store
     const request = store.put(record);
 
-    request.onerror = (event) => {
-      console.error("Error saving image to IndexedDB:", (event.target as any).error);
-      reject((event.target as any).error);
+    request.onerror = () => {
+      console.error("Error saving image to IndexedDB:", request.error);
+      reject(request.error);
     };
 
     request.onsuccess = () => {
@@ -103,7 +103,7 @@ export function saveImageToDb(base64Data, filename, metadata = {}) {
   });
 }
 
-export async function getStoredMediaDisplayUrl(filename) {
+export async function getStoredMediaDisplayUrl(filename: string): Promise<string> {
   if (!filename) {
     throw new Error("A filename is required.");
   }
@@ -131,7 +131,7 @@ export async function getStoredMediaDisplayUrl(filename) {
  * @param {string} filename - The filename key to retrieve
  * @returns {Promise<Object>} - Promise that resolves with the image record
  */
-export function loadImageFromDb(filename): Promise<any> {
+export function loadImageFromDb(filename: string): Promise<any> {
   return new Promise((resolve, reject) => {
     if (!imageDb) {
       console.error("IndexedDB not initialized");
@@ -149,13 +149,13 @@ export function loadImageFromDb(filename): Promise<any> {
     // Get the record
     const request = store.get(filename);
 
-    request.onerror = (event) => {
-      console.error("Error loading image from IndexedDB:", (event.target as any).error);
-      reject((event.target as any).error);
+    request.onerror = () => {
+      console.error("Error loading image from IndexedDB:", request.error);
+      reject(request.error);
     };
 
-    request.onsuccess = (event) => {
-      const result = (event.target as any).result;
+    request.onsuccess = () => {
+      const result = request.result;
       if (result) {
         console.info("Image loaded from IndexedDB:", filename);
         resolve(result);
@@ -173,8 +173,8 @@ export function loadImageFromDb(filename): Promise<any> {
  * @param {string} filename - The filename key to delete
  * @returns {Promise<boolean>} - Promise that resolves when deleted
  */
-export function deleteImageFromDb(filename) {
-  return new Promise((resolve, reject) => {
+export function deleteImageFromDb(filename: string): Promise<boolean> {
+  return new Promise<boolean>((resolve, reject) => {
     if (!imageDb) {
       console.error("IndexedDB not initialized");
       reject(new Error("IndexedDB not initialized"));
@@ -187,9 +187,9 @@ export function deleteImageFromDb(filename) {
     // Delete the record
     const request = store.delete(filename);
 
-    request.onerror = (event) => {
-      console.error("Error deleting image from IndexedDB:", (event.target as any).error);
-      reject((event.target as any).error);
+    request.onerror = () => {
+      console.error("Error deleting image from IndexedDB:", request.error);
+      reject(request.error);
     };
 
     request.onsuccess = () => {
@@ -213,7 +213,7 @@ if (typeof window !== "undefined" && typeof window.addEventListener === "functio
  * @param {string} imageId - The image ID or filename in storage
  * @returns {Promise<Blob>} - Promise that resolves with the image as a Blob
  */
-export async function getImageBlobForUpload(imageId) {
+export async function getImageBlobForUpload(imageId: string): Promise<Blob> {
   try {
     // Load the image from database
     const imageRecord = await loadImageFromDb(imageId);
@@ -261,7 +261,7 @@ export async function getImageBlobForUpload(imageId) {
           const byteArray = new Uint8Array(byteNumbers);
           return new Blob([byteArray], { type: "image/png" });
         } catch (error) {
-          throw new Error(`Failed to convert base64 to Blob: ${error.message}`);
+          throw new Error(`Failed to convert base64 to Blob: ${(error as Error).message}`);
         }
       }
     }
@@ -278,7 +278,7 @@ export async function getImageBlobForUpload(imageId) {
  * @param {string} imageId - The image ID to retrieve
  * @returns {Promise<string>} - Promise that resolves with the data URL
  */
-export async function getImageDataForUpload(imageId) {
+export async function getImageDataForUpload(imageId: string): Promise<string | ArrayBuffer | null> {
   try {
     // Load the image from database
     const imageRecord = await loadImageFromDb(imageId);
@@ -294,7 +294,7 @@ export async function getImageDataForUpload(imageId) {
 
     // If it's a Blob, convert it to data URL
     if (imageRecord.data instanceof Blob) {
-      return new Promise((resolve, reject) => {
+      return new Promise<string | ArrayBuffer | null>((resolve, reject) => {
         const reader = new FileReader();
         reader.onloadend = () => resolve(reader.result);
         reader.onerror = reject;
@@ -308,7 +308,7 @@ export async function getImageDataForUpload(imageId) {
         // Assume PNG format if not specified
         return `data:image/png;base64,${imageRecord.data}`;
       } catch (error) {
-        throw new Error(`Failed to format image data as data URL: ${error.message}`);
+        throw new Error(`Failed to format image data as data URL: ${(error as Error).message}`);
       }
     }
 
@@ -319,7 +319,7 @@ export async function getImageDataForUpload(imageId) {
   }
 }
 
-export async function getStoredMediaBlob(filename) {
+export async function getStoredMediaBlob(filename: string): Promise<Blob> {
   const record = await loadImageFromDb(filename);
   if (!record || !record.data) {
     throw new Error(`Media not found: ${filename}`);
@@ -351,7 +351,7 @@ export async function getStoredMediaBlob(filename) {
       }
       return new Blob([new Uint8Array(byteNumbers)], { type: mimeType });
     } catch (error) {
-      throw new Error(`Failed to convert stored media to Blob: ${error.message}`);
+      throw new Error(`Failed to convert stored media to Blob: ${(error as Error).message}`);
     }
   }
 

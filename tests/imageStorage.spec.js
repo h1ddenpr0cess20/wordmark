@@ -16,8 +16,9 @@ function createFakeIndexedDB() {
   const stores = new Map();
   const objectStoreNames = { contains: (name) => stores.has(name) };
 
-  function makeRequest() { return { onsuccess: null, onerror: null }; }
+  function makeRequest() { return { onsuccess: null, onerror: null, result: undefined, error: null }; }
   function fireSuccess(req, result) {
+    req.result = result;
     setImmediate(() => req.onsuccess && req.onsuccess({ target: { result } }));
   }
 
@@ -54,7 +55,7 @@ function createFakeIndexedDB() {
 
   return {
     open() {
-      const req = { onsuccess: null, onerror: null, onupgradeneeded: null };
+      const req = { onsuccess: null, onerror: null, onupgradeneeded: null, result: db, error: null };
       setImmediate(() => {
         if (req.onupgradeneeded) req.onupgradeneeded({ target: { result: db } });
         if (req.onsuccess) req.onsuccess({ target: { result: db } });

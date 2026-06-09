@@ -7,12 +7,14 @@ function createFakeIndexedDB() {
   const objectStoreNames = { contains: (name) => stores.has(name) };
 
   function makeRequest() {
-    const req = { onsuccess: null, onerror: null }; return req;
+    const req = { onsuccess: null, onerror: null, result: undefined, error: null }; return req;
   }
   function fireSuccess(req, result) {
+    req.result = result;
     setImmediate(() => req.onsuccess && req.onsuccess({ target: { result } }));
   }
   function fireError(req, error) {
+    req.error = error;
     setImmediate(() => req.onerror && req.onerror({ target: { error } }));
   }
 
@@ -50,7 +52,9 @@ function createFakeIndexedDB() {
             value,
             continue() {
               idx++;
-              setImmediate(() => req.onsuccess && req.onsuccess({ target: { result: makeCursor() } }));
+              const next = makeCursor();
+              req.result = next;
+              setImmediate(() => req.onsuccess && req.onsuccess({ target: { result: next } }));
             },
           };
         }
@@ -72,7 +76,7 @@ function createFakeIndexedDB() {
 
   return {
     open(name, version) {
-      const req = { onsuccess: null, onerror: null, onupgradeneeded: null };
+      const req = { onsuccess: null, onerror: null, onupgradeneeded: null, result: db, error: null };
       setImmediate(() => {
         if (req.onupgradeneeded) req.onupgradeneeded({ target: { result: db } });
         if (req.onsuccess) req.onsuccess({ target: { result: db } });

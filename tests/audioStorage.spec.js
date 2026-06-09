@@ -6,8 +6,8 @@ function createFakeIndexedDB() {
   const stores = new Map();
   const objectStoreNames = { contains: (name) => stores.has(name) };
 
-  function makeRequest() { return { onsuccess: null, onerror: null }; }
-  function fireSuccess(req, result) { setImmediate(() => req.onsuccess && req.onsuccess({ target: { result } })); }
+  function makeRequest() { return { onsuccess: null, onerror: null, result: undefined, error: null }; }
+  function fireSuccess(req, result) { req.result = result; setImmediate(() => req.onsuccess && req.onsuccess({ target: { result } })); }
 
   function createStore(name) {
     const data = new Map();
@@ -34,7 +34,7 @@ function createFakeIndexedDB() {
                 const val = JSON.parse(JSON.stringify(arr[i]));
                 return {
                   value: val,
-                  continue() { i++; setImmediate(() => req.onsuccess && req.onsuccess({ target: { result: makeCursor() } })); },
+                  continue() { i++; const next = makeCursor(); req.result = next; setImmediate(() => req.onsuccess && req.onsuccess({ target: { result: next } })); },
                 };
               }
               fireSuccess(req, makeCursor());
@@ -67,7 +67,7 @@ function createFakeIndexedDB() {
   };
 
   return {
-    open() { const req = { onupgradeneeded: null, onsuccess: null }; setImmediate(() => { req.onupgradeneeded && req.onupgradeneeded({ target: { result: db } }); req.onsuccess && req.onsuccess({ target: { result: db } }); }); return req; },
+    open() { const req = { onupgradeneeded: null, onsuccess: null, result: db, error: null }; setImmediate(() => { req.onupgradeneeded && req.onupgradeneeded({ target: { result: db } }); req.onsuccess && req.onsuccess({ target: { result: db } }); }); return req; },
     _db: db,
   };
 }

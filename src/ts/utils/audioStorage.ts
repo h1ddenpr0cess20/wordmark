@@ -25,13 +25,13 @@ export function initAudioDb() {
     }
     const request = window.indexedDB.open(AUDIO_DB_NAME, AUDIO_DB_VERSION);
 
-    request.onerror = (event) => {
-      console.error("IndexedDB error:", (event.target as any).error);
-      reject((event.target as any).error);
+    request.onerror = () => {
+      console.error("IndexedDB error:", request.error);
+      reject(request.error);
     };
 
-    request.onupgradeneeded = (event) => {
-      const db = (event.target as any).result;
+    request.onupgradeneeded = () => {
+      const db = request.result;
       // Create an object store for audio files if it doesn't exist
       if (!db.objectStoreNames.contains(AUDIO_STORE_NAME)) {
         // Use autoIncrement to generate unique IDs
@@ -45,8 +45,8 @@ export function initAudioDb() {
       }
     };
 
-    request.onsuccess = (event) => {
-      audioDb = (event.target as any).result;
+    request.onsuccess = () => {
+      audioDb = request.result;
       console.info("IndexedDB initialized for TTS audio storage");
       resolve();
     };
@@ -61,8 +61,8 @@ export function initAudioDb() {
  * @param {string} voice - Voice used for TTS
  * @returns {Promise<Object>} - Promise that resolves with the stored audio record
  */
-export function saveAudioToDb(audioData, messageId, text, voice) {
-  return new Promise((resolve, reject) => {
+export function saveAudioToDb(audioData: ArrayBuffer, messageId: string, text: string, voice: string): Promise<any> {
+  return new Promise<any>((resolve, reject) => {
     if (!audioDb) {
       console.error("Audio IndexedDB not initialized");
       // Try to initialize it now
@@ -89,9 +89,9 @@ export function saveAudioToDb(audioData, messageId, text, voice) {
     // Add to the store
     const request = store.add(record);
 
-    request.onerror = (event) => {
-      console.error("Error saving audio to IndexedDB:", (event.target as any).error);
-      reject((event.target as any).error);
+    request.onerror = () => {
+      console.error("Error saving audio to IndexedDB:", request.error);
+      reject(request.error);
     };
 
     request.onsuccess = () => {
@@ -112,8 +112,8 @@ export function saveAudioToDb(audioData, messageId, text, voice) {
  * @param {string} messageId - The message ID to retrieve audio for
  * @returns {Promise<Object>} - Promise that resolves with the audio record
  */
-export function loadAudioForMessage(messageId) {
-  return new Promise((resolve, reject) => {
+export function loadAudioForMessage(messageId: string): Promise<any> {
+  return new Promise<any>((resolve, reject) => {
     if (!audioDb) {
       console.error("Audio IndexedDB not initialized");
       // Try to initialize it now
@@ -131,16 +131,16 @@ export function loadAudioForMessage(messageId) {
     // Get all records matching the messageId
     const request = index.getAll(messageId);
 
-    request.onerror = (event) => {
-      console.error("Error loading audio from IndexedDB:", (event.target as any).error);
-      reject((event.target as any).error);
+    request.onerror = () => {
+      console.error("Error loading audio from IndexedDB:", request.error);
+      reject(request.error);
     };
 
-    request.onsuccess = (event) => {
-      const results = (event.target as any).result;
+    request.onsuccess = () => {
+      const results = request.result;
       if (results && results.length > 0) {
         // Get the most recent audio for this message
-        results.sort((a, b) => b.timestamp - a.timestamp);
+        results.sort((a: any, b: any) => b.timestamp - a.timestamp);
         console.info("Audio loaded from IndexedDB for message:", messageId);
         resolve(results[0]);
       } else {
@@ -157,8 +157,8 @@ export function loadAudioForMessage(messageId) {
  * @param {string} id - The ID of the audio record to delete
  * @returns {Promise<boolean>} - Promise that resolves when deleted
  */
-export function deleteAudioFromDb(id) {
-  return new Promise((resolve, reject) => {
+export function deleteAudioFromDb(id: string): Promise<boolean> {
+  return new Promise<boolean>((resolve, reject) => {
     if (!audioDb) {
       console.error("Audio IndexedDB not initialized");
       reject(new Error("Audio IndexedDB not initialized"));
@@ -171,9 +171,9 @@ export function deleteAudioFromDb(id) {
     // Delete the record
     const request = store.delete(id);
 
-    request.onerror = (event) => {
-      console.error("Error deleting audio from IndexedDB:", (event.target as any).error);
-      reject((event.target as any).error);
+    request.onerror = () => {
+      console.error("Error deleting audio from IndexedDB:", request.error);
+      reject(request.error);
     };
 
     request.onsuccess = () => {
@@ -187,8 +187,8 @@ export function deleteAudioFromDb(id) {
  * Clean up old audio files, keeping only the most recent MAX_STORED_AUDIO files
  * @returns {Promise<number>} - Promise that resolves with the number of deleted files
  */
-export function cleanupOldAudio() {
-  return new Promise((resolve, reject) => {
+export function cleanupOldAudio(): Promise<number> {
+  return new Promise<number>((resolve, reject) => {
     if (!audioDb) {
       console.error("Audio IndexedDB not initialized");
       reject(new Error("Audio IndexedDB not initialized"));
@@ -202,16 +202,16 @@ export function cleanupOldAudio() {
     const index = store.index("timestamp");
     const request = index.openCursor(null, "prev"); // Descending order (newest first)
 
-    const allAudioRecords = [];
+    const allAudioRecords: { id: any; timestamp: number }[] = [];
 
-    request.onerror = (event) => {
-      console.error("Error accessing audio records:", (event.target as any).error);
-      reject((event.target as any).error);
+    request.onerror = () => {
+      console.error("Error accessing audio records:", request.error);
+      reject(request.error);
     };
 
     // Collect all records
-    request.onsuccess = (event) => {
-      const cursor = (event.target as any).result;
+    request.onsuccess = () => {
+      const cursor = request.result;
       if (cursor) {
         allAudioRecords.push({
           id: cursor.value.id,
@@ -224,7 +224,7 @@ export function cleanupOldAudio() {
           const recordsToDelete = allAudioRecords.slice(MAX_STORED_AUDIO);
 
           // Start a delete transaction
-          const deleteTransaction = audioDb.transaction([AUDIO_STORE_NAME], "readwrite");
+          const deleteTransaction = audioDb!.transaction([AUDIO_STORE_NAME], "readwrite");
           const deleteStore = deleteTransaction.objectStore(AUDIO_STORE_NAME);
 
           // Track deletions
@@ -242,8 +242,8 @@ export function cleanupOldAudio() {
               }
             };
 
-            deleteRequest.onerror = (event) => {
-              console.error(`Error deleting audio record ${record.id}:`, (event.target as any).error);
+            deleteRequest.onerror = () => {
+              console.error(`Error deleting audio record ${record.id}:`, deleteRequest.error);
               errorCount++;
               if (deletedCount + errorCount === recordsToDelete.length) {
                 if (deletedCount > 0) {
@@ -268,7 +268,7 @@ export function cleanupOldAudio() {
  * @param {ArrayBuffer} audioData - The audio data to download
  * @param {string} filename - Suggested filename for the download
  */
-export function exportAudioForDownload(audioData, filename) {
+export function exportAudioForDownload(audioData: ArrayBuffer, filename: string): boolean {
   try {
     // Create a blob from the audio data
     const blob = new Blob([audioData], { type: "audio/wav" });
