@@ -20,14 +20,19 @@ export const ttsSvgIcons = {
 // Mutable runtime tracking shared across the TTS modules. ESM imports can't be
 // reassigned across module boundaries, so the changing values live as fields on
 // this shared object.
-export const ttsRuntime = {
+export const ttsRuntime: {
+  activeTtsAudio: HTMLAudioElement | null;
+  activeTtsAudioUrl: string | null;
+  autoplayActive: boolean;
+  errorShown: boolean;
+} = {
   activeTtsAudio: null,
   activeTtsAudioUrl: null,
   autoplayActive: false,
   errorShown: false,
 };
 
-export const ttsMessageQueue = [];
+export const ttsMessageQueue: string[] = [];
 
 // Hint available voices to the UI (per provider)
 export const availableTtsVoices = {

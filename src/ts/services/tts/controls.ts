@@ -6,7 +6,7 @@ import { ttsAudioResources } from "./resources.ts";
 import { generateSpeech } from "./api.ts";
 import { stopTtsAudio, handleTtsAudioEnded } from "./playback.ts";
 import { playNextMessageInQueue } from "./queue.ts";
-export async function generateTtsForMessage(text, messageId) {
+export async function generateTtsForMessage(text: string, messageId: string) {
   if (!ttsConfig.enabled) {
     return;
   }
@@ -69,7 +69,7 @@ export async function generateTtsForMessage(text, messageId) {
   }
 };
 
-export function addPlaceholderTtsControls(messageId, text) {
+export function addPlaceholderTtsControls(messageId: string, text: string) {
   const messageElement = document.getElementById(messageId) as any;
   if (!messageElement) {
     return;
@@ -150,7 +150,7 @@ export function addPlaceholderTtsControls(messageId, text) {
   }
 };
 
-export function addTtsControlsToMessage(audioData, messageId, originalText) {
+export function addTtsControlsToMessage(audioData: any, messageId: string, originalText: string) {
   const messageElement = document.getElementById(messageId) as any;
   if (!messageElement) {
     return;

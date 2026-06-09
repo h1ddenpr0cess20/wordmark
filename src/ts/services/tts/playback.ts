@@ -41,7 +41,7 @@ export function stopTtsAudio() {
   }
 }
 
-export function playTtsAudio(audioData) {
+export function playTtsAudio(audioData: any) {
   if (!audioData) {
     return;
   }
@@ -76,7 +76,7 @@ export function playTtsAudio(audioData) {
   }
 }
 
-export function handleTtsAudioEnded(playPauseButton, statusText, audioUrl, isPlayingRef) {
+export function handleTtsAudioEnded(playPauseButton: HTMLElement, statusText: HTMLElement, audioUrl: string, isPlayingRef: { isPlaying: boolean }) {
   return function() {
     if (isPlayingRef) {
       isPlayingRef.isPlaying = false;
@@ -115,7 +115,7 @@ export function handleAudioEnded() {
   }
 }
 
-export function handleAudioError(event) {
+export function handleAudioError(event: Event | string) {
   console.error("Audio playback error:", event);
   ttsRuntime.activeTtsAudio = null;
   ttsRuntime.activeTtsAudioUrl = null;
