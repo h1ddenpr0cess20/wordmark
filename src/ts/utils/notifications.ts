@@ -3,7 +3,7 @@
  */
 
 // Notification container
-let notificationContainer = null;
+let notificationContainer: HTMLElement | null = null;
 
 /**
  * Initialize the notification system
@@ -151,7 +151,7 @@ export function initNotificationSystem() {
  * @param {string} type - The type of notification (error, warning, success, info)
  * @param {number} duration - How long to show the notification (ms), 0 for persistent
  */
-export function showNotification(message, type = "info", duration = 5000) {
+export function showNotification(message: string, type: string = "info", duration: number = 5000): HTMLElement | null {
   if (typeof document === "undefined") {
     return null;
   }
@@ -180,7 +180,7 @@ export function showNotification(message, type = "info", duration = 5000) {
   notification.appendChild(closeBtn);
 
   // Add to container
-  notificationContainer.appendChild(notification);
+  notificationContainer!.appendChild(notification);
 
   // Show notification with animation
   requestAnimationFrame(() => {
@@ -188,7 +188,7 @@ export function showNotification(message, type = "info", duration = 5000) {
   });
 
   // Auto-remove after duration (if not persistent)
-  let autoRemoveTimeout;
+  let autoRemoveTimeout: ReturnType<typeof setTimeout> | undefined;
   if (duration > 0) {
     autoRemoveTimeout = setTimeout(() => {
       removeNotification(notification);
@@ -211,7 +211,7 @@ export function showNotification(message, type = "info", duration = 5000) {
  * Remove a notification with animation
  * @param {HTMLElement} notification - The notification element to remove
  */
-function removeNotification(notification) {
+function removeNotification(notification: HTMLElement) {
   if (!notification || !notification.parentNode) {
     return;
   }
@@ -229,7 +229,7 @@ function removeNotification(notification) {
  * Show an error notification
  * @param {string} message - Error message
  */
-export function showError(message) {
+export function showError(message: string) {
   return showNotification(message, "error", 8000);
 }
 
@@ -237,7 +237,7 @@ export function showError(message) {
  * Show a warning notification
  * @param {string} message - Warning message
  */
-export function showWarning(message) {
+export function showWarning(message: string) {
   return showNotification(message, "warning", 6000);
 }
 
@@ -245,7 +245,7 @@ export function showWarning(message) {
  * Show a success notification
  * @param {string} message - Success message
  */
-export function showSuccess(message) {
+export function showSuccess(message: string) {
   return showNotification(message, "success", 4000);
 }
 
@@ -253,7 +253,7 @@ export function showSuccess(message) {
  * Show an info notification
  * @param {string} message - Info message
  */
-export function showInfo(message) {
+export function showInfo(message: string) {
   return showNotification(message, "info", 5000);
 }
 
@@ -262,7 +262,7 @@ export function showInfo(message) {
  */
 export function clearAllNotifications() {
   if (notificationContainer) {
-    const notifications = notificationContainer.querySelectorAll(".notification") as any;
+    const notifications = notificationContainer.querySelectorAll<HTMLElement>(".notification");
     notifications.forEach(removeNotification);
   }
 }

@@ -1,9 +1,9 @@
 // Shared interfaces for the central app state and cached DOM element references.
-// Collections are intentionally loose (`any`) during the initial conversion;
-// these can be tightened in a follow-up once stricter flags are enabled.
+
+import type { Attachment, Message } from "./api.ts";
 
 export interface AppState {
-  conversationHistory: any[];
+  conversationHistory: Message[];
   activeAbortController: AbortController | null;
   hljsLoaded: boolean;
   shouldStopGeneration: boolean;

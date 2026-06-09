@@ -3,15 +3,16 @@
  */
 
 import { state } from "../init/state.ts";
+import type { Attachment } from "../../types/api.ts";
 /**
  * Debounces a function call
  * @param {Function} func - The function to debounce
  * @param {number} wait - Time to wait in milliseconds
  * @returns {Function} - The debounced function
  */
-export function debounce(func, wait) {
-  let timeout;
-  return function(...args) {
+export function debounce(func: (...args: any[]) => any, wait: number) {
+  let timeout: ReturnType<typeof setTimeout> | undefined;
+  return function(this: unknown, ...args: any[]) {
     const context = this;
     clearTimeout(timeout);
     timeout = setTimeout(() => func.apply(context, args), wait);
@@ -23,7 +24,7 @@ export function debounce(func, wait) {
  * @param {string} text - Text to sanitize
  * @returns {string} - Sanitized text
  */
-export function sanitizeInput(text) {
+export function sanitizeInput(text: string): string {
   return text.replace(/</g, "&lt;").replace(/>/g, "&gt;");
 }
 
@@ -31,14 +32,14 @@ export function sanitizeInput(text) {
  * Toggle the visibility of the thinking/reasoning container
  * @param {string} id - The ID of the thinking container to toggle
  */
-export function toggleThinking(id, event) {
+export function toggleThinking(id: string, event?: Event) {
   // Prevent event bubbling that might affect other elements
   if (event) {
     event.stopPropagation();
     event.preventDefault();
   }
 
-  const thinkingContainer = document.getElementById(id) as any;
+  const thinkingContainer = document.getElementById(id);
   if (!thinkingContainer) {
     console.warn("Thinking container not found:", id);
     return;
@@ -64,7 +65,7 @@ export function toggleThinking(id, event) {
 
   // If we're expanding this container, scroll to show its content
   if (wasCollapsed) {
-    const contentDiv = thinkingContainer.querySelector(".thinking-content") as any;
+    const contentDiv = thinkingContainer.querySelector(".thinking-content");
     if (contentDiv) {
       setTimeout(() => {
         contentDiv.scrollTop = 0;
@@ -79,7 +80,7 @@ export function toggleThinking(id, event) {
  * @param {string} messageId - ID of the user message
  * @param {Array} placeholders - Array of placeholder strings like '[[IMAGE: file.jpg]]'
  */
-export function stripBase64FromHistory(messageId, placeholders = []) {
+export function stripBase64FromHistory(messageId: string, placeholders: string[] = []) {
   if (!Array.isArray(state.conversationHistory)) {
     return;
   }
@@ -89,15 +90,15 @@ export function stripBase64FromHistory(messageId, placeholders = []) {
   }
 
   function sanitizeAttachments() {
-    if (!Array.isArray(entry.attachments)) {
+    if (!Array.isArray(entry!.attachments)) {
       return;
     }
-    entry.attachments = entry.attachments
-      .map(att => {
+    entry!.attachments = entry!.attachments
+      .map((att: Attachment): Attachment | null => {
         if (!att || typeof att !== "object") {
           return null;
         }
-        const normalized = { ...att };
+        const normalized: Attachment = { ...att };
         if (normalized.filename && normalized.dataUrl) {
           try {
             if (state.imageDataCache && typeof state.imageDataCache.set === "function") {
@@ -111,10 +112,10 @@ export function stripBase64FromHistory(messageId, placeholders = []) {
         }
         return normalized;
       })
-      .filter(Boolean);
+      .filter((att): att is Attachment => att !== null);
   }
 
-  let textPart = entry.content || "";
+  let textPart = typeof entry.content === "string" ? entry.content : "";
 
   // Check if placeholders already exist in the content
   const existingPlaceholders = placeholders.filter(placeholder =>
@@ -140,7 +141,8 @@ export function stripBase64FromHistory(messageId, placeholders = []) {
 // container whose title was clicked rather than per-element inline handlers.
 if (typeof document !== "undefined" && typeof document.addEventListener === "function") {
   document.addEventListener("click", (event) => {
-    const title = (event.target as any).closest(".thinking-title");
+    const target = event.target as Element | null;
+    const title = target?.closest(".thinking-title");
     if (!title) {
       return;
     }

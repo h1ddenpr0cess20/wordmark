@@ -19,9 +19,11 @@ export interface ContentPart {
 /** A file/image attachment carried alongside a user message. */
 export interface Attachment {
   filename?: string;
-  dataUrl?: string;
+  dataUrl?: string | null;
   url?: string;
   type?: string;
+  id?: string;
+  inlineDataRemoved?: boolean;
   [key: string]: unknown;
 }
 
