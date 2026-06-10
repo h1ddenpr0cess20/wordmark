@@ -1,3 +1,11 @@
+/**
+ * Chat message rendering.
+ *
+ * @remarks
+ * Appends user and assistant messages to the chat view, rendering markdown and
+ * managing scroll behavior.
+ */
+
 import { elements, state } from "../../init/state.ts";
 import { icon } from "../../utils/icons.ts";
 import { marked } from "marked";
@@ -66,7 +74,6 @@ export function appendMessage(sender: string, content: string, type: string, ski
   const chatBox = elements.chatBox;
   chatBox?.appendChild(messageElement);
 
-  // Mobile/optimized fast-scroll once the message element is in the DOM.
   if (state.shouldAutoScroll && chatBox) {
     fastScroll(chatBox, chatBox.scrollHeight);
   }

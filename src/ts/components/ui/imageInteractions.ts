@@ -1,10 +1,18 @@
+/**
+ * Image and media interactions.
+ *
+ * @remarks
+ * Provides the full-screen slideshow viewer and the per-image actions
+ * (download, delete) used in chat messages and the gallery.
+ */
+
 import { state } from "../../init/state.ts";
 import { icon } from "../../utils/icons.ts";
 import { deleteImageFromDb } from "../../utils/imageStorage.ts";
 import { isMobileDevice } from "../../utils/mobileHandling.ts";
 import { detectMediaType, downloadMediaSource } from "../../services/mediaTools.ts";
 
-// Normalized media descriptor consumed by the slideshow viewer.
+/** Normalized media descriptor consumed by the slideshow viewer. */
 interface ViewerItem {
   mediaType: string;
   url: string;
