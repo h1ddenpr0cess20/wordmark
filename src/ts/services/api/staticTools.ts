@@ -6,6 +6,7 @@
  */
 import type { ToolEntry } from "../../../types/tools.ts";
 
+/** The built-in and function tool entries seeded into the catalog at load. */
 export const STATIC_TOOLS: ToolEntry[] = [
   {
     key: "function:open_meteo_forecast",

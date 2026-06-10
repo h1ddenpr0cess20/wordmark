@@ -208,13 +208,10 @@ export async function runTurn({
   }
   const serviceKey = getActiveServiceKey();
   const resolvedModel = model || getActiveModel();
-  // Drop the oldest turns first when the conversation exceeds the token budget;
-  // the developer/system message (added below) and latest turn always survive.
   const windowedMessages = windowMessagesByTokenBudget(baseMessages, historyTokenBudget);
   const workingMessages = serializeMessagesForRequest(windowedMessages);
   const developerContent = buildDeveloperMessage();
   if (developerContent) {
-    // xAI (Grok) requires 'system' role instead of 'developer'
     const systemRole = serviceKey === "xai" ? "system" : "developer";
     workingMessages.unshift({
       role: systemRole,
@@ -226,7 +223,6 @@ export async function runTurn({
   let enabledTools = getEnabledToolDefinitions(serviceKey, resolvedModel);
   const clientSideToolsSupported = supportsClientSideTools(serviceKey, resolvedModel);
 
-  // Handle file_search tool: attach ALL active vector stores (persisted + explicitly active)
   if (enabledTools) {
     const idsSet = new Set<string>();
     try {
@@ -235,7 +231,7 @@ export async function runTurn({
         activeIds.forEach(id => { if (id) idsSet.add(id); });
       }
     } catch {
-      // non-fatal
+      /* non-fatal */
     }
     if (vectorStoreId) {
       idsSet.add(vectorStoreId);
@@ -252,11 +248,9 @@ export async function runTurn({
         return tool;
       });
     } else {
-      // Remove file_search tool if no vector stores are available
       enabledTools = enabledTools.filter(tool => tool.type !== "file_search");
     }
   }
-  // Aggregate across multiple Responses API cycles (e.g., when tools are called)
   let aggregateText = "";
   let aggregateReasoning = "";
 
@@ -310,7 +304,6 @@ export async function runTurn({
       throw error;
     }
 
-    // Accumulate text and reasoning across multiple response cycles
     if (streamedText) {
       if (aggregateText) aggregateText += "\n\n";
       aggregateText += streamedText;
