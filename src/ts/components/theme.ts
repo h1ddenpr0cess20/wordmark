@@ -3,6 +3,7 @@
  */
 
 import hljs from "highlight.js";
+import { STORAGE_KEYS } from "../utils/storage.ts";
 
 // Theme CSS is imported as raw text so theme class names can be parsed in both
 // the Vite dev server (where a plain fetch of a .css URL returns a JS HMR
@@ -213,7 +214,7 @@ export async function initTheme() {
   }
 
   // Load saved theme if it exists
-  const savedTheme = localStorage.getItem("selectedTheme");
+  const savedTheme = localStorage.getItem(STORAGE_KEYS.selectedTheme);
   if (savedTheme) {
     currentTheme = savedTheme;
     themeSelector.value = savedTheme;
@@ -227,7 +228,7 @@ export async function initTheme() {
     const newTheme = (e.target as HTMLSelectElement).value;
     applyTheme(newTheme);
     currentTheme = newTheme;
-    localStorage.setItem("selectedTheme", newTheme);
+    localStorage.setItem(STORAGE_KEYS.selectedTheme, newTheme);
   });
 }
 
@@ -246,7 +247,7 @@ export function applyTheme(themeName: string) {
   updateThemeColorTriplets();
 
   // Save the selected theme to localStorage
-  localStorage.setItem("selectedTheme", themeName);
+  localStorage.setItem(STORAGE_KEYS.selectedTheme, themeName);
 
   // Update the theme selector dropdown
   const selector = document.getElementById("theme-selector") as HTMLSelectElement | null;

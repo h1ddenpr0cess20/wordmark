@@ -10,6 +10,7 @@
  * state.verboseLogging) so they can be toggled at runtime from anywhere.
  */
 import { state } from "../init/state.ts";
+import { STORAGE_KEYS } from "./storage.ts";
 
 type ConsoleMethod = "log" | "info" | "warn" | "error";
 
@@ -95,7 +96,7 @@ export function applyConsoleLogging() {
 
     // In production mode, suppress log/info unless explicitly enabled
     let loggingEnabled = false;
-    try { loggingEnabled = Boolean(localStorage.getItem("enableLogging")); } catch { /* no localStorage */ }
+    try { loggingEnabled = Boolean(localStorage.getItem(STORAGE_KEYS.enableLogging)); } catch { /* no localStorage */ }
     if (!loggingEnabled) {
       console.log = function() {};
       console.info = function() {};

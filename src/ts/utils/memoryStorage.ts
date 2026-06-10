@@ -3,9 +3,11 @@
  * Stores brief user-provided memories as an array of strings.
  */
 
-const MEMORY_ENABLED_KEY = "memoryEnabled";
-const MEMORY_LIMIT_KEY = "memoryLimit";
-const MEMORIES_KEY = "memories";
+import { STORAGE_KEYS, writeJSON } from "./storage.ts";
+
+const MEMORY_ENABLED_KEY = STORAGE_KEYS.memoryEnabled;
+const MEMORY_LIMIT_KEY = STORAGE_KEYS.memoryLimit;
+const MEMORIES_KEY = STORAGE_KEYS.memories;
 
 // Initialize defaults if missing
 function ensureMemoryDefaults() {
@@ -16,7 +18,7 @@ function ensureMemoryDefaults() {
     localStorage.setItem(MEMORY_LIMIT_KEY, "25");
   }
   if (localStorage.getItem(MEMORIES_KEY) === null) {
-    localStorage.setItem(MEMORIES_KEY, JSON.stringify([]));
+    writeJSON(MEMORIES_KEY, []);
   }
 }
 
@@ -40,7 +42,7 @@ export function setMemoryLimit(limit: string | number) {
   const mems = getMemories();
   if (mems.length > newLimit) {
     const trimmed = mems.slice(-newLimit);
-    localStorage.setItem(MEMORIES_KEY, JSON.stringify(trimmed));
+    writeJSON(MEMORIES_KEY, trimmed);
     try { window.dispatchEvent(new CustomEvent("memories:changed", { detail: { type: "trim", count: trimmed.length } })); } catch {}
   }
   try { window.dispatchEvent(new CustomEvent("memories:config", { detail: { key: "limit", value: newLimit } })); } catch {}
@@ -66,13 +68,13 @@ export function addMemory(text: string) {
   const mems = getMemories();
   mems.push(trimmed);
   const final = mems.length > limit ? mems.slice(-limit) : mems;
-  localStorage.setItem(MEMORIES_KEY, JSON.stringify(final));
+  writeJSON(MEMORIES_KEY, final);
   try { window.dispatchEvent(new CustomEvent("memories:changed", { detail: { type: "add", value: trimmed } })); } catch {}
   return { ok: true, count: final.length };
 }
 
 export function clearAllMemories() {
-  localStorage.setItem(MEMORIES_KEY, JSON.stringify([]));
+  writeJSON(MEMORIES_KEY, []);
   try { window.dispatchEvent(new CustomEvent("memories:changed", { detail: { type: "clear" } })); } catch {}
   return { ok: true };
 }
@@ -81,7 +83,7 @@ export function removeMemoryAt(index: number) {
   const mems = getMemories();
   if (index < 0 || index >= mems.length) return { ok: false, reason: "range" };
   mems.splice(index, 1);
-  localStorage.setItem(MEMORIES_KEY, JSON.stringify(mems));
+  writeJSON(MEMORIES_KEY, mems);
   try { window.dispatchEvent(new CustomEvent("memories:changed", { detail: { type: "remove", index } })); } catch {}
   return { ok: true, count: mems.length };
 }

@@ -2,13 +2,14 @@ import { icon } from "../utils/icons.ts";
 import { showNotification } from "../utils/notifications.ts";
 import { responsesClient } from "./api.ts";
 import { refreshToolSettingsUI } from "../components/tools.ts";
+import { STORAGE_KEYS, writeJSON } from "../utils/storage.ts";
 /**
  * MCP Server Management
  * Handles configuration and management of URL-based Model Context Protocol servers
  */
 
 // Storage key for MCP servers
-const MCP_SERVERS_STORAGE_KEY = "mcp_servers";
+const MCP_SERVERS_STORAGE_KEY = STORAGE_KEYS.mcpServers;
 
 // A configured URL-based MCP server, as persisted in localStorage.
 interface McpServer {
@@ -39,7 +40,7 @@ export function getMCPServers(): McpServer[] {
  */
 function saveMCPServers(servers: McpServer[]) {
   try {
-    localStorage.setItem(MCP_SERVERS_STORAGE_KEY, JSON.stringify(servers));
+    writeJSON(MCP_SERVERS_STORAGE_KEY, servers);
   } catch (error) {
     console.error("Error saving MCP servers:", error);
     throw error;

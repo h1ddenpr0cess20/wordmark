@@ -5,6 +5,7 @@
 
 import { elements, state } from "./state.ts";
 import { focusUserInputSafely } from "../utils/mobileHandling.ts";
+import { STORAGE_KEYS } from "../utils/storage.ts";
 import { initializeLocationService } from "../services/location.ts";
 import { initMCPServers } from "../services/mcpServers.ts";
 import { ensureApiKeysLoaded } from "../services/apiKeys.ts";
@@ -190,7 +191,7 @@ export async function initialize() {
     initializeVerboseMode();
 
     // Load location services if previously enabled
-    if (localStorage.getItem("locationEnabled") === "true") {
+    if (localStorage.getItem(STORAGE_KEYS.locationEnabled) === "true") {
       initializeLocationService();
     }
     // Ensure feature badges render at least once on startup

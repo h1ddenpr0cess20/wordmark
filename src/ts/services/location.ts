@@ -1,4 +1,5 @@
 import { state } from "../init/state.ts";
+import { STORAGE_KEYS, writeJSON } from "../utils/storage.ts";
 /**
  * Location service for browser geolocation functionality
  * Provides location awareness for AI prompts
@@ -62,15 +63,15 @@ export async function requestLocation(): Promise<LocationResult> {
           locationState.enabled = true;
 
           // Save to localStorage for persistence
-          localStorage.setItem("locationEnabled", "true");
-          localStorage.setItem("lastKnownLocation", JSON.stringify({
+          localStorage.setItem(STORAGE_KEYS.locationEnabled, "true");
+          writeJSON(STORAGE_KEYS.lastKnownLocation, {
             coords: {
               latitude: position.coords.latitude,
               longitude: position.coords.longitude,
             },
             timestamp: position.timestamp,
             locationString: locationString,
-          }));
+          });
 
           if (state.verboseLogging) {
             console.info("Location obtained:", locationString);
@@ -91,15 +92,15 @@ export async function requestLocation(): Promise<LocationResult> {
           locationState.locationString = basicLocation;
           locationState.enabled = true;
 
-          localStorage.setItem("locationEnabled", "true");
-          localStorage.setItem("lastKnownLocation", JSON.stringify({
+          localStorage.setItem(STORAGE_KEYS.locationEnabled, "true");
+          writeJSON(STORAGE_KEYS.lastKnownLocation, {
             coords: {
               latitude: position.coords.latitude,
               longitude: position.coords.longitude,
             },
             timestamp: position.timestamp,
             locationString: basicLocation,
-          }));
+          });
 
           resolve({
             success: true,
@@ -128,7 +129,7 @@ export async function requestLocation(): Promise<LocationResult> {
 
         locationState.error = errorMessage;
         locationState.enabled = false;
-        localStorage.setItem("locationEnabled", "false");
+        localStorage.setItem(STORAGE_KEYS.locationEnabled, "false");
 
         console.warn("Geolocation error:", errorMessage);
         resolve({ error: errorMessage });
@@ -206,8 +207,8 @@ export function disableLocation() {
   locationState.locationString = "";
   locationState.error = null;
 
-  localStorage.setItem("locationEnabled", "false");
-  localStorage.removeItem("lastKnownLocation");
+  localStorage.setItem(STORAGE_KEYS.locationEnabled, "false");
+  localStorage.removeItem(STORAGE_KEYS.lastKnownLocation);
 
   // Update UI if available
   updateLocationUI();
@@ -221,8 +222,8 @@ export function disableLocation() {
  * Initialize location service from stored preferences
  */
 export function initializeLocationService() {
-  const locationEnabled = localStorage.getItem("locationEnabled") === "true";
-  const lastKnownLocation = localStorage.getItem("lastKnownLocation");
+  const locationEnabled = localStorage.getItem(STORAGE_KEYS.locationEnabled) === "true";
+  const lastKnownLocation = localStorage.getItem(STORAGE_KEYS.lastKnownLocation);
 
   // Always restore the enabled state from localStorage first
   locationState.enabled = locationEnabled;
@@ -253,7 +254,7 @@ export function initializeLocationService() {
       }
     } catch (error) {
       console.warn("Failed to parse stored location:", error);
-      localStorage.removeItem("lastKnownLocation");
+      localStorage.removeItem(STORAGE_KEYS.lastKnownLocation);
       // If enabled but no valid stored location, try to get fresh location
       if (locationEnabled) {
         requestLocation();

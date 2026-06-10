@@ -9,6 +9,7 @@ import { memoryToolDefinition, forgetToolDefinition } from "../memory.ts";
 import { getApiKey } from "../apiKeys.ts";
 import { MCP_ASSUME_ONLINE, config } from "../../../config/config.ts";
 import { state } from "../../init/state.ts";
+import { STORAGE_KEYS, readJSON, writeJSON } from "../../utils/storage.ts";
 import type {
   McpServerConfig,
   ToolCatalogEntry,
@@ -22,11 +23,11 @@ interface McpFetchResult {
   error?: unknown;
 }
 
-const TOOL_STORAGE_KEY = "wordmark_tool_preferences";
+const TOOL_STORAGE_KEY = STORAGE_KEYS.toolPreferences;
 
 function loadUserMCPServers(): McpServerConfig[] {
   try {
-    const stored = localStorage.getItem("mcp_servers");
+    const stored = localStorage.getItem(STORAGE_KEYS.mcpServers);
     if (!stored) return [];
     const servers = JSON.parse(stored);
     return Array.isArray(servers) ? servers : [];
@@ -622,21 +623,13 @@ export function refreshMcpAvailability(force = false): Promise<void> {
 export { TOOL_DEFINITIONS, TOOL_HANDLERS };
 
 function loadToolPreferences(): Record<string, boolean> {
-  try {
-    const raw = localStorage.getItem(TOOL_STORAGE_KEY);
-    if (!raw) {
-      return {};
-    }
-    const parsed = JSON.parse(raw);
-    return parsed && typeof parsed === "object" ? parsed : {};
-  } catch {
-    return {};
-  }
+  const parsed = readJSON<Record<string, boolean>>(TOOL_STORAGE_KEY, {});
+  return parsed && typeof parsed === "object" ? parsed : {};
 }
 
 function saveToolPreferences(prefs: Record<string, boolean>) {
   try {
-    localStorage.setItem(TOOL_STORAGE_KEY, JSON.stringify(prefs));
+    writeJSON(TOOL_STORAGE_KEY, prefs);
   } catch {
     /* Ignore storage errors */
   }

@@ -4,6 +4,7 @@ import { refreshToolSettingsUI } from "../components/tools.ts";
 import { config } from "../../config/config.ts";
 import { state } from "../init/state.ts";
 import { API_KEYS_STORAGE_PREFIX, loadApiKeysIntoConfig } from "./apiKeyStorage.ts";
+import { STORAGE_KEYS, toolApiKeyStorageKey } from "../utils/storage.ts";
 /**
  * API key management functionality
  */
@@ -13,8 +14,8 @@ import { API_KEYS_STORAGE_PREFIX, loadApiKeysIntoConfig } from "./apiKeyStorage.
 // -----------------------------------------------------
 
 // Storage keys for local storage
-const LMSTUDIO_SERVER_URL_KEY = "wordmark_lmstudio_server_url";
-const OLLAMA_SERVER_URL_KEY = "wordmark_ollama_server_url";
+const LMSTUDIO_SERVER_URL_KEY = STORAGE_KEYS.lmStudioServerUrl;
+const OLLAMA_SERVER_URL_KEY = STORAGE_KEYS.ollamaServerUrl;
 const API_KEYS_INIT_MAX_RETRIES = 40;
 const API_KEYS_INIT_RETRY_DELAY = 150;
 
@@ -542,7 +543,7 @@ function getApiKey(service: string): string | null {
 function getToolApiKey(service: string): string | null {
   try {
   // Try localStorage first
-    const storedKey = localStorage.getItem(`wordmark_tool_api_key_${service}`);
+    const storedKey = localStorage.getItem(toolApiKeyStorageKey(service));
     if (storedKey) {
       return storedKey;
     }

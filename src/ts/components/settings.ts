@@ -1,5 +1,6 @@
 import { elements } from "../init/state.ts";
 import { uiHooks } from "../init/uiHooks.ts";
+import { STORAGE_KEYS } from "../utils/storage.ts";
 import { DEFAULT_PERSONALITY, config } from "../../config/config.ts";
 import { getMemoryConfig, setMemoryEnabled } from "../utils/memoryStorage.ts";
 import { locationState, requestLocation, disableLocation } from "../services/location.ts";
@@ -151,7 +152,7 @@ export function updateHeaderInfo() {
  */
 export function getDataSettingsEnabled() {
   try {
-    const v = localStorage.getItem("dataSettingsEnabled");
+    const v = localStorage.getItem(STORAGE_KEYS.dataSettingsEnabled);
     return v === null ? true : v === "true";
   } catch {
     return true;
@@ -160,7 +161,7 @@ export function getDataSettingsEnabled() {
 
 export function setDataSettingsEnabled(enabled: boolean) {
   try {
-    localStorage.setItem("dataSettingsEnabled", enabled ? "true" : "false");
+    localStorage.setItem(STORAGE_KEYS.dataSettingsEnabled, enabled ? "true" : "false");
   } catch { /* noop */ }
 
   // Reflect state in the Data tab toggle without re-triggering change handler

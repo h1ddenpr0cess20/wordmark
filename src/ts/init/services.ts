@@ -4,6 +4,7 @@
 
 import { elements, state } from "./state.ts";
 import { updateParameterControls } from "../components/ui/settingsControls.ts";
+import { STORAGE_KEYS } from "../utils/storage.ts";
 import { updateHeaderInfo, updateModelSelector, updateFeatureStatus, populateServiceSelector } from "../components/settings.ts";
 import { updateMasterToolCallingStatus, refreshToolSettingsUI } from "../components/tools.ts";
 import { DEFAULT_PERSONALITY, DEFAULT_SHORT_RESPONSE_GUIDELINE, DEFAULT_SYSTEM_PROMPT, config } from "../../config/config.ts";
@@ -177,7 +178,7 @@ export function initializeDefaultValues() {
  */
 export function initializeToolCalling() {
   let enabled = true;
-  const stored = localStorage.getItem("enableFunctionCalling");
+  const stored = localStorage.getItem(STORAGE_KEYS.enableFunctionCalling);
   if (stored !== null) {
     enabled = stored === "true";
   } else if (typeof config.enableFunctionCalling === "boolean") {
@@ -207,7 +208,7 @@ export function initializeVerboseMode() {
   if (!elements.verboseModeToggle) return;
 
   let enabled = false;
-  const stored = localStorage.getItem("verboseModeEnabled");
+  const stored = localStorage.getItem(STORAGE_KEYS.verboseModeEnabled);
   if (stored !== null) {
     enabled = stored === "true";
   }

@@ -8,6 +8,7 @@
  */
 import { state } from "../ts/init/state.ts";
 import { uiHooks } from "../ts/init/uiHooks.ts";
+import { apiKeyStorageKey } from "../ts/utils/storage.ts";
 import type { Config, ModelListItem } from "../types/config.ts";
 
 // Console logging setup lives in utils/logger.ts. Importing it here (config is
@@ -87,7 +88,7 @@ export const config: Config = {
             async fetchAndUpdateModels() {
                 // Ensure key is loaded from localStorage if not yet on config
                 if (!this.apiKey) {
-                    const stored = localStorage.getItem("wordmark_api_key_openai");
+                    const stored = localStorage.getItem(apiKeyStorageKey("openai"));
                     if (stored) this.apiKey = stored;
                 }
                 if (!this.apiKey) {
@@ -311,7 +312,7 @@ export const config: Config = {
             async fetchAndUpdateModels() {
                 // Ensure key is loaded from localStorage if not yet on config
                 if (!this.apiKey) {
-                    const stored = localStorage.getItem("wordmark_api_key_xai");
+                    const stored = localStorage.getItem(apiKeyStorageKey("xai"));
                     if (stored) this.apiKey = stored;
                 }
                 if (!this.apiKey) {

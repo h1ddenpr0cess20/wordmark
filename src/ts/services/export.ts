@@ -1,4 +1,5 @@
 import { elements, state } from "../init/state.ts";
+import { STORAGE_KEYS } from "../utils/storage.ts";
 import type { Message } from "../../types/api.ts";
 /**
  * Chat export functionality
@@ -262,7 +263,7 @@ function normaliseMessagesForExport(history: Message[]): ExportMessage[] {
 }
 
 function getStoredExportFormat() {
-  const stored = typeof localStorage !== "undefined" ? localStorage.getItem("chatExportFormat") : null;
+  const stored = typeof localStorage !== "undefined" ? localStorage.getItem(STORAGE_KEYS.chatExportFormat) : null;
   return normaliseExportFormat(stored) || "md";
 }
 
@@ -271,7 +272,7 @@ function persistExportFormatPreference(formatKey: string) {
     return;
   }
   try {
-    localStorage.setItem("chatExportFormat", formatKey);
+    localStorage.setItem(STORAGE_KEYS.chatExportFormat, formatKey);
   } catch (error) {
     console.warn("Unable to persist export format preference:", error);
   }

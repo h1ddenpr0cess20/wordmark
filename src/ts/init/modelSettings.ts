@@ -4,16 +4,17 @@
 
 import { state, elements } from "./state.ts";
 import { config } from "../../config/config.ts";
+import { STORAGE_KEYS } from "../utils/storage.ts";
 
-const REASONING_EFFORT_STORAGE_KEY = "reasoningEffort";
+const REASONING_EFFORT_STORAGE_KEY = STORAGE_KEYS.reasoningEffort;
 export const DEFAULT_REASONING_EFFORT = "medium";
 const VALID_REASONING_EFFORTS = ["low", "medium", "high"];
 const DEFAULT_REASONING_HELP_TEXT = "Higher effort spends more time on structured reasoning before replying; lower effort responds faster.";
 const DISABLED_REASONING_HELP_TEXT = "Reasoning effort is unavailable for GPT-4/GPT-4.1 and Grok models without reasoning support.";
-const VERBOSITY_STORAGE_KEY = "responseVerbosity";
+const VERBOSITY_STORAGE_KEY = STORAGE_KEYS.responseVerbosity;
 export const DEFAULT_VERBOSITY = "medium";
 const VALID_VERBOSITY_LEVELS = ["low", "medium", "high"];
-const HISTORY_TOKEN_BUDGET_STORAGE_KEY = "historyTokenBudget";
+const HISTORY_TOKEN_BUDGET_STORAGE_KEY = STORAGE_KEYS.historyTokenBudget;
 // Balanced default: ~8k tokens of recent history keeps plenty of context
 // (~10-20 exchanges) while capping cost on long threads. 0 = no limit.
 export const DEFAULT_HISTORY_TOKEN_BUDGET = 8000;

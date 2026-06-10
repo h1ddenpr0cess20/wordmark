@@ -1,4 +1,5 @@
 import { config } from "../../config/config.ts";
+import { STORAGE_KEYS } from "../utils/storage.ts";
 /**
  * DOM-free loading of API keys from localStorage into config.services.
  *
@@ -8,7 +9,7 @@ import { config } from "../../config/config.ts";
  * used by startup default-service selection.
  */
 
-export const API_KEYS_STORAGE_PREFIX = "wordmark_api_key_";
+export const API_KEYS_STORAGE_PREFIX = STORAGE_KEYS.apiKeyPrefix;
 
 /**
  * Copy each service's saved key from localStorage into config.services[key].apiKey.

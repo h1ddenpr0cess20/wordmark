@@ -1,5 +1,6 @@
 import { elements, state } from "./state.ts";
 import { showError } from "../utils/notifications.ts";
+import { STORAGE_KEYS } from "../utils/storage.ts";
 import { getDataSettingsEnabled, setDataSettingsEnabled, updateFeatureStatus } from "../components/settings.ts";
 import { loadVectorStoreModule, lazyModulesLoaded } from "../utils/lazyLoader.ts";
 import { initializeConversationInput } from "./eventListeners/conversationInput.ts";
@@ -44,7 +45,7 @@ export function setupEventListeners() {
       } else {
         state.shortResponseGuideline = DEFAULT_SHORT_RESPONSE_GUIDELINE || "";
       }
-      localStorage.setItem("verboseModeEnabled", String(enabled));
+      localStorage.setItem(STORAGE_KEYS.verboseModeEnabled, String(enabled));
     });
   }
 

@@ -5,6 +5,7 @@ import { showInfo } from "../utils/notifications.ts";
  */
 
 import { ensureApiKey, getBaseUrl } from "./api/clientConfig.ts";
+import { STORAGE_KEYS, writeJSON } from "../utils/storage.ts";
 
 // Shape of the per-store metadata persisted in localStorage. Extra caller-
 // supplied fields are allowed; `lastUsed` is what we sort/evict on.
@@ -316,7 +317,7 @@ export async function listVectorStoreFiles(vectorStoreId: string, limit = 20) {
 /**
  * Local storage key for vector store metadata
  */
-const VECTOR_STORE_STORAGE_KEY = "wordmark_vector_stores";
+const VECTOR_STORE_STORAGE_KEY = STORAGE_KEYS.vectorStores;
 export const MAX_ACTIVE_VECTOR_STORES = 2;
 
 /**
@@ -351,9 +352,9 @@ export function saveVectorStoreMetadata(vectorStoreId: string, metadata: Partial
         limited.push(entry);
       }
       const limitedStores = Object.fromEntries(limited.slice(0, MAX_ACTIVE_VECTOR_STORES));
-      localStorage.setItem(VECTOR_STORE_STORAGE_KEY, JSON.stringify(limitedStores));
+      writeJSON(VECTOR_STORE_STORAGE_KEY, limitedStores);
     } else {
-      localStorage.setItem(VECTOR_STORE_STORAGE_KEY, JSON.stringify(stores));
+      writeJSON(VECTOR_STORE_STORAGE_KEY, stores);
     }
   } catch (error) {
     console.error("Failed to save vector store metadata:", error);
@@ -416,7 +417,7 @@ export function removeVectorStoreMetadata(vectorStoreId: string) {
     if (!stored) return;
     const stores = JSON.parse(stored);
     delete stores[vectorStoreId];
-    localStorage.setItem(VECTOR_STORE_STORAGE_KEY, JSON.stringify(stores));
+    writeJSON(VECTOR_STORE_STORAGE_KEY, stores);
   } catch (error) {
     console.error("Failed to remove vector store metadata:", error);
   }
@@ -427,7 +428,7 @@ export function removeVectorStoreMetadata(vectorStoreId: string) {
  */
 export function getActiveVectorStoreId() {
   try {
-    return state.activeVectorStore || localStorage.getItem("active_vector_store") || null;
+    return state.activeVectorStore || localStorage.getItem(STORAGE_KEYS.activeVectorStore) || null;
   } catch {
     // Fallback if localStorage is unavailable (e.g., restricted environments)
     return state.activeVectorStore || null;
@@ -440,9 +441,9 @@ export function getActiveVectorStoreId() {
 export function setActiveVectorStoreId(vectorStoreId: string | null) {
   state.activeVectorStore = vectorStoreId;
   if (vectorStoreId) {
-    localStorage.setItem("active_vector_store", vectorStoreId);
+    localStorage.setItem(STORAGE_KEYS.activeVectorStore, vectorStoreId);
   } else {
-    localStorage.removeItem("active_vector_store");
+    localStorage.removeItem(STORAGE_KEYS.activeVectorStore);
   }
 }
 
@@ -451,14 +452,14 @@ export function setActiveVectorStoreId(vectorStoreId: string | null) {
  */
 export function clearActiveVectorStore() {
   state.activeVectorStore = null;
-  localStorage.removeItem("active_vector_store");
+  localStorage.removeItem(STORAGE_KEYS.activeVectorStore);
 }
 
 /**
  * Initialize vector store on app load
  */
 export function initializeVectorStore() {
-  const stored = localStorage.getItem("active_vector_store");
+  const stored = localStorage.getItem(STORAGE_KEYS.activeVectorStore);
   if (stored) {
     state.activeVectorStore = stored;
   }

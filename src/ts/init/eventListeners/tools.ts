@@ -1,5 +1,6 @@
 import { elements } from "../state.ts";
 import { showInfo } from "../../utils/notifications.ts";
+import { STORAGE_KEYS } from "../../utils/storage.ts";
 import { loadToolScripts } from "../../utils/toolLoader.ts";
 import { updateFeatureStatus } from "../../components/settings.ts";
 import { updateMasterToolCallingStatus } from "../../components/tools.ts";
@@ -12,7 +13,7 @@ export function setupToolCallingEventListeners() {
   elements.toolCallingToggle.addEventListener("change", (event) => {
     const enabled = (event.target as HTMLInputElement).checked;
     config.enableFunctionCalling = enabled;
-    localStorage.setItem("enableFunctionCalling", enabled ? "true" : "false");
+    localStorage.setItem(STORAGE_KEYS.enableFunctionCalling, enabled ? "true" : "false");
 
     updateMasterToolCallingStatus(enabled);
 
