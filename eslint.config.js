@@ -1,36 +1,25 @@
 import globals from "globals";
-import pluginJs from "@eslint/js";
+import tseslint from "typescript-eslint";
 
 export default [
   {
-    files: ["src/js/**/*.js"],
-    ignores: ["src/js/lib/*.js"],
+    files: ["src/ts/**/*.ts"],
     languageOptions: {
       ecmaVersion: 2020,
       sourceType: "module",
+      parser: tseslint.parser,
       globals: {
         ...globals.browser,
         ...globals.node,
-        hljs: "readonly",
-        marked: "readonly",
-        DOMPurify: "readonly",
-        switchGalleryTab: "readonly",
-        skipHistory: "readonly",
-        loadHighlightJS: "readonly",
-        initializeDOMReferences: "readonly",
-        initializeDefaultValues: "readonly",
-        initializeAboutTab: "readonly",
-        initializeModelSettings: "readonly",
-        initializeConversationName: "readonly",
-        setupEventListeners: "readonly",
-        initializeServicesAndModels: "readonly",
-        initializeToolCalling: "readonly",
-        deleteTransaction: "readonly",
-        genericPlaceholders: "readonly"
-      }
+      },
+    },
+    plugins: {
+      "@typescript-eslint": tseslint.plugin,
     },
     rules: {
-      "no-unused-vars": "warn",
+      "no-unused-vars": "off",
+      "@typescript-eslint/no-unused-vars": "warn",
+      "no-undef": "off",
       "no-console": "off",
       "no-var": "error",
       "semi": ["error", "always"],

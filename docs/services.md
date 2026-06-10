@@ -2,13 +2,23 @@
 
 ## Service Configuration
 
-Defined in `src/config/config.js` under `config.services` with a `defaultService` and configuration helpers accessed via `src/js/services/api/clientConfig.js`:
+Defined in `src/config/config.ts` under `config.services` with a `defaultService` and configuration helpers accessed via `src/ts/services/api/clientConfig.ts`:
 
 - `getActiveServiceKey()` - Returns current service (openai, xai, lmstudio, ollama)
 - `getActiveModel()` - Returns selected model for active service
 - `getBaseUrl()` - Returns API base URL for active service
 - `ensureApiKey()` - Returns API key and throws if missing
 - `supportsReasoningEffort(model)` - Checks if model supports reasoning effort parameter
+
+### Provider Capability Registry
+
+Per-provider quirks (which service is local vs. cloud, supports `reasoning.effort`,
+accepts `include` fields, or runs tools server-side) are centralized as pure
+predicates in `src/ts/services/providers.ts` — `isLocalService`, `isCloudService`,
+`serviceSupportsReasoning`, `supportsResponseIncludeFields`,
+`usesServerManagedTools`. This is the single place to edit when adding or changing
+a provider; the request builder, tool filter, and key handling all read from it
+instead of re-deriving `serviceKey === …` checks at each call site.
 
 ### Supported Providers
 
@@ -40,11 +50,11 @@ LM Studio hits `<baseUrl>/models`. Ollama prefers `<baseUrl>/models` and falls b
 
 ## Request Handling
 
-The `src/js/services/api/requestClient.js` module handles all API communication:
+The `src/ts/services/api/requestClient.ts` module handles all API communication:
 
 ### Request Body Construction
 - `buildRequestBody()` - Constructs Responses API payload with model, verbosity, reasoning effort, tools
-- Handles service-specific quirks (xAI text format, reasoning support)
+- Handles service-specific quirks (xAI text format, reasoning support) via the `providers.ts` capability predicates
 - Includes previous response ID for image continuation
 
 ### Streaming
@@ -56,6 +66,10 @@ The `src/js/services/api/requestClient.js` module handles all API communication:
 - `executeNonStreamingRequest()` - Single request/response for simpler flows
 - Returns complete response payload as JSON
 
+### Response Normalization
+- `src/ts/services/api/responseNormalization.ts` folds the divergent **non-streaming** provider response shapes into plain strings: `extractOutputText()` and `extractReasoningText()` read the assorted reasoning keys (`reasoning` as string/array, `reasoning.output`, `reasoning_content`, `reasoning.content`) in a fixed precedence order.
+- The streaming path needs no equivalent: all providers emit a single Responses-API-compatible SSE event vocabulary, so `src/ts/services/streaming/` has no provider branching.
+
 ## API Keys
 
 - Managed in Settings → API Keys
@@ -65,7 +79,7 @@ The `src/js/services/api/requestClient.js` module handles all API communication:
 
 ## Tool Integration
 
-Tools are managed by `src/js/services/api/toolManager.js`:
+Tools are managed under `src/ts/services/api/` — `toolManager.ts` (filtering + facade) plus `tools/catalog.ts`, `tools/preferences.ts`, `tools/mcp.ts`, and `staticTools.ts` (see [Tool Calling](./tool-calling.md)):
 
 ### Built-in Tools
 - **Weather** (`function:open_meteo_forecast`) - Open-Meteo 1-7 day forecasts
@@ -90,13 +104,13 @@ Tools are managed by `src/js/services/api/toolManager.js`:
 
 - **Generation**: `image_generation` tool creates images via OpenAI
 - **Uploads**: Multimodal messages support inline image attachments
-- **Processing**: `src/js/services/streaming/imageGeneration.js` extracts outputs
+- **Processing**: `src/ts/services/streaming/imageGeneration.ts` extracts outputs
 - **Gallery**: Generated images stored in IndexedDB and displayed in gallery panel
 - **Continuation**: Previous response IDs passed to maintain context for edits/variations
 
 ## Message Serialization
 
-`src/js/services/api/messageUtils.js` handles message preparation:
+`src/ts/services/api/messageUtils.ts` handles message preparation:
 
 - Converts conversation history to Responses API format
 - Expands `[[IMAGE: filename]]` placeholders to `input_image` parts
@@ -120,15 +134,15 @@ Document attachments are handled differently per provider:
 - **OpenAI**: Files are uploaded to `/v1/files`, attached to a vector store, and searched via the `file_search` tool. Requires the File Search tool to be enabled in Settings.
 - **xAI**: Files are uploaded to `/v1/files` and referenced directly in message content as `input_file` parts with the returned `file_id`. No vector stores or file_search tool needed.
 
-Shared infrastructure in `src/js/services/vectorStore.js`:
+Shared infrastructure in `src/ts/services/vectorStore.ts`:
   - `uploadFile()` uploads a file to the active provider's `/files` endpoint (used by both OpenAI and xAI)
   - `filterSupportedFiles()` blocks unsupported extensions before upload
   - `uploadAndAttachFiles()` batches uploads and attaches them to a newly created vector store (OpenAI path)
   - `saveVectorStoreMetadata()` / `getVectorStoreMetadata()` persist IDs + names so the UI can pre-populate selectors
   - `waitForFileProcessing()` polls `vector_stores/{id}/files/{fileId}` until `completed`, raising on `failed`/timeout
 
-`src/js/services/files.js` exposes helpers to list, delete, and bulk-delete assistants files. All requests are authorised via `ensureApiKey()` and point at `getBaseUrl()`.
+`src/ts/services/files.ts` exposes helpers to list, delete, and bulk-delete assistants files. All requests are authorised via `ensureApiKey()` and point at `getBaseUrl()`.
   - `listAssistantFiles()` filters by `purpose=assistants`
   - `deleteAllAssistantFiles()` aggregates successes/errors so the UI can surface partial failures
 
-These flows are covered by `tests/filesService.spec.js`, `tests/vectorStoreService.spec.js`, and `tests/messageUtils.spec.js`.
+These flows are covered by `tests/filesService.spec.ts`, `tests/vectorStoreService.spec.ts`, and `tests/messageUtils.spec.ts`.

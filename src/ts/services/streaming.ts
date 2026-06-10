@@ -1,0 +1,138 @@
+import { elements, state } from "../init/state.ts";
+import { ensureImagesHaveMessageIds } from "./streaming/imageGeneration.ts";
+import { createStreamingRuntime } from "./streaming/runtime.ts";
+import { createStreamingEventProcessor } from "./streaming/eventProcessor.ts";
+import { setupImageInteractions } from "../components/ui/imageInteractions.ts";
+
+export { ensureImagesHaveMessageIds };
+
+/**
+ * Consumes a streaming Responses API body, parsing SSE `event:`/`data:` frames
+ * and feeding them to the event processor, which incrementally renders content,
+ * reasoning, tool calls, and images into the loading message.
+ *
+ * @param response - The streaming fetch response.
+ * @param loadingId - DOM id of the placeholder message to render into.
+ * @returns `{ response, outputText, reasoningText }` for the finished turn.
+ */
+export async function handleStreamedResponse(response: Response, loadingId: string) {
+  const loadingMessage = document.getElementById(loadingId);
+  if (!loadingMessage) {
+    return { response: null, outputText: "", reasoningText: "" };
+  }
+
+  const contentWrapper = loadingMessage.querySelector<HTMLElement>(".message-content");
+  if (!contentWrapper) {
+    return { response: null, outputText: "", reasoningText: "" };
+  }
+
+  const placeholderElement = (() => {
+    const childArray = Array.from(contentWrapper.children);
+    return (
+      childArray.find(
+        (node): node is HTMLElement =>
+          node.nodeType === 1 && node instanceof HTMLElement && node.classList.contains("loading-animation"),
+      ) || null
+    );
+  })();
+
+  let mainContentContainer = contentWrapper.querySelector<HTMLElement>(".main-response-content");
+  if (!mainContentContainer) {
+    mainContentContainer = document.createElement("div");
+    mainContentContainer.className = "main-response-content";
+    if (placeholderElement) {
+      mainContentContainer.style.display = "none";
+    }
+    contentWrapper.appendChild(mainContentContainer);
+  }
+
+  if (state.currentGeneratedImageHtml && state.currentGeneratedImageHtml.length > 0) {
+    const imagesContainer = document.createElement("div");
+    imagesContainer.className = "generated-images";
+    imagesContainer.innerHTML = state.currentGeneratedImageHtml.join("");
+    contentWrapper.appendChild(imagesContainer);
+    setupImageInteractions(contentWrapper);
+  }
+
+  const reader = response.body && response.body.getReader ? response.body.getReader() : null;
+  if (!reader) {
+    throw new Error("Streaming response missing body.");
+  }
+
+  const thinkingId = `thinking-${loadingMessage.id}`;
+  const runtime = createStreamingRuntime({
+    loadingMessage,
+    contentWrapper,
+    placeholderElement,
+    mainContentContainer,
+    thinkingId,
+    existingThinkingContainer: document.getElementById(thinkingId) || null,
+  });
+  const processor = createStreamingEventProcessor(runtime);
+
+  state.shouldAutoScroll = true;
+  if (elements.chatBox) {
+    elements.chatBox.scrollTop = elements.chatBox.scrollHeight;
+  }
+
+  const decoder = new TextDecoder();
+  let buffer = "";
+  let currentEventType: string | null = null;
+  let currentEventData: string[] = [];
+
+  function flushEvent() {
+    if (currentEventType || currentEventData.length) {
+      processor.processEvent(currentEventType, currentEventData);
+      currentEventType = null;
+      currentEventData = [];
+    }
+  }
+
+  try {
+    while (!state.shouldStopGeneration) {
+      const { done, value } = await reader.read();
+      if (done) {
+        flushEvent();
+        break;
+      }
+
+      const chunk = decoder.decode(value, { stream: true });
+      buffer += chunk;
+      let newlineIndex;
+      while ((newlineIndex = buffer.indexOf("\n")) !== -1) {
+        const rawLine = buffer.slice(0, newlineIndex);
+        buffer = buffer.slice(newlineIndex + 1);
+        const line = rawLine.replace(/\r?$/, "");
+
+        if (line.startsWith("event:")) {
+          currentEventType = line.substring(6).trim();
+        } else if (line.startsWith("data:")) {
+          currentEventData.push(line.substring(5).trim());
+        } else if (line.trim() === "") {
+          flushEvent();
+        }
+      }
+    }
+  } catch (streamError) {
+    if (streamError instanceof Error && streamError.name === "AbortError") {
+      flushEvent();
+    } else {
+      console.error("Stream reading error:", streamError);
+      throw streamError;
+    }
+  } finally {
+    state.shouldStopGeneration = false;
+  }
+
+  processor.finalize();
+
+  const basePayload = processor.getFinalResponsePayload() || {};
+  const responsePayload = processor.attachImages(basePayload) || {};
+
+  return {
+    response: responsePayload,
+    outputText: runtime.getOutputText(),
+    reasoningText: runtime.getReasoningText(),
+  };
+}
+

@@ -1,0 +1,141 @@
+import { ttsConfig, ttsRuntime, ttsSvgIcons } from "./config.ts";
+import { ttsAudioResources } from "./resources.ts";
+import { playNextMessageInQueue, playQueuedTtsMessage } from "./queue.ts";
+import { state } from "../../init/state.ts";
+
+/**
+ * Stops and resets the active TTS audio, revokes its object URL, and resets all
+ * play/pause buttons to the idle "play" state.
+ */
+export function stopTtsAudio() {
+  if (!ttsRuntime.activeTtsAudio) {
+    return;
+  }
+
+  try {
+    ttsRuntime.activeTtsAudio.pause();
+    ttsRuntime.activeTtsAudio.currentTime = 0;
+
+    if (ttsRuntime.activeTtsAudioUrl) {
+      ttsAudioResources.removeUrl(ttsRuntime.activeTtsAudioUrl);
+      URL.revokeObjectURL(ttsRuntime.activeTtsAudioUrl);
+      ttsRuntime.activeTtsAudioUrl = null;
+    }
+
+    ttsRuntime.activeTtsAudio = null;
+
+    document.querySelectorAll<HTMLElement>(".tts-play-pause").forEach((btn) => {
+      const svgContent = btn.innerHTML;
+      if (svgContent.includes("pause") || !svgContent.includes("polygon")) {
+        btn.innerHTML = ttsSvgIcons.play;
+        btn.title = "Play voice";
+        btn.setAttribute("aria-label", "Play voice");
+
+        const statusText = btn.parentElement?.querySelector<HTMLElement>(".tts-status");
+        if (statusText && statusText.style.display === "inline") {
+          statusText.textContent = "Stopped";
+          setTimeout(() => {
+            statusText.style.display = "none";
+          }, 2000);
+        }
+      }
+    });
+  } catch (error) {
+    console.error("Error stopping TTS audio:", error);
+  }
+}
+
+/**
+ * Plays a one-off TTS clip from raw audio data (used for previews/tests),
+ * stopping any current playback and cleaning up the object URL on end/error.
+ */
+export function playTtsAudio(audioData: ArrayBuffer) {
+  if (!audioData) {
+    return;
+  }
+
+  try {
+    stopTtsAudio();
+
+    const audioBlob = new Blob([audioData], { type: "audio/wav" });
+    const audioUrl = URL.createObjectURL(audioBlob);
+    const audio = new Audio(audioUrl);
+
+    ttsRuntime.activeTtsAudio = audio;
+    ttsRuntime.activeTtsAudioUrl = audioUrl;
+    ttsAudioResources.addUrl(audioUrl, `test_audio_${Date.now()}`, audioData);
+
+    audio.onended = () => {
+      ttsAudioResources.removeUrl(audioUrl);
+      URL.revokeObjectURL(audioUrl);
+      ttsRuntime.activeTtsAudioUrl = null;
+      ttsRuntime.activeTtsAudio = null;
+    };
+
+    audio.play().catch((error) => {
+      console.error("Failed to play TTS audio:", error);
+      ttsRuntime.activeTtsAudio = null;
+      ttsRuntime.activeTtsAudioUrl = null;
+      ttsAudioResources.removeUrl(audioUrl);
+      URL.revokeObjectURL(audioUrl);
+    });
+  } catch (error) {
+    console.error("Error playing TTS audio:", error);
+  }
+}
+
+/**
+ * Builds an `onended` handler for a message's audio element that resets its
+ * controls, clears active-audio state, and advances the queue when autoplaying.
+ */
+export function handleTtsAudioEnded(playPauseButton: HTMLElement, statusText: HTMLElement, audioUrl: string, isPlayingRef: { isPlaying: boolean }) {
+  return function() {
+    if (isPlayingRef) {
+      isPlayingRef.isPlaying = false;
+    }
+
+    playPauseButton.innerHTML = ttsSvgIcons.play;
+    playPauseButton.title = "Play voice";
+    playPauseButton.setAttribute("aria-label", "Play voice");
+    statusText.textContent = "Finished";
+    statusText.style.display = "inline";
+    setTimeout(() => {
+      statusText.style.display = "none";
+    }, 2000);
+
+    ttsRuntime.activeTtsAudio = null;
+
+    if (ttsRuntime.activeTtsAudioUrl === audioUrl) {
+      ttsRuntime.activeTtsAudioUrl = null;
+    }
+
+    if (ttsConfig.autoplay) {
+      setTimeout(() => playNextMessageInQueue(), 500);
+    }
+  };
+}
+
+/** Clears active-audio state and plays the next queued message when autoplaying. */
+export function handleAudioEnded() {
+  if (state.verboseLogging) {
+    console.info("Audio finished, checking for next message in queue");
+  }
+  ttsRuntime.activeTtsAudio = null;
+  ttsRuntime.activeTtsAudioUrl = null;
+
+  if (ttsConfig.autoplay && ttsRuntime.autoplayActive) {
+    playQueuedTtsMessage();
+  }
+}
+
+/** Logs a playback error, clears active-audio state, and advances the queue. */
+export function handleAudioError(event: Event | string) {
+  console.error("Audio playback error:", event);
+  ttsRuntime.activeTtsAudio = null;
+  ttsRuntime.activeTtsAudioUrl = null;
+
+  if (ttsConfig.autoplay && ttsRuntime.autoplayActive) {
+    console.error("Audio error, trying next message in queue");
+    playQueuedTtsMessage();
+  }
+}

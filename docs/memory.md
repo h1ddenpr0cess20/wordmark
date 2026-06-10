@@ -34,11 +34,11 @@ Wordmark includes an optional, privacy‑friendly Memory feature that lets the a
 
 ## Under the Hood
 - Storage: `localStorage` (keys: `memoryEnabled`, `memoryLimit`, `memories`)
-- System prompt integration: `src/js/services/api.js` appends the memory list when enabled
+- System prompt integration: `src/ts/services/api.ts` appends the memory list when enabled
 - Live updates: UI auto‑rerenders on memory changes
   - Events: `memories:changed` (add/remove/clear/trim), `memories:config` (enabled/limit)
 
-### Public Functions (exported from `src/js/utils/memoryStorage.js`)
+### Public Functions (exported from `src/ts/utils/memoryStorage.ts`)
 - `getMemoryConfig()`: `{ enabled, limit }`
 - `setMemoryEnabled(enabled: boolean)`
 - `setMemoryLimit(limit: number)`
@@ -67,9 +67,9 @@ Wordmark includes an optional, privacy‑friendly Memory feature that lets the a
   - The numeric input is themed and spaced for major engines; report your browser/version if it still looks off
 
 ## File Map
-- Storage: `src/js/utils/memoryStorage.js`
-- UI: `src/js/components/memory.js`
-- API/system prompt glue: `src/js/services/api.js`
-- Tools: `src/js/services/memory.js` and injection in `src/js/components/tools.js`
+- Storage: `src/ts/utils/memoryStorage.ts`
+- UI: `src/ts/components/memory.ts`
+- API/system prompt glue: `src/ts/services/api.ts`
+- Tools: `src/ts/services/memory.ts` and injection in `src/ts/components/tools.ts`
 - Styles: `src/css/components/ui/settings.css` (number input tweaks) and `src/css/components/ui/tool-settings.css` (list layout)
 

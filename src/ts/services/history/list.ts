@@ -1,0 +1,351 @@
+import { elements, state } from "../../init/state.ts";
+import {
+  getAllConversationsFromDb,
+  deleteConversationFromDb,
+} from "../../utils/conversationStorage.ts";
+import { DEFAULT_PERSONALITY } from "../../../config/config.ts";
+import { startNewConversation, loadConversation, renameConversation } from "./persistence.ts";
+
+/**
+ * Renders the saved-conversation list into the history panel, wiring each
+ * entry's load, rename, and delete actions.
+ */
+export function renderChatHistoryList() {
+  const historyList = elements.historyList;
+  if (!historyList) {
+    return;
+  }
+
+  getAllConversationsFromDb?.()
+    .then((convos) => {
+      historyList.innerHTML = "";
+
+      if (!convos || convos.length === 0) {
+        historyList.innerHTML = "<div class=\"history-empty\">No saved conversations yet.</div>";
+        return;
+      }
+
+      convos.sort((a, b) => new Date(b.updated || 0).getTime() - new Date(a.updated || 0).getTime());
+
+      const toolbarDiv = document.createElement("div");
+      toolbarDiv.className = "history-toolbar";
+      toolbarDiv.innerHTML = `
+        <div class="history-toolbar-left">
+          <button class="history-new-button">
+            <span>+ Start New Conversation</span>
+          </button>
+          <label class="selection-mode-toggle">
+            <input type="checkbox" id="multi-select-mode"> Multi-select
+          </label>
+        </div>
+        <div class="history-toolbar-right">
+          <span class="selection-status" style="display: none; font-size: 0.85rem; color: var(--text-secondary); margin-right: 8px;">
+            <span class="selected-count">0</span> selected
+          </span>
+          <button class="history-select-all-btn" title="Select all conversations" style="display: none;">Select All</button>
+          <button class="history-clear-selection-btn" title="Clear selection" style="display: none;">Clear</button>
+          <button class="history-load-btn" title="Load selected conversation" disabled>Load</button>
+          <button class="history-rename-btn" title="Rename selected conversation" disabled>Rename</button>
+          <button class="history-delete-btn" title="Delete selected conversations" disabled>Delete (<span class="delete-count">0</span>)</button>
+        </div>
+      `;
+
+      const newButton = toolbarDiv.querySelector(".history-new-button") as HTMLElement;
+      const multiSelectCheckbox = toolbarDiv.querySelector("#multi-select-mode") as HTMLInputElement;
+      const selectionStatus = toolbarDiv.querySelector(".selection-status") as HTMLElement;
+      const selectedCountSpan = toolbarDiv.querySelector(".selected-count") as HTMLElement;
+      const selectAllButton = toolbarDiv.querySelector(".history-select-all-btn") as HTMLElement;
+      const clearSelectionButton = toolbarDiv.querySelector(".history-clear-selection-btn") as HTMLElement;
+      const loadButton = toolbarDiv.querySelector(".history-load-btn") as HTMLButtonElement;
+      const renameButton = toolbarDiv.querySelector(".history-rename-btn") as HTMLButtonElement;
+      const deleteButton = toolbarDiv.querySelector(".history-delete-btn") as HTMLButtonElement;
+      const deleteCountSpan = toolbarDiv.querySelector(".delete-count") as HTMLElement;
+
+      const updateButtonStates = () => {
+        const selectedRows = document.querySelectorAll<HTMLElement>(".history-row.selected");
+        const isMultiSelect = multiSelectCheckbox.checked;
+        const selectedCount = selectedRows.length;
+
+        selectAllButton.style.display = isMultiSelect ? "inline-block" : "none";
+        clearSelectionButton.style.display = isMultiSelect ? "inline-block" : "none";
+        selectionStatus.style.display = isMultiSelect && selectedCount > 0 ? "inline-block" : "none";
+
+        selectedCountSpan.textContent = String(selectedCount);
+        deleteCountSpan.textContent = String(selectedCount);
+
+        loadButton.disabled = selectedCount !== 1;
+        renameButton.disabled = selectedCount !== 1;
+        deleteButton.disabled = selectedCount === 0;
+
+        deleteButton.title = selectedCount > 1
+          ? `Delete ${selectedCount} selected conversations`
+          : "Delete selected conversation";
+      };
+
+      newButton.onclick = () => {
+        startNewConversation();
+        elements.historyPanel?.setAttribute("aria-hidden", "true");
+        elements.historyButton?.setAttribute("aria-expanded", "false");
+      };
+
+      multiSelectCheckbox.onchange = () => {
+        const isMultiSelect = multiSelectCheckbox.checked;
+
+        document.querySelectorAll(".history-row").forEach((row) => {
+          row.classList.remove("selected");
+        });
+
+        const table = document.querySelector(".history-table");
+        if (table) {
+          table.classList.toggle("multi-select-mode", isMultiSelect);
+        }
+
+        updateButtonStates();
+      };
+
+      selectAllButton.onclick = () => {
+        document.querySelectorAll(".history-row").forEach((row) => {
+          row.classList.add("selected");
+        });
+        updateButtonStates();
+      };
+
+      clearSelectionButton.onclick = () => {
+        document.querySelectorAll(".history-row").forEach((row) => {
+          row.classList.remove("selected");
+        });
+        updateButtonStates();
+      };
+
+      loadButton.onclick = () => {
+        const selectedRow = document.querySelector<HTMLElement>(".history-row.selected");
+        if (selectedRow) {
+          const conversationId = selectedRow.dataset.conversationId;
+          if (conversationId) {
+            loadConversation(conversationId)?.then(() => {
+              elements.historyPanel?.setAttribute("aria-hidden", "true");
+              elements.historyButton?.setAttribute("aria-expanded", "false");
+            });
+          }
+        }
+      };
+
+      renameButton.onclick = () => {
+        const selectedRow = document.querySelector<HTMLElement>(".history-row.selected");
+        if (!selectedRow) {
+          return;
+        }
+        const conversationId = selectedRow.dataset.conversationId;
+        const currentTitle = selectedRow.querySelector(".history-title")?.textContent || "";
+        const newName = prompt("Rename conversation:", currentTitle);
+        if (conversationId && newName && newName.trim()) {
+          renameConversation(conversationId, newName.trim());
+        }
+      };
+
+      deleteButton.onclick = () => {
+        const selectedRows = document.querySelectorAll<HTMLElement>(".history-row.selected");
+        if (!selectedRows.length) {
+          return;
+        }
+
+        const conversationIds = Array.from(selectedRows)
+          .map((row) => row.dataset.conversationId)
+          .filter((id): id is string => Boolean(id));
+        const confirmMessage = conversationIds.length === 1
+          ? "Delete this conversation?"
+          : `Delete ${conversationIds.length} conversations?`;
+
+        if (!confirm(confirmMessage)) {
+          return;
+        }
+
+        Promise.all(conversationIds.map(id => deleteConversationFromDb?.(id)))
+          .then(() => {
+            conversationIds.forEach((id) => {
+              if (state.currentConversationId === id) {
+                state.currentConversationId = null;
+                state.currentConversationName = null;
+              }
+            });
+            renderChatHistoryList();
+          })
+          .catch((err) => {
+            console.error("Failed to delete conversations:", err);
+            alert("Error deleting conversations. Please try again.");
+          });
+      };
+
+      historyList.appendChild(toolbarDiv);
+
+      const handleKeydown = (e: KeyboardEvent) => {
+        if (elements.historyPanel?.getAttribute("aria-hidden") === "true") {
+          return;
+        }
+
+        if ((e.key === "Delete" || e.key === "Backspace")) {
+          if (document.querySelectorAll(".history-row.selected").length > 0) {
+            deleteButton.click();
+          }
+        } else if (e.key === "Enter") {
+          if (document.querySelectorAll(".history-row.selected").length === 1) {
+            loadButton.click();
+          }
+        } else if (e.key === "a" && (e.ctrlKey || e.metaKey)) {
+          e.preventDefault();
+          if (multiSelectCheckbox.checked) {
+            selectAllButton.click();
+          }
+        } else if (e.key === "Escape") {
+          clearSelectionButton.click();
+        }
+      };
+
+      document.addEventListener("keydown", handleKeydown);
+
+      const tableContainer = document.createElement("div");
+      tableContainer.className = "history-table-container";
+
+      const table = document.createElement("table");
+      table.className = "history-table";
+
+      const thead = document.createElement("thead");
+      thead.innerHTML = `
+        <tr>
+          <th class="col-title">Conversation</th>
+          <th class="col-prompt">Prompt</th>
+          <th class="col-model">Model</th>
+          <th class="col-stats">Stats</th>
+          <th class="col-date">Updated</th>
+        </tr>
+      `;
+      table.appendChild(thead);
+
+      const tbody = document.createElement("tbody");
+
+      convos.forEach((convo) => {
+        const row = document.createElement("tr");
+        row.className = "history-row";
+        row.dataset.conversationId = convo.id || "";
+
+        if (state.currentConversationId === convo.id) {
+          row.classList.add("current-conversation");
+        }
+
+        let title = "";
+        const userMsg = (convo.messages || []).find((m) => m.role === "user");
+        if (userMsg) {
+          let text = "";
+          if (typeof userMsg.content === "string") {
+            text = userMsg.content;
+          } else if (Array.isArray(userMsg.content)) {
+            const part = userMsg.content.find(p => p.type === "input_text" || p.type === "text");
+            text = part ? (part.text || (typeof part.content === "string" ? part.content : "") || "") : "";
+          }
+          title = text.substring(0, 50) + (text.length > 50 ? "..." : "");
+        } else {
+          title = "(No user message)";
+        }
+
+        const date = new Date(convo.updated || 0);
+        const now = new Date();
+        const yesterday = new Date();
+        yesterday.setDate(now.getDate() - 1);
+
+        let formatted;
+        if (date.toDateString() === now.toDateString()) {
+          formatted = date.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+        } else if (date.toDateString() === yesterday.toDateString()) {
+          formatted = "Yesterday";
+        } else {
+          formatted = date.toLocaleDateString([], { month: "short", day: "numeric" });
+        }
+
+        let promptInfo = "";
+        let promptClass = "none";
+        if (convo.systemPrompt) {
+          if (convo.systemPrompt.type === "personality") {
+            promptInfo = convo.systemPrompt.content || DEFAULT_PERSONALITY || "Default";
+            promptClass = "personality";
+          } else if (convo.systemPrompt.type === "custom") {
+            const content = convo.systemPrompt.content || "";
+            promptInfo = content.substring(0, 30) + (content.length > 30 ? "..." : "");
+            promptClass = "custom";
+          } else {
+            promptInfo = "None";
+            promptClass = "none";
+          }
+        }
+
+        const modelInfo = convo.model || "Unknown";
+        const serviceInfo = convo.service || "Unknown";
+        const messageCount = (convo.messages || []).length;
+        const imageCount = (convo.images || []).length;
+
+        row.innerHTML = `
+          <td class="col-title">
+            <div class="history-title">${title}</div>
+          </td>
+          <td class="col-prompt">
+            <span class="prompt-type ${promptClass}">${promptInfo}</span>
+          </td>
+          <td class="col-model">
+            <div class="model-info">
+              <div class="model-name">${modelInfo}</div>
+              <div class="service-name">${serviceInfo}</div>
+            </div>
+          </td>
+          <td class="col-stats">
+            <div class="stats-info">
+              <span class="message-count">${messageCount} msg</span>
+              ${imageCount > 0 ? `<span class="image-count">${imageCount} media</span>` : ""}
+            </div>
+          </td>
+          <td class="col-date">
+            <span class="date-info">${formatted}</span>
+          </td>
+        `;
+
+        row.onclick = (e) => {
+          const isMultiSelect = multiSelectCheckbox.checked;
+
+          if (isMultiSelect) {
+            if (e.ctrlKey || e.metaKey) {
+              row.classList.toggle("selected");
+            } else if (e.shiftKey) {
+              const allRows = Array.from(document.querySelectorAll(".history-row"));
+              const lastSelected = document.querySelector(".history-row.selected:last-of-type");
+
+              if (lastSelected) {
+                const startIndex = allRows.indexOf(lastSelected);
+                const endIndex = allRows.indexOf(row);
+                const [minIndex, maxIndex] = [Math.min(startIndex, endIndex), Math.max(startIndex, endIndex)];
+                for (let i = minIndex; i <= maxIndex; i += 1) {
+                  allRows[i].classList.add("selected");
+                }
+              } else {
+                row.classList.add("selected");
+              }
+            } else {
+              row.classList.toggle("selected");
+            }
+          } else {
+            document.querySelectorAll(".history-row").forEach((r) => r.classList.remove("selected"));
+            row.classList.add("selected");
+          }
+
+          updateButtonStates();
+        };
+
+        tbody.appendChild(row);
+      });
+
+      table.appendChild(tbody);
+      tableContainer.appendChild(table);
+      historyList.appendChild(tableContainer);
+    })
+    .catch((err) => {
+      console.error("Error loading conversations for history list:", err);
+      historyList.innerHTML = "<div class=\"history-error\">Error loading conversation history.</div>";
+    });
+};

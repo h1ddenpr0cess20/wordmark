@@ -20,9 +20,9 @@ Key Features
 
 How It Starts
 
-- Built with Vite. `index.html` loads the single ES module entry `src/js/main.js`, which imports config, shared state, and all app modules in order. The menu system loads the HTML panels, then `main.js` calls `initialize()` to bootstrap.
+- Built with Vite. `index.html` loads the single ES module entry `src/ts/main.ts` (TypeScript, strict), which imports config, shared state, and all app modules in order. The menu system loads the HTML panels, then `main.ts` calls `initialize()` to bootstrap.
 
 Testing & Quality
 
-- Automated specs live in `tests/*.spec.js` and can be run with `npm test` (see [docs/testing.md](./testing.md)).
+- Automated specs live in `tests/*.spec.ts` and can be run with `npm test`; `npm run typecheck:tests` type-checks them (see [docs/testing.md](./testing.md)).
 - Focus areas include streaming, export/MCP tooling, TTS playback, location services, and vector store/file APIs.
