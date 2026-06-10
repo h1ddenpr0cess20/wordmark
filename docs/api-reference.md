@@ -334,10 +334,9 @@ Processes and sanitizes markdown content for display.
 
 **Features:**
 - Closes unclosed code blocks and inline code
-- Parses markdown to HTML using marked.js
+- Parses markdown to HTML using the bundled `marked` library
 - Sanitizes HTML with DOMPurify
 - Hides `[[IMAGE: filename]]` placeholders with CSS class
-- Loads marked.js lazily if needed
 
 **Parameters:**
 - `mainText` (string) - Raw markdown text
