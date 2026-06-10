@@ -1,13 +1,14 @@
 /**
- * Theme management functions for the AI Assistant
+ * Theme management.
+ *
+ * @remarks
+ * Theme CSS is imported as raw text so theme class names can be parsed in both
+ * the Vite dev server (where a plain fetch of a `.css` URL returns a JS HMR
+ * wrapper, not the stylesheet) and production builds.
  */
 
 import hljs from "highlight.js";
 import { STORAGE_KEYS } from "../utils/storage.ts";
-
-// Theme CSS is imported as raw text so theme class names can be parsed in both
-// the Vite dev server (where a plain fetch of a .css URL returns a JS HMR
-// wrapper, not the stylesheet) and production builds.
 import darkThemeCss from "../../css/themes/base/dark.css?raw";
 import lightThemeCss from "../../css/themes/base/light.css?raw";
 import metalThemeCss from "../../css/themes/base/metal.css?raw";
@@ -15,14 +16,11 @@ import neonThemeCss from "../../css/themes/base/neon.css?raw";
 import countryThemeCss from "../../css/themes/base/country.css?raw";
 import specialThemeCss from "../../css/themes/base/special.css?raw";
 
-// Initialize theme variables
 let themeSelector: HTMLSelectElement | null = null;
-let currentTheme = "theme-dark-blue"; // Default theme
+let currentTheme = "theme-dark-blue";
 
-// Theme categories - will be populated dynamically from CSS files
 let themeCategories: Record<string, string[]> = {};
 
-// Cached canvas context for CSS color parsing
 let colorParsingContext: CanvasRenderingContext2D | null = null;
 
 /**
@@ -48,11 +46,10 @@ function extractThemesFromCSS() {
   };
 
   for (const [category, cssContent] of Object.entries(themeSources)) {
-    // Extract theme class names using regex
     const themeMatches = (cssContent || "").match(/^\.theme-[a-zA-Z0-9-]+(?=\s*\{)/gm);
     if (themeMatches) {
       categories[category] = themeMatches
-        .map(match => match.substring(1)) // Remove the leading dot
+        .map(match => match.substring(1))
         .filter((theme, index, arr) => arr.indexOf(theme) === index);
     }
   }
@@ -60,24 +57,22 @@ function extractThemesFromCSS() {
   return categories;
 }
 
-// Special cases for theme display names
 const themeNameOverrides: Record<string, string> = {
   "theme-usa": "USA",
   "theme-uk": "United Kingdom",
 };
 
 /**
- * Convert theme ID to display name
- * @param {string} themeId - The theme ID (e.g., 'theme-dark-red')
- * @returns {string} - The display name (e.g., 'Dark Red')
+ * Converts a theme ID to its display name.
+ *
+ * @param themeId - The theme ID (e.g., `theme-dark-red`).
+ * @returns The display name (e.g., `Dark Red`).
  */
 function getThemeDisplayName(themeId: string) {
-  // Check for overrides first
   if (themeNameOverrides[themeId]) {
     return themeNameOverrides[themeId];
   }
 
-  // Remove 'theme-' prefix and convert to title case
   return themeId
     .replace("theme-", "")
     .split("-")
@@ -85,15 +80,15 @@ function getThemeDisplayName(themeId: string) {
     .join(" ");
 }
 
-// Generate flat array of theme classes for validation
 function getThemeClasses() {
   return Object.values(themeCategories).flat();
 }
 
 /**
- * Parse any CSS color string into an "r, g, b" triplet
- * @param {string} colorValue
- * @returns {string|null}
+ * Parses any CSS color string into an `"r, g, b"` triplet.
+ *
+ * @param colorValue - The CSS color string to parse.
+ * @returns The `"r, g, b"` triplet, or `null` if it cannot be parsed.
  */
 function toRgbTriplet(colorValue: string) {
   if (!colorValue) {
@@ -167,19 +162,16 @@ async function populateThemeSelector() {
     return;
   }
 
-  // Extract themes from CSS files if not already loaded
   if (Object.keys(themeCategories).length === 0) {
     themeCategories = await extractThemesFromCSS();
   }
 
-  // Clear existing options
   themeSelector.innerHTML = "";
 
-  // Create optgroups and options
   Object.entries(themeCategories).forEach(([categoryName, themes]) => {
     if (themes.length === 0) {
       return;
-    } // Skip empty categories
+    }
 
     const optgroup = document.createElement("optgroup");
     optgroup.label = categoryName;
@@ -199,13 +191,10 @@ async function populateThemeSelector() {
  * Initialize theme functionality
  */
 export async function initTheme() {
-  // Extract themes from CSS files first
   themeCategories = await extractThemesFromCSS();
 
-  // Populate the theme selector
   await populateThemeSelector();
 
-  // Get theme selector
   themeSelector = document.getElementById("theme-selector") as HTMLSelectElement | null;
 
   if (!themeSelector) {
@@ -213,17 +202,14 @@ export async function initTheme() {
     return;
   }
 
-  // Load saved theme if it exists
   const savedTheme = localStorage.getItem(STORAGE_KEYS.selectedTheme);
   if (savedTheme) {
     currentTheme = savedTheme;
     themeSelector.value = savedTheme;
   }
 
-  // Apply the current theme
   applyTheme(currentTheme);
 
-  // Add event listener for theme changes
   themeSelector.addEventListener("change", (e: Event) => {
     const newTheme = (e.target as HTMLSelectElement).value;
     applyTheme(newTheme);
@@ -233,32 +219,26 @@ export async function initTheme() {
 }
 
 /**
- * Apply a theme to the document
- * @param {string} themeName - The name/class of the theme to apply
+ * Applies a theme to the document.
+ *
+ * @param themeName - The name/class of the theme to apply.
  */
 export function applyTheme(themeName: string) {
-  // Remove all theme classes from body
   document.body.classList.remove(...getThemeClasses());
 
-  // Add the selected theme class
   document.body.classList.add(themeName);
 
-  // Keep RGB helpers aligned with the current theme palette
   updateThemeColorTriplets();
 
-  // Save the selected theme to localStorage
   localStorage.setItem(STORAGE_KEYS.selectedTheme, themeName);
 
-  // Update the theme selector dropdown
   const selector = document.getElementById("theme-selector") as HTMLSelectElement | null;
   if (selector) {
     selector.value = themeName;
   }
 
-  // Update code highlighting to match the theme
   updateCodeHighlighting();
 
-  // Update preview dots in settings if visible
   updateThemePreview();
 }
 
@@ -272,22 +252,18 @@ function rehighlightCodeBlocks() {
     if (codeBlocks && codeBlocks.length > 0) {
       console.log(`Rehighlighting ${codeBlocks.length} code blocks with current theme`);
 
-      // Configure highlight.js to ignore unescaped HTML for security
       hljs.configure({
         ignoreUnescapedHTML: true,
       });
 
       codeBlocks.forEach((codeBlock) => {
         try {
-          // Store original content if not already stored
           if (!codeBlock.hasAttribute("data-original-code")) {
             codeBlock.setAttribute("data-original-code", codeBlock.textContent || "");
           }
 
-          // Apply highlighting
           hljs.highlightElement(codeBlock);
 
-          // Add code-block class to parent for styling
           if (codeBlock.parentElement && !codeBlock.parentElement.classList.contains("code-block")) {
             codeBlock.parentElement.classList.add("code-block");
           }
@@ -307,7 +283,6 @@ function rehighlightCodeBlocks() {
  * Update the theme preview dots in the settings panel
  */
 function updateThemePreview() {
-  // Update color dots to reflect current theme
   const colorDots = document.querySelectorAll<HTMLElement>(".color-dot");
   if (colorDots && colorDots.length > 0) {
     colorDots[0].style.backgroundColor = "var(--bg-primary)";
@@ -319,14 +294,11 @@ function updateThemePreview() {
 }
 
 function updateCodeHighlighting() {
-  // Simply rehighlight using hljs; do not reset classes to avoid losing token styles
   rehighlightCodeBlocks();
 }
 
-// Add theme initialization to window load event
 if (typeof window !== "undefined") {
   window.addEventListener("DOMContentLoaded", () => {
-    // Wait a moment to ensure all resources are loaded
     setTimeout(() => {
       initTheme();
     }, 100);

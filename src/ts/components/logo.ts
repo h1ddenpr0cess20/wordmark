@@ -1,4 +1,6 @@
-// Generates the Wordmark header logo shown in the app chrome.
+/**
+ * Generates the Wordmark header logo shown in the app chrome.
+ */
 
 const SVG_NS = "http://www.w3.org/2000/svg";
 
@@ -50,7 +52,6 @@ export function renderWordmarkLogo() {
   }
 }
 
-// Initialize logo when DOM is ready
 if (typeof document !== "undefined") {
   document.addEventListener("DOMContentLoaded", renderWordmarkLogo);
 }

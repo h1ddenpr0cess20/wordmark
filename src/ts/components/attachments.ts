@@ -1,9 +1,9 @@
-import { state } from "../init/state.ts";
-import { showInfo } from "../utils/notifications.ts";
 /**
- * File upload and attachment handling (images and documents)
+ * File upload and attachment handling for images and documents.
  */
 
+import { state } from "../init/state.ts";
+import { showInfo } from "../utils/notifications.ts";
 import { filterSupportedFiles } from "../services/vectorStore.ts";
 import type { DirectoryFile } from "../../types/attachments.ts";
 
@@ -26,7 +26,6 @@ export function initImageUploads() {
     return;
   }
 
-  // Show menu on upload button click
   uploadButton.addEventListener("click", (e: MouseEvent) => {
     e.stopPropagation();
     showUploadMenu(e.currentTarget as HTMLElement, uploadInput, directoryInput);
@@ -40,15 +39,12 @@ export function initImageUploads() {
 
   directoryInput.addEventListener("change", async(e: Event) => {
     const files = Array.from((e.target as HTMLInputElement).files || []);
-    // Group and append one or more directories; preserve relative paths
     await handleFiles(files, { isDirectory: true });
     directoryInput.value = "";
   });
 
-  // Drag and drop functionality
   setupDragAndDrop(inputWrapper);
 
-  // Paste functionality
   setupPasteHandler(userInput);
 }
 
@@ -56,7 +52,6 @@ export function initImageUploads() {
  * Show upload menu to choose between files or directory
  */
 function showUploadMenu(button: HTMLElement, fileInput: HTMLInputElement, directoryInput: HTMLInputElement) {
-  // Remove any existing menu
   const existingMenu = document.querySelector<HTMLElement>(".upload-menu");
   if (existingMenu) {
     existingMenu.remove();
@@ -96,7 +91,6 @@ function showUploadMenu(button: HTMLElement, fileInput: HTMLInputElement, direct
   menu.appendChild(filesOption);
   menu.appendChild(directoryOption);
 
-  // Position the menu above the button
   const rect = button.getBoundingClientRect();
   menu.style.position = "absolute";
   menu.style.bottom = (window.innerHeight - rect.top + 5) + "px";
@@ -104,7 +98,6 @@ function showUploadMenu(button: HTMLElement, fileInput: HTMLInputElement, direct
 
   document.body.appendChild(menu);
 
-  // Close menu when clicking outside
   setTimeout(() => {
     const closeMenu = (e: MouseEvent) => {
       if (!menu.contains(e.target as Node) && e.target !== button) {
@@ -159,15 +152,12 @@ async function handleFiles(files: File[], options: { isDirectory?: boolean } = {
 
   const { isDirectory = false } = options;
 
-  // Ensure arrays exist
   state.pendingUploads = state.pendingUploads || [];
   state.pendingDocuments = state.pendingDocuments || [];
 
   if (isDirectory) {
-    // Filter using vector store supported extensions
     const { supported, unsupported } = filterSupportedFiles(files);
 
-    // Notify user about unsupported files
     if (unsupported.length > 0) {
       const unsupportedNames = unsupported.map(f => f.name);
       const message = unsupported.length === 1
@@ -180,14 +170,11 @@ async function handleFiles(files: File[], options: { isDirectory?: boolean } = {
       }
     }
 
-    // Group supported files by their top-level directory name (from relative path)
     const groups = new Map<string, DirectoryFile[]>();
     for (const file of supported) {
-      // Prefer File.webkitRelativePath or custom _relativePath set via drag-and-drop traversal
       const rel = file.webkitRelativePath || (file as FileWithRelativePath)._relativePath || file.name;
       const parts = rel.split("/");
       const top = parts[0] || "Directory";
-      // Path inside the selected folder
       const innerRel = parts.slice(1).join("/") || file.name;
 
       if (!groups.has(top)) groups.set(top, []);
@@ -201,12 +188,10 @@ async function handleFiles(files: File[], options: { isDirectory?: boolean } = {
       });
     }
 
-    // If we couldn't infer any directory structure, treat as individual documents
     const hasStructure = Array.from(groups.keys()).some(k => k && k !== "Directory") ||
                          supported.some(f => (f.webkitRelativePath || (f as FileWithRelativePath)._relativePath || "").includes("/"));
 
     if (!hasStructure) {
-      // Append as individual document attachments
       state.pendingDocuments.push(...supported.map(file => ({
         file,
         name: file.name,
@@ -214,7 +199,6 @@ async function handleFiles(files: File[], options: { isDirectory?: boolean } = {
         type: file.type,
       })));
     } else {
-      // Append grouped directories
       for (const [directoryName, fileList] of groups) {
         state.pendingDocuments.push({
           isDirectory: true,
@@ -224,7 +208,6 @@ async function handleFiles(files: File[], options: { isDirectory?: boolean } = {
       }
     }
   } else {
-    // For individual file uploads, separate images and documents
     const imageFiles: File[] = [];
     const documentFiles: File[] = [];
     const unsupportedFiles: string[] = [];
@@ -239,7 +222,6 @@ async function handleFiles(files: File[], options: { isDirectory?: boolean } = {
       }
     }
 
-    // Notify user about unsupported files
     if (unsupportedFiles.length > 0) {
       const message = unsupportedFiles.length === 1
         ? `File "${unsupportedFiles[0]}" is not supported and was skipped.`
@@ -251,7 +233,6 @@ async function handleFiles(files: File[], options: { isDirectory?: boolean } = {
       }
     }
 
-    // Append images
     if (imageFiles.length > 0) {
       for (const file of imageFiles) {
         const dataUrl = await readFileAsDataURL(file);
@@ -259,7 +240,6 @@ async function handleFiles(files: File[], options: { isDirectory?: boolean } = {
       }
     }
 
-    // Append documents
     if (documentFiles.length > 0) {
       state.pendingDocuments.push(...documentFiles.map(file => ({
         file,
@@ -280,21 +260,17 @@ async function handleFiles(files: File[], options: { isDirectory?: boolean } = {
 function setupDragAndDrop(inputWrapper: HTMLElement) {
   let dragTimeout: ReturnType<typeof setTimeout> | null = null;
 
-  // Prevent default drag behaviors on both wrapper and document
   ["dragenter", "dragover", "dragleave", "drop"].forEach(eventName => {
     inputWrapper.addEventListener(eventName, preventDefaults, false);
     document.body.addEventListener(eventName, preventDefaults, false);
   });
 
-  // Show drag-over state when dragging over the wrapper
   inputWrapper.addEventListener("dragenter", handleDragEnter, false);
   inputWrapper.addEventListener("dragover", handleDragOver, false);
 
-  // Hide drag-over state when leaving wrapper or dropping
   inputWrapper.addEventListener("dragleave", handleDragLeave, false);
   inputWrapper.addEventListener("drop", handleDrop, false);
 
-  // Global cleanup when drag operation ends
   document.addEventListener("dragend", cleanupDragState, false);
 
   function preventDefaults(e: Event) {
@@ -303,39 +279,33 @@ function setupDragAndDrop(inputWrapper: HTMLElement) {
   }
 
   function handleDragEnter(e: DragEvent) {
-    // Clear any existing timeout
     if (dragTimeout) {
       clearTimeout(dragTimeout);
       dragTimeout = null;
     }
 
-    // Only activate if dragging files
     if (e.dataTransfer && e.dataTransfer.types.includes("Files")) {
       inputWrapper.classList.add("drag-over");
     }
   }
 
   function handleDragOver(e: DragEvent) {
-    // Clear any existing timeout
     if (dragTimeout) {
       clearTimeout(dragTimeout);
       dragTimeout = null;
     }
 
-    // Keep the drag-over state active
     if (e.dataTransfer && e.dataTransfer.types.includes("Files")) {
       inputWrapper.classList.add("drag-over");
     }
   }
 
   function handleDragLeave(e: DragEvent) {
-    // Use a small timeout to prevent flickering when moving between child elements
     if (dragTimeout) {
       clearTimeout(dragTimeout);
     }
 
     dragTimeout = setTimeout(() => {
-      // Check if we're still within the wrapper area
       const rect = inputWrapper.getBoundingClientRect();
       const isStillInside = e.clientX >= rect.left && e.clientX <= rect.right &&
                            e.clientY >= rect.top && e.clientY <= rect.bottom;
@@ -343,11 +313,10 @@ function setupDragAndDrop(inputWrapper: HTMLElement) {
       if (!isStillInside) {
         inputWrapper.classList.remove("drag-over");
       }
-    }, 50); // Small delay to handle rapid enter/leave events
+    }, 50);
   }
 
   function cleanupDragState() {
-    // Clean up when drag operation ends anywhere
     if (dragTimeout) {
       clearTimeout(dragTimeout);
       dragTimeout = null;
@@ -355,13 +324,11 @@ function setupDragAndDrop(inputWrapper: HTMLElement) {
     inputWrapper.classList.remove("drag-over");
   }
 
-  // Helpers for reading directory drops (webkit entries)
   function readAllFilesFromEntry(entry: FileSystemEntry, path = ""): Promise<File[]> {
     return new Promise((resolve) => {
       try {
         if (entry.isFile) {
           (entry as FileSystemFileEntry).file((file: FileWithRelativePath) => {
-            // Attach relative path info for later grouping
             file._relativePath = path + file.name;
             resolve([file]);
           }, () => resolve([]));
@@ -371,7 +338,6 @@ function setupDragAndDrop(inputWrapper: HTMLElement) {
           const readBatch = () => {
             reader.readEntries((batch: FileSystemEntry[]) => {
               if (!batch || batch.length === 0) {
-                // Done reading children; recurse
                 const promises = entries.map((child) =>
                   readAllFilesFromEntry(child, path + entry.name + "/"),
                 );
@@ -398,7 +364,7 @@ function setupDragAndDrop(inputWrapper: HTMLElement) {
     return new Promise((resolve) => {
       try {
         (entry as FileSystemFileEntry).file((file: FileWithRelativePath) => {
-          file._relativePath = file.name; // no nesting info
+          file._relativePath = file.name;
           resolve(file);
         }, () => resolve(null));
       } catch {
@@ -408,7 +374,6 @@ function setupDragAndDrop(inputWrapper: HTMLElement) {
   }
 
   async function handleDrop(e: DragEvent) {
-    // Clean up drag state
     if (dragTimeout) {
       clearTimeout(dragTimeout);
       dragTimeout = null;
@@ -419,7 +384,6 @@ function setupDragAndDrop(inputWrapper: HTMLElement) {
     let files: File[] = [];
     let sawDirectory = false;
 
-    // Prefer DataTransferItem API to detect directories
     if (dt && dt.items && dt.items.length) {
       for (const item of dt.items) {
         if (item.kind !== "file") continue;
@@ -439,9 +403,7 @@ function setupDragAndDrop(inputWrapper: HTMLElement) {
         }
       }
     } else {
-      // Fallback: plain FileList (won't include directories in some browsers)
       files = Array.from(dt?.files || []);
-      // Try to infer if any relative paths present
       sawDirectory = files.some(f => f.webkitRelativePath && f.webkitRelativePath.includes("/"));
     }
 
@@ -464,7 +426,7 @@ function setupPasteHandler(userInput: HTMLTextAreaElement) {
     const imageItems = items.filter((item) => item.type.startsWith("image/"));
 
     if (imageItems.length > 0) {
-      e.preventDefault(); // Prevent default paste behavior for images
+      e.preventDefault();
 
       const files: File[] = [];
       for (const item of imageItems) {
@@ -495,7 +457,6 @@ function showPendingUploadPreviews() {
   const preview = previewEl;
   preview.innerHTML = "";
 
-  // Show image previews
   state.pendingUploads.forEach((up, index) => {
     const container = document.createElement("div");
     container.className = "upload-preview-container";
@@ -519,10 +480,8 @@ function showPendingUploadPreviews() {
     preview.appendChild(container);
   });
 
-  // Show document previews
   state.pendingDocuments.forEach((doc, index) => {
     if (doc.isDirectory) {
-      // Directory preview
       const container = document.createElement("div");
       container.className = "upload-preview-container directory-preview";
 
@@ -546,7 +505,6 @@ function showPendingUploadPreviews() {
         removeDocumentPreview(index);
       });
 
-      // Create expandable file list
       const fileList = document.createElement("div");
       fileList.className = "directory-file-list";
       fileList.style.display = "none";
@@ -563,7 +521,6 @@ function showPendingUploadPreviews() {
         fileList.appendChild(fileItem);
       });
 
-      // Toggle on click
       docInfo.style.cursor = "pointer";
       docInfo.addEventListener("click", (e) => {
         if (e.target === removeBtn || removeBtn.contains(e.target as Node)) return;
@@ -577,7 +534,6 @@ function showPendingUploadPreviews() {
       container.appendChild(fileList);
       preview.appendChild(container);
     } else {
-      // Individual file preview
       const container = document.createElement("div");
       container.className = "upload-preview-container document-preview";
 

@@ -1,12 +1,17 @@
+/**
+ * Memory settings panel.
+ *
+ * @remarks
+ * Wires the memory toggle, limit, add/clear controls, and saved-memory list to
+ * the underlying memory store, keeping the memory tool's availability in sync.
+ */
+
 import { getMemoryConfig, setMemoryEnabled, setMemoryLimit, getMemories, addMemory, clearAllMemories, removeMemoryAt } from "../utils/memoryStorage.ts";
 import { updateFeatureStatus } from "./settings.ts";
 import { updateToolDefinitions } from "./tools.ts";
-/**
- * Memory settings panel functionality
- */
 
+/** Initializes the memory settings panel and binds its controls. */
 export function initMemorySettings() {
-  // Grab elements
   const toggle = document.getElementById("memory-toggle") as HTMLInputElement | null;
   const limitInput = document.getElementById("memory-limit") as HTMLInputElement | null;
   const clearBtn = document.getElementById("clear-memories");
@@ -15,27 +20,22 @@ export function initMemorySettings() {
   const addButton = document.getElementById("memory-add-button");
 
   if (!toggle || !limitInput) {
-    return; // Memory section not present
+    return;
   }
 
-  // Initialize from storage
   const cfg = getMemoryConfig ? getMemoryConfig() : { enabled: false, limit: 25 };
   toggle.checked = Boolean(cfg.enabled);
   limitInput.value = String(cfg.limit);
   renderList();
 
-  // Set max length on input (about three long sentences)
   if (addInput) {
     addInput.setAttribute("maxlength", "600");
   }
 
-  // Update tool definitions to include/exclude memory tool on load
   updateToolDefinitions();
 
-  // Events
   toggle.addEventListener("change", () => {
     if (setMemoryEnabled) setMemoryEnabled(toggle.checked);
-    // Reflect in tool availability
     updateToolDefinitions();
 
     renderList();
@@ -73,7 +73,6 @@ export function initMemorySettings() {
       renderList();
     };
     addButton.addEventListener("click", doAdd);
-    // Ctrl/Cmd+Enter support
     addInput.addEventListener("keydown", (e: KeyboardEvent) => {
       if ((e.ctrlKey || e.metaKey) && e.key === "Enter") {
         e.preventDefault();
@@ -82,13 +81,11 @@ export function initMemorySettings() {
     });
   }
 
-  // React to external memory changes (e.g., via tools)
   if (typeof window.addEventListener === "function") {
     window.addEventListener("memories:changed", () => {
       renderList();
     });
     window.addEventListener("memories:config", () => {
-      // update limit/toggle display from source of truth if needed
       const cfg = getMemoryConfig ? getMemoryConfig() : { enabled: false, limit: 25 };
       if (toggle) toggle.checked = Boolean(cfg.enabled);
       if (limitInput) limitInput.value = String(cfg.limit);

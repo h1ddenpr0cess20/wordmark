@@ -1,8 +1,9 @@
-import { elements, state } from "../init/state.ts";
-import { showError,showInfo } from "../utils/notifications.ts";
 /**
- * User interaction handling for the chatbot application
+ * User interaction handling: message sending and the send/stop lifecycle.
  */
+
+import { elements, state } from "../init/state.ts";
+import { showError, showInfo } from "../utils/notifications.ts";
 
 import { sanitizeInput, stripBase64FromHistory } from "../utils/utils.ts";
 import { saveImageToDb } from "../utils/imageStorage.ts";
@@ -17,9 +18,6 @@ import { appendMessage } from "./ui/chatMessages.ts";
 import { getVerbosity, getReasoningEffort, getHistoryTokenBudget } from "../init/modelSettings.ts";
 import type { Attachment } from "../../types/api.ts";
 
-// -----------------------------------------------------
-// Message sending and related functionality
-// -----------------------------------------------------
 
 /**
  * Sends a message to the API and handles the response
@@ -47,21 +45,17 @@ export async function sendMessage() {
     console.info("New message send initiated:", message);
   }
 
-  // Transform send button into stop button
   sendButton.classList.add("stop-mode");
   sendButton.title = "Stop generation";
 
-  // Change button action to stop generation
   sendButton.removeEventListener("click", sendMessage);
   sendButton.addEventListener("click", stopGeneration);
 
-  // Handle standalone image uploads (not part of a directory)
   const uploads = state.pendingUploads || [];
   let uploadHtml = "";
   const placeholders: string[] = [];
   const attachmentsForHistory: Attachment[] = [];
 
-  // Only process standalone images (pendingUploads is cleared for directory uploads)
   uploads.forEach(up => {
     const ext = up.file && up.file.name.includes(".") ? up.file.name.split(".").pop() : "png";
     const filename = `upload-${Date.now()}-${Math.random().toString(36).substring(2,8)}.${ext}`;
@@ -87,10 +81,9 @@ export async function sendMessage() {
     }
   });
 
-  // Add document attachments display and save for later upload
   let documentsHtml = "";
   const documents = state.pendingDocuments || [];
-  const documentsToUpload = [...documents]; // Save copy before clearing
+  const documentsToUpload = [...documents];
   const formatFileSize = (bytes: number) => {
     if (bytes < 1024) return bytes + " B";
     if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + " KB";
@@ -101,7 +94,6 @@ export async function sendMessage() {
     const icon = doc.isDirectory ? "📁" : "📄";
 
     if (doc.isDirectory) {
-      // Display directory with file count
       const directoryFiles = doc.files || [];
       const totalSize = directoryFiles.reduce((sum, f) => sum + f.size, 0);
       const directoryMarkup = [
@@ -112,7 +104,6 @@ export async function sendMessage() {
         "</div>",
       ].join("\n");
       documentsHtml += directoryMarkup;
-      // Add all files from directory to history
       directoryFiles.forEach(file => {
         attachmentsForHistory.push({
           type: "document",
@@ -126,7 +117,6 @@ export async function sendMessage() {
         });
       });
     } else {
-      // Individual file
       const fileMarkup = [
         "<div class=\"attached-document\">",
         `<span class="doc-icon">${icon}</span>`,
@@ -155,7 +145,6 @@ export async function sendMessage() {
     userHtml = `<div class="generated-images">${uploadHtml}</div>${userHtml}`;
   }
 
-  // Add user message to the conversation and store in history manually
   const userElement = appendMessage("You", userHtml, "user", true);
   const userId = userElement ? userElement.id : generateMessageId();
   const historyContent = placeholders.length > 0 ? `${placeholders.join("\n")}\n\n${message}` : message;
@@ -197,21 +186,17 @@ export async function sendMessage() {
     state.pendingUploads = [];
   }
 
-  // Clear documents and previews after processing
   state.pendingDocuments = [];
   const preview = document.querySelector(".upload-previews");
   if (preview) {
     preview.innerHTML = "";
   }
   console.info("User message added to conversation history.");
-  // Auto-save after user message
   saveCurrentConversation();
 
-  // Clear input and adjust height
   userInput.value = "";
   userInput.style.height = "auto";
 
-  // Create loading message with pure animation
   const loadingId = `loading-${Date.now()}`;
   const loadingHTML = "<div class=\"loading-animation\"><div class=\"loading-dot\"></div><div class=\"loading-dot\"></div><div class=\"loading-dot\"></div></div>";
   appendMessage("Assistant", loadingHTML, "assistant", true);
@@ -220,20 +205,17 @@ export async function sendMessage() {
     loadingElement.id = loadingId;
   }
 
-  // Update browser URL
   updateBrowserHistory();
   console.info("Browser history updated.");
 
   state.activeLoadingMessageId = loadingId;
   state.isResponsePending = true;
 
-  // Handle document uploads if present
   let vectorStoreId = state.activeVectorStore || null;
   const activeServiceKey = elements.serviceSelector ? elements.serviceSelector.value : "openai";
   if (hasDocuments) {
     console.log("Has documents:", documentsToUpload.length);
 
-    // Flatten files from directories and individual uploads
     const files: File[] = [];
     documentsToUpload.forEach(doc => {
       if (doc.isDirectory) {
@@ -244,7 +226,6 @@ export async function sendMessage() {
     });
 
     if (activeServiceKey === "xai") {
-      // xAI: upload files and attach as input_file references directly in the message
       try {
         if (showInfo) {
           showInfo("Uploading files...");
@@ -256,7 +237,6 @@ export async function sendMessage() {
           fileIds.push(uploaded.id);
         }
 
-        // Inject input_file parts into the last user message in conversation history
         const lastUserMsg = state.conversationHistory[state.conversationHistory.length - 1];
         if (lastUserMsg && lastUserMsg.role === "user") {
           const fileParts = fileIds.map(id => ({ type: "input_file", file_id: id }));
@@ -282,7 +262,6 @@ export async function sendMessage() {
         return;
       }
     } else {
-      // OpenAI: use vector stores + file_search
       console.log("File search enabled:", responsesClient?.isToolEnabled("builtin:file_search"));
 
       if (!responsesClient?.isToolEnabled("builtin:file_search")) {
@@ -303,7 +282,6 @@ export async function sendMessage() {
           vectorStoreId = result.vectorStoreId;
           state.activeVectorStore = vectorStoreId;
 
-          // Save vector store metadata
           if (vectorStoreId) {
             saveVectorStoreMetadata(vectorStoreId, {
               name: `Chat-${Date.now()}`,
@@ -445,24 +423,20 @@ export function resetSendButton() {
   state.shouldStopGeneration = false;
   state.activeAbortController = null;
 
-  // Reset both button and enter key handlers
   if (elements.sendButton) {
     elements.sendButton.removeEventListener("click", stopGeneration);
     elements.sendButton.addEventListener("click", sendMessage);
   }
 
-  // Make sure userInput is properly enabled but don't focus on mobile
   if (elements.userInput) {
     elements.userInput.disabled = false;
 
-    // Only focus on desktop devices, skip on mobile to prevent keyboard popup
     const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) ||
                     window.innerWidth <= 768;
 
     if (!isMobile) {
       elements.userInput.focus();
     } else {
-      // For mobile, ensure the input is visible without forcing focus
       scrollInputIntoView();
 
     }

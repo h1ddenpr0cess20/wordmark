@@ -1,14 +1,16 @@
-import { showError,showInfo } from "../utils/notifications.ts";
 /**
- * Assistants File Manager UI Component
- * Mirrors the Python utility (upload/list/delete/delete-all) for browser usage.
+ * Assistants file-manager UI.
+ *
+ * @remarks
+ * Browser UI for uploading, listing, and deleting `assistants`-purpose files.
  */
 
+import { showError, showInfo } from "../utils/notifications.ts";
 import { listAssistantFiles, deleteFile as deleteAssistantFile, deleteAllAssistantFiles } from "../services/files.ts";
-import { uploadFile as uploadAssistantFile } from "../services/vectorStore.ts"; // reuse existing upload implementation
+import { uploadFile as uploadAssistantFile } from "../services/vectorStore.ts";
 
 /**
- * Initialize the Assistants File Manager
+ * Initializes the Assistants file manager.
  */
 export async function initFilesManager() {
   const listContainer = document.getElementById("assistant-file-list");
@@ -51,7 +53,6 @@ export async function refreshAssistantFileList() {
       return;
     }
 
-    // Build list
     const listHtml = files.map((file: { id?: string; filename?: string; name?: string; created_at?: number }) => {
       const createdDate = file.created_at ? new Date(file.created_at * 1000).toLocaleDateString() : "Unknown";
       const name = escapeHtml(file.filename || file.name || "(no name)");
@@ -76,7 +77,6 @@ export async function refreshAssistantFileList() {
 
     listContainer.innerHTML = listHtml;
 
-    // Wire per-file delete
     listContainer.querySelectorAll(".btn-delete-file").forEach((btn: Element) => {
       btn.addEventListener("click", async (e: Event) => {
         const fileId = (e.currentTarget as HTMLElement).getAttribute("data-file-id");
@@ -125,13 +125,12 @@ async function uploadSelectedAssistantFiles() {
     return;
   }
 
-  // Upload sequentially for clearer status and rate-limit friendliness
   let success = 0;
   let fail = 0;
 
   for (const file of Array.from(input.files)) {
     try {
-      await uploadAssistantFile(file); // purpose=assistants handled by service
+      await uploadAssistantFile(file);
       success++;
     } catch (err) {
       console.error("File upload failed:", file.name, err);
@@ -143,9 +142,7 @@ async function uploadSelectedAssistantFiles() {
     showInfo(`Upload complete. Success: ${success}${fail ? `, Failed: ${fail}` : ""}`);
   }
 
-  // Clear the file input
   input.value = "";
-  // Refresh list
   await refreshAssistantFileList();
 }
 
