@@ -9,7 +9,7 @@ const MEMORY_ENABLED_KEY = STORAGE_KEYS.memoryEnabled;
 const MEMORY_LIMIT_KEY = STORAGE_KEYS.memoryLimit;
 const MEMORIES_KEY = STORAGE_KEYS.memories;
 
-// Initialize defaults if missing
+/** Seeds the enabled/limit/memories keys with defaults when absent. */
 function ensureMemoryDefaults() {
   if (localStorage.getItem(MEMORY_ENABLED_KEY) === null) {
     localStorage.setItem(MEMORY_ENABLED_KEY, "false");
@@ -41,7 +41,6 @@ export function setMemoryEnabled(enabled: boolean) {
 export function setMemoryLimit(limit: string | number) {
   const newLimit = Math.max(1, parseInt(String(limit), 10) || 25);
   localStorage.setItem(MEMORY_LIMIT_KEY, String(newLimit));
-  // Trim existing memories if needed
   const mems = getMemories();
   if (mems.length > newLimit) {
     const trimmed = mems.slice(-newLimit);
@@ -71,7 +70,7 @@ export function getMemories(): string[] {
  */
 export function addMemory(text: string) {
   if (!text || typeof text !== "string") return { ok: false, reason: "invalid" };
-  const trimmed = text.trim().slice(0, 600); // guardrail length ~ three long sentences
+  const trimmed = text.trim().slice(0, 600);
   if (!trimmed) return { ok: false, reason: "empty" };
   const { limit } = getMemoryConfig();
   const mems = getMemories();

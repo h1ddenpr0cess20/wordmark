@@ -1,17 +1,20 @@
 /**
- * Audio Storage Utilities using IndexedDB
- * Provides functions for storing and retrieving TTS audio from IndexedDB
+ * TTS audio storage backed by IndexedDB.
+ *
+ * @remarks
+ * Caches synthesized speech keyed by message so it can be replayed without
+ * re-calling the provider, pruning to the {@link MAX_STORED_AUDIO} most recent
+ * clips. Also offers a helper to download a clip as a `.wav` file.
  */
 
 import { openDatabase } from "./idb.ts";
 
-// IndexedDB database configuration
 const AUDIO_DB_NAME = "wordmark-audio";
 const AUDIO_DB_VERSION = 1;
 const AUDIO_STORE_NAME = "tts-audio";
+/** Maximum number of audio clips retained before the oldest are pruned. */
 const MAX_STORED_AUDIO = 15;
 
-// Module-level handle to the open database (was window.audioDb)
 let audioDb: IDBDatabase | null = null;
 
 /** A TTS audio clip as persisted in the IndexedDB audio store. */
@@ -25,20 +28,17 @@ export interface StoredAudio {
 }
 
 /**
- * Initialize the IndexedDB database for audio storage
- * @returns {Promise} - Promise that resolves when the database is ready
+ * Opens (and upgrades, if needed) the IndexedDB database used for TTS audio,
+ * creating `messageId` and `timestamp` indexes for lookup and pruning.
  */
 export function initAudioDb() {
   return openDatabase({
     name: AUDIO_DB_NAME,
     version: AUDIO_DB_VERSION,
     onUpgrade: (db) => {
-      // Create an object store for audio files if it doesn't exist
       if (!db.objectStoreNames.contains(AUDIO_STORE_NAME)) {
-        // Use autoIncrement to generate unique IDs
         const store = db.createObjectStore(AUDIO_STORE_NAME, { keyPath: "id" });
 
-        // Create indexes for fast lookup
         store.createIndex("messageId", "messageId", { unique: false });
         store.createIndex("timestamp", "timestamp", { unique: false });
 
@@ -52,31 +52,28 @@ export function initAudioDb() {
 }
 
 /**
- * Save TTS audio to IndexedDB
- * @param {ArrayBuffer} audioData - Raw audio data
- * @param {string} messageId - ID of the message the audio is associated with
- * @param {string} text - Original text that was converted to speech
- * @param {string} voice - Voice used for TTS
- * @returns {Promise<Object>} - Promise that resolves with the stored audio record
+ * Stores a synthesized audio clip and triggers cleanup of older clips.
+ *
+ * @param audioData - Raw audio bytes.
+ * @param messageId - Id of the message the audio belongs to.
+ * @param text - Source text that was synthesized.
+ * @param voice - Voice the clip was generated with.
+ * @returns The stored audio record.
  */
 export function saveAudioToDb(audioData: ArrayBuffer, messageId: string, text: string, voice: string): Promise<StoredAudio> {
   return new Promise<StoredAudio>((resolve, reject) => {
     if (!audioDb) {
       console.error("Audio IndexedDB not initialized");
-      // Try to initialize it now
       initAudioDb().then(() => {
-        // Retry after initialization
         saveAudioToDb(audioData, messageId, text, voice).then(resolve).catch(reject);
       }).catch(reject);
       return;
     }
-    // Start a transaction
     const transaction = audioDb.transaction([AUDIO_STORE_NAME], "readwrite");
     const store = transaction.objectStore(AUDIO_STORE_NAME);
 
-    // Create a record with the audio data
     const record = {
-      id: `${messageId}_${Date.now()}`, // Unique ID
+      id: `${messageId}_${Date.now()}`,
       messageId: messageId,
       audioData: audioData,
       text: text,
@@ -84,7 +81,6 @@ export function saveAudioToDb(audioData: ArrayBuffer, messageId: string, text: s
       timestamp: Date.now(),
     };
 
-    // Add to the store
     const request = store.add(record);
 
     request.onerror = () => {
@@ -95,7 +91,6 @@ export function saveAudioToDb(audioData: ArrayBuffer, messageId: string, text: s
     request.onsuccess = () => {
       console.info("Audio saved to IndexedDB for message:", messageId);
 
-      // Check if we need to clean up old audio files
       cleanupOldAudio().catch(err => {
         console.warn("Error during audio cleanup:", err);
       });
@@ -106,27 +101,25 @@ export function saveAudioToDb(audioData: ArrayBuffer, messageId: string, text: s
 }
 
 /**
- * Load audio for a specific message from IndexedDB
- * @param {string} messageId - The message ID to retrieve audio for
- * @returns {Promise<Object>} - Promise that resolves with the audio record
+ * Loads the most recent audio clip stored for a message.
+ *
+ * @param messageId - The message id to look up.
+ * @returns The newest matching audio record.
+ * @throws If no audio is stored for the message.
  */
 export function loadAudioForMessage(messageId: string): Promise<StoredAudio> {
   return new Promise<StoredAudio>((resolve, reject) => {
     if (!audioDb) {
       console.error("Audio IndexedDB not initialized");
-      // Try to initialize it now
       initAudioDb().then(() => {
-        // Retry after initialization
         loadAudioForMessage(messageId).then(resolve).catch(reject);
       }).catch(reject);
       return;
     }
-    // Start a transaction
     const transaction = audioDb.transaction([AUDIO_STORE_NAME], "readonly");
     const store = transaction.objectStore(AUDIO_STORE_NAME);
     const index = store.index("messageId");
 
-    // Get all records matching the messageId
     const request = index.getAll(messageId);
 
     request.onerror = () => {
@@ -137,7 +130,6 @@ export function loadAudioForMessage(messageId: string): Promise<StoredAudio> {
     request.onsuccess = () => {
       const results = request.result;
       if (results && results.length > 0) {
-        // Get the most recent audio for this message
         results.sort((a: { timestamp: number }, b: { timestamp: number }) => b.timestamp - a.timestamp);
         console.info("Audio loaded from IndexedDB for message:", messageId);
         resolve(results[0]);
@@ -151,8 +143,9 @@ export function loadAudioForMessage(messageId: string): Promise<StoredAudio> {
 }
 
 /**
- * Clean up old audio files, keeping only the most recent MAX_STORED_AUDIO files
- * @returns {Promise<number>} - Promise that resolves with the number of deleted files
+ * Deletes audio clips beyond the {@link MAX_STORED_AUDIO} most recent.
+ *
+ * @returns The number of clips deleted.
  */
 export function cleanupOldAudio(): Promise<number> {
   return new Promise<number>((resolve, reject) => {
@@ -161,13 +154,11 @@ export function cleanupOldAudio(): Promise<number> {
       reject(new Error("Audio IndexedDB not initialized"));
       return;
     }
-    // Start a transaction
     const transaction = audioDb.transaction([AUDIO_STORE_NAME], "readonly");
     const store = transaction.objectStore(AUDIO_STORE_NAME);
 
-    // Get all audio records sorted by timestamp
     const index = store.index("timestamp");
-    const request = index.openCursor(null, "prev"); // Descending order (newest first)
+    const request = index.openCursor(null, "prev");
 
     const allAudioRecords: { id: string; timestamp: number }[] = [];
 
@@ -176,7 +167,6 @@ export function cleanupOldAudio(): Promise<number> {
       reject(request.error);
     };
 
-    // Collect all records
     request.onsuccess = () => {
       const cursor = request.result;
       if (cursor) {
@@ -186,15 +176,12 @@ export function cleanupOldAudio(): Promise<number> {
         });
         cursor.continue();
       } else {
-        // If we have more than the maximum, delete the oldest
         if (allAudioRecords.length > MAX_STORED_AUDIO) {
           const recordsToDelete = allAudioRecords.slice(MAX_STORED_AUDIO);
 
-          // Start a delete transaction
           const deleteTransaction = audioDb!.transaction([AUDIO_STORE_NAME], "readwrite");
           const deleteStore = deleteTransaction.objectStore(AUDIO_STORE_NAME);
 
-          // Track deletions
           let deletedCount = 0;
           let errorCount = 0;
 
@@ -222,7 +209,6 @@ export function cleanupOldAudio(): Promise<number> {
             };
           });
         } else {
-          // Nothing to delete
           resolve(0);
         }
       }
@@ -231,26 +217,24 @@ export function cleanupOldAudio(): Promise<number> {
 }
 
 /**
- * Exports an audio file for download
- * @param {ArrayBuffer} audioData - The audio data to download
- * @param {string} filename - Suggested filename for the download
+ * Triggers a browser download of an audio clip as a `.wav` file.
+ *
+ * @param audioData - The audio bytes to download.
+ * @param filename - Suggested download filename (defaults to `tts-audio.wav`).
+ * @returns `true` on success, `false` if the download could not be started.
  */
 export function exportAudioForDownload(audioData: ArrayBuffer, filename: string): boolean {
   try {
-    // Create a blob from the audio data
     const blob = new Blob([audioData], { type: "audio/wav" });
 
-    // Create a download link
     const downloadLink = document.createElement("a");
     downloadLink.href = URL.createObjectURL(blob);
     downloadLink.download = filename || "tts-audio.wav";
 
-    // Append to the document, click, and remove
     document.body.appendChild(downloadLink);
     downloadLink.click();
     document.body.removeChild(downloadLink);
 
-    // Clean up the object URL
     setTimeout(() => {
       URL.revokeObjectURL(downloadLink.href);
     }, 100);
@@ -262,7 +246,6 @@ export function exportAudioForDownload(audioData: ArrayBuffer, filename: string)
   }
 }
 
-// Initialize the audio database when this script loads
 if (typeof window !== "undefined" && typeof window.addEventListener === "function") {
   window.addEventListener("DOMContentLoaded", () => {
     initAudioDb().catch(err => {

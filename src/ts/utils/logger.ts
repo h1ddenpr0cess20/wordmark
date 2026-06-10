@@ -21,10 +21,13 @@ const originalConsole = {
   info: console.info,
 };
 
-// Lightweight dedupe cache to prevent duplicate console entries.
+/**
+ * Lightweight cache that collapses identical console lines emitted within
+ * {@link LOG_DEDUPE.windowMs} of each other.
+ */
 const LOG_DEDUPE = {
-  lastTimes: new Map<string, number>(), // key -> timestamp
-  suppressed: new Map<string, number>(), // key -> count
+  lastTimes: new Map<string, number>(),
+  suppressed: new Map<string, number>(),
   windowMs: 1500,
   maxEntries: 500,
 };
@@ -37,7 +40,6 @@ function serializeArgs(args: unknown[]): string {
       return v;
     });
   } catch {
-    // Fallback: join string representations
     return args.map(a => {
       try { return typeof a === "string" ? a : (a && a.toString ? a.toString() : String(a)); } catch { return "[unserializable]"; }
     }).join(" | ");
@@ -47,10 +49,8 @@ function serializeArgs(args: unknown[]): string {
 function makeWrapper(method: ConsoleMethod, gateVerbose: boolean) {
   const orig = originalConsole[method] || console[method];
   return function(...args: unknown[]) {
-    // Apply verbose gating for log/info
     if (gateVerbose && !state.verboseLogging) return;
 
-    // Build dedupe key
     const key = `${method}|${serializeArgs(args)}`;
     const now = Date.now();
     const { lastTimes, suppressed, windowMs, maxEntries } = LOG_DEDUPE;
@@ -61,7 +61,6 @@ function makeWrapper(method: ConsoleMethod, gateVerbose: boolean) {
       return;
     }
 
-    // If there were suppressed duplicates, append a note to the previous log
     const count = suppressed.get(key) || 0;
     suppressed.delete(key);
 
@@ -74,7 +73,6 @@ function makeWrapper(method: ConsoleMethod, gateVerbose: boolean) {
 
     lastTimes.set(key, now);
     if (lastTimes.size > maxEntries) {
-      // Simple pruning to keep memory bounded
       lastTimes.clear();
     }
   };
@@ -92,13 +90,11 @@ export function applyConsoleLogging() {
     console.warn = makeWrapper("warn", false);
     console.error = makeWrapper("error", false);
   } else {
-    // Restore to original first
     console.log = originalConsole.log;
     console.info = originalConsole.info;
     console.warn = originalConsole.warn;
     console.error = originalConsole.error;
 
-    // In production mode, suppress log/info unless explicitly enabled
     let loggingEnabled = false;
     try { loggingEnabled = Boolean(localStorage.getItem(STORAGE_KEYS.enableLogging)); } catch { /* no localStorage */ }
     if (!loggingEnabled) {
@@ -108,11 +104,8 @@ export function applyConsoleLogging() {
   }
 }
 
-// Initial application of console behavior
 applyConsoleLogging();
 
-// Handle uncaught errors. This module evaluates once, so the listener is
-// registered once — no idempotency flag needed.
 if (typeof window !== "undefined" && typeof window.addEventListener === "function") {
   window.addEventListener("error", function(event) {
     if (state.debug) {

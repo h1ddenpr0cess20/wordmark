@@ -1,30 +1,27 @@
 /**
- * Conversation Storage Utilities using IndexedDB
- * Provides functions for storing and retrieving conversations from IndexedDB
+ * Conversation storage backed by IndexedDB.
+ *
+ * @remarks
+ * Persists whole conversation records keyed by id, lazily initializing the
+ * database on first use.
  */
 
 import type { ConversationRecord } from "../../types/common.ts";
 import { openDatabase } from "./idb.ts";
 
-// IndexedDB database configuration
 const CONVO_DB_NAME = "wordmark-conversations";
 const CONVO_DB_VERSION = 1;
 const CONVO_STORE_NAME = "conversations";
 
-// Module-level handle to the open database (was window.conversationDb)
 let conversationDb: IDBDatabase | null = null;
 
-/**
- * Initialize the IndexedDB database for conversation storage
- * @returns {Promise} - Promise that resolves when the database is ready
- */
+/** Opens (and upgrades, if needed) the IndexedDB database used for conversations. */
 export function initConversationDb() {
   return openDatabase({
     name: CONVO_DB_NAME,
     version: CONVO_DB_VERSION,
     errorLabel: "Conversation IndexedDB error:",
     onUpgrade: (db) => {
-      // Create an object store for conversations if it doesn't exist
       if (!db.objectStoreNames.contains(CONVO_STORE_NAME)) {
         db.createObjectStore(CONVO_STORE_NAME, { keyPath: "id" });
         console.info("Created conversation store in IndexedDB");
@@ -37,32 +34,28 @@ export function initConversationDb() {
 }
 
 /**
- * Save a conversation to IndexedDB
- * @param {Object} conversation - The conversation object to save
- * @returns {Promise<string>} - Promise that resolves with the conversation id
+ * Persists a conversation, assigning a timestamp-based id if it has none.
+ *
+ * @param conversation - The conversation record to store.
+ * @returns The id the conversation was stored under.
  */
 export function saveConversationToDb(conversation: ConversationRecord): Promise<string> {
   return new Promise<string>((resolve, reject) => {
     if (!conversationDb) {
       console.error("Conversation IndexedDB not initialized");
-      // Try to initialize it now
       initConversationDb().then(() => {
-        // Retry after initialization
         saveConversationToDb(conversation).then(resolve).catch(reject);
       }).catch(reject);
       return;
     }
 
-    // Start a transaction
     const transaction = conversationDb.transaction([CONVO_STORE_NAME], "readwrite");
     const store = transaction.objectStore(CONVO_STORE_NAME);
 
-    // Make sure the conversation has an id
     if (!conversation.id) {
       conversation.id = Date.now().toString();
     }
 
-    // Add to the store
     const request = store.put(conversation);
 
     request.onerror = () => {
@@ -78,27 +71,25 @@ export function saveConversationToDb(conversation: ConversationRecord): Promise<
 }
 
 /**
- * Load a conversation from IndexedDB
- * @param {string} id - The conversation ID to retrieve
- * @returns {Promise<Object>} - Promise that resolves with the conversation object
+ * Loads a conversation by id.
+ *
+ * @param id - The conversation id to retrieve.
+ * @returns The stored conversation record.
+ * @throws If no conversation exists for `id`.
  */
 export function loadConversationFromDb(id: string): Promise<ConversationRecord> {
   return new Promise<ConversationRecord>((resolve, reject) => {
     if (!conversationDb) {
       console.error("Conversation IndexedDB not initialized");
-      // Try to initialize it now
       initConversationDb().then(() => {
-        // Retry after initialization
         loadConversationFromDb(id).then(resolve).catch(reject);
       }).catch(reject);
       return;
     }
 
-    // Start a transaction
     const transaction = conversationDb.transaction([CONVO_STORE_NAME], "readonly");
     const store = transaction.objectStore(CONVO_STORE_NAME);
 
-    // Get the conversation
     const request = store.get(id);
 
     request.onerror = () => {
@@ -120,17 +111,12 @@ export function loadConversationFromDb(id: string): Promise<ConversationRecord> 
   });
 }
 
-/**
- * Get all conversations from IndexedDB
- * @returns {Promise<Array>} - Promise that resolves with an array of conversation objects
- */
+/** Returns every stored conversation record. */
 export function getAllConversationsFromDb(): Promise<ConversationRecord[]> {
   return new Promise<ConversationRecord[]>((resolve, reject) => {
     if (!conversationDb) {
       console.error("Conversation IndexedDB not initialized");
-      // Try to initialize it now
       initConversationDb().then(() => {
-        // Retry after initialization
         getAllConversationsFromDb().then(resolve).catch(reject);
       }).catch(reject);
       return;
@@ -161,9 +147,10 @@ export function getAllConversationsFromDb(): Promise<ConversationRecord[]> {
 }
 
 /**
- * Delete a conversation from IndexedDB
- * @param {string} id - The conversation ID to delete
- * @returns {Promise<boolean>} - Promise that resolves when deleted
+ * Deletes a conversation by id.
+ *
+ * @param id - The conversation id to delete.
+ * @returns `true` once the record is removed.
  */
 export function deleteConversationFromDb(id: string): Promise<boolean> {
   return new Promise<boolean>((resolve, reject) => {
@@ -173,11 +160,9 @@ export function deleteConversationFromDb(id: string): Promise<boolean> {
       return;
     }
 
-    // Start a transaction
     const transaction = conversationDb.transaction([CONVO_STORE_NAME], "readwrite");
     const store = transaction.objectStore(CONVO_STORE_NAME);
 
-    // Delete the conversation
     const request = store.delete(id);
 
     request.onerror = () => {
@@ -193,21 +178,19 @@ export function deleteConversationFromDb(id: string): Promise<boolean> {
 }
 
 /**
- * Rename a conversation in IndexedDB
- * @param {string} id - The conversation ID to rename
- * @param {string} newName - The new name for the conversation
- * @returns {Promise<boolean>} - Promise that resolves when renamed
+ * Renames a conversation, refreshing its `updated` timestamp.
+ *
+ * @param id - The conversation id to rename.
+ * @param newName - The new conversation name.
+ * @returns `true` once the rename is persisted.
  */
 export function renameConversationInDb(id: string, newName: string): Promise<boolean> {
   return new Promise<boolean>((resolve, reject) => {
-    // First load the conversation
     loadConversationFromDb(id)
       .then(conversation => {
-        // Update the name
         conversation.name = newName;
         conversation.updated = new Date().toISOString();
 
-        // Save it back
         return saveConversationToDb(conversation);
       })
       .then(() => {
@@ -217,7 +200,6 @@ export function renameConversationInDb(id: string, newName: string): Promise<boo
   });
 }
 
-// Initialize the conversation database when this script loads
 if (typeof window !== "undefined" && typeof window.addEventListener === "function") {
   window.addEventListener("DOMContentLoaded", () => {
     initConversationDb().catch(err => {

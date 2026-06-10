@@ -21,15 +21,17 @@ export function loadGalleryModule() {
 }
 
 /**
- * Load vector store module and initialize related components
+ * Initializes vector-store state and lazily loads its manager UI panels.
+ *
+ * @remarks
+ * The vector-store service is eagerly bundled (core upload code depends on it);
+ * only the manager and files-manager UI are code-split into separate chunks and
+ * imported here. Resolves once on first call.
  */
 export function loadVectorStoreModule() {
   if (lazyModulesLoaded.vectorStore) {
     return Promise.resolve();
   }
-  // Initialize vector store from localStorage. The service itself is eagerly
-  // bundled (core upload code depends on it); only the manager UI panels below
-  // are code-split into separate chunks.
   initializeVectorStore();
 
   return import("../components/vectorStoreManager.ts").then(({ initVectorStoreManager }) => {

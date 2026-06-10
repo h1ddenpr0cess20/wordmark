@@ -1,13 +1,16 @@
-import { state } from "../init/state.ts";
-import { icon } from "./icons.ts";
 /**
- * Highlight.js integration and code formatting utilities
+ * Highlight.js integration and code-block formatting utilities.
+ *
+ * @remarks
+ * `highlight.js` is bundled and imported directly, then configured once on load.
+ * The theme-change rehighlight pass lives in `components/theme.ts`, which owns
+ * the active implementation.
  */
 
+import { state } from "../init/state.ts";
+import { icon } from "./icons.ts";
 import hljs from "highlight.js";
 
-// hljs is bundled and imported directly by its consumers. Configure it once on
-// load; `loadHighlightJS()` remains as the initial-DOM-highlight entry point.
 state.hljsLoaded = true;
 hljs.configure({
   ignoreUnescapedHTML: true,
@@ -25,12 +28,10 @@ export function loadHighlightJS() {
   }
   hljsInitialHighlightDone = true;
 
-  // Highlight any code blocks already present in the DOM.
   try {
     const codeBlocks = document.querySelectorAll<HTMLElement>("pre code");
     if (codeBlocks.length > 0) {
       codeBlocks.forEach((block) => {
-        // Store original content for copying
         const originalContent = block.textContent;
         block.setAttribute("data-original-code", originalContent || "");
 
@@ -47,8 +48,14 @@ export function loadHighlightJS() {
 }
 
 /**
- * Adds a copy button to code blocks
- * @param {HTMLElement} codeBlock - The code block element to add a button to
+ * Inserts a copy-to-clipboard button before a highlighted code block.
+ *
+ * @remarks
+ * Uses the async Clipboard API where available and falls back to a hidden
+ * `<textarea>` + `execCommand("copy")` for older browsers. The button briefly
+ * swaps to a check or X icon to signal success or failure.
+ *
+ * @param codeBlock - The `<code>` element to attach the button to.
  */
 export function addCopyButton(codeBlock: HTMLElement) {
   if (!codeBlock.parentElement?.querySelector(".copy-btn")) {
@@ -57,9 +64,7 @@ export function addCopyButton(codeBlock: HTMLElement) {
     copyButton.setAttribute("aria-label", "Copy code");
     copyButton.innerHTML = icon("copy", { width: 16, height: 16 });
     copyButton.addEventListener("click", () => {
-      // Define the copy function with proper error handling
       const copyText = function(text: string) {
-        // Make sure navigator and clipboard are fully initialized before using them
         if (navigator && navigator.clipboard && typeof navigator.clipboard.writeText === "function") {
           return navigator.clipboard.writeText(text)
             .then(() => true)
@@ -68,11 +73,10 @@ export function addCopyButton(codeBlock: HTMLElement) {
               return false;
             });
         } else {
-          // Fallback to execCommand for older browsers
           try {
             const textArea = document.createElement("textarea");
             textArea.value = text;
-            textArea.style.position = "fixed"; // Avoid scrolling to bottom
+            textArea.style.position = "fixed";
             textArea.style.opacity = "0";
             document.body.appendChild(textArea);
             textArea.focus();
@@ -88,27 +92,20 @@ export function addCopyButton(codeBlock: HTMLElement) {
       }; copyText(codeBlock.innerText)
         .then(success => {
           if (success) {
-            // Store original SVG
             const originalSvg = copyButton.innerHTML;
-            // Show check mark SVG for success feedback
             copyButton.innerHTML = icon("check", { width: 16, height: 16 });
             setTimeout(() => {
-              // Revert back to copy icon
               copyButton.innerHTML = originalSvg;
             }, 1500);
           } else {
-            // Store original SVG
             const originalSvg = copyButton.innerHTML;
-            // Show X mark SVG for failure feedback
             copyButton.innerHTML = icon("x", { width: 16, height: 16 });
             setTimeout(() => {
-              // Revert back to copy icon
               copyButton.innerHTML = originalSvg;
             }, 1500);
           }
         });
     });
-    // Insert the button into the code block's parent (e.g., <pre> tag), before the code element itself
     if (codeBlock.parentNode) {
       codeBlock.parentNode.insertBefore(copyButton, codeBlock);
     } else {
@@ -116,6 +113,3 @@ export function addCopyButton(codeBlock: HTMLElement) {
     }
   }
 }
-
-// Note: rehighlightCodeBlocks (theme-change rehighlight) is defined in
-// components/theme.ts, which owns the active implementation.
