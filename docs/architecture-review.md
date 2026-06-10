@@ -70,6 +70,19 @@ behind the existing test suite.
 > interface with **response/stream normalization** is the remaining, higher-risk
 > piece — deferred because it rewrites the hottest SSE-parsing path; the
 > capability registry captures the high-payoff/low-risk portion.
+>
+> **Follow-up (2026-06-09) — response normalization done; stream adapter found
+> unnecessary.** Inspection settled the open question: there is **zero**
+> `serviceKey`/provider branching anywhere in `services/streaming/`. All providers
+> (OpenAI, xAI, Ollama, LM Studio) emit one Responses-API-compatible SSE event
+> vocabulary, so the speculative per-provider `NormalizedStreamEvent` adapter has
+> nothing to reconcile — the `any` in the streaming modules is untyped-JSON-payload
+> parsing, a separate concern from provider abstraction. The one genuine remaining
+> provider seam was the **non-streaming** reasoning/output extraction, which was
+> inline in `runTurn` behind `responsePayload: any`. Extracted to
+> `services/api/responseNormalization.ts` (`extractOutputText` /
+> `extractReasoningText`, typed against `ResponseObject`); `requestClient.ts` is now
+> `any`-free. Covered by `tests/responseNormalization.spec.ts`.
 
 ---
 
@@ -138,13 +151,19 @@ tool-preference persistence (`wordmark_tool_preferences`), MCP server loading
 > lines) was extracted from `toolManager.ts` into `tools/staticTools.ts`
 > (`STATIC_TOOLS`), and the per-provider tool filtering now goes through the §1
 > capability predicates. Key-loading persistence is isolated in `apiKeyStorage.ts`
-> (`loadApiKeysIntoConfig`, covered by `tests/apiKeysLoadIntoConfig.spec.ts`). The
-> remaining behavioral core of `toolManager.ts` is **not** cleanly splittable: the
-> tool catalog and MCP-server state are mutually referential (the catalog is
-> rebuilt as MCP servers register/unregister), so a naive `catalog`/`mcp` split
-> would just trade one file for two with a shared-mutable-state seam between them.
-> Left intact pending the §1 `Provider` work, which removes the provider-filtering
-> reason to touch it.
+> (`loadApiKeysIntoConfig`, covered by `tests/apiKeysLoadIntoConfig.spec.ts`).
+>
+> **Done (2026-06-09) — `toolManager.ts` fully split.** An earlier note here
+> claimed the core was "not cleanly splittable" because the catalog and MCP state
+> are mutually referential — that was wrong. Resolved by giving one module sole
+> ownership of the shared mutable state: `tools/catalog.ts` owns
+> `TOOL_CATALOG`/`TOOL_DEFINITIONS` + the `userMcpToolCount` boundary and exposes
+> typed mutators; `tools/preferences.ts` (enable/disable + persistence) and
+> `tools/mcp.ts` (register/unregister + availability ping/cache) depend on it
+> one-way — no cycles. `toolManager.ts` is now a thin facade holding request-time
+> tool filtering + the UI catalog view and re-exporting the sub-modules, so
+> importers (`api.ts`, `requestClient.ts`, tests) are unchanged. Behavior
+> identical; covered by `tests/toolManager.spec.ts` + `tests/mcpServers.ui.spec.ts`.
 
 ---
 
@@ -248,8 +267,8 @@ low-risk, do it incrementally.
 | 1 | §3 IndexedDB helper | low | medium | ✅ done (`openDatabase`) |
 | 2 | §5 storage facade | low | medium | ✅ done (`utils/storage.ts` + key registry) |
 | 3 | §2 split config (logger + data) | low-med | medium | ✅ done (`utils/logger.ts`) |
-| 4 | §1 provider abstraction | **high** | **high** | 🟡 capability registry done (`services/providers.ts`); response normalization deferred |
-| 5 | §4 split god-objects | med | medium | 🟡 `staticTools.ts` + `apiKeyStorage.ts` extracted; toolManager core un-splittable |
+| 4 | §1 provider abstraction | **high** | **high** | ✅ capability registry (`providers.ts`) + non-streaming `responseNormalization.ts`; no stream adapter needed (streaming is provider-agnostic) |
+| 5 | §4 split god-objects | med | medium | ✅ toolManager → `tools/{catalog,preferences,mcp}.ts` + facade; `staticTools.ts`/`apiKeyStorage.ts` extracted |
 | 6 | §6 typed uiHooks | med | medium | ✅ done (`UiHooks` interface) |
 | 7 | §9 tests → TS | low | medium | ✅ done (33 specs `.ts`, `typecheck:tests` strict-clean, 161 pass) |
 | 8 | §7 / §8 | low | low | todo |
