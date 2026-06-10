@@ -2,6 +2,12 @@ import { elements } from "../../init/state.ts";
 import { ttsConfig } from "./config.ts";
 import { config } from "../../../config/config.ts";
 
+/**
+ * Synthesizes speech for `text` using the configured TTS provider (OpenAI or
+ * xAI).
+ *
+ * @returns A WAV audio `ArrayBuffer`, or `null` when TTS is disabled or fails.
+ */
 export async function generateSpeech(text: string) {
   if (!ttsConfig.enabled) {
     return null;

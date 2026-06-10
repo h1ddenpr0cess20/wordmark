@@ -50,10 +50,16 @@ type ActionableCall = CollectedFunctionCall & {
 
 const DEFAULT_INCLUDE_FIELDS = [
   "code_interpreter_call.outputs",
-  // 'reasoning.encrypted_content',
   "web_search_call.action.sources",
 ];
 
+/**
+ * Constructs a Responses API request payload from a turn's options, applying
+ * provider-specific shaping: include fields, reasoning config, and dropping the
+ * `text` block for server-managed tool calls.
+ *
+ * @returns The JSON-serializable request body.
+ */
 export function buildRequestBody({
   inputMessages,
   instructions,
@@ -112,6 +118,7 @@ export function buildRequestBody({
   return payload;
 }
 
+/** Builds request headers, adding a Bearer token when the active service has a key. */
 export function buildHeaders() {
   const apiKey = ensureApiKey();
   const headers: Record<string, string> = {
@@ -124,6 +131,11 @@ export function buildHeaders() {
   return headers;
 }
 
+/**
+ * POSTs a request to the Responses endpoint and returns the streaming response.
+ *
+ * @throws If the response status is not ok.
+ */
 export async function executeStreamingRequest(body: unknown, abortController?: AbortController | null): Promise<Response> {
   const endpoint = `${getBaseUrl()}/responses`;
   const response = await fetch(endpoint, {
@@ -139,6 +151,11 @@ export async function executeStreamingRequest(body: unknown, abortController?: A
   return response;
 }
 
+/**
+ * POSTs a request to the Responses endpoint and returns the parsed JSON body.
+ *
+ * @throws If the response status is not ok.
+ */
 export async function executeNonStreamingRequest(body: unknown, abortController?: AbortController | null): Promise<ResponseObject> {
   const endpoint = `${getBaseUrl()}/responses`;
   const headers = buildHeaders();
@@ -156,6 +173,14 @@ export async function executeNonStreamingRequest(body: unknown, abortController?
   return response.json();
 }
 
+/**
+ * Runs one conversation turn end to end: windows the history to the token
+ * budget, prepends the developer/system message, resolves enabled tools and
+ * vector stores, then drives the multi-turn tool-execution loop (streaming or
+ * non-streaming) until a final response is produced.
+ *
+ * @returns `{ response, outputText, reasoningText }` for the completed turn.
+ */
 export async function runTurn({
   inputMessages,
   instructions,

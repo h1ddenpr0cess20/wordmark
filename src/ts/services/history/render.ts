@@ -110,6 +110,10 @@ function replaceImagePlaceholders(content: Message["content"], convo: Conversati
   });
 }
 
+/**
+ * Renders a loaded conversation's messages into the chat box, resolving image
+ * placeholders against `imageCache`.
+ */
 export function renderConversationMessages(convo: ConversationRecord, imageCache: Map<string, string | Blob>) {
   const chatBox = elements.chatBox;
   if (!chatBox) {

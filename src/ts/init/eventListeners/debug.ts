@@ -66,6 +66,7 @@ function setupAboutTabDebugToggle() {
   }, true);
 }
 
+/** Wires debug-mode triggers, including the triple-click About toggle. */
 export function setupDebugEventListeners() {
   setupAboutTabDebugToggle();
 }

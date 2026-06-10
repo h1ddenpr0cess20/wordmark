@@ -65,6 +65,10 @@ function normalizeViewerItem(source: any, isGalleryMode: boolean): ViewerItem {
   };
 }
 
+/**
+ * Attaches click handlers to images/videos within a message so they open the
+ * conversation-wide media slideshow at the clicked item.
+ */
 export function setupImageInteractions(messageElement: HTMLElement | null) {
   if (!messageElement) {
     return;
@@ -166,6 +170,11 @@ export function setupImageInteractions(messageElement: HTMLElement | null) {
   });
 }
 
+/**
+ * Opens a fullscreen slideshow overlay for `images`, starting at `startIndex`.
+ *
+ * @param isGalleryMode - When `true`, enables gallery-specific controls.
+ */
 export function createImageSlideshow(images: any[], startIndex: number, isGalleryMode = false) {
   if (!images || !images.length) {
     return;

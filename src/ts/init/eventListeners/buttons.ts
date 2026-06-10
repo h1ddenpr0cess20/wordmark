@@ -26,6 +26,7 @@ function closePanelIfActive(closeSettingsPanel: (() => void) | undefined) {
   }
 }
 
+/** Wires header/action button click handlers (new conversation, clear, etc.). */
 export function setupButtonEventListeners(
   { closeSettingsPanel }: { closeSettingsPanel?: (opts?: { focusButton?: boolean }) => void } = {},
 ) {

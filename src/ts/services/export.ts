@@ -291,6 +291,7 @@ function resolveSelectedExportFormat() {
   return "md";
 }
 
+/** Change handler for the export-format selector; validates and persists the choice. */
 export function handleExportFormatChange(event: Event) {
   const target = event ? (event.target as HTMLSelectElement | null) : null;
   const value = target ? target.value : null;
@@ -304,6 +305,7 @@ export function handleExportFormatChange(event: Event) {
   }
 }
 
+/** Initializes the export-format selector from the stored preference. */
 export function initializeExportControls() {
   if (!elements.exportFormatSelector) {
     return;

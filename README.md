@@ -8,7 +8,7 @@
 
 [![Version](https://img.shields.io/github/package-json/v/h1ddenpr0cess20/Wordmark?label=version&color=blue)](https://github.com/h1ddenpr0cess20/Wordmark)
 [![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
-[![JavaScript](https://img.shields.io/badge/javascript-ES6+-yellow.svg)](https://developer.mozilla.org/en-US/docs/Web/JavaScript)
+[![TypeScript](https://img.shields.io/badge/typescript-strict-blue.svg)](https://www.typescriptlang.org/)
 
 <!-- Project and repository status badges -->
 [![Stars](https://img.shields.io/github/stars/h1ddenpr0cess20/Wordmark.svg?logo=github)](https://github.com/h1ddenpr0cess20/Wordmark/stargazers)
@@ -93,8 +93,8 @@ docker run --rm -p 8080:80 wordmark:latest
 
 **Common tasks:**
 
-- **Add tools** — extend the catalog in `src/js/services/api/toolManager.js` and implement handlers (see `src/js/services/weather.js`) — [Tool Calling](docs/tool-calling.md)
-- **Adjust models/providers** — edit `src/config/config.js` — [Services & Models](docs/services.md)
+- **Add tools** — register tool metadata in `src/ts/services/api/staticTools.ts`, implement handlers (see `src/ts/services/weather.ts`), and tune provider quirks in `src/ts/services/providers.ts` — [Tool Calling](docs/tool-calling.md)
+- **Adjust models/providers** — edit `src/config/config.ts` — [Services & Models](docs/services.md)
 - **Themes and styling** — `src/css/themes/**`, `src/css/components/**`
 
 ## Usage

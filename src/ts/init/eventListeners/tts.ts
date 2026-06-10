@@ -14,6 +14,7 @@ import { config } from "../../../config/config.ts";
 import { initializeTts, populateTtsVoiceSelector } from "../ttsInitialization.ts";
 import { updateFeatureStatus } from "../../components/settings.ts";
 
+/** Wires the TTS enable/autoplay toggles, voice selector, and provider controls. */
 export function setupTtsEventListeners() {
   if (elements.ttsToggle) {
     elements.ttsToggle.addEventListener("change", (event) => {

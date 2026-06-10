@@ -13,6 +13,12 @@ export interface ImageCandidate {
   mimeType: string;
 }
 
+/**
+ * Backfills `messageId` onto generated images that predate per-message tracking
+ * by matching them to assistant turns.
+ *
+ * @returns The number of images updated.
+ */
 export function ensureImagesHaveMessageIds() {
   if (!state.generatedImages || !state.conversationHistory) {
     return 0;
@@ -93,6 +99,7 @@ function isProbablyBase64(value: unknown) {
   return /^[A-Za-z0-9+/=]+$/.test(sanitized);
 }
 
+/** Logs an `[image-debug]` message to the console when verbose logging is on. */
 export function imageDebugLog(...args: unknown[]) {
   if (typeof window !== "undefined" && state.verboseLogging) {
     console.info("[image-debug]", ...args);
@@ -134,6 +141,11 @@ function coerceImageDataUrl(rawValue: unknown, mimeTypeHint: unknown) {
   return `data:${mimeType};base64,${base64}`;
 }
 
+/**
+ * Recursively walks an arbitrary response value, collecting image data URLs into
+ * `accumulator`. Uses `seen` to de-duplicate and `visited` to guard against
+ * cyclic structures.
+ */
 export function collectImageCandidates(
   value: any,
   accumulator: ImageCandidate[],
@@ -316,6 +328,10 @@ function determineSourceLabel(node: any, mode: string) {
   return "image_generation";
 }
 
+/**
+ * Extracts generated images from a response payload and registers each as
+ * generated media so it renders and persists. No-op for an invalid payload.
+ */
 export function processImageGenerationOutputs(responsePayload: ResponseObject | null) {
   if (!responsePayload || typeof responsePayload !== "object") {
     imageDebugLog("Skipping image extraction: response payload missing or invalid.");

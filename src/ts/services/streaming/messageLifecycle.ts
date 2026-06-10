@@ -24,6 +24,11 @@ import { highlightAndAddCopyButtons, generateMessageId, addMessageCopyButton } f
 import { setupImageInteractions } from "../../components/ui/imageInteractions.ts";
 import type { StreamedMessageContent } from "../../../types/api.ts";
 
+/**
+ * Finalizes a streamed assistant message: renders content/reasoning, processes
+ * any generated images and code-interpreter outputs, triggers TTS, and persists
+ * the conversation.
+ */
 export function finalizeStreamedResponse(loadingMessage: HTMLElement | null, contentObj: string | StreamedMessageContent) {
   if (!loadingMessage) {
     return;
@@ -290,6 +295,10 @@ export function finalizeStreamedResponse(loadingMessage: HTMLElement | null, con
   state.currentGeneratedImageHtml = [];
 }
 
+/**
+ * Applies final styling to a completed message: highlights code, adds copy
+ * buttons, and assigns an id if missing.
+ */
 export function updateFinalMessage(loadingMessage: HTMLElement | null) {
   if (!loadingMessage) {
     return;
@@ -308,6 +317,11 @@ export function updateFinalMessage(loadingMessage: HTMLElement | null) {
   addMessageCopyButton(loadingMessage, loadingMessage.id);
 }
 
+/**
+ * Re-renders a message's content in place during streaming: separates reasoning
+ * from main text, injects generated images, builds the collapsible reasoning
+ * panel, and renders code-interpreter outputs.
+ */
 export function updateMessageContent(loadingMessage: HTMLElement | null, assistantMessageObj: string | StreamedMessageContent) {
   if (!loadingMessage) {
     return;
@@ -380,6 +394,7 @@ export function updateMessageContent(loadingMessage: HTMLElement | null, assista
   updateFinalMessage(loadingMessage);
 }
 
+/** Removes the loading-indicator message element for `loadingId`, if present. */
 export function removeLoadingIndicator(loadingId: string) {
   const loadingMessage = document.getElementById(loadingId);
   if (loadingMessage && elements.chatBox) {
@@ -387,6 +402,7 @@ export function removeLoadingIndicator(loadingId: string) {
   }
 }
 
+/** Clears the loading indicator and shows an "unexpected response" error. */
 export function handleInvalidResponse(loadingId: string) {
   removeLoadingIndicator(loadingId);
   if (showError) {

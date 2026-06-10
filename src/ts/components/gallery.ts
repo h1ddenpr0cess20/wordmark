@@ -94,7 +94,7 @@ const initGallery = function() {
   initializeGalleryTabs();
 
   // Note: Outside click handling for all panels (gallery, settings, history)
-  // is consolidated in eventListeners.js to avoid conflicts
+  // is consolidated in eventListeners.ts to avoid conflicts
 };
 
 /**

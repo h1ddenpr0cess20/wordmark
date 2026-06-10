@@ -15,6 +15,7 @@ import { setupChatHistoryEventListeners } from "./eventListeners/history.ts";
 import { setupDebugEventListeners } from "./eventListeners/debug.ts";
 import { DEFAULT_SHORT_RESPONSE_GUIDELINE } from "../../config/config.ts";
 
+/** Aggregator that wires every feature area's event listeners during startup. */
 export function setupEventListeners() {
   if (state.verboseLogging) {
     console.info("Setting up event listeners...");

@@ -5,6 +5,7 @@ import { loadToolScripts } from "../../utils/toolLoader.ts";
 import { updateFeatureStatus } from "../../components/settings.ts";
 import { updateMasterToolCallingStatus } from "../../components/tools.ts";
 import { config } from "../../../config/config.ts";
+/** Wires the master tool-calling toggle and loads tool scripts when enabled. */
 export function setupToolCallingEventListeners() {
   if (!elements.toolCallingToggle) {
     return;

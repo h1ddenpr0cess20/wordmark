@@ -33,7 +33,11 @@ import {
   selectDefaultService,
 } from "./services.ts";
 
-// Main initialization function
+/**
+ * Application entry point invoked once panels are loaded: caches DOM, applies
+ * settings/theme, wires event listeners, and initializes services, tools, and
+ * conversation state.
+ */
 export async function initialize() {
   try {
     if (state.verboseLogging) {

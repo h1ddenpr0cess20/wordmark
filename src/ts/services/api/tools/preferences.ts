@@ -13,6 +13,7 @@ const TOOL_STORAGE_KEY = STORAGE_KEYS.toolPreferences;
 
 let toolPreferences = loadToolPreferences();
 
+/** Reads the persisted tool-preference map from localStorage, or `{}`. */
 export function loadToolPreferences(): Record<string, boolean> {
   const parsed = readJSON<Record<string, boolean>>(TOOL_STORAGE_KEY, {});
   return parsed && typeof parsed === "object" ? parsed : {};
@@ -26,6 +27,10 @@ function saveToolPreferences(prefs: Record<string, boolean>) {
   }
 }
 
+/**
+ * Returns the stored preference for `key`, or `defaultEnabled` when the tool
+ * has no explicit preference.
+ */
 export function getToolPreference(key: string, defaultEnabled: boolean): boolean {
   if (Object.prototype.hasOwnProperty.call(toolPreferences, key)) {
     return Boolean(toolPreferences[key]);
@@ -33,6 +38,7 @@ export function getToolPreference(key: string, defaultEnabled: boolean): boolean
   return defaultEnabled;
 }
 
+/** Reports whether the catalog tool `key` is currently enabled. */
 export function isToolEnabled(key: string): boolean {
   const tool = TOOL_CATALOG.find(item => item.key === key);
   if (!tool) {
@@ -41,6 +47,7 @@ export function isToolEnabled(key: string): boolean {
   return getToolPreference(key, tool.defaultEnabled !== false);
 }
 
+/** Enables or disables a single catalog tool and persists the change. */
 export function setToolEnabled(key: string, enabled: boolean) {
   const tool = TOOL_CATALOG.find(item => item.key === key);
   if (!tool) {
@@ -53,6 +60,7 @@ export function setToolEnabled(key: string, enabled: boolean) {
   saveToolPreferences(toolPreferences);
 }
 
+/** Sets every catalog tool to the same enabled state and persists the change. */
 export function setAllToolsEnabled(enabled: boolean) {
   const updated = { ...toolPreferences };
   TOOL_CATALOG.forEach(tool => {

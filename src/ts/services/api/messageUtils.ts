@@ -179,6 +179,11 @@ function buildUserContentFromString(message: Message): string | ContentPart[] {
   return parts;
 }
 
+/**
+ * Converts conversation messages into Responses API input format, expanding
+ * `[[IMAGE: ...]]` placeholders and inline attachments into multimodal content
+ * parts. Invalid entries are dropped.
+ */
 export function serializeMessagesForRequest(messages: Message[] = []): Message[] {
   if (!Array.isArray(messages)) {
     return [];
@@ -310,6 +315,11 @@ export function windowMessagesByTokenBudget(messages: Message[], budget: number)
   return kept;
 }
 
+/**
+ * Extracts function/tool calls from a response's output array, handling the
+ * several shapes providers use (top-level calls, message `tool_calls`, and
+ * message content parts). Each result carries parsed args plus the raw JSON.
+ */
 export function collectFunctionCalls(responseOutput: ResponseOutputItem[] = []): CollectedFunctionCall[] {
   const calls: CollectedFunctionCall[] = [];
 
@@ -429,6 +439,10 @@ export function collectFunctionCalls(responseOutput: ResponseOutputItem[] = []):
   return calls;
 }
 
+/**
+ * Resolves the active system instructions from the prompt settings: empty for
+ * "no prompt", the custom prompt, the personality prompt, or the default.
+ */
 export function buildInstructions() {
   if (elements.noPromptRadio && elements.noPromptRadio.checked) {
     return "";
@@ -446,6 +460,11 @@ export function buildInstructions() {
   return `${basePrompt}${state.shortResponseGuideline || ""}`.trim();
 }
 
+/**
+ * Builds the developer/system message: the active instructions augmented with
+ * location context and the current timestamp. Returns `""` when there are no
+ * instructions.
+ */
 export function buildDeveloperMessage() {
   const instructions = buildInstructions();
   if (!instructions) {

@@ -3,6 +3,10 @@ import { ttsAudioResources } from "./resources.ts";
 import { playNextMessageInQueue, playQueuedTtsMessage } from "./queue.ts";
 import { state } from "../../init/state.ts";
 
+/**
+ * Stops and resets the active TTS audio, revokes its object URL, and resets all
+ * play/pause buttons to the idle "play" state.
+ */
 export function stopTtsAudio() {
   if (!ttsRuntime.activeTtsAudio) {
     return;
@@ -41,6 +45,10 @@ export function stopTtsAudio() {
   }
 }
 
+/**
+ * Plays a one-off TTS clip from raw audio data (used for previews/tests),
+ * stopping any current playback and cleaning up the object URL on end/error.
+ */
 export function playTtsAudio(audioData: ArrayBuffer) {
   if (!audioData) {
     return;
@@ -76,6 +84,10 @@ export function playTtsAudio(audioData: ArrayBuffer) {
   }
 }
 
+/**
+ * Builds an `onended` handler for a message's audio element that resets its
+ * controls, clears active-audio state, and advances the queue when autoplaying.
+ */
 export function handleTtsAudioEnded(playPauseButton: HTMLElement, statusText: HTMLElement, audioUrl: string, isPlayingRef: { isPlaying: boolean }) {
   return function() {
     if (isPlayingRef) {
@@ -103,6 +115,7 @@ export function handleTtsAudioEnded(playPauseButton: HTMLElement, statusText: HT
   };
 }
 
+/** Clears active-audio state and plays the next queued message when autoplaying. */
 export function handleAudioEnded() {
   if (state.verboseLogging) {
     console.info("Audio finished, checking for next message in queue");
@@ -115,6 +128,7 @@ export function handleAudioEnded() {
   }
 }
 
+/** Logs a playback error, clears active-audio state, and advances the queue. */
 export function handleAudioError(event: Event | string) {
   console.error("Audio playback error:", event);
   ttsRuntime.activeTtsAudio = null;

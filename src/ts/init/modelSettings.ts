@@ -62,6 +62,10 @@ function modelSupportsReasoning(modelName: string) {
   return true;
 }
 
+/**
+ * Enables or disables the reasoning-effort control based on whether the active
+ * model and service support reasoning.
+ */
 export function updateReasoningAvailability() {
   if (!elements.reasoningEffortSelector) {
     return;
@@ -208,6 +212,10 @@ export function initializeModelSettings() {
   updateReasoningAvailability();
 }
 
+/**
+ * Returns the normalized reasoning effort for the active model/service, or
+ * `null` when reasoning is unsupported.
+ */
 export function getReasoningEffort() {
   const modelName = elements.modelSelector ? elements.modelSelector.value : "";
   const activeService = elements.serviceSelector ? elements.serviceSelector.value : (config && config.defaultService) || "openai";
@@ -217,6 +225,7 @@ export function getReasoningEffort() {
   return normalizeReasoningEffort(state.currentReasoningEffort);
 }
 
+/** Normalizes, stores, persists, and reflects the reasoning-effort value in the UI. */
 export function setReasoningEffort(value: string) {
   const normalized = normalizeReasoningEffort(value);
   state.currentReasoningEffort = normalized;
@@ -226,10 +235,12 @@ export function setReasoningEffort(value: string) {
   }
 }
 
+/** Returns the normalized conversation-history token budget. */
 export function getHistoryTokenBudget() {
   return normalizeHistoryTokenBudget(state.historyTokenBudget);
 }
 
+/** Returns the normalized response-verbosity setting. */
 export function getVerbosity() {
   return normalizeVerbosity(state.currentVerbosity);
 }

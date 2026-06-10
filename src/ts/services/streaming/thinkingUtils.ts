@@ -5,6 +5,11 @@
 import { marked } from "marked";
 import { sanitizeWithMedia } from "../../utils/sanitize.ts";
 
+/**
+ * Renders streamed markdown to sanitized HTML: closes any dangling code
+ * fence/inline-code so partial streams parse, then hides `[[IMAGE: ...]]`
+ * placeholders behind a CSS class.
+ */
 export function processMainContentMarkdown(mainText: string) {
   let html = mainText;
 
@@ -26,6 +31,12 @@ export function processMainContentMarkdown(mainText: string) {
   return parsedContent;
 }
 
+/**
+ * Splits text into main content and reasoning by extracting `<think>...</think>`
+ * segments.
+ *
+ * @returns `{ content, reasoning }` with the reasoning segments removed from content.
+ */
 export function separateThinkingSegments(text: string) {
   if (typeof text !== "string" || !text) {
     return { content: text || "", reasoning: "" };

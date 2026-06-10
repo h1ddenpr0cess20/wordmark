@@ -56,7 +56,6 @@ function initApiKeys(retryCount: number = 0) {
   // Get DOM references for main API keys
   const openaiInput = document.getElementById("openai-api-key") as HTMLInputElement | null;
   const xaiInput = document.getElementById("xai-api-key") as HTMLInputElement | null;
-  // const huggingfaceInput = document.getElementById("huggingface-api-key") as HTMLInputElement | null;
   const saveKeysButton = document.getElementById("save-api-keys");
   const lmStudioUrlInput = document.getElementById("lmstudio-server-url") as HTMLInputElement | null;
   const saveLmStudioButton = document.getElementById("save-lmstudio-url");
@@ -543,13 +542,6 @@ function ensureApiKeysLoaded() {
 
   // Track warnings to avoid repetition
   shownApiKeyWarnings = shownApiKeyWarnings || new Set();
-
-  // Notification disabled - users can check API key status in settings if needed
-  // if (!apiKey && showWarning && !shownApiKeyWarnings.has(service)) {
-  //     const name = service.charAt(0).toUpperCase() + service.slice(1);
-  //     showWarning(`${name} API key is missing. Please add it in the API Keys settings.`);
-  //     shownApiKeyWarnings.add(service);
-  // }
 };
 
 /**

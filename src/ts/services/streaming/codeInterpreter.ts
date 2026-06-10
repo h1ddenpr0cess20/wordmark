@@ -195,6 +195,10 @@ function gatherOutputsFromValue(value: any, context: GatherContext) {
   }
 }
 
+/**
+ * Walks a response payload and collects code-interpreter results, separating
+ * file/image attachments from text logs and de-duplicating by id.
+ */
 export function extractCodeInterpreterOutputs(responsePayload: ResponseObject | null): CodeInterpreterOutputs {
   const attachments: CodeAttachment[] = [];
   const logs: CodeLog[] = [];
@@ -578,6 +582,10 @@ async function downloadFileContent(attachment: CodeAttachment | null) {
   }, 2000);
 }
 
+/**
+ * Renders extracted code-interpreter outputs (attachments and logs) into a
+ * message element. No-op when the element or outputs are missing.
+ */
 export function renderCodeInterpreterOutputs(messageElement: HTMLElement | null, outputs: CodeInterpreterOutputs | null) {
   if (!messageElement) {
     return;

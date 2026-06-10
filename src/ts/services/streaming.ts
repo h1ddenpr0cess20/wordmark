@@ -6,6 +6,15 @@ import { setupImageInteractions } from "../components/ui/imageInteractions.ts";
 
 export { ensureImagesHaveMessageIds };
 
+/**
+ * Consumes a streaming Responses API body, parsing SSE `event:`/`data:` frames
+ * and feeding them to the event processor, which incrementally renders content,
+ * reasoning, tool calls, and images into the loading message.
+ *
+ * @param response - The streaming fetch response.
+ * @param loadingId - DOM id of the placeholder message to render into.
+ * @returns `{ response, outputText, reasoningText }` for the finished turn.
+ */
 export async function handleStreamedResponse(response: Response, loadingId: string) {
   const loadingMessage = document.getElementById(loadingId);
   if (!loadingMessage) {

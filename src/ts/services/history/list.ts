@@ -6,6 +6,10 @@ import {
 import { DEFAULT_PERSONALITY } from "../../../config/config.ts";
 import { startNewConversation, loadConversation, renameConversation } from "./persistence.ts";
 
+/**
+ * Renders the saved-conversation list into the history panel, wiring each
+ * entry's load, rename, and delete actions.
+ */
 export function renderChatHistoryList() {
   const historyList = elements.historyList;
   if (!historyList) {

@@ -6,6 +6,11 @@ import { ttsAudioResources } from "./resources.ts";
 import { generateSpeech } from "./api.ts";
 import { stopTtsAudio, handleTtsAudioEnded } from "./playback.ts";
 import { playNextMessageInQueue } from "./queue.ts";
+/**
+ * Generates TTS for a finished message. When autoplay is on, synthesizes audio,
+ * attaches playback controls, and enqueues it; otherwise attaches on-demand
+ * placeholder controls. Skips trigger-keyword/system messages.
+ */
 export async function generateTtsForMessage(text: string, messageId: string) {
   if (!ttsConfig.enabled) {
     return;
@@ -69,6 +74,10 @@ export async function generateTtsForMessage(text: string, messageId: string) {
   }
 };
 
+/**
+ * Adds a play button that synthesizes audio on first click (used when autoplay
+ * is off), then swaps in full playback controls.
+ */
 export function addPlaceholderTtsControls(messageId: string, text: string) {
   const messageElement = document.getElementById(messageId);
   if (!messageElement) {
@@ -150,6 +159,10 @@ export function addPlaceholderTtsControls(messageId: string, text: string) {
   }
 };
 
+/**
+ * Attaches full TTS playback controls (play/pause, status, download) backed by
+ * already-synthesized `audioData` to a message, replacing any existing controls.
+ */
 export function addTtsControlsToMessage(audioData: ArrayBuffer, messageId: string, originalText: string) {
   const messageElement = document.getElementById(messageId);
   if (!messageElement) {

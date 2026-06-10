@@ -104,6 +104,7 @@ function setupPersonalityPresetEventListeners(closeSettingsPanel: (() => void) |
   });
 }
 
+/** Wires the system-prompt radios and personality/custom-prompt input fields. */
 export function setupPromptEventListeners(
   { closeSettingsPanel }: { closeSettingsPanel?: (opts?: { focusButton?: boolean }) => void } = {},
 ) {

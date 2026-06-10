@@ -145,6 +145,13 @@ function renderMCPServersList() {
   });
 }
 
+/**
+ * Prompts the user to confirm removing an MCP server, then unregisters it.
+ *
+ * @param serverLabel - The server label to remove.
+ * @param fallbackDisplayName - Name shown if the server is no longer in storage.
+ * @returns `true` if the server was removed.
+ */
 export function requestMcpServerRemoval(serverLabel: string, fallbackDisplayName?: string) {
   if (!serverLabel) {
     return false;
@@ -275,7 +282,7 @@ function handleAddServer() {
     return;
   }
 
-  // Create server configuration matching api.js TOOL_CATALOG format
+  // Create server configuration matching the tools/catalog.ts TOOL_CATALOG format
   const server = {
     displayName,
     server_label,

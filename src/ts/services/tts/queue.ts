@@ -3,6 +3,11 @@ import { shouldSkipTts } from "./filters.ts";
 import { stopTtsAudio } from "./playback.ts";
 import { state } from "../../init/state.ts";
 
+/**
+ * Plays the next queued message by clicking its play control, skipping entries
+ * whose elements/controls are gone. Stops when the queue empties or autoplay is
+ * off, and no-ops while audio is already playing.
+ */
 export function playNextMessageInQueue() {
   if (!ttsMessageQueue.length || !ttsConfig.autoplay) {
     if (state.verboseLogging) {
@@ -51,6 +56,10 @@ export function playNextMessageInQueue() {
   setTimeout(() => playNextMessageInQueue(), 100);
 }
 
+/**
+ * Enqueues a message for autoplay (when enabled and not filtered), starting the
+ * autoplay sequence if nothing is currently playing.
+ */
 export function addMessageToTtsQueue(messageId: string) {
   if (!ttsConfig.enabled || !ttsConfig.autoplay) {
     return;
@@ -77,6 +86,7 @@ export function addMessageToTtsQueue(messageId: string) {
   }
 }
 
+/** Activates the autoplay sequence and begins playing the queue, if idle. */
 export function startTtsAutoplay() {
   if (ttsConfig.enabled && ttsConfig.autoplay && !ttsRuntime.autoplayActive) {
     ttsRuntime.autoplayActive = true;
@@ -89,6 +99,7 @@ export function startTtsAutoplay() {
   }
 }
 
+/** Deactivates autoplay and stops any currently playing audio. */
 export function stopTtsAutoplay() {
   if (ttsRuntime.autoplayActive) {
     ttsRuntime.autoplayActive = false;
@@ -99,7 +110,7 @@ export function stopTtsAutoplay() {
   }
 }
 
-// Legacy helper used by older handlers – keep as thin wrapper
+/** Thin wrapper around {@link playNextMessageInQueue} kept for older handlers. */
 export function playQueuedTtsMessage() {
   playNextMessageInQueue();
 }

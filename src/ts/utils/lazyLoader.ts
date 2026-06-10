@@ -8,6 +8,7 @@ export const lazyModulesLoaded: Record<string, boolean> = {};
 
 let galleryModule: typeof import("../components/gallery.ts") | null = null;
 
+/** Dynamically imports the gallery module once, caching the resolved module. */
 export function loadGalleryModule() {
   if (galleryModule) {
     return Promise.resolve(galleryModule);

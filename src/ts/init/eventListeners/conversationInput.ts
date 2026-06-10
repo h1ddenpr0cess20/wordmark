@@ -1,6 +1,7 @@
 import { elements, state } from "../state.ts";
 import { loadGalleryModule } from "../../utils/lazyLoader.ts";
 import { sendMessage } from "../../components/interaction.ts";
+/** Wires the message input box: send button, Enter-to-send, and related keys. */
 export function initializeConversationInput() {
   const userInput = elements.userInput;
   if (!userInput || !elements.sendButton) {

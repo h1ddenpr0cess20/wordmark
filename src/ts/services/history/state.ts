@@ -5,6 +5,10 @@ import { updateHeaderInfo } from "../../components/settings.ts";
 import { config } from "../../../config/config.ts";
 import type { Message } from "../../../types/api.ts";
 
+/**
+ * Pushes the current conversation, model/service selection, and prompt settings
+ * onto the browser history stack so back/forward navigation restores them.
+ */
 export function updateBrowserHistory() {
   let systemPromptValue = "";
   let promptType = "none";
@@ -30,6 +34,10 @@ export function updateBrowserHistory() {
   window.history.pushState(newHistoryState, "Chat");
 };
 
+/**
+ * Imports a conversation from a `?chat=` URL parameter, rendering its messages,
+ * restoring the model selection, and saving the imported conversation.
+ */
 export function loadFromUrl() {
   if (!window.location.search) {
     return;

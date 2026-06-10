@@ -35,6 +35,10 @@ const mcpStatusCache = new Map<string, { online: boolean | null; checkedAt: numb
 let lastMcpRefresh = 0;
 let mcpRefreshPromise: Promise<void> | null = null;
 
+/**
+ * Returns the cached online status for an MCP tool: `true`/`false` once probed,
+ * or `null` when its availability is still unknown.
+ */
 export function getCachedMcpStatus(toolKey: string): boolean | null {
   const entry = mcpStatusCache.get(toolKey);
   return entry ? entry.online : null;
@@ -48,6 +52,13 @@ function setCachedMcpStatus(toolKey: string, online: boolean | null) {
   }
 }
 
+/**
+ * Adds (or replaces) an MCP server in the catalog.
+ *
+ * @param serverConfig - The MCP server configuration.
+ * @param options.silent - When `true`, leaves the cached status untouched.
+ * @returns The created tool entry, or `null` if the config was invalid.
+ */
 export function registerMcpServer(serverConfig: McpServerConfig, options: { silent?: boolean } = {}): ToolEntry | null {
   const { silent = false } = options;
   const entry = buildMcpToolEntry(serverConfig);
@@ -68,6 +79,13 @@ export function registerMcpServer(serverConfig: McpServerConfig, options: { sile
   return entry;
 }
 
+/**
+ * Removes an MCP server from the catalog.
+ *
+ * @param serverLabel - The server label (without the `mcp:` prefix).
+ * @param options.silent - When `true`, keeps the tool's stored preference.
+ * @returns `true` if a matching server was removed.
+ */
 export function unregisterMcpServer(serverLabel: string, options: { silent?: boolean } = {}): boolean {
   if (!serverLabel) {
     return false;
@@ -91,6 +109,13 @@ export function unregisterMcpServer(serverLabel: string, options: { silent?: boo
   return true;
 }
 
+/**
+ * Pings enabled MCP servers and updates their cached online status. Honors the
+ * {@link MCP_ASSUME_ONLINE} override, the offline navigator state, and a refresh
+ * interval so concurrent callers share one in-flight check.
+ *
+ * @param force - When `true`, ignores the cache interval and any in-flight run.
+ */
 export function refreshMcpAvailability(force = false): Promise<void> {
   const mcpTools = TOOL_CATALOG.filter(tool => tool.type === "mcp");
   if (typeof window !== "undefined" && MCP_ASSUME_ONLINE === true) {
@@ -136,6 +161,10 @@ export function refreshMcpAvailability(force = false): Promise<void> {
   return mcpRefreshPromise;
 }
 
+/**
+ * Reports whether a URL points at a local/private network host (localhost,
+ * loopback, RFC 1918 ranges, or an `.local` mDNS name).
+ */
 export function isLocalNetworkUrl(url: string): boolean {
   try {
     const parsed = new URL(url);

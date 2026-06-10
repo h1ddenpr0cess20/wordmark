@@ -11,6 +11,12 @@ async function fetchJson(url: string, options?: RequestInit) {
   return response.json();
 }
 
+/**
+ * Weather tool handler: geocodes `args.city` and returns an Open-Meteo forecast
+ * for up to `args.days`.
+ *
+ * @returns The forecast result, or `{ error }` when the city is missing/unresolved.
+ */
 export async function openMeteoForecast(args: any = {}) {
   const city = (args.city || "").trim();
   if (!city) {

@@ -1,6 +1,7 @@
 import { elements } from "../state.ts";
 import { renderChatHistoryList } from "../../services/history/list.ts";
 import { updatePanelOpenState } from "./settingsPanel.ts";
+/** Wires the history panel toggle button and renders the conversation list. */
 export function setupChatHistoryEventListeners() {
   const historyButton = elements.historyButton;
   const historyPanel = elements.historyPanel;

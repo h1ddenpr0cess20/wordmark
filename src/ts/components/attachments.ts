@@ -11,6 +11,10 @@ state.pendingUploads = [];
 state.pendingDocuments = [];
 state.activeVectorStore = null;
 
+/**
+ * Wires the image/document upload inputs, upload button, and drag-and-drop on
+ * the input area, routing selected files into the pending-attachment state.
+ */
 export function initImageUploads() {
   const uploadInput = document.getElementById("image-upload") as HTMLInputElement | null;
   const directoryInput = document.getElementById("directory-upload") as HTMLInputElement | null;

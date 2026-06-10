@@ -25,7 +25,7 @@ export { applyConsoleLogging } from "../ts/utils/logger.ts";
 export const MCP_ASSUME_ONLINE = true;
 
 // Application version. Single source of truth is package.json ("version");
-// `__APP_VERSION__` is injected from it at build time by vite.config.js (and by
+// `__APP_VERSION__` is injected from it at build time by vite.config.ts (and by
 // tests/helpers/registerLoaders.mjs for the test runner). Bump package.json only.
 export const APP_VERSION = __APP_VERSION__;
 
@@ -385,12 +385,12 @@ export const config: Config = {
 
     // Helper to get the API key for the current service
     getApiKey: function() {
-        // First, check if the API key is available in the active service (which will be updated by apiKeys.js)
+        // First, check if the API key is available in the active service (which will be updated by apiKeys.ts)
         return this.getActiveService().apiKey;
     },
 
     // Helper to get the base URL for the current service.
-    // LM Studio/Ollama URL overrides are applied by apiKeys.js writing the
+    // LM Studio/Ollama URL overrides are applied by apiKeys.ts writing the
     // chosen URL directly into services.<svc>.baseUrl, so reading the active
     // service's baseUrl already reflects any stored override.
     getBaseUrl: function() {

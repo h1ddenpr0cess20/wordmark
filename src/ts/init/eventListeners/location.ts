@@ -2,6 +2,7 @@ import { elements, state } from "../state.ts";
 import { showError } from "../../utils/notifications.ts";
 import { updateFeatureStatus } from "../../components/settings.ts";
 import { requestLocation, disableLocation, updateLocationUI } from "../../services/location.ts";
+/** Wires the location toggle to request/disable geolocation and update its UI. */
 export function setupLocationEventListeners() {
   const locationToggle = elements.locationToggle;
   if (!locationToggle) {

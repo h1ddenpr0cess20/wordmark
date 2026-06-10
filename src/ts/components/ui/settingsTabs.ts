@@ -3,6 +3,7 @@ import { isLocalService } from "../../services/providers.ts";
 import { openSettingsAndSwitch } from "../../init/eventListeners/settingsPanel.ts";
 import { config } from "../../../config/config.ts";
 import { state } from "../../init/state.ts";
+/** Wires settings tab buttons so clicking one activates its tab and content panel. */
 export function initTabs() {
   const tabButtons = document.querySelectorAll<HTMLElement>(".tab-button");
   const tabContents = document.querySelectorAll<HTMLElement>(".tab-content");
@@ -35,6 +36,7 @@ export function initTabs() {
   });
 }
 
+/** Programmatically activates the settings tab whose button has id `tabId`. */
 export function switchToTab(tabId: string) {
   const tabButtons = document.querySelectorAll<HTMLElement>(".tab-button");
   const tabContents = document.querySelectorAll<HTMLElement>(".tab-content");
@@ -69,10 +71,11 @@ function checkApiKeysMissing() {
     return false;
   }
 
-  const apiKey =getApiKey(currentService);
+  const apiKey = getApiKey(currentService);
   return !apiKey || apiKey.trim() === "";
 }
 
+/** Opens settings on the API Keys tab when the active cloud service lacks a key. */
 export function openApiKeysTabIfNeeded() {
   if (!checkApiKeysMissing()) {
     return;

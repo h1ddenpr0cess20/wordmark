@@ -21,10 +21,12 @@ export const TOOL_DEFINITIONS: ToolDefinition[] = [];
 // Tracking the boundary keeps MCP inserts/removals from disturbing static order.
 let userMcpToolCount = 0;
 
+/** Returns a deep copy of a tool definition so catalog edits never alias state. */
 export function cloneDefinition(definition: ToolDefinition): ToolDefinition {
   return JSON.parse(JSON.stringify(definition));
 }
 
+/** Reads the user's persisted MCP server configs from localStorage, or `[]`. */
 export function loadUserMCPServers(): McpServerConfig[] {
   try {
     const stored = localStorage.getItem(STORAGE_KEYS.mcpServers);
@@ -37,6 +39,10 @@ export function loadUserMCPServers(): McpServerConfig[] {
   }
 }
 
+/**
+ * Builds a catalog entry from an MCP server config, or `null` when the config
+ * is missing a label or URL.
+ */
 export function buildMcpToolEntry(server: McpServerConfig): ToolEntry | null {
   if (!server || !server.server_label || !server.server_url) {
     return null;
@@ -57,39 +63,47 @@ export function buildMcpToolEntry(server: McpServerConfig): ToolEntry | null {
   };
 }
 
+/** Inserts an MCP tool at the MCP/static boundary and advances the boundary. */
 export function insertMcpTool(toolEntry: ToolEntry) {
   TOOL_CATALOG.splice(userMcpToolCount, 0, toolEntry);
   TOOL_DEFINITIONS.splice(userMcpToolCount, 0, cloneDefinition(toolEntry.definition));
   userMcpToolCount += 1;
 }
 
+/** Replaces the catalog entry and matching definition at `index` in place. */
 export function replaceToolAt(index: number, toolEntry: ToolEntry) {
   TOOL_CATALOG[index] = toolEntry;
   TOOL_DEFINITIONS[index] = cloneDefinition(toolEntry.definition);
 }
 
+/** Appends a static tool after the MCP region, preserving static order. */
 export function addStaticTool(toolEntry: ToolEntry) {
   TOOL_CATALOG.push(toolEntry);
   TOOL_DEFINITIONS.push(cloneDefinition(toolEntry.definition));
 }
 
+/** Removes the catalog entry and matching definition at `index`. */
 export function removeToolAt(index: number) {
   TOOL_CATALOG.splice(index, 1);
   TOOL_DEFINITIONS.splice(index, 1);
 }
 
+/** Returns the number of user MCP tools occupying the front of the catalog. */
 export function getUserMcpToolCount(): number {
   return userMcpToolCount;
 }
 
+/** Decrements the MCP tool count (floored at zero) after an MCP removal. */
 export function decrementUserMcpToolCount() {
   userMcpToolCount = Math.max(0, userMcpToolCount - 1);
 }
 
+/** Returns the catalog index for `key`, or `-1` if absent. */
 export function findToolIndex(key: string): number {
   return TOOL_CATALOG.findIndex(tool => tool.key === key);
 }
 
+/** Returns the catalog entry for `key`, or `undefined` if absent. */
 export function findTool(key: string): ToolEntry | undefined {
   return TOOL_CATALOG.find(tool => tool.key === key);
 }

@@ -57,7 +57,7 @@ export function updateModelsDropdown(fetchError?: boolean) {
   }
 }
 
-// Register on the uiHooks registry so config.js can trigger dropdown refreshes
+// Register on the uiHooks registry so config.ts can trigger dropdown refreshes
 // after fetching provider models without importing the component graph.
 uiHooks.updateModelsDropdown = updateModelsDropdown;
 
@@ -159,6 +159,10 @@ export function getDataSettingsEnabled() {
   }
 }
 
+/**
+ * Persists the data-features toggle, syncs the Data tab control, and refreshes
+ * the disabled state and header badges.
+ */
 export function setDataSettingsEnabled(enabled: boolean) {
   try {
     localStorage.setItem(STORAGE_KEYS.dataSettingsEnabled, enabled ? "true" : "false");
@@ -176,6 +180,10 @@ export function setDataSettingsEnabled(enabled: boolean) {
   try { updateFeatureStatus(); } catch { /* noop */ }
 }
 
+/**
+ * Enables or disables (inert + banner) the Data settings tab UI to match the
+ * current data-features preference.
+ */
 export function applyDataSettingsState() {
   const content = document.getElementById("content-data");
   if (!content) return;

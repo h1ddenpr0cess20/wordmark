@@ -15,6 +15,10 @@ hljs.configure({
 
 let hljsInitialHighlightDone = false;
 
+/**
+ * Highlights any code blocks already present in the DOM on first call, recording
+ * each block's original text for copy support. Subsequent calls are no-ops.
+ */
 export function loadHighlightJS() {
   if (hljsInitialHighlightDone) {
     return Promise.resolve();
@@ -108,13 +112,10 @@ export function addCopyButton(codeBlock: HTMLElement) {
     if (codeBlock.parentNode) {
       codeBlock.parentNode.insertBefore(copyButton, codeBlock);
     } else {
-      // Fallback or error handling if the structure isn't as expected
       console.error("Could not find parentNode to attach copy button.");
-      // As a last resort, append it to the body
-      // document.body.appendChild(copyButton);
     }
   }
 }
 
 // Note: rehighlightCodeBlocks (theme-change rehighlight) is defined in
-// components/theme.js, which owns the active implementation.
+// components/theme.ts, which owns the active implementation.

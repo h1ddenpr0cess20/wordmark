@@ -28,6 +28,15 @@ function renderAssistantIcon(senderElement: HTMLElement) {
   }
 }
 
+/**
+ * Appends a chat message bubble to the chat box.
+ *
+ * @param sender - Display label for the message author.
+ * @param content - Message text/markdown.
+ * @param type - CSS type class (e.g. `"user"`, `"assistant"`, `"system-message"`).
+ * @param skipHistory - When `true`, renders without pushing to conversation history.
+ * @returns The created message element.
+ */
 export function appendMessage(sender: string, content: string, type: string, skipHistory = false) {
   const messageElement = document.createElement("div");
   messageElement.classList.add("message");
@@ -93,6 +102,12 @@ export function appendMessage(sender: string, content: string, type: string, ski
   return messageElement;
 }
 
+/**
+ * Appends an assistant message, rendering its markdown/reasoning and (unless
+ * `skipHistory`) recording it in conversation history with a generated id.
+ *
+ * @returns The created message element.
+ */
 export function appendAssistantMessage(assistantMessage: string, skipHistory = false) {
   let msgId: string | null = null;
   if (!skipHistory) {

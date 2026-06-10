@@ -47,6 +47,7 @@ function escapeHtmlAttribute(value: unknown): string {
     .replace(/>/g, "&gt;");
 }
 
+/** Reports whether a MIME type is a video type. */
 export function isVideoMimeType(mimeType: string = ""): boolean {
   return /^video\//i.test(mimeType);
 }
@@ -63,6 +64,11 @@ function inferMimeTypeFromFilename(filename: string = ""): string {
   return "image/png";
 }
 
+/**
+ * Classifies a media source as `"video"` or `"image"`, preferring an explicit
+ * media type, then the MIME type (inferred from the filename if absent), then a
+ * `data:video/` URL prefix.
+ */
 export function detectMediaType(
   source: { mediaType?: unknown; mimeType?: unknown; filename?: string; url?: unknown } = {},
 ): "video" | "image" {
@@ -98,6 +104,7 @@ function makeFilename(prefix: string, mimeType: string): string {
   return `${base}-${Date.now()}-${Math.random().toString(36).slice(2, 10)}.${extension}`;
 }
 
+/** Builds a sanitized `<video>` or `<img>` thumbnail element for a media record. */
 export function buildMediaRecordHtml(record: GeneratedImage): string {
   const mediaType = detectMediaType(record);
   const safeFilename = escapeHtmlAttribute(record.filename || "");
@@ -216,6 +223,12 @@ async function findLatestGeneratedMedia(kind: string): Promise<string | null> {
   return null;
 }
 
+/**
+ * Resolves a usable reference to the most recent media of `kind`, preferring
+ * generated media and falling back to the latest conversation image.
+ *
+ * @returns The media reference, or `null` if none is available.
+ */
 export async function resolveLatestMediaReference(kind: string): Promise<string | null> {
   const generated = await findLatestGeneratedMedia(kind);
   if (generated) {
@@ -252,6 +265,10 @@ function parseImageResponse(payload: any): ParsedImage[] {
     .filter((img: ParsedImage | null): img is ParsedImage => img !== null);
 }
 
+/**
+ * Returns a displayable URL for media `value`: object URLs for blobs (cached by
+ * filename), pass-through for URL-like strings, and a data URL for bare base64.
+ */
 export function getMediaDisplayUrl(value: unknown, filename: string = ""): string {
   if (!value) {
     return "";
@@ -277,6 +294,12 @@ export function getMediaDisplayUrl(value: unknown, filename: string = ""): strin
   return "";
 }
 
+/**
+ * Downloads media to the user's device from a blob, data/blob URL, or remote
+ * URL, falling back to opening remote URLs in a new tab when fetching is blocked.
+ *
+ * @throws If no usable source is provided.
+ */
 export async function downloadMediaSource(source: Blob | string, filename?: string): Promise<void> {
   let blob: Blob | null = null;
   const remoteUrl = typeof source === "string" && /^https?:\/\//i.test(source)
@@ -328,6 +351,7 @@ export async function downloadMediaSource(source: Blob | string, filename?: stri
   }, 1000);
 }
 
+/** Returns the prompt guidance describing implicit "latest image" handling for media tools. */
 export function getMediaToolInstructions() {
   return [
     "For Grok image edits, if the user refers to the most recent uploaded or generated image, you may omit image_url or image_urls.",
@@ -335,6 +359,13 @@ export function getMediaToolInstructions() {
   ].join(" ");
 }
 
+/**
+ * Normalizes a generated/uploaded media source into a {@link GeneratedImage}
+ * record (resolving MIME type, media type, filename, and display URL) and
+ * registers it in application state.
+ *
+ * @returns The created media record.
+ */
 export function registerGeneratedMedia({
   mediaType,
   sourceData,

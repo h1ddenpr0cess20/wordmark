@@ -80,7 +80,11 @@ function makeWrapper(method: ConsoleMethod, gateVerbose: boolean) {
   };
 }
 
-// (Re)apply console behavior based on the current logging flags.
+/**
+ * (Re)applies console behavior from the current logging flags: timestamped
+ * wrappers in debug mode, originals otherwise, with log/info suppressed in
+ * production unless explicitly enabled.
+ */
 export function applyConsoleLogging() {
   if (state.debug) {
     console.log = makeWrapper("log", true);

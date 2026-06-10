@@ -51,13 +51,13 @@ export const state: AppState = {
   activeVectorStore: null,
 
   // Runtime logging flags (toggled at runtime; initial defaults here, the
-  // short-response guideline default text is seeded by config.js at load).
+  // short-response guideline default text is seeded by config.ts at load).
   debug: false,
   verboseLogging: false,
   shortResponseGuideline: "",
 };
 
-// DOM element references — populated by dom.js after panels load.
+// DOM element references — populated by dom.ts after panels load.
 export const elements: Elements = {
   // Main UI elements
   chatBox: null,

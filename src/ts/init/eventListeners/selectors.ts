@@ -8,6 +8,10 @@ import { refreshToolSettingsUI } from "../../components/tools.ts";
 import { updateReasoningAvailability } from "../modelSettings.ts";
 import { config } from "../../../config/config.ts";
 
+/**
+ * Wires the service and model dropdowns so changes refresh API keys, model
+ * options, reasoning availability, header info, and tool settings.
+ */
 export function setupSelectorEventListeners() {
   const modelSelector = elements.modelSelector;
   if (modelSelector) {

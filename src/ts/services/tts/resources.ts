@@ -82,6 +82,7 @@ export const ttsAudioResources = {
   },
 };
 
+/** Stops playback and releases all cached TTS audio URLs/blobs. */
 export function clearTtsAudioResources() {
   stopTtsAudio();
   ttsAudioResources.clearAll();

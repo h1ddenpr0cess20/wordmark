@@ -1,8 +1,10 @@
 import { elements } from "../../init/state.ts";
 import { ttsConfig } from "./config.ts";
 
-// DOM references (ttsVoiceSelector, ttsToggle, ...) are owned by init/dom.js and
-// read off window where needed; this only wires the voice-change listener.
+/**
+ * Wires the voice-selector change listener so it updates {@link ttsConfig.voice}.
+ * The TTS DOM elements themselves are cached in `init/dom.ts`.
+ */
 export function initTtsReferences() {
   if (elements.ttsVoiceSelector) {
     elements.ttsVoiceSelector.addEventListener("change", (event) => {

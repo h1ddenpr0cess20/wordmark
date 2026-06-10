@@ -1,4 +1,8 @@
 import { state } from "../../init/state.ts";
+/**
+ * Reports whether a message should be skipped for TTS: missing, a system
+ * message, or containing code/tool-output markers that would read poorly aloud.
+ */
 export function shouldSkipTts(messageId: string) {
   const messageElement = document.getElementById(`message-${messageId}`) || document.getElementById(messageId);
   if (!messageElement) {

@@ -67,11 +67,16 @@ function isCodexModel(modelName: string | undefined): boolean {
   return typeof modelName === "string" && modelName.toLowerCase().includes("codex");
 }
 
+/** Reports whether an xAI model (e.g. multi-agent variants) forbids client-side tools. */
 export function xaiModelDisallowsClientSideTools(modelName = getActiveModel()) {
   return typeof modelName === "string"
     && modelName.toLowerCase().includes("multi-agent");
 }
 
+/**
+ * Reports whether the given service/model pair can run client-side (locally
+ * executed) tools. Server-managed providers only do so when the model allows it.
+ */
 export function supportsClientSideTools(
   serviceKey = getActiveServiceKey(),
   modelName = getActiveModel(),
@@ -82,10 +87,15 @@ export function supportsClientSideTools(
   return !xaiModelDisallowsClientSideTools(modelName);
 }
 
+/** Reports whether a tool type is executed client-side rather than by the provider. */
 export function isClientSideToolType(type: string): boolean {
   return CLIENT_SIDE_TOOL_TYPES.has(type);
 }
 
+/**
+ * Returns a display-oriented snapshot of the tool catalog for the settings UI,
+ * resolving per-tool API-key presence and MCP online status.
+ */
 export function getToolCatalog(): ToolCatalogEntry[] {
   return TOOL_CATALOG.map(tool => ({
     key: tool.key,
@@ -119,6 +129,16 @@ export function getToolCatalog(): ToolCatalogEntry[] {
   }));
 }
 
+/**
+ * Builds the list of tool definitions to send with a request, applying every
+ * gate: master switch, service enablement, service/model compatibility, MCP
+ * online and local-network rules, per-tool preferences, required API keys, and
+ * provider-specific exclusions (e.g. Codex image generation, shell vs. code
+ * interpreter).
+ *
+ * @param serviceKey - Target service; defaults to the active service.
+ * @param modelName - Target model; defaults to the active model.
+ */
 export function getEnabledToolDefinitions(serviceKey: string = getActiveServiceKey(), modelName: string = getActiveModel()): ToolDefinition[] {
   const masterEnabled = !(config && config.enableFunctionCalling === false);
   if (!masterEnabled) {

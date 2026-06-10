@@ -20,6 +20,10 @@ const panelState: PanelState = {
 // custom property on the Event object so it stays type-safe and self-cleaning.
 const handledEvents = new WeakSet<Event>();
 
+/**
+ * Syncs body-level open/closed classes to reflect whether the settings, history,
+ * or gallery panel is currently open.
+ */
 export function updatePanelOpenState() {
   const settingsOpen = Boolean(elements.settingsPanel && elements.settingsPanel.classList.contains("active"));
   const historyOpen = Boolean(elements.historyPanel && elements.historyPanel.getAttribute("aria-hidden") === "false");
@@ -181,6 +185,12 @@ function setupOutsideClickHandler() {
   });
 }
 
+/**
+ * Opens the settings panel and switches to `tabId`, retrying briefly if the
+ * panel DOM is not yet ready.
+ *
+ * @param attempt - Internal retry counter (gives up after 10 attempts).
+ */
 export function openSettingsAndSwitch(tabId: string, attempt = 0) {
   if (!elements.settingsPanel || !elements.settingsButton) {
     if (attempt < 10) {
@@ -201,6 +211,10 @@ export function openSettingsAndSwitch(tabId: string, attempt = 0) {
   }
 }
 
+/**
+ * Wires the settings panel open/close controls, including the outside-click and
+ * save/cancel behavior.
+ */
 export function initializeSettingsPanelControls() {
   if (elements.settingsButton && elements.settingsPanel) {
     elements.settingsButton.addEventListener("click", () => {

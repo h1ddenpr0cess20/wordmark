@@ -169,6 +169,11 @@ function extractReasoningText(payload: any) {
   return "";
 }
 
+/**
+ * Creates the SSE event processor for a streaming turn. The returned handler
+ * accumulates per-call argument/code buffers and tool-call queues, and drives
+ * the provided {@link StreamingRuntime} as deltas and lifecycle events arrive.
+ */
 export function createStreamingEventProcessor(runtime: StreamingRuntime) {
   const argBuffers = new Map<string, string>();
   const mcpArgBuffers = new Map<string, string>();

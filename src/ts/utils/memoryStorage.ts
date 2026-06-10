@@ -22,6 +22,7 @@ function ensureMemoryDefaults() {
   }
 }
 
+/** Returns the memory feature config: `{ enabled, limit }` (limit ≥ 1). */
 export function getMemoryConfig() {
   ensureMemoryDefaults();
   return {
@@ -30,11 +31,13 @@ export function getMemoryConfig() {
   };
 }
 
+/** Enables or disables the memory feature and emits a `memories:config` event. */
 export function setMemoryEnabled(enabled: boolean) {
   localStorage.setItem(MEMORY_ENABLED_KEY, enabled ? "true" : "false");
   try { window.dispatchEvent(new CustomEvent("memories:config", { detail: { key: "enabled", value: Boolean(enabled) } })); } catch {}
 }
 
+/** Sets the maximum stored memories (≥ 1), trimming the oldest beyond the limit. */
 export function setMemoryLimit(limit: string | number) {
   const newLimit = Math.max(1, parseInt(String(limit), 10) || 25);
   localStorage.setItem(MEMORY_LIMIT_KEY, String(newLimit));
@@ -48,6 +51,7 @@ export function setMemoryLimit(limit: string | number) {
   try { window.dispatchEvent(new CustomEvent("memories:config", { detail: { key: "limit", value: newLimit } })); } catch {}
 }
 
+/** Returns the stored memory strings, or `[]` if none/parse fails. */
 export function getMemories(): string[] {
   ensureMemoryDefaults();
   try {
@@ -60,6 +64,11 @@ export function getMemories(): string[] {
   }
 }
 
+/**
+ * Adds a memory (trimmed to 600 chars), evicting the oldest past the limit.
+ *
+ * @returns `{ ok, count }` on success, or `{ ok: false, reason }`.
+ */
 export function addMemory(text: string) {
   if (!text || typeof text !== "string") return { ok: false, reason: "invalid" };
   const trimmed = text.trim().slice(0, 600); // guardrail length ~ three long sentences
@@ -73,12 +82,18 @@ export function addMemory(text: string) {
   return { ok: true, count: final.length };
 }
 
+/** Removes all stored memories and emits a `memories:changed` clear event. */
 export function clearAllMemories() {
   writeJSON(MEMORIES_KEY, []);
   try { window.dispatchEvent(new CustomEvent("memories:changed", { detail: { type: "clear" } })); } catch {}
   return { ok: true };
 }
 
+/**
+ * Removes the memory at `index`.
+ *
+ * @returns `{ ok, count }` on success, or `{ ok: false, reason: "range" }`.
+ */
 export function removeMemoryAt(index: number) {
   const mems = getMemories();
   if (index < 0 || index >= mems.length) return { ok: false, reason: "range" };
@@ -88,6 +103,10 @@ export function removeMemoryAt(index: number) {
   return { ok: true, count: mems.length };
 }
 
+/**
+ * Returns the stored memories formatted as a system-prompt block, or `""` when
+ * the feature is disabled or there are none.
+ */
 export function getMemoriesForPrompt() {
   const cfg = getMemoryConfig();
   if (!cfg.enabled) return "";

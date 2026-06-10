@@ -26,7 +26,7 @@ export function initializeServicesAndModels() {
       console.info("Service selector initialized.");
     }
 
-    // Model fetching happens after API keys are loaded (see initialization.js)
+    // Model fetching happens after API keys are loaded (see initialization.ts)
     updateModelSelector();
   }
 }
@@ -223,4 +223,4 @@ export function initializeVerboseMode() {
   }
 }
 
-// Note: initializeLocationService is defined in location.js, not here
+// Note: initializeLocationService is defined in location.ts, not here

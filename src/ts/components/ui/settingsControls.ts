@@ -1,5 +1,9 @@
 import { elements } from "../../init/state.ts";
 import { config } from "../../../config/config.ts";
+/**
+ * Shows the prompt container (personality, custom, or none) matching the
+ * currently selected system-prompt radio, hiding the others.
+ */
 export function updatePromptVisibility() {
   const personalityContainer = document.getElementById("personality-container");
   const customPromptContainer = document.getElementById("custom-prompt-container");
@@ -38,6 +42,10 @@ export function updatePromptVisibility() {
   }
 }
 
+/**
+ * Updates model-parameter controls for the active service, e.g. showing the
+ * refresh-models button only when the service supports dynamic model fetching.
+ */
 export function updateParameterControls() {
   const currentService = config?.defaultService;
   const serviceConfig = currentService ? config?.services?.[currentService] : null;

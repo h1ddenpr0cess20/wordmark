@@ -31,7 +31,10 @@ const DOMPURIFY_CONFIG = {
   ALLOW_DATA_ATTR: false,
 };
 
-// Sanitize HTML allowing YouTube iframes and external image support.
+/**
+ * Sanitizes HTML with DOMPurify using a media-friendly allowlist that permits
+ * YouTube iframes and external images while blocking scripts and event handlers.
+ */
 export function sanitizeWithMedia(html: string) {
   const config = {
     ...DOMPURIFY_CONFIG,

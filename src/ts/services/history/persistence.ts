@@ -189,6 +189,13 @@ function resetConversationState() {
   state.userThinkingState = {};
 }
 
+/**
+ * Persists the current conversation (messages, generated images, model, and
+ * prompt state) to IndexedDB, creating an id on first save. Images are stored
+ * separately and referenced by placeholder.
+ *
+ * @param meta - Optional name/created overrides for the saved record.
+ */
 export function saveCurrentConversation(meta: { name?: string; created?: string } = {}) {
   if (!state.generatedImages) {
     state.generatedImages = [];
@@ -248,6 +255,7 @@ export function saveCurrentConversation(meta: { name?: string; created?: string 
     });
 };
 
+/** Renames a stored conversation and refreshes the history list. */
 export function renameConversation(id: string, newName: string) {
   renameConversationInDb?.(id, newName)
     .then(() => {
@@ -261,6 +269,10 @@ export function renameConversation(id: string, newName: string) {
     });
 };
 
+/**
+ * Saves the current conversation (if any) and resets state for a fresh one,
+ * optionally naming it.
+ */
 export function startNewConversation(name: string | null = null) {
   if (state.conversationHistory?.length > 0 && state.currentConversationId) {
     saveCurrentConversation();
@@ -281,6 +293,12 @@ export function startNewConversation(name: string | null = null) {
   }
 };
 
+/**
+ * Loads a stored conversation by id: preloads its images, then renders it into
+ * the UI.
+ *
+ * @returns A promise resolving `false` if the conversation was not found.
+ */
 export function loadConversation(id: string) {
   return loadConversationFromDb?.(id)
     .then((convo) => {
