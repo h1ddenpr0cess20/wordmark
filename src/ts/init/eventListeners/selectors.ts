@@ -1,3 +1,11 @@
+/**
+ * Service and model selector event listeners.
+ *
+ * @remarks
+ * Wires the service and model dropdowns so a change refreshes API keys, model
+ * options, reasoning availability, header info, and tool/MCP settings.
+ */
+
 import { elements } from "../state.ts";
 import { ensureApiKeysLoaded } from "../../services/apiKeys.ts";
 import { updateBrowserHistory } from "../../services/history/state.ts";

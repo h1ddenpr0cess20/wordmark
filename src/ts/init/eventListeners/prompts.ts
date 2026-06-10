@@ -1,3 +1,11 @@
+/**
+ * System-prompt event listeners.
+ *
+ * @remarks
+ * Wires the prompt-mode radios, the personality and custom-prompt input fields,
+ * and the personality preset buttons.
+ */
+
 import { elements } from "../state.ts";
 import { debounce } from "../../utils/utils.ts";
 import { focusUserInputSafely } from "../../utils/mobileHandling.ts";
@@ -6,6 +14,7 @@ import { startNewConversation } from "../../services/history/persistence.ts";
 import { updatePromptVisibility } from "../../components/ui/settingsControls.ts";
 import { updateHeaderInfo } from "../../components/settings.ts";
 
+/** Toggles prompt-field visibility when the active prompt-mode radio changes. */
 function setupPromptRadioEventListeners() {
   const personalityPromptRadio = elements.personalityPromptRadio;
   if (personalityPromptRadio) {
@@ -35,6 +44,7 @@ function setupPromptRadioEventListeners() {
   }
 }
 
+/** Wires Enter-to-submit on the personality field and input debouncing. */
 function setupInputFieldEventListeners() {
   if (elements.personalityInput) {
     elements.personalityInput.addEventListener("keydown", (event) => {
@@ -54,6 +64,7 @@ function setupInputFieldEventListeners() {
   }
 }
 
+/** Wires preset personality buttons to start a conversation with that persona. */
 function setupPersonalityPresetEventListeners(closeSettingsPanel: (() => void) | undefined) {
   const presetButtons = document.querySelectorAll<HTMLElement>(".preset-button");
 

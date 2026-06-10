@@ -1,6 +1,15 @@
+/**
+ * Conversation input event listeners.
+ *
+ * @remarks
+ * Wires the message composer: send button, Enter-to-send, auto-grow sizing,
+ * header SVG click forwarding, and lazy gallery initialization on first open.
+ */
+
 import { elements, state } from "../state.ts";
 import { loadGalleryModule } from "../../utils/lazyLoader.ts";
 import { sendMessage } from "../../components/interaction.ts";
+
 /** Wires the message input box: send button, Enter-to-send, and related keys. */
 export function initializeConversationInput() {
   const userInput = elements.userInput;

@@ -1,10 +1,20 @@
+/**
+ * Settings panel open/close behavior and quick-access shortcuts.
+ *
+ * @remarks
+ * Owns the single settings panel: opening and closing it, the outside-click
+ * dismissal handler, and the header shortcuts that jump straight to a tab.
+ */
+
 import { elements, state } from "../state.ts";
 import { switchToTab } from "../../components/ui/settingsTabs.ts";
 import { updateHeaderInfo, organizeSettingsLayout } from "../../components/settings.ts";
 import { DEFAULT_PERSONALITY } from "../../../config/config.ts";
 
-// Single settings panel — original prompt values are stashed here while the
-// panel is open so they can be restored if the user dismisses without saving.
+/**
+ * Snapshot of the prompt fields taken when the panel opens, so the values can be
+ * restored if the user dismisses the panel without saving.
+ */
 interface PanelState {
   originalPersonalityValue: string;
   originalCustomPromptValue: string;
@@ -15,9 +25,12 @@ const panelState: PanelState = {
   originalCustomPromptValue: "",
 };
 
-// Quick-access (capture-phase) handlers mark a click here so the bubbling
-// outside-click handler knows to skip it. Tracked via a WeakSet rather than a
-// custom property on the Event object so it stays type-safe and self-cleaning.
+/**
+ * Clicks already consumed by a capture-phase quick-access handler. The bubbling
+ * outside-click handler checks this set and skips them. A {@link WeakSet} is used
+ * rather than a custom property on the event so it stays type-safe and clears
+ * itself as events are garbage-collected.
+ */
 const handledEvents = new WeakSet<Event>();
 
 /**
