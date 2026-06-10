@@ -4,13 +4,13 @@ import assert from "node:assert/strict";
 // memoryStorage.js + components/memory.js are ES modules. Set up the browser
 // globals they touch before importing them.
 function makeLocalStorage() {
-  const store = new Map();
+  const store = new Map<string, string>();
   return {
-    getItem(k) { return store.has(k) ? store.get(k) : null; },
-    setItem(k, v) { store.set(k, String(v)); },
-    removeItem(k) { store.delete(k); },
+    getItem(k: string) { return store.has(k) ? store.get(k) : null; },
+    setItem(k: string, v: string) { store.set(k, String(v)); },
+    removeItem(k: string) { store.delete(k); },
     clear() { store.clear(); },
-  };
+  } as unknown as Storage;
 }
 
 globalThis.localStorage = makeLocalStorage();
@@ -18,17 +18,27 @@ globalThis.confirm = () => true;
 globalThis.window = {
   addEventListener() {},
   dispatchEvent() { return true; },
+} as unknown as Window & typeof globalThis;
+
+type FakeEl = {
+  listeners: Record<string, Array<(e: unknown) => void>>;
+  addEventListener(type: string, cb: (e: unknown) => void): void;
+  dispatch(type: string): void;
+  setAttribute(): void;
+  appendChild(): void;
+  innerHTML: string;
+  [key: string]: unknown;
 };
 
-function makeElement(initial = {}) {
+function makeElement(initial: Record<string, unknown> = {}): FakeEl {
   return {
     ...initial,
     listeners: {},
-    addEventListener(type, cb) {
+    addEventListener(type: string, cb: (e: unknown) => void) {
       this.listeners[type] = this.listeners[type] || [];
       this.listeners[type].push(cb);
     },
-    dispatch(type) {
+    dispatch(type: string) {
       (this.listeners[type] || []).forEach(fn => fn({ target: this }));
     },
     setAttribute() {},
@@ -37,11 +47,11 @@ function makeElement(initial = {}) {
   };
 }
 
-function installDom(elems) {
+function installDom(elems: Record<string, FakeEl>) {
   globalThis.document = {
-    getElementById: (id) => elems[id] || null,
+    getElementById: (id: string) => elems[id] || null,
     createElement: () => makeElement(),
-  };
+  } as unknown as Document;
 }
 
 const storage = await import("../src/ts/utils/memoryStorage.ts");

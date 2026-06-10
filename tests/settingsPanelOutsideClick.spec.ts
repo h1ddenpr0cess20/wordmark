@@ -27,9 +27,10 @@ function makeStubEl() {
   };
 }
 
-const clickHandlers = [];
+type ClickHandler = (event: unknown) => void;
+const clickHandlers: ClickHandler[] = [];
 globalThis.document = {
-  addEventListener(type, fn) {
+  addEventListener(type: string, fn: ClickHandler) {
     if (type === "click") clickHandlers.push(fn);
   },
   getElementById: () => null,
@@ -39,12 +40,12 @@ globalThis.document = {
   head: makeStubEl(),
   documentElement: makeStubEl(),
   body: { classList: { toggle() {} }, appendChild() {}, removeChild() {}, style: {} },
-};
-globalThis.window = { addEventListener: () => {} };
+} as unknown as Document;
+globalThis.window = { addEventListener: () => {} } as unknown as Window & typeof globalThis;
 globalThis.localStorage = {
   getItem: () => null,
   setItem() {},
-};
+} as unknown as Storage;
 
 const { state, elements } = await import("../src/ts/init/state.ts");
 const { initializeSettingsPanelControls } = await import(
@@ -52,14 +53,15 @@ const { initializeSettingsPanelControls } = await import(
 );
 
 function makeGalleryPanel() {
-  const attrs = { "aria-hidden": "false" };
+  const attrs: Record<string, string> = { "aria-hidden": "false" };
   return {
-    getAttribute: (k) => attrs[k],
-    setAttribute: (k, v) => { attrs[k] = v; },
+    getAttribute: (k: string) => attrs[k],
+    setAttribute: (k: string, v: string) => { attrs[k] = v; },
     contains: () => false,
     focus: () => {},
   };
 }
+type GalleryPanel = ReturnType<typeof makeGalleryPanel>;
 
 // Click somewhere outside the gallery; the synthetic target matches no selector.
 function outsideClickEvent() {
@@ -71,7 +73,7 @@ function outsideClickEvent() {
   };
 }
 
-function registerHandlerWithGallery(galleryPanel) {
+function registerHandlerWithGallery(galleryPanel: GalleryPanel) {
   clickHandlers.length = 0;
   // Disable the settings/history branches so only the gallery branch can fire.
   elements.settingsButton = null;
@@ -79,8 +81,8 @@ function registerHandlerWithGallery(galleryPanel) {
   elements.closeSettingsButton = null;
   elements.historyPanel = null;
   elements.historyButton = null;
-  elements.galleryButton = { setAttribute() {}, focus() {} };
-  elements.galleryPanel = galleryPanel;
+  elements.galleryButton = { setAttribute() {}, focus() {} } as unknown as HTMLButtonElement;
+  elements.galleryPanel = galleryPanel as unknown as HTMLElement;
 
   initializeSettingsPanelControls();
   // setupOutsideClickHandler registers last, so it is the most recent handler.

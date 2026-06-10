@@ -12,37 +12,45 @@ import {
 import { saveImageToDb } from "../src/ts/utils/imageStorage.ts";
 import { state, elements } from "../src/ts/init/state.ts";
 
+type FakeReq = {
+  onsuccess: ((ev: { target: { result: unknown } }) => void) | null;
+  onerror: ((ev: { target: { error: unknown } }) => void) | null;
+  onupgradeneeded?: ((ev: { target: { result: unknown } }) => void) | null;
+  result: unknown;
+  error: unknown;
+};
+
 // Minimal fake IndexedDB (mirrors conversationStorage.spec.js)
 function createFakeIndexedDB() {
-  const stores = new Map();
-  const objectStoreNames = { contains: (name) => stores.has(name) };
+  const stores = new Map<string, ReturnType<typeof createStore>>();
+  const objectStoreNames = { contains: (name: string) => stores.has(name) };
 
-  function makeRequest() {
+  function makeRequest(): FakeReq {
     return { onsuccess: null, onerror: null, result: undefined, error: null };
   }
-  function fireSuccess(req, result) {
+  function fireSuccess(req: FakeReq, result: unknown) {
     req.result = result;
     setImmediate(() => req.onsuccess && req.onsuccess({ target: { result } }));
   }
 
-  function createStore(name, opts = {}) {
-    const data = new Map();
+  function createStore(name: string, opts: { keyPath?: string } = {}) {
+    const data = new Map<unknown, Record<string, unknown>>();
     const keyPath = opts.keyPath || "id";
     return {
-      put(record) {
+      put(record: Record<string, unknown>) {
         const req = makeRequest();
         const key = record[keyPath] || (record[keyPath] = Date.now().toString());
         data.set(key, JSON.parse(JSON.stringify(record)));
         fireSuccess(req, key);
         return req;
       },
-      add(record) { return this.put(record); },
-      get(key) {
+      add(record: Record<string, unknown>) { return this.put(record); },
+      get(key: unknown) {
         const req = makeRequest();
         fireSuccess(req, JSON.parse(JSON.stringify(data.get(key))));
         return req;
       },
-      delete(key) {
+      delete(key: unknown) {
         const req = makeRequest();
         data.delete(key);
         fireSuccess(req, true);
@@ -52,7 +60,7 @@ function createFakeIndexedDB() {
         const req = makeRequest();
         const values = Array.from(data.values());
         let idx = 0;
-        function makeCursor() {
+        function makeCursor(): { value: unknown; continue(): void } | null {
           if (idx >= values.length) return null;
           const value = JSON.parse(JSON.stringify(values[idx]));
           return {
@@ -73,15 +81,15 @@ function createFakeIndexedDB() {
 
   const db = {
     objectStoreNames,
-    createObjectStore(name, opts) { const s = createStore(name, opts); stores.set(name, s); return s; },
+    createObjectStore(name: string, opts?: { keyPath?: string }) { const s = createStore(name, opts); stores.set(name, s); return s; },
     transaction() {
-      return { objectStore: (n) => stores.get(n) };
+      return { objectStore: (n: string) => stores.get(n) };
     },
   };
 
   return {
     open() {
-      const req = { onsuccess: null, onerror: null, onupgradeneeded: null, result: db, error: null };
+      const req: FakeReq = { onsuccess: null, onerror: null, onupgradeneeded: null, result: db, error: null };
       setImmediate(() => {
         if (req.onupgradeneeded) req.onupgradeneeded({ target: { result: db } });
         if (req.onsuccess) req.onsuccess({ target: { result: db } });
@@ -94,19 +102,23 @@ function createFakeIndexedDB() {
 // renderConversationMessages now runs for real (appendMessage/render are static
 // ESM imports), so provide a minimal DOM + markdown stub good enough for the
 // hydration path. These tests only assert observable state, not rendered HTML.
-function makeEl() {
+type FakeEl = {
+  childNodes: unknown[];
+  [key: string]: unknown;
+};
+function makeEl(): FakeEl {
   const el = {
     className: "", id: "", innerHTML: "", outerHTML: "<div></div>", textContent: "",
-    style: {}, dataset: {}, childNodes: [],
+    style: {}, dataset: {}, childNodes: [] as unknown[],
     offsetHeight: 0, scrollTop: 0, scrollHeight: 0,
     classList: {
-      _s: new Set(),
-      add(...c) { c.forEach(x => this._s.add(x)); },
-      remove(...c) { c.forEach(x => this._s.delete(x)); },
-      contains(c) { return this._s.has(c); },
+      _s: new Set<string>(),
+      add(...c: string[]) { c.forEach(x => this._s.add(x)); },
+      remove(...c: string[]) { c.forEach(x => this._s.delete(x)); },
+      contains(c: string) { return this._s.has(c); },
     },
-    appendChild(child) { el.childNodes.push(child); return child; },
-    removeChild(child) { const i = el.childNodes.indexOf(child); if (i >= 0) el.childNodes.splice(i, 1); return child; },
+    appendChild(child: unknown) { el.childNodes.push(child); return child; },
+    removeChild(child: unknown) { const i = el.childNodes.indexOf(child); if (i >= 0) el.childNodes.splice(i, 1); return child; },
     remove() {},
     setAttribute() {}, getAttribute() { return null; }, hasAttribute() { return false; },
     addEventListener() {}, removeEventListener() {},
@@ -124,12 +136,12 @@ globalThis.document = {
   querySelectorAll: () => [],
   addEventListener: () => {},
   body: makeEl(),
-};
+} as unknown as Document;
 
 // Set up a window before importing persistence; the module reads shared state
 // (conversationHistory, generatedImages, DOM refs) off whatever `window` is in
 // scope at call time, so each test swaps in a fresh window object below.
-globalThis.window = { addEventListener: () => {}, indexedDB: createFakeIndexedDB(), VERBOSE_LOGGING: false };
+globalThis.window = { addEventListener: () => {}, indexedDB: createFakeIndexedDB(), VERBOSE_LOGGING: false } as unknown as Window & typeof globalThis;
 
 // persistence.js is now an ES module — import its API directly.
 const {
@@ -154,12 +166,12 @@ const ELEMENT_KEYS = new Set([
   "customPromptRadio", "systemPromptCustom", "noPromptRadio",
 ]);
 
-async function resetDb(extra = {}) {
+async function resetDb(extra: Record<string, unknown> = {}) {
   globalThis.window = {
     addEventListener: () => {},
     indexedDB: createFakeIndexedDB(),
     VERBOSE_LOGGING: false,
-  };
+  } as unknown as Window & typeof globalThis;
   Object.assign(state, {
     conversationHistory: [],
     generatedImages: [],
@@ -167,16 +179,19 @@ async function resetDb(extra = {}) {
     currentConversationName: null,
     loadedSystemPrompt: null,
   });
+  const stateRecord = state as unknown as Record<string, unknown>;
+  const elementsRecord = elements as unknown as Record<string, unknown>;
+  const windowRecord = globalThis.window as unknown as Record<string, unknown>;
   for (const key of Object.keys(elements)) {
-    elements[key] = null;
+    elementsRecord[key] = null;
   }
   for (const [key, value] of Object.entries(extra)) {
     if (STATE_KEYS.has(key)) {
-      state[key] = value;
+      stateRecord[key] = value;
     } else if (ELEMENT_KEYS.has(key)) {
-      elements[key] = value;
+      elementsRecord[key] = value;
     } else {
-      globalThis.window[key] = value;
+      windowRecord[key] = value;
     }
   }
   await initConversationDb();
@@ -210,7 +225,12 @@ test("saveCurrentConversation filters metadata, persists images, and marks messa
 
   const all = await getAllConversationsFromDb();
   assert.equal(all.length, 1);
-  const convo = all[0];
+  const convo = all[0] as {
+    id: string; name: string; model: string; service: string;
+    systemPrompt: { type: string; content: string };
+    messages: Array<{ role: string; hasImages?: boolean }>;
+    images: Array<{ isStoredInDb?: boolean; filename: string; prompt?: string; associatedMessageId?: string }>;
+  };
   assert.equal(convo.id, "existing-id");
   assert.equal(convo.name, "Manual Title");
   assert.equal(convo.model, "gpt-4o");
@@ -220,15 +240,15 @@ test("saveCurrentConversation filters metadata, persists images, and marks messa
 
   assert.equal(convo.messages.length, 2);
   const assistantMsg = convo.messages.find(msg => msg.role === "assistant");
-  assert.equal(assistantMsg.hasImages, true);
+  assert.equal(assistantMsg!.hasImages, true);
 
   // The data-URL image is persisted (new filename, marked stored); the remote
   // image is passed through untouched. Metadata rides along on the record.
   assert.equal(convo.images.length, 2);
   const storedImage = convo.images.find(img => img.isStoredInDb);
-  assert.ok(storedImage.filename.endsWith(".png"));
-  assert.equal(storedImage.prompt, "sunset");
-  assert.equal(storedImage.associatedMessageId, "m-assistant");
+  assert.ok(storedImage!.filename.endsWith(".png"));
+  assert.equal(storedImage!.prompt, "sunset");
+  assert.equal(storedImage!.associatedMessageId, "m-assistant");
   assert.equal(state.currentConversationName, "Manual Title");
 });
 
@@ -259,7 +279,7 @@ test("loadConversation hydrates UI, preloads images, and filters developer messa
   // stub), so assert the observable state hydration loadConversation performs.
   const result = await loadConversation("1");
   assert.equal(result, true);
-  assert.equal(elements.chatBox.innerHTML, "");
+  assert.equal(elements.chatBox!.innerHTML, "");
 
   assert.equal(state.conversationHistory.length, 1);
   assert.equal(state.conversationHistory[0].role, "assistant");
@@ -287,5 +307,5 @@ test("startNewConversation saves existing session and resets state", async () =>
   assert.equal(state.conversationHistory.length, 0);
   assert.equal(state.currentConversationId, null);
   assert.equal(state.currentConversationName, "Fresh Chat");
-  assert.equal(elements.chatBox.innerHTML, "");
+  assert.equal(elements.chatBox!.innerHTML, "");
 });

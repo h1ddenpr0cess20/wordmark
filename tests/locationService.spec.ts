@@ -1,22 +1,25 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 
-function createLocalStorage(initial = {}) {
-  const store = new Map(Object.entries(initial));
+function createLocalStorage(initial: Record<string, string> = {}) {
+  const store = new Map<string, string>(Object.entries(initial));
   return {
-    getItem(key) { return store.has(key) ? store.get(key) : null; },
-    setItem(key, value) { store.set(key, String(value)); },
-    removeItem(key) { store.delete(key); },
+    getItem(key: string) { return store.has(key) ? store.get(key) : null; },
+    setItem(key: string, value: string) { store.set(key, String(value)); },
+    removeItem(key: string) { store.delete(key); },
     clear() { store.clear(); },
-  };
+  } as unknown as Storage;
 }
 
-const nullDocument = { getElementById() { return null; } };
+const nullDocument = { getElementById() { return null; } } as unknown as Document;
+
+type GeoPosition = { coords: { latitude: number; longitude: number }; timestamp?: number };
+const asNavigator = (nav: unknown) => nav as unknown as Navigator;
 
 // globalThis.navigator is a read-only getter in Node; make it writable for stubbing.
 Object.defineProperty(globalThis, "navigator", { value: undefined, configurable: true, writable: true });
 
-globalThis.window = {};
+globalThis.window = {} as Window & typeof globalThis;
 globalThis.document = nullDocument;
 globalThis.localStorage = createLocalStorage();
 
@@ -40,7 +43,7 @@ test('requestLocation returns error when geolocation unsupported', async () => {
   resetLocationState();
   const storage = createLocalStorage();
   globalThis.localStorage = storage;
-  globalThis.navigator = {};
+  globalThis.navigator = asNavigator({});
   globalThis.document = nullDocument;
 
   const result = await requestLocation();
@@ -54,23 +57,23 @@ test('requestLocation stores formatted location on success (via reverse geocode)
   const storage = createLocalStorage();
   globalThis.localStorage = storage;
   globalThis.document = nullDocument;
-  const position = { coords: { latitude: 51.5, longitude: -0.12 }, timestamp: Date.now() };
-  globalThis.navigator = {
-    geolocation: { getCurrentPosition(success) { setImmediate(() => success(position)); } },
-  };
-  globalThis.fetch = async () => ({
+  const position: GeoPosition = { coords: { latitude: 51.5, longitude: -0.12 }, timestamp: Date.now() };
+  globalThis.navigator = asNavigator({
+    geolocation: { getCurrentPosition(success: (pos: GeoPosition) => void) { setImmediate(() => success(position)); } },
+  });
+  globalThis.fetch = (async () => ({
     ok: true,
     json: async () => ({ city: 'London', principalSubdivision: 'England', countryName: 'UK' }),
-  });
+  })) as unknown as typeof fetch;
 
   const result = await requestLocation();
   assert.equal(result.success, true);
-  assert.ok(result.locationString.includes('London'));
+  assert.ok(result.locationString!.includes('London'));
   assert.equal(locationState.enabled, true);
   assert.ok(locationState.locationString.includes('London'));
   assert.equal(storage.getItem('locationEnabled'), 'true');
 
-  const stored = JSON.parse(storage.getItem('lastKnownLocation'));
+  const stored = JSON.parse(storage.getItem('lastKnownLocation')!);
   assert.ok(stored.locationString.includes('London'));
   assert.equal(stored.coords.latitude, position.coords.latitude);
 });
@@ -80,16 +83,16 @@ test('requestLocation falls back to coordinates when reverse geocode fails', asy
   const storage = createLocalStorage();
   globalThis.localStorage = storage;
   globalThis.document = nullDocument;
-  const position = { coords: { latitude: 40.7128, longitude: -74.006 }, timestamp: Date.now() };
-  globalThis.navigator = {
-    geolocation: { getCurrentPosition(success) { setImmediate(() => success(position)); } },
-  };
-  globalThis.fetch = async () => { throw new Error('network down'); };
+  const position: GeoPosition = { coords: { latitude: 40.7128, longitude: -74.006 }, timestamp: Date.now() };
+  globalThis.navigator = asNavigator({
+    geolocation: { getCurrentPosition(success: (pos: GeoPosition) => void) { setImmediate(() => success(position)); } },
+  });
+  globalThis.fetch = (async () => { throw new Error('network down'); }) as unknown as typeof fetch;
 
   const result = await requestLocation();
   assert.equal(result.success, true);
-  assert.ok(result.locationString.includes('40.7128'));
-  assert.ok(result.locationString.includes('-74.0060'));
+  assert.ok(result.locationString!.includes('40.7128'));
+  assert.ok(result.locationString!.includes('-74.0060'));
   assert.equal(locationState.enabled, true);
 });
 
@@ -99,9 +102,9 @@ test('requestLocation maps geolocation errors to friendly message', async () => 
   globalThis.localStorage = storage;
   globalThis.document = nullDocument;
   const errorObj = { code: 1, PERMISSION_DENIED: 1, POSITION_UNAVAILABLE: 2, TIMEOUT: 3 };
-  globalThis.navigator = {
-    geolocation: { getCurrentPosition(_success, failure) { setImmediate(() => failure(errorObj)); } },
-  };
+  globalThis.navigator = asNavigator({
+    geolocation: { getCurrentPosition(_success: unknown, failure: (err: typeof errorObj) => void) { setImmediate(() => failure(errorObj)); } },
+  });
 
   const result = await requestLocation();
   assert.equal(result.error, 'Location access denied by user');
@@ -110,16 +113,16 @@ test('requestLocation maps geolocation errors to friendly message', async () => 
 });
 
 test('formatLocationString uses reverse geocoding when available', async () => {
-  const fetchCalls = [];
-  globalThis.fetch = async (url) => {
+  const fetchCalls: string[] = [];
+  globalThis.fetch = (async (url: string) => {
     fetchCalls.push(url);
     return {
       ok: true,
       json: async () => ({ city: 'Paris', principalSubdivision: 'Île-de-France', countryName: 'France' }),
     };
-  };
+  }) as unknown as typeof fetch;
 
-  const result = await formatLocationString({ coords: { latitude: 48.8566, longitude: 2.3522 } });
+  const result = await formatLocationString({ coords: { latitude: 48.8566, longitude: 2.3522 } } as Parameters<typeof formatLocationString>[0]);
   assert.ok(fetchCalls[0].includes('latitude=48.8566'));
   assert.ok(result.includes('Paris'));
   assert.ok(result.includes('Île-de-France'));
@@ -127,9 +130,9 @@ test('formatLocationString uses reverse geocoding when available', async () => {
 });
 
 test('formatLocationString falls back when fetch fails', async () => {
-  globalThis.fetch = async () => { throw new Error('network down'); };
+  globalThis.fetch = (async () => { throw new Error('network down'); }) as unknown as typeof fetch;
 
-  const result = await formatLocationString({ coords: { latitude: 34.05, longitude: -118.25 } });
+  const result = await formatLocationString({ coords: { latitude: 34.05, longitude: -118.25 } } as Parameters<typeof formatLocationString>[0]);
   assert.ok(result.includes('34.0500'));
   assert.ok(result.includes('-118.2500'));
 });
@@ -147,7 +150,7 @@ test('initializeLocationService restores recent stored location', () => {
   });
   globalThis.document = nullDocument;
   let geoCalls = 0;
-  globalThis.navigator = { geolocation: { getCurrentPosition() { geoCalls += 1; } } };
+  globalThis.navigator = asNavigator({ geolocation: { getCurrentPosition() { geoCalls += 1; } } });
 
   initializeLocationService();
   assert.equal(locationState.enabled, true);
@@ -168,7 +171,7 @@ test('initializeLocationService requests fresh location when stored expires', ()
   });
   globalThis.document = nullDocument;
   let geoCalls = 0;
-  globalThis.navigator = { geolocation: { getCurrentPosition() { geoCalls += 1; } } };
+  globalThis.navigator = asNavigator({ geolocation: { getCurrentPosition() { geoCalls += 1; } } });
 
   initializeLocationService();
   assert.equal(geoCalls, 1); // expired => requestLocation() triggers getCurrentPosition
@@ -181,13 +184,13 @@ test('disableLocation clears state and updates UI', () => {
   const statusNode = { textContent: '', className: '' };
   const toggleNode = { checked: true };
   globalThis.document = {
-    getElementById(id) {
+    getElementById(id: string) {
       if (id === 'location-toggle') return toggleNode;
       if (id === 'location-status') return statusNode;
       return null;
     },
-  };
-  globalThis.navigator = { geolocation: { getCurrentPosition() {} } };
+  } as unknown as Document;
+  globalThis.navigator = asNavigator({ geolocation: { getCurrentPosition() {} } });
 
   locationState.enabled = true;
   locationState.locationString = 'Somewhere';

@@ -3,6 +3,8 @@ import assert from "node:assert/strict";
 
 // Fake FileReader to convert Blob to data URL deterministically
 class FakeFileReader {
+  result: string | null = null;
+  onloadend: (() => void) | null = null;
   readAsDataURL() {
     setImmediate(() => {
       this.result = "data:image/png;base64,QUJD";
@@ -11,34 +13,44 @@ class FakeFileReader {
   }
 }
 
+type FakeReq = {
+  onsuccess: ((ev: { target: { result: unknown } }) => void) | null;
+  onerror: ((ev: { target: { error: unknown } }) => void) | null;
+  onupgradeneeded?: ((ev: { target: { result: unknown } }) => void) | null;
+  result: unknown;
+  error: unknown;
+};
+
 // Reference-preserving fake IndexedDB (keeps Blob identity, unlike a JSON clone).
 function createFakeIndexedDB() {
-  const stores = new Map();
-  const objectStoreNames = { contains: (name) => stores.has(name) };
+  const stores = new Map<string, ReturnType<typeof createStore>>();
+  const objectStoreNames = { contains: (name: string) => stores.has(name) };
 
-  function makeRequest() { return { onsuccess: null, onerror: null, result: undefined, error: null }; }
-  function fireSuccess(req, result) {
+  function makeRequest(): FakeReq {
+    return { onsuccess: null, onerror: null, result: undefined, error: null };
+  }
+  function fireSuccess(req: FakeReq, result: unknown) {
     req.result = result;
     setImmediate(() => req.onsuccess && req.onsuccess({ target: { result } }));
   }
 
-  function createStore(name, opts = {}) {
-    const data = new Map();
+  function createStore(name: string, opts: { keyPath?: string } = {}) {
+    const data = new Map<unknown, Record<string, unknown>>();
     const keyPath = opts.keyPath || "filename";
     return {
-      put(record) {
+      put(record: Record<string, unknown>) {
         const req = makeRequest();
         const key = record[keyPath];
         data.set(key, record);
         fireSuccess(req, key);
         return req;
       },
-      get(key) {
+      get(key: unknown) {
         const req = makeRequest();
         fireSuccess(req, data.get(key));
         return req;
       },
-      delete(key) {
+      delete(key: unknown) {
         const req = makeRequest();
         data.delete(key);
         fireSuccess(req, true);
@@ -49,13 +61,13 @@ function createFakeIndexedDB() {
 
   const db = {
     objectStoreNames,
-    createObjectStore(name, opts) { const s = createStore(name, opts); stores.set(name, s); return s; },
-    transaction() { return { objectStore: (n) => stores.get(n) }; },
+    createObjectStore(name: string, opts?: { keyPath?: string }) { const s = createStore(name, opts); stores.set(name, s); return s; },
+    transaction() { return { objectStore: (n: string) => stores.get(n) }; },
   };
 
   return {
     open() {
-      const req = { onsuccess: null, onerror: null, onupgradeneeded: null, result: db, error: null };
+      const req: FakeReq = { onsuccess: null, onerror: null, onupgradeneeded: null, result: db, error: null };
       setImmediate(() => {
         if (req.onupgradeneeded) req.onupgradeneeded({ target: { result: db } });
         if (req.onsuccess) req.onsuccess({ target: { result: db } });
@@ -65,8 +77,8 @@ function createFakeIndexedDB() {
   };
 }
 
-globalThis.window = { addEventListener: () => {}, indexedDB: createFakeIndexedDB() };
-globalThis.FileReader = FakeFileReader;
+globalThis.window = { addEventListener: () => {}, indexedDB: createFakeIndexedDB() } as unknown as Window & typeof globalThis;
+globalThis.FileReader = FakeFileReader as unknown as typeof FileReader;
 
 const {
   initImageDb,
@@ -110,7 +122,7 @@ test("getImageDataForUpload converts Blob via FileReader", async () => {
   const blob = new Blob([Uint8Array.from([65, 66, 67])], { type: "image/png" });
   await saveImageToDb(blob, "img5");
   const out = await getImageDataForUpload("img5");
-  assert.ok(out.startsWith("data:image/png;base64,"));
+  assert.ok((out as string).startsWith("data:image/png;base64,"));
 });
 
 test("getImageDataForUpload formats plain base64 to data URL", async () => {

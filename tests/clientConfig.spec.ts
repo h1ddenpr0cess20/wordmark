@@ -5,11 +5,11 @@ import assert from 'node:assert/strict';
 // the elements registry (init/state.js). Provide minimal browser stubs, then
 // drive the real config object directly.
 globalThis.window = globalThis.window || {};
+const clientConfigStore: Record<string, string> = {};
 globalThis.localStorage = {
-  storage: {},
-  getItem(key) { return this.storage[key] || null; },
-  setItem(key, value) { this.storage[key] = value; },
-};
+  getItem(key: string) { return clientConfigStore[key] || null; },
+  setItem(key: string, value: string) { clientConfigStore[key] = value; },
+} as unknown as Storage;
 globalThis.document = globalThis.document || {
   getElementById: () => null,
   querySelector: () => null,
@@ -38,7 +38,7 @@ test('getActiveServiceKey returns default service', () => {
 test('getActiveServiceKey ignores disabled selected service', () => {
   const originalSelector = elements.serviceSelector;
   const originalEnabled = config.services.xai.enabled;
-  elements.serviceSelector = { value: 'xai' };
+  elements.serviceSelector = { value: 'xai' } as unknown as HTMLSelectElement;
   config.services.xai.enabled = false;
 
   assert.equal(getActiveServiceKey(), 'openai', 'should fall back to enabled OpenAI service');

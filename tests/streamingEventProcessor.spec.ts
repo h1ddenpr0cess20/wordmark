@@ -5,30 +5,32 @@ globalThis.window = globalThis.window || {};
 
 const { createStreamingEventProcessor } = await import('../src/ts/services/streaming/eventProcessor.js');
 
+type StreamingRuntimeArg = Parameters<typeof createStreamingEventProcessor>[0];
+
 function createRuntimeStub() {
   const state = {
     output: '',
-    reasoningLines: [],
+    reasoningLines: [] as string[],
     reasoningDelta: '',
     trailingEnsured: false,
-    imageCalls: [],
-    attachCalls: [],
+    imageCalls: [] as Array<{ payload: unknown; label: unknown }>,
+    attachCalls: [] as unknown[],
   };
 
   return {
-    appendOutputText(delta) {
+    appendOutputText(delta: string) {
       state.output += delta || '';
     },
-    replaceOutputSegment(start, fullText) {
+    replaceOutputSegment(start: number, fullText: string) {
       state.output = state.output.slice(0, start) + (fullText || '');
     },
-    appendReasoningDelta(delta) {
+    appendReasoningDelta(delta: string) {
       state.reasoningDelta += delta || '';
     },
-    appendReasoningLine(line) {
+    appendReasoningLine(line: string) {
       state.reasoningLines.push(line);
     },
-    updateLastReasoningLine(line) {
+    updateLastReasoningLine(line: string) {
       if (state.reasoningLines.length === 0) {
         state.reasoningLines.push(line);
       } else {
@@ -38,10 +40,10 @@ function createRuntimeStub() {
     ensureReasoningTrailingNewline() {
       state.trailingEnsured = true;
     },
-    collectImagesFromSource(payload, label) {
+    collectImagesFromSource(payload: unknown, label: unknown) {
       state.imageCalls.push({ payload, label });
     },
-    attachImagesToPayload(payload) {
+    attachImagesToPayload(payload: Record<string, unknown>) {
       state.attachCalls.push(payload || null);
       return { ...(payload || {}), attached: true };
     },
@@ -54,7 +56,7 @@ function createRuntimeStub() {
     getReasoningText() {
       return state.reasoningDelta || state.reasoningLines.join('\n');
     },
-    outputEndsWith(suffix) {
+    outputEndsWith(suffix: string) {
       return state.output.endsWith(suffix);
     },
     hasOutput() {
@@ -68,7 +70,7 @@ function createRuntimeStub() {
 
 test('response.output_text.delta appends streamed text', () => {
   const runtime = createRuntimeStub();
-  const processor = createStreamingEventProcessor(runtime);
+  const processor = createStreamingEventProcessor(runtime as unknown as StreamingRuntimeArg);
 
   processor.processEvent('response.output_text.delta', [
     JSON.stringify({ delta: { text: 'Hello ' } }),
@@ -82,7 +84,7 @@ test('response.output_text.delta appends streamed text', () => {
 
 test('web search events annotate reasoning with queued query', () => {
   const runtime = createRuntimeStub();
-  const processor = createStreamingEventProcessor(runtime);
+  const processor = createStreamingEventProcessor(runtime as unknown as StreamingRuntimeArg);
 
   processor.processEvent('response.function_call_arguments.done', [
     JSON.stringify({
@@ -108,7 +110,7 @@ test('web search events annotate reasoning with queued query', () => {
 
 test('processor captures final payload, attaches images, and finalizes reasoning', () => {
   const runtime = createRuntimeStub();
-  const processor = createStreamingEventProcessor(runtime);
+  const processor = createStreamingEventProcessor(runtime as unknown as StreamingRuntimeArg);
 
   const imagePayload = {
     result: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAAEElEQVR42mNk+M+ABAwMDAwABXEC+Yo0NmsAAAAASUVORK5CYII=',
@@ -130,6 +132,6 @@ test('processor captures final payload, attaches images, and finalizes reasoning
   assert.deepEqual(payload, { id: 'resp-1', output: [] });
 
   const attached = processor.attachImages({ id: 'resp-1' });
-  assert.equal(attached.attached, true);
+  assert.equal(attached!.attached, true);
   assert.equal(runtime.state.attachCalls.length, 1);
 });

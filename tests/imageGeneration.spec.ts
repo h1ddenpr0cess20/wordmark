@@ -4,6 +4,8 @@ import { state } from '../src/ts/init/state.js';
 
 globalThis.window = globalThis.window || {};
 
+import type { ImageCandidate } from '../src/ts/services/streaming/imageGeneration.js';
+
 const {
   collectImageCandidates,
   ensureImagesHaveMessageIds,
@@ -23,8 +25,8 @@ test('collectImageCandidates gathers nested data URLs and deduplicates', () => {
     ],
   };
 
-  const accumulator = [];
-  const seen = new Set();
+  const accumulator: ImageCandidate[] = [];
+  const seen = new Set<string>();
   const visited = typeof WeakSet !== 'undefined' ? new WeakSet() : null;
 
   collectImageCandidates(payload, accumulator, 'image/png', seen, visited);

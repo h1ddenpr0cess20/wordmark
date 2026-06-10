@@ -4,11 +4,11 @@ import assert from 'node:assert/strict';
 // requestClient.js reads the shared config singleton via clientConfig.js.
 // Provide browser stubs, then drive the real config object.
 globalThis.window = globalThis.window || {};
+const requestClientStore: Record<string, string> = {};
 globalThis.localStorage = {
-  storage: {},
-  getItem(key) { return this.storage[key] || null; },
-  setItem(key, value) { this.storage[key] = value; },
-};
+  getItem(key: string) { return requestClientStore[key] || null; },
+  setItem(key: string, value: string) { requestClientStore[key] = value; },
+} as unknown as Storage;
 
 const { config } = await import('../src/config/config.js');
 const { buildRequestBody, buildHeaders } = await import('../src/ts/services/api/requestClient.js');
@@ -38,8 +38,9 @@ test('buildRequestBody includes reasoning for supported models', () => {
   });
 
   assert.ok(body.reasoning, 'should include reasoning config');
-  assert.equal(body.reasoning.effort, 'high', 'should set reasoning effort');
-  assert.equal(body.reasoning.summary, 'auto', 'should set reasoning summary');
+  const reasoning = body.reasoning as { effort?: string; summary?: string };
+  assert.equal(reasoning.effort, 'high', 'should set reasoning effort');
+  assert.equal(reasoning.summary, 'auto', 'should set reasoning summary');
 });
 
 test('buildRequestBody excludes reasoning for non-reasoning models', () => {

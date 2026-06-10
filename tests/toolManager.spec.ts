@@ -5,24 +5,24 @@ import assert from 'node:assert/strict';
 globalThis.window = {
   weatherToolHandler: async () => ({ forecast: 'sunny' }),
   getMemoryConfig: () => ({ enabled: false }),
-};
+} as unknown as Window & typeof globalThis;
 
 // Mock localStorage
+let toolManagerStore: Record<string, string> = {};
 globalThis.localStorage = {
-  storage: {},
-  getItem(key) {
-    return this.storage[key] || null;
+  getItem(key: string) {
+    return toolManagerStore[key] || null;
   },
-  setItem(key, value) {
-    this.storage[key] = value;
+  setItem(key: string, value: string) {
+    toolManagerStore[key] = value;
   },
-  removeItem(key) {
-    delete this.storage[key];
+  removeItem(key: string) {
+    delete toolManagerStore[key];
   },
   clear() {
-    this.storage = {};
+    toolManagerStore = {};
   },
-};
+} as unknown as Storage;
 
 const { config } = await import('../src/config/config.js');
 const {
@@ -208,7 +208,7 @@ test('getEnabledToolDefinitions returns no tools for disabled services', () => {
   config.services = {
     openai: { enabled: true },
     xai: { enabled: false },
-  };
+  } as unknown as typeof config.services;
 
   const xaiTools = getEnabledToolDefinitions('xai');
   assert.deepEqual(xaiTools, [], 'disabled xAI service should not receive tools');

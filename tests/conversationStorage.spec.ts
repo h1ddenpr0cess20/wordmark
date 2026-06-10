@@ -1,41 +1,49 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 
+type FakeReq = {
+  onsuccess: ((ev: { target: { result: unknown } }) => void) | null;
+  onerror: ((ev: { target: { error: unknown } }) => void) | null;
+  onupgradeneeded?: ((ev: { target: { result: unknown } }) => void) | null;
+  result: unknown;
+  error: unknown;
+};
+
 // Minimal fake IndexedDB for tests
 function createFakeIndexedDB() {
-  const stores = new Map();
-  const objectStoreNames = { contains: (name) => stores.has(name) };
+  const stores = new Map<string, ReturnType<typeof createStore>>();
+  const objectStoreNames = { contains: (name: string) => stores.has(name) };
 
-  function makeRequest() {
-    const req = { onsuccess: null, onerror: null, result: undefined, error: null }; return req;
+  function makeRequest(): FakeReq {
+    const req: FakeReq = { onsuccess: null, onerror: null, result: undefined, error: null }; return req;
   }
-  function fireSuccess(req, result) {
+  function fireSuccess(req: FakeReq, result: unknown) {
     req.result = result;
     setImmediate(() => req.onsuccess && req.onsuccess({ target: { result } }));
   }
-  function fireError(req, error) {
+  function fireError(req: FakeReq, error: unknown) {
     req.error = error;
     setImmediate(() => req.onerror && req.onerror({ target: { error } }));
   }
 
-  function createStore(name, opts = {}) {
-    const data = new Map();
+  function createStore(name: string, opts: { keyPath?: string } = {}) {
+    const data = new Map<unknown, Record<string, unknown>>();
     const keyPath = opts.keyPath || 'id';
     return {
-      put(record) {
+      put(record: Record<string, unknown>) {
         const req = makeRequest();
         const key = record[keyPath] || (record[keyPath] = Date.now().toString());
         data.set(key, JSON.parse(JSON.stringify(record)));
         fireSuccess(req, key);
         return req;
       },
-      add(record) { return this.put(record); },
-      get(key) {
+      add(record: Record<string, unknown>) { return this.put(record); },
+      get(key: unknown) {
         const req = makeRequest();
         fireSuccess(req, JSON.parse(JSON.stringify(data.get(key))));
         return req;
       },
-      delete(key) {
+      delete(key: unknown) {
         const req = makeRequest();
         data.delete(key);
         fireSuccess(req, true);
@@ -45,7 +53,7 @@ function createFakeIndexedDB() {
         const req = makeRequest();
         const values = Array.from(data.values());
         let idx = 0;
-        function makeCursor() {
+        function makeCursor(): { value: unknown; continue(): void } | null {
           if (idx >= values.length) return null;
           const value = JSON.parse(JSON.stringify(values[idx]));
           return {
@@ -66,17 +74,17 @@ function createFakeIndexedDB() {
 
   const db = {
     objectStoreNames,
-    createObjectStore(name, opts) { const s = createStore(name, opts); stores.set(name, s); return s; },
-    transaction(names, mode) {
+    createObjectStore(name: string, opts?: { keyPath?: string }) { const s = createStore(name, opts); stores.set(name, s); return s; },
+    transaction(_names?: unknown, _mode?: unknown) {
       return {
-        objectStore: (n) => stores.get(n),
+        objectStore: (n: string) => stores.get(n),
       };
     },
   };
 
   return {
-    open(name, version) {
-      const req = { onsuccess: null, onerror: null, onupgradeneeded: null, result: db, error: null };
+    open(_name?: unknown, _version?: unknown) {
+      const req: FakeReq = { onsuccess: null, onerror: null, onupgradeneeded: null, result: db, error: null };
       setImmediate(() => {
         if (req.onupgradeneeded) req.onupgradeneeded({ target: { result: db } });
         if (req.onsuccess) req.onsuccess({ target: { result: db } });
@@ -89,7 +97,7 @@ function createFakeIndexedDB() {
 }
 
 // Provide a window with a fake IndexedDB before importing the ES module.
-globalThis.window = { addEventListener: () => {}, indexedDB: createFakeIndexedDB() };
+globalThis.window = { addEventListener: () => {}, indexedDB: createFakeIndexedDB() } as unknown as Window & typeof globalThis;
 
 const {
   initConversationDb,

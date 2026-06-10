@@ -5,17 +5,17 @@ import assert from "node:assert/strict";
 // (originalConsole = { log: console.log, ... }) and routes through them. Install
 // recording spies BEFORE importing the module so those captured references are
 // our spies, then drive behavior via the shared `state` flags.
-const calls = { log: [], info: [], warn: [], error: [] };
-console.log = (...a) => calls.log.push(a);
-console.info = (...a) => calls.info.push(a);
-console.warn = (...a) => calls.warn.push(a);
-console.error = (...a) => calls.error.push(a);
+const calls: { log: unknown[][]; info: unknown[][]; warn: unknown[][]; error: unknown[][] } = { log: [], info: [], warn: [], error: [] };
+console.log = (...a: unknown[]) => calls.log.push(a);
+console.info = (...a: unknown[]) => calls.info.push(a);
+console.warn = (...a: unknown[]) => calls.warn.push(a);
+console.error = (...a: unknown[]) => calls.error.push(a);
 
 // Minimal localStorage stub so the production-mode branch is controllable.
-let enableLoggingValue = null;
+let enableLoggingValue: string | null = null;
 globalThis.localStorage = {
-  getItem(key) { return key === "enableLogging" ? enableLoggingValue : null; },
-};
+  getItem(key: string) { return key === "enableLogging" ? enableLoggingValue : null; },
+} as unknown as Storage;
 globalThis.window = globalThis.window || { addEventListener() {} };
 
 // Dynamic import so the spies above are in place first.
@@ -45,7 +45,7 @@ test("debug on, verbose off: log/info are gated, warn/error pass through", () =>
   assert.equal(calls.warn.length, 1, "warn always emits in debug");
   assert.equal(calls.error.length, 1, "error always emits in debug");
   // Output is timestamped/labelled and carries the original args.
-  assert.match(calls.warn[0][0], /\[WARN\]$/);
+  assert.match(calls.warn[0][0] as string, /\[WARN\]$/);
   assert.equal(calls.warn[0][1], "shown-warn");
 });
 
@@ -58,7 +58,7 @@ test("debug + verbose on: log emits with timestamp/label prefix", () => {
   console.log("hello", 42);
 
   assert.equal(calls.log.length, 1);
-  assert.match(calls.log[0][0], /^\[\d{4}-\d{2}-\d{2}T.*\] \[LOG\]$/);
+  assert.match(calls.log[0][0] as string, /^\[\d{4}-\d{2}-\d{2}T.*\] \[LOG\]$/);
   assert.equal(calls.log[0][1], "hello");
   assert.equal(calls.log[0][2], 42);
 });

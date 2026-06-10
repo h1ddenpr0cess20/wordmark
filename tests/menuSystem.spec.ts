@@ -8,14 +8,14 @@ import assert from "node:assert/strict";
 // not here).
 
 function createDom() {
-  const elements = new Map();
+  const elements = new Map<string, { id?: string; innerHTML: string }>();
   const document = {
     readyState: "complete",
     body: { appendChild() {}, removeChild() {} },
     head: { appendChild() {} },
     addEventListener() {},
-    getElementById(id) { return elements.get(id) || null; },
-    createElement(tag) {
+    getElementById(id: string) { return elements.get(id) || null; },
+    createElement(tag: string) {
       return { tagName: String(tag).toUpperCase(), innerHTML: "", setAttribute() {}, addEventListener() {}, parentNode: null };
     },
   };
@@ -23,11 +23,11 @@ function createDom() {
 }
 
 let importCounter = 0;
-async function loadMenuSystem(windowStub, document) {
+async function loadMenuSystem(windowStub: unknown, document: unknown) {
   // Keep the stubs on globalThis for the duration of the test so module code
   // that references bare `window`/`document` works during later calls too.
-  globalThis.window = windowStub;
-  globalThis.document = document;
+  globalThis.window = windowStub as Window & typeof globalThis;
+  globalThis.document = document as Document;
   // Cache-bust so the module re-evaluates against the new stubs.
   const mod = await import(`../src/ts/utils/menuSystem.js?case=${importCounter++}`);
   return mod;
@@ -91,6 +91,6 @@ test("initializeMenus loads panels and resolves true", async () => {
 
   assert.equal(ready, true, "initializeMenus resolves true on success");
   assert.ok(panelsContainer.innerHTML.length > 0, "panels.html inserted");
-  assert.ok(elements.get("content-personality").innerHTML.length > 0, "personality tab inserted");
-  assert.ok(elements.get("content-model").innerHTML.length > 0, "model tab inserted");
+  assert.ok(elements.get("content-personality")!.innerHTML.length > 0, "personality tab inserted");
+  assert.ok(elements.get("content-model")!.innerHTML.length > 0, "model tab inserted");
 });

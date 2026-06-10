@@ -7,35 +7,35 @@ const originalFetch = global.fetch;
 const originalWindow = global.window;
 const originalLocalStorage = global.localStorage;
 
-function createLocalStorage(initial = {}) {
-  const store = new Map(Object.entries(initial));
+function createLocalStorage(initial: Record<string, string> = {}) {
+  const store = new Map<string, string>(Object.entries(initial));
   return {
-    getItem(key) {
+    getItem(key: string) {
       return store.has(key) ? store.get(key) : null;
     },
-    setItem(key, value) {
+    setItem(key: string, value: string) {
       store.set(key, String(value));
     },
-    removeItem(key) {
+    removeItem(key: string) {
       store.delete(key);
     },
     clear() {
       store.clear();
     },
-  };
+  } as unknown as Storage;
 }
 
 function setupEnvironment() {
-  const showInfoCalls = [];
+  const showInfoCalls: unknown[] = [];
   global.window = {
-    showInfo: (message) => {
+    showInfo: (message: unknown) => {
       showInfoCalls.push(message);
     },
-  };
+  } as unknown as Window & typeof globalThis;
   config.defaultService = 'openai';
   config.services.openai.apiKey = 'vector-key';
   config.services.openai.baseUrl = 'https://api.example.com';
-  elements.serviceSelector = { value: 'openai' };
+  elements.serviceSelector = { value: 'openai' } as unknown as HTMLSelectElement;
   state.activeVectorStore = null;
   global.localStorage = createLocalStorage();
   return showInfoCalls;
@@ -48,7 +48,7 @@ test('filterSupportedFiles separates extensions correctly', async () => {
     { name: 'document.pdf' },
     { name: 'image.bmp' },
     { name: 'notes.md' },
-  ]);
+  ] as unknown as File[]);
 
   assert.equal(result.supported.length, 2);
   assert.equal(result.unsupported.length, 1);
@@ -60,8 +60,8 @@ test('uploadAndAttachFiles processes supported files and skips unsupported', asy
   const showInfoCalls = setupEnvironment();
   const { uploadAndAttachFiles } = await import('../src/ts/services/vectorStore.js');
 
-  const fetchCalls = [];
-  global.fetch = async (url, options = {}) => {
+  const fetchCalls: Array<{ url: string; options: { method?: string } }> = [];
+  global.fetch = (async (url: string, options: { method?: string } = {}) => {
     fetchCalls.push({ url, options });
     if (url.endsWith('/vector_stores') && options.method === 'POST') {
       return { ok: true, json: async () => ({ id: 'vs-1' }) };
@@ -73,14 +73,14 @@ test('uploadAndAttachFiles processes supported files and skips unsupported', asy
       return { ok: true, json: async () => ({ status: 'completed' }) };
     }
     throw new Error(`Unexpected fetch call to ${url}`);
-  };
+  }) as unknown as typeof fetch;
 
   try {
     const files = [
       { name: 'ok.pdf' },
       { name: 'skip.exe' },
       { name: 'readme.md' },
-    ];
+    ] as unknown as File[];
     const result = await uploadAndAttachFiles(files, 'Docs');
     assert.equal(result.vectorStoreId, 'vs-1');
     assert.equal(result.attachments.length, 2);
@@ -94,13 +94,13 @@ test('uploadAndAttachFiles throws when no supported files remain', async () => {
   const showInfoCalls = setupEnvironment();
   const { uploadAndAttachFiles } = await import('../src/ts/services/vectorStore.js');
 
-  global.fetch = async () => {
+  global.fetch = (async () => {
     throw new Error('fetch should not be called');
-  };
+  }) as unknown as typeof fetch;
 
   try {
     await assert.rejects(
-      () => uploadAndAttachFiles([{ name: 'archive.exe' }]),
+      () => uploadAndAttachFiles([{ name: 'archive.exe' }] as unknown as File[]),
       /No supported files to upload/
     );
   } finally {
@@ -115,10 +115,10 @@ test('waitForFileProcessing resolves when status completed', async () => {
     { status: 'completed' },
   ];
 
-  global.fetch = async () => ({
+  global.fetch = (async () => ({
     ok: true,
     json: async () => responses.shift(),
-  });
+  })) as unknown as typeof fetch;
 
   const { waitForFileProcessing } = await import('../src/ts/services/vectorStore.js');
 
@@ -132,10 +132,10 @@ test('waitForFileProcessing resolves when status completed', async () => {
 
 test('waitForFileProcessing throws on failure status', async () => {
   setupEnvironment();
-  global.fetch = async () => ({
+  global.fetch = (async () => ({
     ok: true,
     json: async () => ({ status: 'failed', last_error: { message: 'bad' } }),
-  });
+  })) as unknown as typeof fetch;
 
   const { waitForFileProcessing } = await import('../src/ts/services/vectorStore.js');
 
@@ -151,10 +151,10 @@ test('waitForFileProcessing throws on failure status', async () => {
 
 test('waitForFileProcessing times out when attempts exhausted', async () => {
   setupEnvironment();
-  global.fetch = async () => ({
+  global.fetch = (async () => ({
     ok: true,
     json: async () => ({ status: 'processing' }),
-  });
+  })) as unknown as typeof fetch;
 
   const { waitForFileProcessing } = await import('../src/ts/services/vectorStore.js');
 

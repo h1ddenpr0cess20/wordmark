@@ -6,12 +6,13 @@ import assert from "node:assert/strict";
 // observable effects on ttsRuntime / the DOM stubs / the URL stub.
 
 class MockAudio {
-  constructor(url) {
+  url: string;
+  currentTime = 0;
+  paused = true;
+  playCalls = 0;
+  onended: (() => void) | null = null;
+  constructor(url: string) {
     this.url = url;
-    this.currentTime = 0;
-    this.paused = true;
-    this.playCalls = 0;
-    this.onended = null;
   }
   play() {
     this.paused = false;
@@ -23,31 +24,31 @@ class MockAudio {
   }
 }
 
-let querySelectorAllResult = [];
+let querySelectorAllResult: unknown[] = [];
 const urlStub = {
-  created: [],
-  revoked: [],
+  created: [] as string[],
+  revoked: [] as string[],
   createObjectURL() {
     const url = `blob:${this.created.length + 1}`;
     this.created.push(url);
     return url;
   },
-  revokeObjectURL(url) {
+  revokeObjectURL(url: string) {
     this.revoked.push(url);
   },
 };
-let timeouts = [];
+let timeouts: Array<{ fn: unknown; ms: unknown }> = [];
 
-globalThis.window = { VERBOSE_LOGGING: false };
+globalThis.window = { VERBOSE_LOGGING: false } as unknown as Window & typeof globalThis;
 globalThis.document = {
-  querySelectorAll: (selector) => (selector === ".tts-play-pause" ? querySelectorAllResult : []),
+  querySelectorAll: (selector: string) => (selector === ".tts-play-pause" ? querySelectorAllResult : []),
   getElementById: () => null,
-};
-globalThis.URL = urlStub;
-globalThis.Audio = MockAudio;
-globalThis.setTimeout = (fn, ms) => { timeouts.push({ fn, ms }); return 0; };
+} as unknown as Document;
+globalThis.URL = urlStub as unknown as typeof URL;
+globalThis.Audio = MockAudio as unknown as typeof Audio;
+globalThis.setTimeout = ((fn: unknown, ms: unknown) => { timeouts.push({ fn, ms }); return 0; }) as unknown as typeof setTimeout;
 // Minimal indexedDB so resources.addUrl -> saveAudioToDb doesn't throw synchronously.
-globalThis.indexedDB = { open: () => ({ onsuccess: null, onerror: null, onupgradeneeded: null }) };
+globalThis.indexedDB = { open: () => ({ onsuccess: null, onerror: null, onupgradeneeded: null }) } as unknown as IDBFactory;
 
 const { ttsConfig, ttsRuntime, ttsSvgIcons } = await import("../src/ts/services/tts/config.ts");
 const { stopTtsAudio, playTtsAudio, handleTtsAudioEnded } = await import("../src/ts/services/tts/playback.ts");
@@ -70,10 +71,11 @@ test("stopTtsAudio resets controls and revokes resources", () => {
     innerHTML: "<svg data-icon=\"pause\"></svg>",
     title: "",
     setAttribute() {},
-    parentElement: { querySelector: (s) => (s === ".tts-status" ? status : null) },
+    parentElement: { querySelector: (s: string) => (s === ".tts-status" ? status : null) },
   };
   querySelectorAllResult = [button];
-  ttsRuntime.activeTtsAudio = { currentTime: 5, pause() { this.paused = true; } };
+  const activeAudio = { currentTime: 5, paused: false, pause() { this.paused = true; } };
+  ttsRuntime.activeTtsAudio = activeAudio as unknown as HTMLAudioElement;
   ttsRuntime.activeTtsAudioUrl = "blob:mock";
 
   stopTtsAudio();
@@ -89,15 +91,15 @@ test("playTtsAudio creates audio, stores resources, and sets handlers", () => {
   reset();
   const audioData = new Uint8Array([1, 2, 3]);
 
-  playTtsAudio(audioData);
+  playTtsAudio(audioData as unknown as ArrayBuffer);
 
   assert.ok(ttsRuntime.activeTtsAudio);
   assert.equal(urlStub.created.length, 1);
   assert.equal(ttsRuntime.activeTtsAudioUrl, urlStub.created[0]);
 
   // Simulate audio ending.
-  assert.equal(typeof ttsRuntime.activeTtsAudio.onended, "function");
-  ttsRuntime.activeTtsAudio.onended();
+  assert.equal(typeof ttsRuntime.activeTtsAudio!.onended, "function");
+  (ttsRuntime.activeTtsAudio!.onended as unknown as () => void)();
 
   assert.equal(ttsRuntime.activeTtsAudio, null);
   assert.equal(ttsRuntime.activeTtsAudioUrl, null);
@@ -111,9 +113,14 @@ test("handleTtsAudioEnded resets UI state and triggers queue when autoplay", () 
   const playPauseButton = { innerHTML: "<svg data-icon=\"pause\"></svg>", title: "", setAttribute() {} };
   const tracker = { isPlaying: true };
 
-  const handler = handleTtsAudioEnded(playPauseButton, status, "blob:current", tracker);
+  const handler = handleTtsAudioEnded(
+    playPauseButton as unknown as HTMLElement,
+    status as unknown as HTMLElement,
+    "blob:current",
+    tracker,
+  );
   ttsRuntime.activeTtsAudioUrl = "blob:current";
-  ttsRuntime.activeTtsAudio = {};
+  ttsRuntime.activeTtsAudio = {} as unknown as HTMLAudioElement;
 
   handler();
 

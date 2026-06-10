@@ -5,22 +5,22 @@ import assert from "node:assert/strict";
 // minimal browser stubs, then drive the provider fetchAndUpdateModels methods
 // directly by swapping globalThis.fetch per test.
 globalThis.window = globalThis.window || {};
+const modelFilteringStore: Record<string, string> = {};
 globalThis.localStorage = {
-  storage: {},
-  getItem(key) { return this.storage[key] || null; },
-  setItem(key, value) { this.storage[key] = value; },
-};
+  getItem(key: string) { return modelFilteringStore[key] || null; },
+  setItem(key: string, value: string) { modelFilteringStore[key] = value; },
+} as unknown as Storage;
 
 const { config } = await import("../src/config/config.js");
 
-function mockFetch(responseData, ok = true) {
-  globalThis.fetch = async () => ({
+function mockFetch(responseData: unknown, ok = true) {
+  globalThis.fetch = (async () => ({
     ok,
     status: ok ? 200 : 500,
     statusText: ok ? "OK" : "Internal Server Error",
     json: async () => responseData,
     text: async () => JSON.stringify(responseData),
-  });
+  })) as unknown as typeof fetch;
 }
 
 // --- LM Studio embedding model filtering ---
@@ -124,7 +124,7 @@ test("Ollama filters out embedding models from data.data format", async () => {
 });
 
 test("Ollama filters out embedding models from api/tags format", async () => {
-  globalThis.fetch = async (url) => {
+  globalThis.fetch = (async (url: string) => {
     if (url.includes("/v1/models")) {
       return { ok: false, status: 404, statusText: "Not Found", text: async () => "" };
     }
@@ -140,7 +140,7 @@ test("Ollama filters out embedding models from api/tags format", async () => {
         ],
       }),
     };
-  };
+  }) as unknown as typeof fetch;
   await config.services.ollama.fetchAndUpdateModels();
 
   assert.deepEqual(config.services.ollama.models, [

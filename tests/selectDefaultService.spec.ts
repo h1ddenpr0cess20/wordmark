@@ -6,12 +6,14 @@ import assert from "node:assert/strict";
 // key, before any local-service fallback happens.
 const { pickCloudFallback } = await import("../src/ts/init/serviceSelection.ts");
 
-const withKeys = ({ openai = "", xai = "" } = {}) => ({
+type ServiceConfigMap = Parameters<typeof pickCloudFallback>[0];
+
+const withKeys = ({ openai = "", xai = "" } = {}): ServiceConfigMap => ({
   openai: { apiKey: openai },
   xai: { apiKey: xai },
   lmstudio: {},
   ollama: {},
-});
+}) as unknown as ServiceConfigMap;
 
 test("switches openai -> xai when only xai has a key", () => {
   assert.equal(pickCloudFallback(withKeys({ xai: "xai-123" }), "openai"), "xai");

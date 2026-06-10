@@ -3,42 +3,44 @@ import assert from 'node:assert/strict';
 
 const originalFetch = global.fetch;
 
-globalThis.window = globalThis.window || {};
+globalThis.window = globalThis.window || ({} as Window & typeof globalThis);
+const filesStore: Record<string, string> = {};
 globalThis.localStorage = {
-  storage: {},
-  getItem(key) { return this.storage[key] || null; },
-  setItem(key, value) { this.storage[key] = value; },
-};
+  getItem(key: string) { return filesStore[key] || null; },
+  setItem(key: string, value: string) { filesStore[key] = value; },
+} as unknown as Storage;
 
 const { config } = await import('../src/config/config.js');
 const { elements } = await import('../src/ts/init/state.js');
+
+type FetchCall = { url: unknown; options: { method?: string; headers?: Record<string, string> } };
 
 function setupWindow() {
   config.defaultService = 'openai';
   config.services.openai.apiKey = 'test-key';
   config.services.openai.baseUrl = 'https://api.example.com';
-  elements.serviceSelector = { value: 'openai' };
+  elements.serviceSelector = { value: 'openai' } as unknown as HTMLSelectElement;
 }
 
 test('listAssistantFiles returns data on success', async () => {
   setupWindow();
   const { listAssistantFiles } = await import('../src/ts/services/files.js');
 
-  const calls = [];
-  global.fetch = async (url, options = {}) => {
+  const calls: FetchCall[] = [];
+  global.fetch = (async (url: unknown, options: FetchCall['options'] = {}) => {
     calls.push({ url, options });
     return {
       ok: true,
       json: async () => ({ data: [{ id: 'file-1' }] }),
     };
-  };
+  }) as unknown as typeof fetch;
 
   try {
     const result = await listAssistantFiles();
     assert.equal(result.data.length, 1);
     assert.equal(calls[0].url, 'https://api.example.com/files?purpose=assistants');
     assert.equal(calls[0].options.method, 'GET');
-    assert.equal(calls[0].options.headers.Authorization, 'Bearer test-key');
+    assert.equal(calls[0].options.headers!.Authorization, 'Bearer test-key');
   } finally {
     global.fetch = originalFetch;
   }
@@ -48,10 +50,10 @@ test('listAssistantFiles throws when request fails', async () => {
   setupWindow();
   const { listAssistantFiles } = await import('../src/ts/services/files.js');
 
-  global.fetch = async () => ({
+  global.fetch = (async () => ({
     ok: false,
     text: async () => 'nope',
-  });
+  })) as unknown as typeof fetch;
 
   try {
     await assert.rejects(
@@ -67,15 +69,15 @@ test('deleteFile sends delete request and returns payload', async () => {
   setupWindow();
   const { deleteFile } = await import('../src/ts/services/files.js');
 
-  const calls = [];
-  global.fetch = async (url, options = {}) => {
+  const calls: FetchCall[] = [];
+  global.fetch = (async (url: unknown, options: FetchCall['options'] = {}) => {
     calls.push({ url, options });
     assert.equal(options.method, 'DELETE');
     return {
       ok: true,
       json: async () => ({ id: 'file-123', deleted: true }),
     };
-  };
+  }) as unknown as typeof fetch;
 
   try {
     const result = await deleteFile('file-123');
@@ -105,15 +107,15 @@ test('deleteAllAssistantFiles aggregates successes and errors', async () => {
     },
   ];
 
-  const requests = [];
-  global.fetch = async (url, options = {}) => {
+  const requests: FetchCall[] = [];
+  global.fetch = (async (url: unknown, options: FetchCall['options'] = {}) => {
     requests.push({ url, options });
     const next = responses.shift();
     if (!next) {
       throw new Error('Unexpected fetch call');
     }
     return next;
-  };
+  }) as unknown as typeof fetch;
 
   try {
     const result = await deleteAllAssistantFiles();

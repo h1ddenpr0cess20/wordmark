@@ -2,12 +2,12 @@ import test from "node:test";
 import assert from "node:assert/strict";
 
 // In-memory localStorage stub installed before importing the module under test.
-const store = new Map();
+const store = new Map<string, string>();
 globalThis.localStorage = {
-  getItem: (k) => (store.has(k) ? store.get(k) : null),
-  setItem: (k, v) => { store.set(k, String(v)); },
-  removeItem: (k) => { store.delete(k); },
-};
+  getItem: (k: string) => (store.has(k) ? store.get(k) ?? null : null),
+  setItem: (k: string, v: string) => { store.set(k, String(v)); },
+  removeItem: (k: string) => { store.delete(k); },
+} as unknown as Storage;
 
 const {
   STORAGE_KEYS,

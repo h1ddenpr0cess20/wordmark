@@ -5,28 +5,35 @@ import assert from "node:assert/strict";
 // Provide browser-global stubs before importing it. showNotification is a real
 // import that no-ops without a DOM, so these tests verify storage/UI behavior
 // rather than intercepting the toast.
-function createLocalStorage(initial = {}) {
-  const store = new Map(Object.entries(initial));
-  return {
-    getItem(key) { return store.has(key) ? store.get(key) : null; },
-    setItem(key, value) { store.set(key, String(value)); },
-    removeItem(key) { store.delete(key); },
-    clear() { store.clear(); },
-  };
+declare global {
+  // eslint-disable-next-line no-var
+  var __mcpContainer: unknown;
 }
+
+function createLocalStorage(initial: Record<string, string> = {}) {
+  const store = new Map<string, string>(Object.entries(initial));
+  return {
+    getItem(key: string) { return store.has(key) ? store.get(key) : null; },
+    setItem(key: string, value: string) { store.set(key, String(value)); },
+    removeItem(key: string) { store.delete(key); },
+    clear() { store.clear(); },
+  } as unknown as Storage;
+}
+
+type FakeButton = { dataset: { serverLabel: string }; addEventListener(): void };
 
 function createListContainer() {
   return {
     _innerHTML: "",
-    buttons: [],
-    set innerHTML(html) {
+    buttons: [] as FakeButton[],
+    set innerHTML(html: string) {
       this._innerHTML = html;
       const matches = [...html.matchAll(/data-server-label="([^"]+)"/g)];
       this.buttons = matches.map(label => ({ dataset: { serverLabel: label[1] }, addEventListener() {} }));
     },
     get innerHTML() { return this._innerHTML; },
     appendChild() {},
-    querySelectorAll(selector) {
+    querySelectorAll(selector: string) {
       return selector === ".mcp-server-remove" ? this.buttons : [];
     },
   };
@@ -45,18 +52,18 @@ function makeStubEl() {
   };
 }
 
-globalThis.requestAnimationFrame = (cb) => cb();
-globalThis.window = globalThis.window || {};
+globalThis.requestAnimationFrame = ((cb: FrameRequestCallback) => { cb(0); return 0; }) as unknown as typeof requestAnimationFrame;
+globalThis.window = globalThis.window || ({} as Window & typeof globalThis);
 globalThis.document = {
   readyState: "complete",
   body: { appendChild() {} },
   head: { appendChild() {} },
-  getElementById: (id) => (id === "mcp-servers-list" ? globalThis.__mcpContainer : null),
+  getElementById: (id: string) => (id === "mcp-servers-list" ? globalThis.__mcpContainer : null),
   createElement: () => makeStubEl(),
   // mcpServers now imports the responsesClient facade, which transitively loads
   // apiKeys.js; its DOMContentLoaded self-init needs addEventListener present.
   addEventListener() {},
-};
+} as unknown as Document;
 
 const { getMCPServers, addMCPServer, requestMcpServerRemoval } =
   await import("../src/ts/services/mcpServers.ts");
@@ -75,7 +82,7 @@ test("addMCPServer persists unique servers and rejects duplicates", () => {
   };
 
   assert.equal(addMCPServer(server), true);
-  let stored = JSON.parse(storage.getItem("mcp_servers"));
+  let stored = JSON.parse(storage.getItem("mcp_servers")!);
   assert.equal(stored.length, 1);
   assert.equal(stored[0].server_label, "local-dev");
 
@@ -86,7 +93,7 @@ test("addMCPServer persists unique servers and rejects duplicates", () => {
   } finally {
     console.error = originalConsoleError;
   }
-  stored = JSON.parse(storage.getItem("mcp_servers"));
+  stored = JSON.parse(storage.getItem("mcp_servers")!);
   assert.equal(stored.length, 1);
 });
 
@@ -98,20 +105,20 @@ test("requestMcpServerRemoval removes confirmed servers and refreshes UI", () =>
   globalThis.localStorage = createLocalStorage({ mcp_servers: JSON.stringify(servers) });
   globalThis.__mcpContainer = createListContainer();
 
-  const confirmCalls = [];
-  globalThis.confirm = (message) => { confirmCalls.push(message); return true; };
+  const confirmCalls: Array<string | undefined> = [];
+  globalThis.confirm = (message?: string) => { confirmCalls.push(message); return true; };
   // unregisterMcpServer + refreshToolSettingsUI are now reached through static
   // ESM imports (no window seam to spy on); assert the observable effect: the
   // server is removed from storage. The real refreshToolSettingsUI no-ops here
   // because there is no tools container in the DOM.
-  globalThis.window.icon = () => "";
+  (globalThis.window as unknown as { icon: () => string }).icon = () => "";
 
   const removed = requestMcpServerRemoval("first");
   assert.equal(removed, true);
   assert.equal(confirmCalls.length, 1);
-  assert.match(confirmCalls[0], /First Server/);
+  assert.match(confirmCalls[0]!, /First Server/);
 
-  const stored = JSON.parse(globalThis.localStorage.getItem("mcp_servers"));
+  const stored = JSON.parse(globalThis.localStorage.getItem("mcp_servers")!);
   assert.equal(stored.length, 1);
   assert.equal(stored[0].server_label, "second");
 });
@@ -123,15 +130,15 @@ test("requestMcpServerRemoval uses fallback label and does nothing when cancelle
   globalThis.localStorage = createLocalStorage({ mcp_servers: JSON.stringify(servers) });
   globalThis.__mcpContainer = createListContainer();
 
-  const confirmCalls = [];
-  globalThis.confirm = (message) => { confirmCalls.push(message); return false; };
+  const confirmCalls: Array<string | undefined> = [];
+  globalThis.confirm = (message?: string) => { confirmCalls.push(message); return false; };
 
   const result = requestMcpServerRemoval("missing", "Fallback Server");
   assert.equal(result, false);
   assert.equal(confirmCalls.length, 1);
-  assert.match(confirmCalls[0], /Fallback Server/);
+  assert.match(confirmCalls[0]!, /Fallback Server/);
 
-  const stored = JSON.parse(globalThis.localStorage.getItem("mcp_servers"));
+  const stored = JSON.parse(globalThis.localStorage.getItem("mcp_servers")!);
   assert.equal(stored.length, 1);
   assert.equal(stored[0].server_label, "first");
 });

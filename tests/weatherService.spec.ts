@@ -12,23 +12,23 @@ test('weatherToolHandler requires city argument', async () => {
 });
 
 test('weatherToolHandler reports geocode request failures', async () => {
-  globalThis.fetch = async () => ({
+  globalThis.fetch = (async () => ({
     ok: false,
     status: 503,
     statusText: 'Service Unavailable',
     text: async () => 'maintenance',
-  });
+  })) as unknown as typeof fetch;
 
   const result = await weatherToolHandler({ city: 'London' });
   assert.equal(result.error, 'geocoding request failed: 503 Service Unavailable: maintenance');
 });
 
 test('weatherToolHandler handles missing geocode results', async () => {
-  const fetchCalls = [];
-  globalThis.fetch = async (url) => {
+  const fetchCalls: string[] = [];
+  globalThis.fetch = (async (url: string) => {
     fetchCalls.push(url);
     return { ok: true, json: async () => ({ results: [] }) };
-  };
+  }) as unknown as typeof fetch;
 
   const result = await weatherToolHandler({ city: 'Atlantis' });
   assert.equal(result.error, "City 'Atlantis' not found");
@@ -36,8 +36,8 @@ test('weatherToolHandler handles missing geocode results', async () => {
 });
 
 test('weatherToolHandler normalizes days and returns forecast summary', async () => {
-  const fetchCalls = [];
-  globalThis.fetch = async (url) => {
+  const fetchCalls: string[] = [];
+  globalThis.fetch = (async (url: string) => {
     fetchCalls.push(url);
     if (url.includes('geocoding-api')) {
       return {
@@ -56,7 +56,7 @@ test('weatherToolHandler normalizes days and returns forecast summary', async ()
         },
       }),
     };
-  };
+  }) as unknown as typeof fetch;
 
   const result = await weatherToolHandler({ city: 'San Francisco', days: '10' });
 

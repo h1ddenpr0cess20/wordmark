@@ -6,38 +6,39 @@ import assert from "node:assert/strict";
 // load. These tests record those listeners on a stub document and dispatch
 // synthetic events to verify the delegation routes correctly.
 
-function fakeClassList(initial = []) {
-  const set = new Set(initial);
+function fakeClassList(initial: string[] = []) {
+  const set = new Set<string>(initial);
   return {
-    contains: (c) => set.has(c),
-    add: (c) => void set.add(c),
-    remove: (c) => void set.delete(c),
-    toggle: (c) => (set.has(c) ? set.delete(c) : set.add(c)),
+    contains: (c: string) => set.has(c),
+    add: (c: string) => void set.add(c),
+    remove: (c: string) => void set.delete(c),
+    toggle: (c: string) => (set.has(c) ? set.delete(c) : set.add(c)),
   };
 }
 
-const clickHandlers = [];
-const elementsById = new Map();
+type ClickHandler = (event: unknown) => void;
+const clickHandlers: ClickHandler[] = [];
+const elementsById = new Map<string, unknown>();
 
-globalThis.window = { addEventListener: () => {} };
-globalThis.localStorage = { getItem: () => null, setItem() {} };
+globalThis.window = { addEventListener: () => {} } as unknown as Window & typeof globalThis;
+globalThis.localStorage = { getItem: () => null, setItem() {} } as unknown as Storage;
 globalThis.document = {
-  addEventListener(type, fn) {
+  addEventListener(type: string, fn: ClickHandler) {
     if (type === "click") clickHandlers.push(fn);
   },
-  getElementById: (id) => elementsById.get(id) || null,
+  getElementById: (id: string) => elementsById.get(id) || null,
   querySelector: () => null,
   querySelectorAll: () => [],
   createElement: () => ({ style: {}, classList: fakeClassList(), setAttribute() {}, appendChild() {} }),
   body: { appendChild() {}, removeChild() {}, classList: fakeClassList() },
   head: { appendChild() {} },
-};
+} as unknown as Document;
 
 // Importing these modules attaches their delegated click listeners.
 await import("../src/ts/utils/utils.ts");
 await import("../src/ts/components/aboutPopups.ts");
 
-function dispatchClick(event) {
+function dispatchClick(event: unknown) {
   for (const handler of clickHandlers) handler(event);
 }
 
@@ -50,10 +51,10 @@ test("clicking a .thinking-title toggles its thinking container's collapsed clas
   elementsById.set("thinking-1", container);
 
   const title = {
-    closest: (sel) => (sel === ".thinking-container" ? container : null),
+    closest: (sel: string) => (sel === ".thinking-container" ? container : null),
   };
   const event = {
-    target: { closest: (sel) => (sel === ".thinking-title" ? title : null) },
+    target: { closest: (sel: string) => (sel === ".thinking-title" ? title : null) },
     stopPropagation() {},
     preventDefault() {},
   };
@@ -80,9 +81,9 @@ test("a click that hits no .thinking-title leaves containers untouched", () => {
 
 test("clicking a [data-popup-action] element triggers the popup handler (preventDefault)", () => {
   let prevented = false;
-  const trigger = { getAttribute: (k) => (k === "data-popup-action" ? "show-privacy" : null) };
+  const trigger = { getAttribute: (k: string) => (k === "data-popup-action" ? "show-privacy" : null) };
   const event = {
-    target: { closest: (sel) => (sel === "[data-popup-action]" ? trigger : null) },
+    target: { closest: (sel: string) => (sel === "[data-popup-action]" ? trigger : null) },
     preventDefault() { prevented = true; },
   };
 

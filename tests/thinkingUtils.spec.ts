@@ -3,19 +3,19 @@ import assert from 'node:assert/strict';
 
 // thinkingUtils imports `marked` (real, works in Node) and sanitizeWithMedia
 // (DOMPurify is stubbed by the test loader). Just provide a window + document.
-globalThis.window = {};
+globalThis.window = {} as Window & typeof globalThis;
 
 // Minimal document stub so sanitizeWithMedia's DOM post-processing works.
 globalThis.document = {
   createElement: () => {
     let html = "";
     return {
-      set innerHTML(value) { html = value; },
+      set innerHTML(value: string) { html = value; },
       get innerHTML() { return html; },
       querySelectorAll: () => [],
     };
   },
-};
+} as unknown as Document;
 
 const { processMainContentMarkdown } = await import('../src/ts/services/streaming/thinkingUtils.js');
 

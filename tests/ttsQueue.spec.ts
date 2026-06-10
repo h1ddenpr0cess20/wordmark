@@ -5,12 +5,12 @@ import assert from "node:assert/strict";
 // module with DOM/global stubs and assert on the shared ttsMessageQueue /
 // ttsRuntime plus the play-button stubs.
 
-let elements = new Map();
-let timeouts = [];
+let elements = new Map<string, unknown>();
+let timeouts: Array<{ fn: unknown; ms: unknown }> = [];
 
-globalThis.window = { VERBOSE_LOGGING: false };
-globalThis.document = { getElementById: (id) => elements.get(id) || null };
-globalThis.setTimeout = (fn, ms) => { timeouts.push({ fn, ms }); return 0; };
+globalThis.window = { VERBOSE_LOGGING: false } as unknown as Window & typeof globalThis;
+globalThis.document = { getElementById: (id: string) => elements.get(id) || null } as unknown as Document;
+globalThis.setTimeout = ((fn: unknown, ms: unknown) => { timeouts.push({ fn, ms }); return 0; }) as unknown as typeof setTimeout;
 
 const { ttsConfig, ttsRuntime, ttsMessageQueue } = await import("../src/ts/services/tts/config.ts");
 const { playNextMessageInQueue, addMessageToTtsQueue } = await import("../src/ts/services/tts/queue.ts");
@@ -27,13 +27,13 @@ function reset() {
 
 // An element that passes shouldSkipTts (not a system message, no code keywords)
 // and optionally exposes a .tts-play-pause button via .tts-controls.
-function makeMessage(playButton = null) {
+function makeMessage(playButton: { click(): void } | null = null) {
   const controls = playButton
-    ? { querySelector: (s) => (s === ".tts-play-pause" ? playButton : null) }
+    ? { querySelector: (s: string) => (s === ".tts-play-pause" ? playButton : null) }
     : null;
   return {
     classList: { contains: () => false },
-    querySelector: (s) => {
+    querySelector: (s: string) => {
       if (s === ".message-text") return { innerText: "Hello there" };
       if (s === ".tts-controls") return controls;
       return null;
@@ -52,7 +52,7 @@ test("playNextMessageInQueue skips when audio already active", () => {
   reset();
   let clicked = false;
   elements.set("msg-1", makeMessage({ click() { clicked = true; } }));
-  ttsRuntime.activeTtsAudio = { playing: true };
+  ttsRuntime.activeTtsAudio = { playing: true } as unknown as HTMLAudioElement;
   ttsMessageQueue.push("msg-1");
 
   playNextMessageInQueue();
@@ -76,7 +76,7 @@ test("playNextMessageInQueue clicks play button and removes from queue", () => {
 test("addMessageToTtsQueue enqueues messages and rejects duplicates/disabled", () => {
   reset();
   // Audio active so enqueue does not immediately drain the queue.
-  ttsRuntime.activeTtsAudio = { playing: true };
+  ttsRuntime.activeTtsAudio = { playing: true } as unknown as HTMLAudioElement;
   elements.set("msg-1", makeMessage());
 
   addMessageToTtsQueue("msg-1");

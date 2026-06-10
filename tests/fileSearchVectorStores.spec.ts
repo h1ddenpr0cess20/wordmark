@@ -21,15 +21,15 @@ test('file_search attaches provided vectorStoreId when no stored IDs exist', asy
     toolImplementations: {},
     VERBOSE_LOGGING: false,
     shouldStopGeneration: false,
-  };
+  } as unknown as Window & typeof globalThis;
 
   // Minimal localStorage polyfill
-  const kv = new Map();
+  const kv = new Map<string, string>();
   globalThis.localStorage = {
-    getItem: (k) => (kv.has(k) ? kv.get(k) : null),
-    setItem: (k, v) => kv.set(k, String(v)),
-    removeItem: (k) => kv.delete(k),
-  };
+    getItem: (k: string) => (kv.has(k) ? kv.get(k) : null),
+    setItem: (k: string, v: string) => { kv.set(k, String(v)); },
+    removeItem: (k: string) => { kv.delete(k); },
+  } as unknown as Storage;
 
   // Enable file_search tool
   localStorage.setItem('wordmark_tool_preferences', JSON.stringify({ 'builtin:file_search': true }));
@@ -39,10 +39,10 @@ test('file_search attaches provided vectorStoreId when no stored IDs exist', asy
   localStorage.removeItem('active_vector_store');
 
   // Capture request body sent to fetch
-  let capturedBody = null;
-  globalThis.fetch = async (_endpoint, options) => {
+  let capturedBody: { tools?: Array<{ type?: string; vector_store_ids?: string[] }> } | null = null;
+  globalThis.fetch = (async (_endpoint: unknown, options: RequestInit) => {
     try {
-      capturedBody = JSON.parse(options.body);
+      capturedBody = JSON.parse(options.body as string);
     } catch {
       capturedBody = null;
     }
@@ -50,7 +50,7 @@ test('file_search attaches provided vectorStoreId when no stored IDs exist', asy
       ok: true,
       json: async () => ({ output_text: '', output: [] }),
     };
-  };
+  }) as unknown as typeof fetch;
 
   const { runTurn } = await import('../src/ts/services/api/requestClient.js');
 
@@ -62,8 +62,9 @@ test('file_search attaches provided vectorStoreId when no stored IDs exist', asy
   });
 
   assert.ok(capturedBody, 'request body should be captured');
-  const fileSearchTool = Array.isArray(capturedBody.tools)
-    ? capturedBody.tools.find(t => t && t.type === 'file_search')
+  const body = capturedBody as { tools?: Array<{ type?: string; vector_store_ids?: string[] }> };
+  const fileSearchTool = Array.isArray(body.tools)
+    ? body.tools.find(t => t && t.type === 'file_search')
     : null;
   assert.ok(fileSearchTool, 'file_search tool should be included');
   assert.deepEqual(fileSearchTool.vector_store_ids, ['vs_123'], 'should include only the provided vector store id');
@@ -77,15 +78,15 @@ test('file_search attaches all active vector stores from storage when none provi
     toolImplementations: {},
     VERBOSE_LOGGING: false,
     shouldStopGeneration: false,
-  };
+  } as unknown as Window & typeof globalThis;
 
   // Minimal localStorage polyfill
-  const kv = new Map();
+  const kv = new Map<string, string>();
   globalThis.localStorage = {
-    getItem: (k) => (kv.has(k) ? kv.get(k) : null),
-    setItem: (k, v) => kv.set(k, String(v)),
-    removeItem: (k) => kv.delete(k),
-  };
+    getItem: (k: string) => (kv.has(k) ? kv.get(k) : null),
+    setItem: (k: string, v: string) => { kv.set(k, String(v)); },
+    removeItem: (k: string) => { kv.delete(k); },
+  } as unknown as Storage;
 
   // Enable file_search tool
   localStorage.setItem('wordmark_tool_preferences', JSON.stringify({ 'builtin:file_search': true }));
@@ -98,10 +99,10 @@ test('file_search attaches all active vector stores from storage when none provi
   localStorage.setItem('active_vector_store', 'vs_C');
 
   // Capture request body
-  let capturedBody = null;
-  globalThis.fetch = async (_endpoint, options) => {
+  let capturedBody: { tools?: Array<{ type?: string; vector_store_ids?: string[] }> } | null = null;
+  globalThis.fetch = (async (_endpoint: unknown, options: RequestInit) => {
     try {
-      capturedBody = JSON.parse(options.body);
+      capturedBody = JSON.parse(options.body as string);
     } catch {
       capturedBody = null;
     }
@@ -109,7 +110,7 @@ test('file_search attaches all active vector stores from storage when none provi
       ok: true,
       json: async () => ({ output_text: '', output: [] }),
     };
-  };
+  }) as unknown as typeof fetch;
 
   // Import after env is prepared
   const { runTurn } = await import('../src/ts/services/api/requestClient.js');
@@ -122,8 +123,9 @@ test('file_search attaches all active vector stores from storage when none provi
   });
 
   assert.ok(capturedBody, 'request body should be captured');
-  const fileSearchTool = Array.isArray(capturedBody.tools)
-    ? capturedBody.tools.find(t => t && t.type === 'file_search')
+  const body = capturedBody as { tools?: Array<{ type?: string; vector_store_ids?: string[] }> };
+  const fileSearchTool = Array.isArray(body.tools)
+    ? body.tools.find(t => t && t.type === 'file_search')
     : null;
   assert.ok(fileSearchTool, 'file_search tool should be included');
   // MAX_ACTIVE_VECTOR_STORES is 2, so only the active store + 1 from metadata
@@ -140,15 +142,15 @@ test('file_search dedupes and merges storage + explicit vectorStoreId', async (t
     toolImplementations: {},
     VERBOSE_LOGGING: false,
     shouldStopGeneration: false,
-  };
+  } as unknown as Window & typeof globalThis;
 
   // Minimal localStorage polyfill
-  const kv = new Map();
+  const kv = new Map<string, string>();
   globalThis.localStorage = {
-    getItem: (k) => (kv.has(k) ? kv.get(k) : null),
-    setItem: (k, v) => kv.set(k, String(v)),
-    removeItem: (k) => kv.delete(k),
-  };
+    getItem: (k: string) => (kv.has(k) ? kv.get(k) : null),
+    setItem: (k: string, v: string) => { kv.set(k, String(v)); },
+    removeItem: (k: string) => { kv.delete(k); },
+  } as unknown as Storage;
 
   // Enable file_search tool
   localStorage.setItem('wordmark_tool_preferences', JSON.stringify({ 'builtin:file_search': true }));
@@ -161,10 +163,10 @@ test('file_search dedupes and merges storage + explicit vectorStoreId', async (t
   localStorage.setItem('active_vector_store', 'vs_B');
 
   // Capture request body
-  let capturedBody = null;
-  globalThis.fetch = async (_endpoint, options) => {
+  let capturedBody: { tools?: Array<{ type?: string; vector_store_ids?: string[] }> } | null = null;
+  globalThis.fetch = (async (_endpoint: unknown, options: RequestInit) => {
     try {
-      capturedBody = JSON.parse(options.body);
+      capturedBody = JSON.parse(options.body as string);
     } catch {
       capturedBody = null;
     }
@@ -172,7 +174,7 @@ test('file_search dedupes and merges storage + explicit vectorStoreId', async (t
       ok: true,
       json: async () => ({ output_text: '', output: [] }),
     };
-  };
+  }) as unknown as typeof fetch;
 
   const { runTurn } = await import('../src/ts/services/api/requestClient.js');
 
@@ -184,8 +186,9 @@ test('file_search dedupes and merges storage + explicit vectorStoreId', async (t
   });
 
   assert.ok(capturedBody, 'request body should be captured');
-  const fileSearchTool = Array.isArray(capturedBody.tools)
-    ? capturedBody.tools.find(t => t && t.type === 'file_search')
+  const body = capturedBody as { tools?: Array<{ type?: string; vector_store_ids?: string[] }> };
+  const fileSearchTool = Array.isArray(body.tools)
+    ? body.tools.find(t => t && t.type === 'file_search')
     : null;
   assert.ok(fileSearchTool, 'file_search tool should be included');
   const ids = new Set(fileSearchTool.vector_store_ids);
