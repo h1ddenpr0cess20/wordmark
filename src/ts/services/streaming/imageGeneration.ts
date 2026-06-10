@@ -6,8 +6,10 @@ import { state } from "../../init/state.ts";
 import { registerGeneratedMedia } from "../mediaTools.ts";
 import type { ResponseObject } from "../../../types/api.ts";
 
+/** Response output type identifying an image-generation call. */
 export const IMAGE_GENERATION_CALL_TYPE = "image_generation_call";
 
+/** A generated image: its data URL and MIME type. */
 export interface ImageCandidate {
   dataUrl: string;
   mimeType: string;

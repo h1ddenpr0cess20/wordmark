@@ -1,3 +1,12 @@
+/**
+ * Streaming runtime.
+ *
+ * @remarks
+ * Holds the mutable per-response accumulation state (text, reasoning, images,
+ * code-interpreter outputs) and the DOM update helpers that the event processor
+ * drives as a stream arrives.
+ */
+
 import { elements, state } from "../../init/state.ts";
 import {
   IMAGE_GENERATION_CALL_TYPE,
