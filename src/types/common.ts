@@ -1,4 +1,6 @@
-// Shared domain types for persisted records (conversations, gallery media).
+/**
+ * Shared domain types for persisted records (conversations, gallery media).
+ */
 
 import type { Message } from "./api.ts";
 

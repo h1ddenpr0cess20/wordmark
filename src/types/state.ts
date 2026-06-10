@@ -1,15 +1,18 @@
-// Shared interfaces for the central app state and cached DOM element references.
+/**
+ * Shared interfaces for the central app state and cached DOM element references.
+ */
 
 import type { Message } from "./api.ts";
 import type { GeneratedImage } from "./common.ts";
 import type { PendingDocument, PendingUpload } from "./attachments.ts";
 
-// A conversation's stored system-prompt selection.
+/** A conversation's stored system-prompt selection. */
 export interface SystemPrompt {
   type: string;
   content: string;
 }
 
+/** The central, mutable application state shared across modules. */
 export interface AppState {
   conversationHistory: Message[];
   activeAbortController: AbortController | null;
@@ -49,6 +52,7 @@ export interface AppState {
   shortResponseGuideline: string;
 }
 
+/** Cached references to the DOM elements the app interacts with. */
 export interface Elements {
   chatBox: HTMLElement | null;
   userInput: HTMLTextAreaElement | null;
