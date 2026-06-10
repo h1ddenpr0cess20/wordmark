@@ -1,8 +1,15 @@
-import { getMemoryConfig } from "../../utils/memoryStorage.ts";
 /**
- * Tool catalog, preference management, and MCP availability helpers.
+ * Tool manager facade.
+ *
+ * Holds the request-time concerns — building the enabled tool-definition list
+ * for a given service/model and the UI-facing catalog view — and re-exports the
+ * catalog/preferences/MCP sub-modules so existing importers keep a single entry
+ * point. The mutable catalog store lives in `tools/catalog.ts`, enable/disable
+ * preferences in `tools/preferences.ts`, and MCP registration/availability in
+ * `tools/mcp.ts`.
  */
 
+import { getMemoryConfig } from "../../utils/memoryStorage.ts";
 import { getActiveServiceKey, getActiveModel } from "./clientConfig.ts";
 import { weatherToolHandler } from "../weather.ts";
 import { memoryToolDefinition, forgetToolDefinition } from "../memory.ts";
@@ -10,74 +17,16 @@ import { getApiKey } from "../apiKeyStorage.ts";
 import { isLocalService, usesServerManagedTools } from "../providers.ts";
 import { MCP_ASSUME_ONLINE, config } from "../../../config/config.ts";
 import { state } from "../../init/state.ts";
-import { STORAGE_KEYS, readJSON, writeJSON } from "../../utils/storage.ts";
-import { STATIC_TOOLS } from "./staticTools.ts";
-import type {
-  McpServerConfig,
-  ToolCatalogEntry,
-  ToolDefinition,
-  ToolEntry,
-} from "../../../types/tools.ts";
-
-interface McpFetchResult {
-  status: "ok" | "bad-status" | "timeout" | "error";
-  code?: number;
-  error?: unknown;
-}
-
-const TOOL_STORAGE_KEY = STORAGE_KEYS.toolPreferences;
-
-function loadUserMCPServers(): McpServerConfig[] {
-  try {
-    const stored = localStorage.getItem(STORAGE_KEYS.mcpServers);
-    if (!stored) return [];
-    const servers = JSON.parse(stored);
-    return Array.isArray(servers) ? servers : [];
-  } catch (error) {
-    console.error("Error loading user MCP servers:", error);
-    return [];
-  }
-}
-
-function buildMcpToolEntry(server: McpServerConfig): ToolEntry | null {
-  if (!server || !server.server_label || !server.server_url) {
-    return null;
-  }
-  return {
-    key: `mcp:${server.server_label}`,
-    type: "mcp",
-    displayName: server.displayName || server.server_label,
-    description: server.description || "User-configured MCP server",
-    defaultEnabled: true,
-    isOnline: null,
-    definition: {
-      type: "mcp",
-      server_label: server.server_label,
-      server_url: server.server_url,
-      require_approval: server.require_approval || "always",
-    },
-  };
-}
-
-function cloneDefinition(definition: ToolDefinition): ToolDefinition {
-  return JSON.parse(JSON.stringify(definition));
-}
-
-function isConfiguredServiceEnabled(serviceKey: string): boolean {
-  const services = config?.services;
-  if (!services) {
-    return true;
-  }
-  if (typeof config?.isServiceEnabled === "function") {
-    return config.isServiceEnabled(serviceKey);
-  }
-  const service = services[serviceKey];
-  return Boolean(service && service.enabled !== false);
-}
-
-const TOOL_CATALOG: ToolEntry[] = [];
-const TOOL_DEFINITIONS: ToolDefinition[] = [];
-let userMcpToolCount = 0;
+import { TOOL_CATALOG, TOOL_DEFINITIONS } from "./tools/catalog.ts";
+import { getToolPreference, isToolEnabled, setToolEnabled, setAllToolsEnabled } from "./tools/preferences.ts";
+import {
+  getCachedMcpStatus,
+  isLocalNetworkUrl,
+  refreshMcpAvailability,
+  registerMcpServer,
+  unregisterMcpServer,
+} from "./tools/mcp.ts";
+import type { ToolCatalogEntry, ToolDefinition } from "../../../types/tools.ts";
 
 const SERVER_MANAGED_TOOL_TYPES = new Set([
   "web_search",
@@ -93,37 +42,6 @@ const CLIENT_SIDE_TOOL_TYPES = new Set([
   "mcp",
 ]);
 
-function insertMcpTool(toolEntry: ToolEntry) {
-  TOOL_CATALOG.splice(userMcpToolCount, 0, toolEntry);
-  TOOL_DEFINITIONS.splice(userMcpToolCount, 0, cloneDefinition(toolEntry.definition));
-  userMcpToolCount += 1;
-}
-
-function replaceToolAt(index: number, toolEntry: ToolEntry) {
-  TOOL_CATALOG[index] = toolEntry;
-  TOOL_DEFINITIONS[index] = cloneDefinition(toolEntry.definition);
-}
-
-function addStaticTool(toolEntry: ToolEntry) {
-  TOOL_CATALOG.push(toolEntry);
-  TOOL_DEFINITIONS.push(cloneDefinition(toolEntry.definition));
-}
-
-function removeToolAt(index: number) {
-  TOOL_CATALOG.splice(index, 1);
-  TOOL_DEFINITIONS.splice(index, 1);
-}
-
-const storedMcpServers = loadUserMCPServers();
-storedMcpServers.forEach(server => {
-  const entry = buildMcpToolEntry(server);
-  if (entry) {
-    insertMcpTool(entry);
-  }
-});
-
-STATIC_TOOLS.forEach(tool => addStaticTool(tool));
-
 const TOOL_HANDLERS: Record<string, (...args: unknown[]) => unknown> = {
   open_meteo_forecast: function(...args: unknown[]) {
     if (weatherToolHandler) {
@@ -133,13 +51,17 @@ const TOOL_HANDLERS: Record<string, (...args: unknown[]) => unknown> = {
   },
 };
 
-const MCP_PING_TIMEOUT_MS = 4000;
-const MCP_REFRESH_INTERVAL_MS = 60000;
-const mcpStatusCache = new Map<string, { online: boolean | null; checkedAt: number }>();
-let lastMcpRefresh = 0;
-let mcpRefreshPromise: Promise<void> | null = null;
-
-let toolPreferences = loadToolPreferences();
+function isConfiguredServiceEnabled(serviceKey: string): boolean {
+  const services = config?.services;
+  if (!services) {
+    return true;
+  }
+  if (typeof config?.isServiceEnabled === "function") {
+    return config.isServiceEnabled(serviceKey);
+  }
+  const service = services[serviceKey];
+  return Boolean(service && service.enabled !== false);
+}
 
 function isCodexModel(modelName: string | undefined): boolean {
   return typeof modelName === "string" && modelName.toLowerCase().includes("codex");
@@ -195,79 +117,6 @@ export function getToolCatalog(): ToolCatalogEntry[] {
     hidden: tool.hidden === true,
     serverUrl: tool.type === "mcp" ? tool.definition?.server_url : undefined,
   }));
-}
-
-export function isToolEnabled(key: string): boolean {
-  const tool = TOOL_CATALOG.find(item => item.key === key);
-  if (!tool) {
-    return false;
-  }
-  return getToolPreference(key, tool.defaultEnabled !== false);
-}
-
-export function setToolEnabled(key: string, enabled: boolean) {
-  const tool = TOOL_CATALOG.find(item => item.key === key);
-  if (!tool) {
-    return;
-  }
-  toolPreferences = {
-    ...toolPreferences,
-    [key]: Boolean(enabled),
-  };
-  saveToolPreferences(toolPreferences);
-}
-
-export function setAllToolsEnabled(enabled: boolean) {
-  const updated = { ...toolPreferences };
-  TOOL_CATALOG.forEach(tool => {
-    updated[tool.key] = Boolean(enabled);
-  });
-  toolPreferences = updated;
-  saveToolPreferences(toolPreferences);
-}
-
-export function registerMcpServer(serverConfig: McpServerConfig, options: { silent?: boolean } = {}): ToolEntry | null {
-  const { silent = false } = options;
-  const entry = buildMcpToolEntry(serverConfig);
-  if (!entry) {
-    return null;
-  }
-
-  const existingIndex = TOOL_CATALOG.findIndex(tool => tool.key === entry.key);
-  if (existingIndex !== -1) {
-    replaceToolAt(existingIndex, entry);
-  } else {
-    insertMcpTool(entry);
-  }
-
-  if (!silent) {
-    mcpStatusCache.delete(entry.key);
-  }
-  return entry;
-}
-
-export function unregisterMcpServer(serverLabel: string, options: { silent?: boolean } = {}): boolean {
-  if (!serverLabel) {
-    return false;
-  }
-  const { silent = false } = options;
-  const key = `mcp:${serverLabel}`;
-  const index = TOOL_CATALOG.findIndex(tool => tool.key === key);
-  if (index === -1) {
-    return false;
-  }
-
-  removeToolAt(index);
-  if (index < userMcpToolCount) {
-    userMcpToolCount = Math.max(0, userMcpToolCount - 1);
-  }
-  mcpStatusCache.delete(key);
-
-  if (!silent && Object.prototype.hasOwnProperty.call(toolPreferences, key)) {
-    delete toolPreferences[key];
-    saveToolPreferences(toolPreferences);
-  }
-  return true;
 }
 
 export function getEnabledToolDefinitions(serviceKey: string = getActiveServiceKey(), modelName: string = getActiveModel()): ToolDefinition[] {
@@ -381,90 +230,6 @@ export function getEnabledToolDefinitions(serviceKey: string = getActiveServiceK
   return defs;
 }
 
-export function refreshMcpAvailability(force = false): Promise<void> {
-  const mcpTools = TOOL_CATALOG.filter(tool => tool.type === "mcp");
-  if (typeof window !== "undefined" && MCP_ASSUME_ONLINE === true) {
-    mcpTools.forEach(tool => setCachedMcpStatus(tool.key, true));
-    lastMcpRefresh = Date.now();
-    return Promise.resolve();
-  }
-  if (mcpTools.length === 0) {
-    return Promise.resolve();
-  }
-  const now = Date.now();
-  if (!force && mcpRefreshPromise) {
-    return mcpRefreshPromise;
-  }
-  if (!force && now - lastMcpRefresh < MCP_REFRESH_INTERVAL_MS) {
-    return Promise.resolve();
-  }
-
-  if (typeof navigator !== "undefined" && navigator.onLine === false) {
-    mcpTools.forEach(tool => setCachedMcpStatus(tool.key, false));
-    lastMcpRefresh = Date.now();
-    return Promise.resolve();
-  }
-
-  mcpRefreshPromise = (async () => {
-    await Promise.all(mcpTools.map(async tool => {
-      const enabled = getToolPreference(tool.key, tool.defaultEnabled !== false);
-      if (!enabled) {
-        return;
-      }
-      const online = await pingMcpServer(tool.definition.server_url);
-      if (online !== null) {
-        setCachedMcpStatus(tool.key, online);
-      }
-    }));
-  })().catch(error => {
-    console.warn("Error refreshing MCP availability:", error);
-  }).finally(() => {
-    lastMcpRefresh = Date.now();
-    mcpRefreshPromise = null;
-  });
-
-  return mcpRefreshPromise;
-}
-
-export { TOOL_DEFINITIONS, TOOL_HANDLERS };
-
-function loadToolPreferences(): Record<string, boolean> {
-  const parsed = readJSON<Record<string, boolean>>(TOOL_STORAGE_KEY, {});
-  return parsed && typeof parsed === "object" ? parsed : {};
-}
-
-function saveToolPreferences(prefs: Record<string, boolean>) {
-  try {
-    writeJSON(TOOL_STORAGE_KEY, prefs);
-  } catch {
-    /* Ignore storage errors */
-  }
-}
-
-function getToolPreference(key: string, defaultEnabled: boolean): boolean {
-  if (Object.prototype.hasOwnProperty.call(toolPreferences, key)) {
-    return Boolean(toolPreferences[key]);
-  }
-  return defaultEnabled;
-}
-
-function isLocalNetworkUrl(url: string): boolean {
-  try {
-    const parsed = new URL(url);
-    const hostname = parsed.hostname.toLowerCase();
-    if (hostname === "localhost" || hostname === "127.0.0.1" || hostname === "::1") {
-      return true;
-    }
-    if (hostname.match(/^192\.168\.\d+\.\d+$/)) return true;
-    if (hostname.match(/^10\.\d+\.\d+\.\d+$/)) return true;
-    if (hostname.match(/^172\.(1[6-9]|2[0-9]|3[01])\.\d+\.\d+$/)) return true;
-    if (hostname.endsWith(".local")) return true;
-    return false;
-  } catch {
-    return false;
-  }
-}
-
 function appendMemoryTools(defs: ToolDefinition[], serviceKey: string = getActiveServiceKey(), modelName: string = getActiveModel()) {
   try {
     const cfg = getMemoryConfig();
@@ -503,118 +268,13 @@ function appendMemoryTools(defs: ToolDefinition[], serviceKey: string = getActiv
   }
 }
 
-function getCachedMcpStatus(toolKey: string): boolean | null {
-  const entry = mcpStatusCache.get(toolKey);
-  return entry ? entry.online : null;
-}
-
-function setCachedMcpStatus(toolKey: string, online: boolean | null) {
-  mcpStatusCache.set(toolKey, { online, checkedAt: Date.now() });
-  const tool = TOOL_CATALOG.find(item => item.key === toolKey);
-  if (tool) {
-    tool.isOnline = online;
-  }
-}
-
-async function pingMcpServer(url: string | undefined): Promise<boolean | null> {
-  const normalizedUrl = typeof url === "string" ? url : "";
-  if (!normalizedUrl) {
-    return false;
-  }
-  if (typeof window !== "undefined" && MCP_ASSUME_ONLINE === true) {
-    return true;
-  }
-  if (!isHostAllowed(normalizedUrl)) {
-    if (state.verboseLogging) {
-      console.info(`Skipping MCP availability check for ${normalizedUrl} due to CSP restrictions.`);
-    }
-    return null;
-  }
-  const corsAttempt = await attemptMcpFetch(normalizedUrl, "cors");
-  if (corsAttempt.status === "ok") {
-    return true;
-  }
-  if (corsAttempt.status === "bad-status") {
-    return false;
-  }
-  if (corsAttempt.status === "timeout") {
-    return false;
-  }
-
-  const noCorsAttempt = await attemptMcpFetch(normalizedUrl, "no-cors");
-  if (noCorsAttempt.status === "ok") {
-    return true;
-  }
-  if (noCorsAttempt.status === "bad-status") {
-    return false;
-  }
-  if (noCorsAttempt.status === "timeout") {
-    return false;
-  }
-  if (noCorsAttempt.status === "error") {
-    if (state.verboseLogging) {
-      console.warn(`MCP availability check failed (${normalizedUrl}) with network error:`, noCorsAttempt.error);
-    }
-    return false;
-  }
-  if (state.verboseLogging) {
-    console.warn(`MCP availability check failed for ${normalizedUrl}.`);
-  }
-  return false;
-}
-
-async function attemptMcpFetch(url: string, mode: RequestMode): Promise<McpFetchResult> {
-  const controller = new AbortController();
-  const timeoutId = setTimeout(() => controller.abort(), MCP_PING_TIMEOUT_MS);
-  try {
-    const response = await fetch(url, {
-      method: "GET",
-      mode,
-      cache: "no-store",
-      signal: controller.signal,
-    });
-    clearTimeout(timeoutId);
-    if (!response) {
-      return { status: "ok" };
-    }
-    if (response.type === "opaque") {
-      return { status: "ok" };
-    }
-    if (response.status < 500) {
-      return { status: "ok" };
-    }
-    return { status: "bad-status", code: response.status };
-  } catch (error) {
-    clearTimeout(timeoutId);
-    if (error instanceof Error && error.name === "AbortError") {
-      return { status: "timeout" };
-    }
-    if (state.verboseLogging) {
-      console.warn(`MCP availability check failed (${mode}) for ${url}:`, error);
-    }
-    return { status: "error", error };
-  }
-}
-
-function isHostAllowed(url: string): boolean {
-  try {
-    const parsed = new URL(url, window.location.origin);
-    const host = parsed.hostname;
-    if (!host) {
-      return false;
-    }
-    if (host === window.location.hostname) {
-      return true;
-    }
-    if (host === "localhost" || host === "127.0.0.1") {
-      return true;
-    }
-    if (host.endsWith(".localhost")) {
-      return true;
-    }
-    return true;
-  } catch (error) {
-    console.warn("Failed to parse MCP URL:", url, error);
-    return false;
-  }
-}
+export {
+  TOOL_DEFINITIONS,
+  TOOL_HANDLERS,
+  isToolEnabled,
+  setToolEnabled,
+  setAllToolsEnabled,
+  registerMcpServer,
+  unregisterMcpServer,
+  refreshMcpAvailability,
+};
