@@ -21,9 +21,9 @@ type FormControl = HTMLInputElement | HTMLButtonElement | HTMLSelectElement | HT
  * Updates the local models dropdown when models are refreshed.
  * Registered on the uiHooks registry so config.js can call it after fetching
  * provider models without importing the component graph.
- * @param {boolean} fetchError - Whether there was an error fetching models
+ * @param {boolean} [fetchError] - Whether there was an error fetching models
  */
-export function updateModelsDropdown(fetchError: boolean) {
+export function updateModelsDropdown(fetchError?: boolean) {
   const serviceKey = elements.serviceSelector ? elements.serviceSelector.value : "";
   const serviceLabelMap: Record<string, string> = { lmstudio: "LM Studio", ollama: "Ollama", openai: "OpenAI", xai: "xAI" };
   const serviceLabel = serviceLabelMap[serviceKey] || serviceKey;

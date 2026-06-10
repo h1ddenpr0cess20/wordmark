@@ -3,7 +3,12 @@
  * config.js) trigger UI updates without importing the heavy component graph.
  *
  * Components register their handlers here (e.g. settings.js sets
- * `uiHooks.updateModelsDropdown`), and callers invoke them defensively with
- * optional chaining since a hook may not be registered yet.
+ * `uiHooks.updateModelsDropdown`), and callers invoke them defensively (the
+ * hooks are optional since a handler may not be registered yet).
  */
-export const uiHooks: Record<string, (...args: any[]) => any> = {};
+export interface UiHooks {
+  /** Re-render the model dropdown; pass true when the model fetch errored. */
+  updateModelsDropdown?: (fetchError?: boolean) => void;
+}
+
+export const uiHooks: UiHooks = {};
