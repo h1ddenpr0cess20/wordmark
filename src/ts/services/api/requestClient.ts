@@ -19,6 +19,11 @@ import {
   windowMessagesByTokenBudget,
 } from "./messageUtils.ts";
 import {
+  serviceSupportsReasoning,
+  supportsResponseIncludeFields,
+  usesServerManagedTools,
+} from "../providers.ts";
+import {
   getEnabledToolDefinitions,
   isClientSideToolType,
   refreshMcpAvailability,
@@ -61,7 +66,6 @@ export function buildRequestBody({
   const targetModel = model || getActiveModel();
   const allowReasoning = supportsReasoningEffort(targetModel);
   const serviceKey = getActiveServiceKey();
-  const isLocalService = serviceKey === "lmstudio" || serviceKey === "ollama";
   const payload: Record<string, unknown> = {
     model: targetModel,
     text: {
@@ -71,10 +75,10 @@ export function buildRequestBody({
     input: serializeMessagesForRequest(inputMessages),
     store: true,
   };
-  if (serviceKey !== "xai" && !isLocalService) {
+  if (supportsResponseIncludeFields(serviceKey)) {
     payload.include = [...DEFAULT_INCLUDE_FIELDS];
   }
-  if (allowReasoning && serviceKey !== "xai") {
+  if (allowReasoning && serviceSupportsReasoning(serviceKey)) {
     payload.reasoning = {
       effort: reasoningEffort || DEFAULT_REASONING_EFFORT,
       summary: "auto",
@@ -92,7 +96,7 @@ export function buildRequestBody({
   if (previousResponseId) {
     payload.previous_response_id = previousResponseId;
   }
-  if (serviceKey === "xai" && payload.text) {
+  if (usesServerManagedTools(serviceKey) && payload.text) {
     const usesServerSideTools = Array.isArray(tools) && tools.some((tool: ToolDefinition) => {
       if (!tool || typeof tool !== "object") {
         return false;
@@ -348,7 +352,7 @@ export async function runTurn({
     }
 
     const preferToolCallFor = (toolName: string): boolean =>
-      serviceKey === "xai" && (toolName === "web_search" || toolName === "x_search" || toolName === "code_interpreter");
+      usesServerManagedTools(serviceKey) && (toolName === "web_search" || toolName === "x_search" || toolName === "code_interpreter");
 
     actionableCalls.forEach((call: ActionableCall) => {
       const resolvedCallId = call.callId || `call_${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 8)}`;

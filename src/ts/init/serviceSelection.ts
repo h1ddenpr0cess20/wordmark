@@ -5,6 +5,7 @@
  */
 
 import type { ServiceConfig } from "../../types/config.ts";
+import { isCloudService } from "../services/providers.ts";
 
 function serviceHasKey(services: Record<string, ServiceConfig>, key: string) {
   const svc = services && services[key];
@@ -20,7 +21,7 @@ function serviceHasKey(services: Record<string, ServiceConfig>, key: string) {
  * @returns {string|null} the cloud service key to switch to, or null
  */
 export function pickCloudFallback(services: Record<string, ServiceConfig>, current: string) {
-  const currentIsCloud = current === "openai" || current === "xai";
+  const currentIsCloud = isCloudService(current);
   if (!currentIsCloud || serviceHasKey(services, current)) {
     return null;
   }

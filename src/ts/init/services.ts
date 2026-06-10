@@ -9,6 +9,7 @@ import { updateHeaderInfo, updateModelSelector, updateFeatureStatus, populateSer
 import { updateMasterToolCallingStatus, refreshToolSettingsUI } from "../components/tools.ts";
 import { DEFAULT_PERSONALITY, DEFAULT_SHORT_RESPONSE_GUIDELINE, DEFAULT_SYSTEM_PROMPT, config } from "../../config/config.ts";
 import { pickCloudFallback } from "./serviceSelection.ts";
+import { isCloudService } from "../services/providers.ts";
 
 /**
  * Initialize services and models
@@ -49,7 +50,7 @@ export async function selectDefaultService() {
   };
 
   const current = config?.defaultService;
-  const currentIsCloud = current === "openai" || current === "xai";
+  const currentIsCloud = isCloudService(current);
 
   // Only auto-pick when the default is a cloud provider that has no key of its own.
   if (!currentIsCloud || hasKey(current)) {

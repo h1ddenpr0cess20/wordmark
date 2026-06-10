@@ -5,6 +5,7 @@
 import { state, elements } from "./state.ts";
 import { config } from "../../config/config.ts";
 import { STORAGE_KEYS } from "../utils/storage.ts";
+import { serviceSupportsReasoning } from "../services/providers.ts";
 
 const REASONING_EFFORT_STORAGE_KEY = STORAGE_KEYS.reasoningEffort;
 export const DEFAULT_REASONING_EFFORT = "medium";
@@ -67,7 +68,7 @@ export function updateReasoningAvailability() {
   }
   const modelName = elements.modelSelector ? elements.modelSelector.value : "";
   const activeService = elements.serviceSelector ? elements.serviceSelector.value : (config && config.defaultService) || "openai";
-  const supported = modelSupportsReasoning(modelName) && activeService !== "xai";
+  const supported = modelSupportsReasoning(modelName) && serviceSupportsReasoning(activeService);
   elements.reasoningEffortSelector.disabled = !supported;
   if (!supported) {
     elements.reasoningEffortSelector.title = DISABLED_REASONING_HELP_TEXT;
@@ -210,7 +211,7 @@ export function initializeModelSettings() {
 export function getReasoningEffort() {
   const modelName = elements.modelSelector ? elements.modelSelector.value : "";
   const activeService = elements.serviceSelector ? elements.serviceSelector.value : (config && config.defaultService) || "openai";
-  if (activeService === "xai" || !modelSupportsReasoning(modelName)) {
+  if (!serviceSupportsReasoning(activeService) || !modelSupportsReasoning(modelName)) {
     return null;
   }
   return normalizeReasoningEffort(state.currentReasoningEffort);

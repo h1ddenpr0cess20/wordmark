@@ -1,4 +1,5 @@
 import { getApiKey } from "../../services/apiKeyStorage.ts";
+import { isLocalService } from "../../services/providers.ts";
 import { openSettingsAndSwitch } from "../../init/eventListeners/settingsPanel.ts";
 import { config } from "../../../config/config.ts";
 import { state } from "../../init/state.ts";
@@ -64,7 +65,7 @@ function checkApiKeysMissing() {
   }
 
   const currentService = config.defaultService;
-  if (currentService === "lmstudio" || currentService === "ollama") {
+  if (isLocalService(currentService)) {
     return false;
   }
 

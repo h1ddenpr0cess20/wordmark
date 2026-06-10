@@ -1,5 +1,6 @@
 import { elements } from "../../init/state.ts";
 import { config } from "../../../config/config.ts";
+import { isLocalService } from "../providers.ts";
 /**
  * Responses client configuration helpers.
  * Provides access to defaults and active service/model selectors.
@@ -62,7 +63,7 @@ export function ensureApiKey(): string | null {
   if (trimmed) {
     return trimmed;
   }
-  if (activeServiceKey === "lmstudio" || activeServiceKey === "ollama") {
+  if (isLocalService(activeServiceKey)) {
     return null;
   }
   const friendlyName = (() => {

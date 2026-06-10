@@ -5,6 +5,7 @@ import { config } from "../../config/config.ts";
 import { state } from "../init/state.ts";
 import { API_KEYS_STORAGE_PREFIX, loadApiKeysIntoConfig } from "./apiKeyStorage.ts";
 import { STORAGE_KEYS } from "../utils/storage.ts";
+import { isLocalService } from "./providers.ts";
 /**
  * API key management functionality
  */
@@ -536,7 +537,7 @@ function ensureApiKeysLoaded() {
   const service = config.defaultService;
 
   // Skip warning for services that don't require a key (LM Studio)
-  if (service === "lmstudio" || service === "ollama") {
+  if (isLocalService(service)) {
     return;
   }
 

@@ -7,6 +7,7 @@ import { getActiveServiceKey, getActiveModel } from "./clientConfig.ts";
 import { weatherToolHandler } from "../weather.ts";
 import { memoryToolDefinition, forgetToolDefinition } from "../memory.ts";
 import { getApiKey } from "../apiKeyStorage.ts";
+import { isLocalService, usesServerManagedTools } from "../providers.ts";
 import { MCP_ASSUME_ONLINE, config } from "../../../config/config.ts";
 import { state } from "../../init/state.ts";
 import { STORAGE_KEYS, readJSON, writeJSON } from "../../utils/storage.ts";
@@ -347,7 +348,7 @@ export function supportsClientSideTools(
   serviceKey = getActiveServiceKey(),
   modelName = getActiveModel(),
 ) {
-  if (serviceKey !== "xai") {
+  if (!usesServerManagedTools(serviceKey)) {
     return true;
   }
   return !xaiModelDisallowsClientSideTools(modelName);
@@ -472,7 +473,6 @@ export function getEnabledToolDefinitions(serviceKey: string = getActiveServiceK
     return [];
   }
 
-  const isLocalService = serviceKey === "lmstudio" || serviceKey === "ollama";
   const modelIsCodex = isCodexModel(modelName);
   const clientSideToolsSupported = supportsClientSideTools(serviceKey, modelName);
   const defs: ToolDefinition[] = [];
@@ -493,7 +493,7 @@ export function getEnabledToolDefinitions(serviceKey: string = getActiveServiceK
     }
 
     if (tool.type === "mcp") {
-      if (!isLocalService) {
+      if (!isLocalService(serviceKey)) {
         const serverUrl = tool.definition?.server_url;
         if (serverUrl && isLocalNetworkUrl(serverUrl)) {
           if (state.verboseLogging) {
@@ -540,7 +540,7 @@ export function getEnabledToolDefinitions(serviceKey: string = getActiveServiceK
         }
         return;
       }
-      if (serviceKey === "xai") {
+      if (usesServerManagedTools(serviceKey)) {
         defs.push({
           type: "code_interpreter",
         });
@@ -551,7 +551,7 @@ export function getEnabledToolDefinitions(serviceKey: string = getActiveServiceK
     }
 
     if (tool.key === "builtin:web_search") {
-      if (serviceKey === "xai") {
+      if (usesServerManagedTools(serviceKey)) {
         defs.push({
           type: "web_search",
           enable_video_understanding: true,
@@ -680,7 +680,7 @@ function appendMemoryTools(defs: ToolDefinition[], serviceKey: string = getActiv
       return SERVER_MANAGED_TOOL_TYPES.has(def.type);
     });
 
-    if (hasServerManagedTool && serviceKey === "xai") {
+    if (hasServerManagedTool && usesServerManagedTools(serviceKey)) {
       if (state.verboseLogging) {
         console.info(`Skipping memory tools because server-managed tools are active for service '${serviceKey}'.`);
       }

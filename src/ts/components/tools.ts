@@ -6,6 +6,7 @@ import { requestMcpServerRemoval } from "../services/mcpServers.ts";
 import { responsesClient } from "../services/api.ts";
 import { config } from "../../config/config.ts";
 import type { ToolCatalogEntry } from "../../types/tools.ts";
+import { isLocalService } from "../services/providers.ts";
 /**
  * Tool settings management for Responses API integrations.
  * Renders the tool list, persists toggle state, and synchronises with the
@@ -451,9 +452,6 @@ let getToolsDescription: () => string;
     const codexModelActive = isCodexModel(activeModelName);
     const clientSideToolsSupported = supportsClientSideToolsForCurrentModel(serviceKey, activeModelName);
 
-    // Check if this is a local AI service
-    const isLocalService = serviceKey === "lmstudio" || serviceKey === "ollama";
-
     let catalog: ToolCatalogEntry[] = [];
     if (typeof responsesClient.getToolCatalog === "function") {
       catalog = responsesClient.getToolCatalog();
@@ -469,7 +467,7 @@ let getToolsDescription: () => string;
       }
 
       // Skip MCP servers on local network when using cloud AI services
-      if (tool.type === "mcp" && !isLocalService) {
+      if (tool.type === "mcp" && !isLocalService(serviceKey)) {
         // Get server URL from the tool definition
         const toolDef = responsesClient?.toolDefinitions?.find(def =>
           def.type === "mcp" && def.server_label === tool.key.replace("mcp:", ""),
