@@ -44,7 +44,12 @@ globalThis.document = {
   querySelectorAll: (selector: string) => (selector === ".tts-play-pause" ? querySelectorAllResult : []),
   getElementById: () => null,
 } as unknown as Document;
-globalThis.URL = urlStub as unknown as typeof URL;
+// Keep the real URL constructor (the loader/runtime needs `new URL`) and only
+// override the object-URL helpers so they can be observed via urlStub.
+Object.assign(globalThis.URL, {
+  createObjectURL: urlStub.createObjectURL.bind(urlStub),
+  revokeObjectURL: urlStub.revokeObjectURL.bind(urlStub),
+});
 globalThis.Audio = MockAudio as unknown as typeof Audio;
 globalThis.setTimeout = ((fn: unknown, ms: unknown) => { timeouts.push({ fn, ms }); return 0; }) as unknown as typeof setTimeout;
 // Minimal indexedDB so resources.addUrl -> saveAudioToDb doesn't throw synchronously.

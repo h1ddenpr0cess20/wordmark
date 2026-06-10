@@ -109,7 +109,9 @@ function makeDom() {
 // Set up browser-ish globals before importing the ES module.
 const dom = makeDom();
 globalThis.document = dom.document as unknown as Document;
-globalThis.URL = { createObjectURL: () => 'blob://fake-url', revokeObjectURL: () => {} } as unknown as typeof URL;
+// Keep the real URL constructor (the loader/runtime needs `new URL`) and only
+// override the object-URL helpers used by the code under test.
+Object.assign(globalThis.URL, { createObjectURL: () => 'blob://fake-url', revokeObjectURL: () => {} });
 globalThis.window = { addEventListener: () => {}, indexedDB: createFakeIndexedDB() } as unknown as Window & typeof globalThis;
 
 const {
