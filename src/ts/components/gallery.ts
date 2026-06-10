@@ -18,7 +18,6 @@ import { createImageSlideshow } from "./ui/imageInteractions.ts";
 import type { GeneratedImage } from "../../types/common.ts";
 import { updatePanelOpenState } from "../init/eventListeners/settingsPanel.ts";
 
-
 state.isSlideshowOpen = false;
 
 /**

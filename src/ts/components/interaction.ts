@@ -18,7 +18,6 @@ import { appendMessage } from "./ui/chatMessages.ts";
 import { getVerbosity, getReasoningEffort, getHistoryTokenBudget } from "../init/modelSettings.ts";
 import type { Attachment } from "../../types/api.ts";
 
-
 /**
  * Sends a message to the API and handles the response
  */
