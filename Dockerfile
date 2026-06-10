@@ -9,7 +9,7 @@ COPY package.json package-lock.json ./
 RUN npm ci
 
 # Copy the sources Vite needs and produce the static bundle in /app/dist
-COPY vite.config.js index.html ./
+COPY vite.config.ts tsconfig.json index.html ./
 COPY src ./src
 COPY public ./public
 RUN npm run build
@@ -26,7 +26,6 @@ COPY docker/nginx.conf /etc/nginx/conf.d/default.conf
 
 # Copy the built application (static site) from the build stage
 COPY --from=build /app/dist /usr/share/nginx/html
-COPY robots.txt /usr/share/nginx/html/robots.txt
 
 # Expose HTTP and HTTPS ports
 EXPOSE 80 443
