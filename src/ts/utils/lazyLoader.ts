@@ -4,6 +4,7 @@
 
 import { initializeVectorStore } from "../services/vectorStore.ts";
 
+/** Tracks which optional modules have been lazily loaded, keyed by module name. */
 export const lazyModulesLoaded: Record<string, boolean> = {};
 
 let galleryModule: typeof import("../components/gallery.ts") | null = null;

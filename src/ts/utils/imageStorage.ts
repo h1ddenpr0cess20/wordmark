@@ -10,6 +10,8 @@ import { openDatabase } from "./idb.ts";
 
 const IMAGE_DB_NAME = "wordmark-images";
 const IMAGE_DB_VERSION = 1;
+
+/** Name of the IndexedDB object store that holds image records. */
 export const IMAGE_STORE_NAME = "images";
 
 let imageDb: IDBDatabase | null = null;

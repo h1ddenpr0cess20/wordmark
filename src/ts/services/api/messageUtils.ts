@@ -254,8 +254,9 @@ export function estimateTokens(text: unknown): number {
 /**
  * Estimate the token cost of a single conversation message, including a small
  * fixed overhead for the role/structure envelope.
- * @param {object} message
- * @returns {number}
+ *
+ * @param message - The conversation message to measure.
+ * @returns The estimated token count.
  */
 export function estimateMessageTokens(message: Message): number {
   if (!message || typeof message !== "object") {
@@ -287,9 +288,10 @@ export function estimateMessageTokens(message: Message): number {
  * recent messages and dropping the oldest first. The latest message is always
  * retained even if it alone exceeds the budget. A budget of 0 or less disables
  * trimming (the full list is returned).
- * @param {object[]} messages
- * @param {number} budget - token budget; 0 or negative means "no limit"
- * @returns {object[]} a trimmed copy in original order
+ *
+ * @param messages - The conversation messages, oldest first.
+ * @param budget - The token budget; 0 or negative means "no limit".
+ * @returns A trimmed copy in original order.
  */
 export function windowMessagesByTokenBudget(messages: Message[], budget: number): Message[] {
   if (!Array.isArray(messages)) {

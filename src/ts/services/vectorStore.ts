@@ -320,6 +320,8 @@ export async function listVectorStoreFiles(vectorStoreId: string, limit = 20) {
  * Local storage key for vector store metadata
  */
 const VECTOR_STORE_STORAGE_KEY = STORAGE_KEYS.vectorStores;
+
+/** Maximum number of vector stores that may be active at once. */
 export const MAX_ACTIVE_VECTOR_STORES = 2;
 
 /**
