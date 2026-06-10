@@ -130,7 +130,7 @@ function withStore<T>(db, store, mode, fn: (s: IDBObjectStore) => IDBRequest<T>)
 ```
 
 Each storage module shrinks to schema + typed get/put calls. Low risk, well
-covered by existing `*Storage.spec.js` tests. Easiest concrete win on this list.
+covered by existing `*Storage.spec.ts` tests. Easiest concrete win on this list.
 
 ---
 
@@ -148,7 +148,7 @@ tool-preference persistence (`wordmark_tool_preferences`), MCP server loading
 `apiKeyStorage.ts`) from the settings-panel UI.
 
 > **Partly done (2026-06-09).** The static tool-definition data block (~190
-> lines) was extracted from `toolManager.ts` into `tools/staticTools.ts`
+> lines) was extracted from `toolManager.ts` into `staticTools.ts`
 > (`STATIC_TOOLS`), and the per-provider tool filtering now goes through the §1
 > capability predicates. Key-loading persistence is isolated in `apiKeyStorage.ts`
 > (`loadApiKeysIntoConfig`, covered by `tests/apiKeysLoadIntoConfig.spec.ts`).
@@ -192,7 +192,7 @@ discoverable in one file.
 > write blocks (e.g. `vectorStore.saveVectorStoreMetadata`) keep their manual
 > `JSON.parse` so a corrupt read still *aborts* the save instead of overwriting
 > with `{}`. `readJSON` is used only at genuinely silent-fallback sites
-> (`loadToolPreferences`). Covered by `tests/storage.spec.js`.
+> (`loadToolPreferences`). Covered by `tests/storage.spec.ts`.
 
 ---
 
@@ -237,7 +237,7 @@ domain slices (`chatState`, `galleryState`, `ttsState`, …). Not urgent.
 
 ## 9. Test suite is still JavaScript
 
-30+ `tests/**/*.spec.js` files exercise the TS source through loaders
+30+ `tests/**/*.spec.ts` files exercise the TS source through loaders
 (`tests/helpers/registerLoaders.mjs`). The conversion stopped at the source
 boundary. Migrating tests to `.ts` would type-check the tests themselves and
 catch signature drift against the new domain types in `src/types/`. Mechanical,

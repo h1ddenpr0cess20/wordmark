@@ -4,7 +4,8 @@ Local Dev
 
 - Built with [Vite](https://vite.dev). Install once with `npm install`, then `npm run dev` (port 3000) or `npm run dev:https` for a secure context.
 - `npm run build` produces a static bundle in `dist/`; `npm run preview` serves it on port 8080.
-- Module entry is `src/js/main.js`. The app is pure ES modules — code uses explicit `import`/`export`, not `window.*` globals. Shared runtime state lives in `src/js/init/state.js` (`state`, `elements`); UI callbacks register on `src/js/init/uiHooks.js`.
+- Module entry is `src/ts/main.ts`. The app is TypeScript ES modules — code uses explicit `import`/`export`, not `window.*` globals. Shared runtime state lives in `src/ts/init/state.ts` (`state`, `elements`); UI callbacks register on `src/ts/init/uiHooks.ts`.
+- Type-check with `npm run typecheck` (source) and `npm run typecheck:tests` (specs).
 
 Debug Mode (Triple‑Click About)
 
@@ -15,9 +16,9 @@ Debug Mode (Triple‑Click About)
 
 Coding Style
 
-- JavaScript ES6+, 2-space indent, semicolons, **double quotes** (enforced by ESLint — run `npm run lint`).
-- File names: `camelCase.js`; directories lowercase.
-- Public APIs use ES module exports; keep changes modular under `src/js/**` and prefer small files.
+- TypeScript (strict), 2-space indent, semicolons, **double quotes** (enforced by ESLint — run `npm run lint`).
+- File names: `camelCase.ts`; directories lowercase.
+- Public APIs use ES module exports; keep changes modular under `src/ts/**` and prefer small files.
 
 Panels & Fragments
 
@@ -25,25 +26,26 @@ Panels & Fragments
 
 Adding a Service
 
-- Update `src/config/config.js`:
+- Update `src/config/config.ts`:
   - Add a service entry with `baseUrl`, `apiKey`, `models` (array or fetcher), and `defaultModel`.
   - If the model list is dynamic, add a `fetchAndUpdateModels()` method and a `uiHooks.updateXxxModelsDropdown()` callback.
 - Ensure `getBaseUrl()` and `getApiKey()` pick up your service (the default configuration includes OpenAI, xAI, LM Studio, and Ollama out of the box).
 
 Adding a Tool
 
-- Extend `STATIC_TOOLS` in `src/js/services/api/toolManager.js` with schema metadata (unique key, definition, defaults).
-- Implement the handler (see `src/js/services/weather.js`) and register it in `TOOL_HANDLERS`.
+- Extend `STATIC_TOOLS` in `src/ts/services/api/staticTools.ts` with schema metadata (unique key, definition, defaults).
+- Implement the handler (see `src/ts/services/weather.ts`) and register it in `TOOL_HANDLERS` (in `src/ts/services/api/toolManager.ts`).
+- For provider-specific behavior, edit the capability predicates in `src/ts/services/providers.ts`.
 - Avoid placing large binary payloads in conversation history; save to IndexedDB and insert a placeholder reference.
 
 Streaming & Rendering
 
-- `services/streaming.js` handles SSE-like token streams with `data:` lines, separating reasoning content and main text, injecting thumbnails first.
+- `services/streaming.ts` handles SSE-like token streams with `data:` lines, separating reasoning content and main text, injecting thumbnails first.
 - Reasoning markers supported: `<think>...</think>` and `<|begin_of_thought|>…<|end_of_thought|>` with an optional solution region.
 
 Storage
 
-- Conversations, images, audio use their own IndexedDB databases with small helper APIs (`utils/*Storage.js`).
+- Conversations, images, audio use their own IndexedDB databases with small helper APIs (`utils/*Storage.ts`).
 - When changing schema, bump DB versions and add migration logic in `onupgradeneeded` as needed.
 
 Safety & Sanitization
@@ -53,7 +55,7 @@ Safety & Sanitization
 
 Testing
 
-- Automated tests live under `tests/*.spec.js` and run with `npm test` (Node’s built-in test runner).
+- Automated tests live under `tests/*.spec.ts` and run with `npm test` (Node’s built-in test runner); `npm run typecheck:tests` type-checks them.
 - Use `npm run test:watch` during development to rerun affected specs automatically.
 - The suite stubs browser APIs (DOM, window, fetch, Audio, storage) so service modules can be exercised without a full browser.
 - Manual smoke checklist (matches automated coverage focus):

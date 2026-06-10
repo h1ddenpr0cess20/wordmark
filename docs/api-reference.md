@@ -14,7 +14,7 @@ This document provides detailed API reference for the core modules in the rebran
 
 ## Request Client
 
-**Module:** `src/js/services/api/requestClient.js`
+**Module:** `src/ts/services/api/requestClient.ts`
 
 Core network layer for communicating with the Responses API.
 
@@ -105,7 +105,7 @@ const result = await runTurn({
 
 ## Client Configuration
 
-**Module:** `src/js/services/api/clientConfig.js`
+**Module:** `src/ts/services/api/clientConfig.ts`
 
 Service and model configuration helpers.
 
@@ -155,7 +155,7 @@ if (supportsReasoningEffort('o1-preview')) {
 
 ## Message Utils
 
-**Module:** `src/js/services/api/messageUtils.js`
+**Module:** `src/ts/services/api/messageUtils.ts`
 
 Message serialization and formatting for Responses API.
 
@@ -216,9 +216,9 @@ Builds developer/system message with context (personality, location, timestamp).
 
 ## Tool Manager
 
-**Module:** `src/js/services/api/toolManager.js`
+**Module:** `src/ts/services/api/toolManager.ts` (facade over `tools/catalog.ts`, `tools/preferences.ts`, `tools/mcp.ts`, and `staticTools.ts`)
 
-Tool catalog management and MCP server integration.
+Tool catalog management and MCP server integration. The functions below are exported from `toolManager.ts` (some re-exported from the sub-modules).
 
 ### getToolCatalog()
 
@@ -324,7 +324,7 @@ Pings MCP servers to check availability.
 
 ## Streaming Utilities
 
-**Module:** `src/js/services/streaming/thinkingUtils.js`
+**Module:** `src/ts/services/streaming/thinkingUtils.ts`
 
 Utilities for rendering streamed content.
 
@@ -405,8 +405,8 @@ npm test
 ```
 
 Test files:
-- `tests/requestClient.spec.js` - Request client tests
-- `tests/clientConfig.spec.js` - Configuration tests
-- `tests/messageUtils.spec.js` - Message serialization tests
-- `tests/toolManager.spec.js` - Tool management tests
-- `tests/thinkingUtils.spec.js` - Markdown processing tests
+- `tests/requestClient.spec.ts` - Request client tests
+- `tests/clientConfig.spec.ts` - Configuration tests
+- `tests/messageUtils.spec.ts` - Message serialization tests
+- `tests/toolManager.spec.ts` - Tool management tests
+- `tests/thinkingUtils.spec.ts` - Markdown processing tests
