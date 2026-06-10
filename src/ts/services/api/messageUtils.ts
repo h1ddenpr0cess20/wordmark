@@ -100,9 +100,7 @@ function resolveImageUrl(filename: string | undefined, attachments: Attachment[]
 function createImagePart(filename: string, role: string | undefined, attachments?: Attachment[]): ContentPart | null {
   const imageUrl = resolveImageUrl(filename, attachments);
   if (!imageUrl) {
-    // Only show warning for actual image attachments, not document/vector store files
     if (typeof window !== "undefined" && state.verboseLogging) {
-      // Check if this filename corresponds to an image attachment
       const isImageAttachment = Array.isArray(attachments) &&
         attachments.some(att => att && att.filename === filename && att.type === "image");
 
@@ -153,7 +151,6 @@ function buildUserContentFromString(message: Message): string | ContentPart[] {
   const trailing = rawContent.slice(lastIndex);
   appendTextPart(parts, message.role, trailing);
 
-  // Append any attachments that did not have explicit placeholders
   attachments.forEach(att => {
     if (!att || !att.filename) {
       return;
@@ -241,12 +238,11 @@ export function serializeMessagesForRequest(messages: Message[] = []): Message[]
     .filter((msg): msg is Message => msg !== null);
 }
 
-// ---- Token-budget history windowing ----
-
 /**
- * Rough token estimate for a string (~4 chars/token heuristic).
- * @param {string} text
- * @returns {number}
+ * Estimates the token count of a string using a ~4-chars-per-token heuristic.
+ *
+ * @param text - The text to measure.
+ * @returns The estimated token count.
  */
 export function estimateTokens(text: unknown): number {
   if (!text) {
@@ -258,8 +254,9 @@ export function estimateTokens(text: unknown): number {
 /**
  * Estimate the token cost of a single conversation message, including a small
  * fixed overhead for the role/structure envelope.
- * @param {object} message
- * @returns {number}
+ *
+ * @param message - The conversation message to measure.
+ * @returns The estimated token count.
  */
 export function estimateMessageTokens(message: Message): number {
   if (!message || typeof message !== "object") {
@@ -291,9 +288,10 @@ export function estimateMessageTokens(message: Message): number {
  * recent messages and dropping the oldest first. The latest message is always
  * retained even if it alone exceeds the budget. A budget of 0 or less disables
  * trimming (the full list is returned).
- * @param {object[]} messages
- * @param {number} budget - token budget; 0 or negative means "no limit"
- * @returns {object[]} a trimmed copy in original order
+ *
+ * @param messages - The conversation messages, oldest first.
+ * @param budget - The token budget; 0 or negative means "no limit".
+ * @returns A trimmed copy in original order.
  */
 export function windowMessagesByTokenBudget(messages: Message[], budget: number): Message[] {
   if (!Array.isArray(messages)) {
@@ -361,7 +359,7 @@ export function collectFunctionCalls(responseOutput: ResponseOutputItem[] = []):
       try {
         return JSON.parse(JSON.stringify(original));
       } catch {
-        // fall through to manual construction
+        /* fall through to manual construction */
       }
     }
     const input: ToolCallLike = {

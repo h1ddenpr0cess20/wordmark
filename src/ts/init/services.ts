@@ -1,5 +1,5 @@
 /**
- * Service and model initialization for the chatbot application
+ * Service and model initialization.
  */
 
 import { elements, state } from "./state.ts";
@@ -12,10 +12,13 @@ import { pickCloudFallback } from "./serviceSelection.ts";
 import { isCloudService } from "../services/providers.ts";
 
 /**
- * Initialize services and models
+ * Initializes the service selector from config.
+ *
+ * @remarks
+ * Model fetching happens later, after API keys are loaded (see
+ * `initialization.ts`).
  */
 export function initializeServicesAndModels() {
-  // Initialize the service selector
   if (elements.serviceSelector && config) {
     populateServiceSelector();
     if (typeof config.normalizeServiceKey === "function") {
@@ -26,7 +29,6 @@ export function initializeServicesAndModels() {
       console.info("Service selector initialized.");
     }
 
-    // Model fetching happens after API keys are loaded (see initialization.ts)
     updateModelSelector();
   }
 }
@@ -39,8 +41,8 @@ export function initializeServicesAndModels() {
  * and switch to the first one that returns models. If none are reachable, leave
  * the default as-is so the UI shows the usual "Set API key to load models" message.
  *
- * @returns {Promise<boolean>} true if this function already fetched models for
- *   the selected service (so the caller can skip its own model fetch).
+ * @returns `true` if this function already fetched models for the selected
+ *   service (so the caller can skip its own model fetch).
  */
 export async function selectDefaultService() {
   const services = config?.services || {};
@@ -52,7 +54,6 @@ export async function selectDefaultService() {
   const current = config?.defaultService;
   const currentIsCloud = isCloudService(current);
 
-  // Only auto-pick when the default is a cloud provider that has no key of its own.
   if (!currentIsCloud || hasKey(current)) {
     return false;
   }
@@ -67,17 +68,12 @@ export async function selectDefaultService() {
     updateHeaderInfo();
   };
 
-  // The default cloud provider has no key. Prefer another cloud provider that
-  // does have a key before falling back to local services.
   const cloudFallback = pickCloudFallback(services, current);
   if (cloudFallback) {
     applyService(cloudFallback);
     if (state.verboseLogging) {
       console.info(`No API key for ${current}; defaulting to ${cloudFallback}.`);
     }
-    // Return false (not handled) so the caller runs the standard model fetch for
-    // the now-current service — unlike the local probe below, we haven't fetched
-    // models here yet.
     return false;
   }
 
@@ -124,14 +120,12 @@ export function initializeServiceModels() {
         if (state.verboseLogging) {
           console.info("Models fetched on initialization for:", serviceKey);
         }
-        // Update model selector after fetching models
         if (config.defaultService === serviceKey) {
           updateModelSelector();
         }
       })
       .catch(err => {
         console.error("Failed to fetch models on initialization:", err);
-        // Still update model selector to show error state
         updateModelSelector();
       });
   }
@@ -141,7 +135,6 @@ export function initializeServiceModels() {
  * Initialize conversation name based on current settings
  */
 export function initializeConversationName() {
-  // Set initial conversation name based on personality/prompt type
   if (elements.personalityPromptRadio && elements.personalityPromptRadio.checked && elements.personalityInput) {
     state.currentConversationName = `Personality: ${elements.personalityInput.value.trim()}`;
   } else if (elements.customPromptRadio && elements.customPromptRadio.checked) {
@@ -157,7 +150,6 @@ export function initializeConversationName() {
  * Initialize default values from configuration
  */
 export function initializeDefaultValues() {
-  // Initialize default values from config
   if (elements.systemPromptCustom) {
     elements.systemPromptCustom.value = DEFAULT_SYSTEM_PROMPT;
     if (state.verboseLogging) {
@@ -215,7 +207,6 @@ export function initializeVerboseMode() {
   }
 
   elements.verboseModeToggle.checked = enabled;
-  // Set the guideline string based on toggle
   if (enabled) {
     state.shortResponseGuideline = "";
   } else {
@@ -223,4 +214,3 @@ export function initializeVerboseMode() {
   }
 }
 
-// Note: initializeLocationService is defined in location.ts, not here

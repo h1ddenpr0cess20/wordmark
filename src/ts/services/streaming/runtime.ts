@@ -1,3 +1,12 @@
+/**
+ * Streaming runtime.
+ *
+ * @remarks
+ * Holds the mutable per-response accumulation state (text, reasoning, images,
+ * code-interpreter outputs) and the DOM update helpers that the event processor
+ * drives as a stream arrives.
+ */
+
 import { elements, state } from "../../init/state.ts";
 import {
   IMAGE_GENERATION_CALL_TYPE,
@@ -27,14 +36,15 @@ interface AccumulatedImage {
 /**
  * Builds the runtime helpers responsible for tracking streaming state and
  * updating the DOM incrementally while the response arrives.
- * @param {Object} options - DOM references and identifiers for the stream
- * @param {HTMLElement} options.loadingMessage - The loading message element
- * @param {HTMLElement} options.contentWrapper - Wrapper for message content
- * @param {HTMLElement|null} options.placeholderElement - Optional loading spinner element
- * @param {HTMLElement} options.mainContentContainer - Container for main response text
- * @param {string} options.thinkingId - DOM id for the reasoning container
- * @param {HTMLElement|null} options.existingThinkingContainer - Previously rendered reasoning container
- * @returns {Object} runtime helpers used by the streaming pipeline
+ *
+ * @param options - DOM references and identifiers for the stream.
+ * @param options.loadingMessage - The loading message element.
+ * @param options.contentWrapper - Wrapper for message content.
+ * @param options.placeholderElement - Optional loading spinner element.
+ * @param options.mainContentContainer - Container for main response text.
+ * @param options.thinkingId - DOM id for the reasoning container.
+ * @param options.existingThinkingContainer - Previously rendered reasoning container, if any.
+ * @returns The runtime helpers used by the streaming pipeline.
  */
 export function createStreamingRuntime({
   loadingMessage,

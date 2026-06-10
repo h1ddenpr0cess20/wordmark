@@ -1,5 +1,10 @@
+/**
+ * Settings prompt controls.
+ */
+
 import { elements } from "../../init/state.ts";
 import { config } from "../../../config/config.ts";
+
 /**
  * Shows the prompt container (personality, custom, or none) matching the
  * currently selected system-prompt radio, hiding the others.

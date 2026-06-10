@@ -17,7 +17,7 @@ import locationHtml from "../../html/panels/settings/location.html?raw";
 import { initTheme } from "../components/theme.ts";
 import aboutHtml from "../../html/panels/settings/about.html?raw";
 
-// Map of source path -> bundled markup so callers can keep referring to files.
+/** Maps each panel's source path to its build-time bundled markup. */
 const PANEL_HTML = {
   "src/html/panels.html": panelsHtml,
   "src/html/panels/settings/personality.html": personalityHtml,
@@ -32,12 +32,13 @@ const PANEL_HTML = {
   "src/html/panels/settings/about.html": aboutHtml,
 };
 
-// HTML Content Loader Utility
+/** Inserts bundled panel markup into DOM containers. */
 export const HTMLLoader = {
   /**
-   * Insert bundled HTML content into a container
-   * @param {string} filePath - Source path of the HTML fragment
-   * @param {string} containerId - ID of the container element
+   * Inserts a bundled HTML fragment into a container element.
+   *
+   * @param filePath - Source path of the fragment (a {@link PANEL_HTML} key).
+   * @param containerId - Id of the container to populate.
    */
   async loadHTML(filePath: string, containerId: string) {
     const htmlContent = (PANEL_HTML as Record<string, string>)[filePath];
@@ -54,8 +55,9 @@ export const HTMLLoader = {
   },
 
   /**
-   * Load multiple HTML fragments into their respective containers
-   * @param {Array} loadConfigs - Array of {filePath, containerId} objects
+   * Loads several fragments into their containers in parallel.
+   *
+   * @param loadConfigs - `{ filePath, containerId }` pairs to load.
    */
   async loadMultiple(loadConfigs: { filePath: string; containerId: string }[]) {
     const promises = loadConfigs.map((config) =>
@@ -79,22 +81,22 @@ const SETTINGS_TAB_PARTIALS = [
 ];
 
 /**
- * Load all menu/settings panels into the DOM and initialize the theme selector.
- * The caller (main.js) runs the app's `initialize()` once this resolves true.
- * @returns {Promise<boolean>} true when panels loaded successfully.
+ * Loads all menu/settings panels into the DOM and initializes the theme selector.
+ *
+ * @remarks
+ * The caller runs the app's `initialize()` once this resolves `true`.
+ *
+ * @returns `true` when the panels loaded successfully, `false` on error.
  */
 export async function initializeMenus() {
-  // Wait for DOM to be ready
   if (document.readyState === "loading") {
     await new Promise(resolve => document.addEventListener("DOMContentLoaded", resolve));
   }
 
   try {
-    // Load the combined panels HTML file
     await HTMLLoader.loadHTML("src/html/panels.html", "menu-panels-container");
     await HTMLLoader.loadMultiple(SETTINGS_TAB_PARTIALS);
     console.log("All menu panels loaded successfully");
-    // Initialize theme selector now that panels exist
     try {
       await initTheme();
     } catch (e) {

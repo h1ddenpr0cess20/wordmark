@@ -1,9 +1,12 @@
-// Shared types for conversation messages and Responses-API payloads.
-//
-// These model app-internal message objects plus the (loosely specified)
-// provider response items. Provider items carry many optional, version- and
-// vendor-specific fields, so the raw item/tool-call shapes keep an index
-// signature for pass-through; the fields the app actually reads are named.
+/**
+ * Shared types for conversation messages and Responses-API payloads.
+ *
+ * @remarks
+ * These model app-internal message objects plus the (loosely specified)
+ * provider response items. Provider items carry many optional, version- and
+ * vendor-specific fields, so the raw item/tool-call shapes keep an index
+ * signature for pass-through; the fields the app actually reads are named.
+ */
 
 import type { ToolDefinition } from "./tools.ts";
 

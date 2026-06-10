@@ -1,3 +1,11 @@
+/**
+ * Conversation history list.
+ *
+ * @remarks
+ * Renders the saved-conversation sidebar from the IndexedDB store and wires its
+ * load, rename, and delete controls.
+ */
+
 import { elements, state } from "../../init/state.ts";
 import {
   getAllConversationsFromDb,

@@ -2,7 +2,7 @@
 
 Panels & Controls
 
-- Header: shows current model and prompt info (from `components/settings.js:updateHeaderInfo`).
+- Header: shows current model and prompt info (from `components/settings.ts:updateHeaderInfo`).
   - Header shortcuts:
     - Click the logo to open Settings → About.
     - Click the model name to open Settings → Model.
@@ -15,7 +15,7 @@ Panels & Controls
     - Click the badge label to open the relevant Settings tab.
     - On mobile, badges are compact and wrap to fit; they remain tappable.
 - Settings panel: model/service selectors, parameters, system/personality prompt, API keys, Tools, TTS, Location, etc.
-- History panel: lists saved conversations, supports load/rename/delete; powered by IndexedDB (`services/history.js`).
+- History panel: lists saved conversations, supports load/rename/delete; powered by IndexedDB (`services/history.ts`).
 - Gallery panel: shows generated images and associated metadata; lazy-loaded on first open.
 
 Hidden Shortcuts
@@ -24,10 +24,10 @@ Hidden Shortcuts
 
 Messages
 
-- Rendering: `components/messages.js` (and streaming updates in `services/streaming.js`).
-- Markdown: parsed via `marked.min.js` when available, otherwise basic formatting is applied.
+- Rendering: `components/messages.ts` (and streaming updates in `services/streaming.ts`).
+- Markdown: parsed via the bundled `marked` library.
 - Sanitization: DOMPurify; YouTube iframes allowed via a constrained allowlist.
-- Syntax highlight: `highlight.min.js` with copy buttons per-code block.
+- Syntax highlight: the bundled `highlight.js` library with copy buttons per-code block.
 - Reasoning: Model “thinking” is separated from main text. It supports both `<think>...</think>` and `<|begin_of_thought|>/.../solution` marker styles. A collapsible “Reasoning” block is rendered above the main content.
 - Images: When tools generate images, they are displayed as thumbnails above the answer and saved to IndexedDB. History keeps `[[IMAGE: filename]]` placeholders.
 
@@ -45,4 +45,4 @@ TTS
 
 Mobile
 
-- Mobile keyboard handling and layout helpers are provided in `utils/mobileHandling.js` and wired by `ttsInitialization.js`.
+- Mobile keyboard handling and layout helpers are provided in `utils/mobileHandling.ts` and wired by `init/ttsInitialization.ts`.

@@ -1,24 +1,28 @@
-import { elements } from "../init/state.ts";
 /**
- * Utility functions to handle mobile keyboard behavior and scrolling optimization
+ * Mobile keyboard and scrolling behavior helpers.
+ *
+ * @remarks
+ * Keeps the input visible when the on-screen keyboard appears, smooths
+ * touch scrolling, and adds tap-to-expand behavior for the system-prompt area.
  */
 
-/**
- * Check if the device is a mobile device
- * @returns {boolean} True if the current device is mobile
- */
+import { elements } from "../init/state.ts";
+
+/** Returns `true` when the current device looks like a phone or small tablet. */
 export function isMobileDevice() {
   return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) ||
          window.innerWidth <= 768;
 }
 
 /**
- * Handles mobile keyboard appearance and ensures the input remains visible
+ * Wires keyboard-appearance handling so the input scrolls into view.
+ *
+ * @remarks
+ * Prefers the Visual Viewport API (which fires on keyboard show/hide) and falls
+ * back to a focus listener on the input.
  */
 export function setupMobileKeyboardHandling() {
-  // Check if Visual Viewport API is available
   if (window.visualViewport) {
-    // Use visualViewport API to detect keyboard appearance
     window.visualViewport.addEventListener("resize", () => {
       if (document.activeElement === elements.userInput) {
         scrollInputIntoView();
@@ -26,37 +30,38 @@ export function setupMobileKeyboardHandling() {
     });
   }
 
-  // Add focus event to scroll input into view when focused
   if (elements.userInput) {
     elements.userInput.addEventListener("focus", scrollInputIntoView);
   }
 }
 
 /**
- * Scrolls the input field into view
- * Uses smooth scrolling for better UX
+ * Scrolls the input container into view after the keyboard settles.
+ *
+ * @remarks
+ * Adds bottom padding on iOS, where the input otherwise sits flush against the
+ * screen edge.
  */
 export function scrollInputIntoView() {
-  // Use a minimal timeout to ensure DOM is ready and keyboard has appeared
   setTimeout(() => {
-    // Find the input container for better positioning
     const inputContainer = document.querySelector(".input-container");
 
     if (inputContainer) {
-      // Scroll the input container into view with auto behavior for faster response
       inputContainer.scrollIntoView({ behavior: "auto", block: "end" });
 
-      // For iOS which can be particularly problematic
       if (/iPhone|iPad|iPod/i.test(navigator.userAgent)) {
-        // Add extra padding to the bottom in iOS to prevent input from being right at screen edge
         document.body.style.paddingBottom = "20px";
       }
     }
-  }, 100); // Reduced delay for faster response
+  }, 100);
 }
 
 /**
- * Safely focuses the user input field, handling mobile differences
+ * Focuses the user input on desktop only.
+ *
+ * @remarks
+ * On mobile, focus is intentionally not forced to avoid popping up the keyboard
+ * unexpectedly.
  */
 export function focusUserInputSafely() {
   if (!elements.userInput) {
@@ -66,63 +71,51 @@ export function focusUserInputSafely() {
   const isMobile = isMobileDevice();
 
   if (!isMobile) {
-    // On desktop, focus immediately
     elements.userInput.focus();
-  } else {
-    // On mobile we intentionally avoid forcing focus to prevent unwanted keyboard popups.
   }
 }
 
 /**
- * Initializes mobile keyboard handling for the app
- * Combined from scrollOptimizer.js
+ * Initializes all mobile behaviors: keyboard handling, the `mobile-device` body
+ * class, scroll optimization, and prompt tap-to-expand.
  */
 export function initializeMobileKeyboardHandling() {
-  // Setup mobile keyboard handling
   setupMobileKeyboardHandling();
 
-  // Add a class to the body to identify mobile devices for CSS targeting
   const isMobile = isMobileDevice();
 
   if (isMobile) {
     document.body.classList.add("mobile-device");
   }
 
-  // Optimize scrolling behavior for better performance on mobile
   optimizeScrolling();
 
-  // Setup tap-to-expand for system prompt area
   setupPromptTapExpand();
 }
 
-/**
- * Optimizes scrolling behavior throughout the app
- * Makes scrolling more responsive on mobile devices
- * Combined from scrollOptimizer.js
- */
+/** Registers passive touch listeners so scrolling stays responsive on mobile. */
 export function optimizeScrolling() {
-  // Use passive event listeners for touch events to prevent scrolling jank
   document.addEventListener("touchstart", () => {}, { passive: true });
   document.addEventListener("touchmove", () => {}, { passive: true });
 }
 
 /**
- * Scroll an element to a position, instantly on mobile and on the next frame
- * on desktop. Makes scrolling feel more immediate on touch devices.
+ * Scrolls an element to a vertical position, instantly on mobile and on the
+ * next animation frame on desktop.
+ *
+ * @param element - Scrollable element, or `null` to no-op.
+ * @param to - Target `scrollTop` value.
  */
 export function fastScroll(element: HTMLElement | null, to: number) {
   if (!element) {
     return;
   }
 
-  // Check if we're on a mobile device where animations can be jerky
   const isMobile = document.body.classList.contains("mobile-device");
 
   if (isMobile) {
-    // On mobile, scroll instantly for better performance
     element.scrollTop = to;
   } else {
-    // On desktop, we can use smooth scrolling with a small timeout
     requestAnimationFrame(() => {
       element.scrollTop = to;
     });
@@ -130,10 +123,14 @@ export function fastScroll(element: HTMLElement | null, to: number) {
 }
 
 /**
- * Sets up tap-to-expand functionality for the system prompt area on mobile
+ * Enables tap-to-expand on the system-prompt area on mobile.
+ *
+ * @remarks
+ * Defers until the DOM is ready and the `#model-info` container exists, then
+ * toggles its `expanded` class on tap and collapses it when tapping elsewhere.
+ * No-ops on desktop.
  */
 export function setupPromptTapExpand() {
-  // Wait for DOM to be ready
   if (document.readyState === "loading") {
     document.addEventListener("DOMContentLoaded", setupPromptTapExpand);
     return;
@@ -145,23 +142,19 @@ export function setupPromptTapExpand() {
     return;
   }
 
-  // Only add this functionality on mobile devices
   const isMobile = isMobileDevice();
   if (!isMobile) {
     return;
   }
 
-  // Capture the non-null element so the handler closes over a narrowed reference.
   const container = promptContainer;
 
-  // Remove any existing event listeners first
   container.removeEventListener("click", handlePromptTap);
 
   function handlePromptTap(e: Event) {
     e.preventDefault();
     e.stopPropagation();
 
-    // Toggle expanded state
     if (container.classList.contains("expanded")) {
       container.classList.remove("expanded");
     } else {
@@ -169,10 +162,8 @@ export function setupPromptTapExpand() {
     }
   }
 
-  // Add click event listener
   container.addEventListener("click", handlePromptTap);
 
-  // Close expanded state when tapping elsewhere
   document.addEventListener("click", (e) => {
     if (!promptContainer.contains(e.target as Node) && promptContainer.classList.contains("expanded")) {
       promptContainer.classList.remove("expanded");
@@ -180,7 +171,6 @@ export function setupPromptTapExpand() {
   });
 }
 
-// Also force setup on window load
 if (typeof window !== "undefined" && typeof window.addEventListener === "function") {
   window.addEventListener("load", () => {
     setTimeout(setupPromptTapExpand, 100);

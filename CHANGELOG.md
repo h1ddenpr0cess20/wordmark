@@ -2,6 +2,18 @@
 
 All notable changes to Wordmark are documented here. Earlier versions didn't follow proper semver — this changelog reflects what actually shipped, not what the version numbers said at the time.
 
+## [3.0.1] - 2026-06-10
+
+Documentation and code-comment maintenance. No runtime behavior changes.
+
+### Changed
+- **Node 24 baseline** — minimum supported Node bumped to 24 (`engines`, Docker build image `node:24-alpine`, CI runs on Node 24).
+- **Comment cleanup + TSDoc** — stripped stray inline/banner comments across the `src/ts` tree and added or modernized TSDoc on the exported surface (no remaining legacy brace-type `@param {T}` JSDoc; previously undocumented public constants now documented).
+- **Docs refreshed for the TypeScript layout** — corrected stale `.js` source paths to `.ts`, fixed the DOMPurify config location, and dropped outdated "marked/highlight loaded lazily when available" notes now that both are bundled npm dependencies.
+
+### Removed
+- Superseded internal planning/review docs (`architecture-review.md` and the locally-ignored refactor/TS-conversion plans).
+
 ## [3.0.0] - 2026-06-10
 
 Full TypeScript conversion, one day after the 2.0.0 module rework. No user-facing feature changes — the app looks and behaves the same — but the entire codebase is now statically typed, and the structural cleanups that the types made obvious were folded in.

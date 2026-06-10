@@ -1,4 +1,10 @@
-// About Tab Popup Functions
+/**
+ * About-tab popups.
+ *
+ * @remarks
+ * Loads bundled standalone page markup (privacy, contact, terms, help) into
+ * modal popups, bound through a single delegated click listener on the document.
+ */
 
 import privacyPolicyHtml from "../../html/privacy-policy.html?raw";
 import contactHtml from "../../html/contact.html?raw";
@@ -6,7 +12,6 @@ import termsOfServiceHtml from "../../html/terms-of-service.html?raw";
 import helpGuideHtml from "../../html/help-guide.html?raw";
 import { state } from "../init/state.ts";
 
-// Bundled standalone page markup keyed by their source path.
 const ABOUT_PAGE_HTML = {
   "src/html/privacy-policy.html": privacyPolicyHtml,
   "src/html/contact.html": contactHtml,
@@ -75,12 +80,10 @@ async function loadContentIntoContainer(url: string, containerId: string) {
     if (state.verboseLogging) {
       console.warn("No bundled content registered for", url);
     }
-    // Keep fallback content visible
     return;
   }
 
   try {
-    // Create a temporary DOM to extract just the main content
     const tempDiv = document.createElement("div");
     tempDiv.innerHTML = html;
     const mainContent = tempDiv.querySelector(".privacy-content")
@@ -98,7 +101,6 @@ async function loadContentIntoContainer(url: string, containerId: string) {
     if (state.verboseLogging) {
       console.warn("About popup content parse failed:", error);
     }
-    // Keep fallback content visible
   }
 }
 
@@ -110,10 +112,8 @@ async function showPrivacyPopup() {
     aboutContent.style.display = "none";
     privacyPopup.style.display = "flex";
 
-    // Load privacy policy content
     await loadContentIntoContainer("src/html/privacy-policy.html", "privacy-content-container");
 
-    // Trigger reflow and add active class for animation
     privacyPopup.offsetHeight;
     privacyPopup.classList.add("active");
   }
@@ -128,7 +128,7 @@ function hidePrivacyPopup() {
     setTimeout(() => {
       privacyPopup.style.display = "none";
       aboutContent.style.display = "";
-    }, 250); // Match CSS transition duration
+    }, 250);
   }
 }
 
@@ -140,10 +140,8 @@ async function showContactPopup() {
     aboutContent.style.display = "none";
     contactPopup.style.display = "flex";
 
-    // Load contact content
     await loadContentIntoContainer("src/html/contact.html", "contact-content-container");
 
-    // Trigger reflow and add active class for animation
     contactPopup.offsetHeight;
     contactPopup.classList.add("active");
   }
@@ -158,7 +156,7 @@ function hideContactPopup() {
     setTimeout(() => {
       contactPopup.style.display = "none";
       aboutContent.style.display = "";
-    }, 250); // Match CSS transition duration
+    }, 250);
   }
 }
 
@@ -170,10 +168,8 @@ async function showTermsPopup() {
     aboutContent.style.display = "none";
     termsPopup.style.display = "flex";
 
-    // Load terms of service content
     await loadContentIntoContainer("src/html/terms-of-service.html", "terms-content-container");
 
-    // Trigger reflow and add active class for animation
     termsPopup.offsetHeight;
     termsPopup.classList.add("active");
   }
@@ -188,7 +184,7 @@ function hideTermsPopup() {
     setTimeout(() => {
       termsPopup.style.display = "none";
       aboutContent.style.display = "";
-    }, 250); // Match CSS transition duration
+    }, 250);
   }
 }
 
@@ -200,10 +196,8 @@ async function showHelpPopup() {
     aboutContent.style.display = "none";
     helpPopup.style.display = "flex";
 
-    // Load help guide content
     await loadContentIntoContainer("src/html/help-guide.html", "help-content-container");
 
-    // Trigger reflow and add active class for animation
     helpPopup.offsetHeight;
     helpPopup.classList.add("active");
   }
@@ -218,14 +212,10 @@ function hideHelpPopup() {
     setTimeout(() => {
       helpPopup.style.display = "none";
       aboutContent.style.display = "";
-    }, 250); // Match CSS transition duration
+    }, 250);
   }
 }
 
-// Map the About tab's data-popup-action triggers to their handlers. The About
-// panel is loaded as an HTML fragment after this module evaluates, so bind a
-// single delegated click listener on the document rather than per-element
-// inline onclick handlers.
 const POPUP_ACTIONS = {
   "show-privacy": showPrivacyPopup,
   "hide-privacy": hidePrivacyPopup,

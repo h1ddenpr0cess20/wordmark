@@ -2,7 +2,7 @@
 
 Sanitization
 
-- DOMPurify is configured in `init/initialization.js` to:
+- DOMPurify is configured in `utils/sanitize.ts` to:
   - Allow standard tags and a minimal, constrained set of `<iframe>` attributes for YouTube embeds only.
   - For images: set `referrerpolicy`, `crossorigin`, and `loading=lazy` on external images; HTTP is upgraded to HTTPS where possible.
   - Forbid script/object/embed/link and event handler attributes.

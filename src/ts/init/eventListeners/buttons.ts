@@ -1,3 +1,11 @@
+/**
+ * Header and action button event listeners.
+ *
+ * @remarks
+ * Wires the prompt-preset buttons (set personality, custom prompt, reset),
+ * chat export controls, and the model-refresh button.
+ */
+
 import { elements } from "../state.ts";
 import { icon } from "../../utils/icons.ts";
 import { isMobileDevice, focusUserInputSafely } from "../../utils/mobileHandling.ts";
@@ -8,6 +16,11 @@ import { updatePromptVisibility } from "../../components/ui/settingsControls.ts"
 import { updateHeaderInfo, updateModelSelector } from "../../components/settings.ts";
 import { setReasoningEffort, DEFAULT_REASONING_EFFORT } from "../modelSettings.ts";
 import { DEFAULT_PERSONALITY, config } from "../../../config/config.ts";
+
+/**
+ * Closes the settings panel if it is open, using the supplied closer when
+ * available and falling back to clearing the panel's open state directly.
+ */
 function closePanelIfActive(closeSettingsPanel: (() => void) | undefined) {
   if (typeof closeSettingsPanel === "function" && elements.settingsPanel && elements.settingsPanel.classList.contains("active")) {
     closeSettingsPanel();

@@ -1,3 +1,7 @@
+/**
+ * Settings panel functionality.
+ */
+
 import { elements } from "../init/state.ts";
 import { uiHooks } from "../init/uiHooks.ts";
 import { STORAGE_KEYS } from "../utils/storage.ts";
@@ -7,22 +11,18 @@ import { locationState, requestLocation, disableLocation } from "../services/loc
 import { ttsConfig } from "../services/tts.ts";
 import { updateReasoningAvailability } from "../init/modelSettings.ts";
 import { openSettingsAndSwitch } from "../init/eventListeners/settingsPanel.ts";
-/**
- * Settings panel related functionality
- */
 
-// Form controls share a `disabled` property; used when toggling tab UI.
+/** Form controls that share a `disabled` property, toggled when enabling/disabling tab UI. */
 type FormControl = HTMLInputElement | HTMLButtonElement | HTMLSelectElement | HTMLTextAreaElement;
-
-// -----------------------------------------------------
-// Settings panel functions
-// -----------------------------------------------------
 
 /**
  * Updates the local models dropdown when models are refreshed.
- * Registered on the uiHooks registry so config.js can call it after fetching
+ *
+ * @remarks
+ * Registered on the `uiHooks` registry so `config.ts` can call it after fetching
  * provider models without importing the component graph.
- * @param {boolean} [fetchError] - Whether there was an error fetching models
+ *
+ * @param fetchError - Whether there was an error fetching models.
  */
 export function updateModelsDropdown(fetchError?: boolean) {
   const serviceKey = elements.serviceSelector ? elements.serviceSelector.value : "";
@@ -31,25 +31,20 @@ export function updateModelsDropdown(fetchError?: boolean) {
 
   updateModelSelector();
 
-  // Show status message if there was an error
   if (fetchError) {
-    // Remove any existing status message
     const existingStatus = document.querySelector(".service-status");
     if (existingStatus) {
       existingStatus.remove();
     }
 
-    // Create a new status message
     const statusElement = document.createElement("div");
     statusElement.className = "service-status error";
     statusElement.textContent = `Failed to fetch ${serviceLabel} models. Check server connection.`;
 
-    // Add status message to the DOM
     const statusAnchor = document.querySelector(".model-selector-container") || document.querySelector(".lmstudio-action-buttons");
     if (statusAnchor) {
       statusAnchor.insertAdjacentElement("afterend", statusElement);
 
-      // Auto-remove after 5 seconds
       setTimeout(() => {
         statusElement.remove();
       }, 5000);
@@ -57,8 +52,6 @@ export function updateModelsDropdown(fetchError?: boolean) {
   }
 }
 
-// Register on the uiHooks registry so config.ts can trigger dropdown refreshes
-// after fetching provider models without importing the component graph.
 uiHooks.updateModelsDropdown = updateModelsDropdown;
 
 /**
@@ -68,7 +61,6 @@ export function updateHeaderInfo() {
   const headerTitle = document.getElementById("header-title");
   const modelInfo = document.getElementById("model-info");
 
-  // Check if required elements exist
   if (!headerTitle || !modelInfo || !elements.modelSelector) {
     console.warn("Header elements not found, skipping updateHeaderInfo");
     return;
@@ -77,7 +69,6 @@ export function updateHeaderInfo() {
   const model = elements.modelSelector.value;
 
   try {
-    // Set model name as the main header title
     if (model && model !== "error" && model !== "no-models") {
       headerTitle.textContent = `${model}`;
       elements.modelSelector.setAttribute("data-last-selected", model);
@@ -85,14 +76,12 @@ export function updateHeaderInfo() {
       headerTitle.textContent = "AI Assistant";
     }
 
-    // Update native title on the model name with provider display name
     try {
       const serviceKey = (config && config.defaultService) ? config.defaultService : "";
       let displayName = "";
       switch (serviceKey) {
       case "openai": displayName = "OpenAI"; break;
       case "xai": displayName = "xAI (Grok)"; break;
-      // case "huggingface": displayName = "Hugging Face"; break;
       case "lmstudio": displayName = "LM Studio (Local)"; break;
       case "ollama": displayName = "Ollama (Local)"; break;
       default: displayName = serviceKey ? (serviceKey.charAt(0).toUpperCase() + serviceKey.slice(1)) : "";
@@ -106,12 +95,10 @@ export function updateHeaderInfo() {
       }
     } catch { /* noop */ }
 
-    // Show personality or prompt info in the modelInfo area
     let promptInfo = "";
     const personalityInput = elements.personalityInput;
     const systemPromptCustom = elements.systemPromptCustom;
     if (elements.personalityPromptRadio?.checked && personalityInput && personalityInput.value.trim() !== "") {
-      // Only show personality if the user has actively set it
       if (personalityInput.hasAttribute("data-explicitly-set") &&
           personalityInput.getAttribute("data-explicitly-set") === "true") {
         promptInfo = `Personality: ${personalityInput.value.trim()}`;
@@ -122,10 +109,7 @@ export function updateHeaderInfo() {
       promptInfo = "No system prompt";
     }
 
-    // Always display something in the model info area even if empty
     if (!promptInfo) {
-      // Only show default personality in the header if it's actually set in the input
-      // Don't automatically override the personality input value here
       if (DEFAULT_PERSONALITY && elements.personalityInput && elements.personalityInput.value.trim()) {
         promptInfo = `Personality: ${elements.personalityInput.value.trim()}`;
       } else if (DEFAULT_PERSONALITY) {
@@ -134,14 +118,13 @@ export function updateHeaderInfo() {
     }
 
     modelInfo.textContent = promptInfo;
-    modelInfo.title = promptInfo; // Tooltip will show full text on hover
+    modelInfo.title = promptInfo;
   } catch (error) {
     console.error("Error updating header info:", error);
     headerTitle.textContent = "AI Assistant";
     modelInfo.textContent = "Configuration error";
   }
 
-  // Update feature status line as part of header refresh
   try { updateFeatureStatus(); } catch { /* noop */ }
 
   updateReasoningAvailability();
@@ -168,7 +151,6 @@ export function setDataSettingsEnabled(enabled: boolean) {
     localStorage.setItem(STORAGE_KEYS.dataSettingsEnabled, enabled ? "true" : "false");
   } catch { /* noop */ }
 
-  // Reflect state in the Data tab toggle without re-triggering change handler
   const toggle = elements.dataSettingsToggle || (document.getElementById("data-settings-toggle") as HTMLInputElement | null);
   if (toggle) {
     toggle.checked = enabled;
@@ -176,7 +158,6 @@ export function setDataSettingsEnabled(enabled: boolean) {
 
   try { applyDataSettingsState(); } catch { /* noop */ }
 
-  // Keep header feature badges in sync
   try { updateFeatureStatus(); } catch { /* noop */ }
 }
 
@@ -190,12 +171,10 @@ export function applyDataSettingsState() {
   const enabled = getDataSettingsEnabled();
 
   if (enabled) {
-    // Re-enable tab UI
     content.removeAttribute("data-disabled");
     const banner = content.querySelector(".data-disabled-banner");
     if (banner) banner.remove();
 
-    // Enable all interactive elements
     content.querySelectorAll<HTMLElement>(".settings-group").forEach((group) => {
       group.removeAttribute("inert");
       group.querySelectorAll<FormControl>("input, button, select, textarea").forEach((el) => {
@@ -204,10 +183,8 @@ export function applyDataSettingsState() {
       });
     });
   } else {
-    // Disable tab UI
     content.setAttribute("data-disabled", "true");
 
-    // Insert banner if not present
     if (!content.querySelector(".data-disabled-banner")) {
       const banner = document.createElement("div");
       banner.className = "data-disabled-banner";
@@ -215,30 +192,25 @@ export function applyDataSettingsState() {
       content.insertBefore(banner, content.firstChild);
     }
 
-    // Disable all groups except the one containing the master toggle
     const groups = Array.from(content.querySelectorAll<HTMLElement>(".settings-group"));
     groups.forEach((group) => {
       const hasMasterToggle = Boolean(group.querySelector("#data-settings-toggle"));
       if (hasMasterToggle) {
-        // Keep the master toggle interactive
         group.removeAttribute("inert");
         const toggle = group.querySelector<HTMLInputElement>("#data-settings-toggle");
         if (toggle) {
           toggle.disabled = false;
           toggle.removeAttribute("aria-disabled");
         }
-        // Ensure the visual switch and container remain clickable
         const switchEl = group.querySelector<HTMLElement>("label[for=\"data-settings-toggle\"], #data-settings-toggle + .toggle-switch, .toggle-container");
         if (switchEl) {
           switchEl.removeAttribute("aria-disabled");
         }
-        // Do not disable any elements in this group
         group.querySelectorAll<FormControl>("input, button, select, textarea").forEach((el) => {
           el.disabled = false;
           el.removeAttribute("aria-disabled");
         });
       } else {
-        // Make other groups inert and disable their controls
         group.setAttribute("inert", "");
         group.querySelectorAll<FormControl>("input, button, select, textarea").forEach((el) => {
           el.disabled = true;
@@ -264,7 +236,6 @@ export function updateFeatureStatus() {
     tts: Boolean(ttsConfig.enabled),
   };
 
-  // Rebuild to bind handlers
   el.innerHTML = "";
 
   function makeBadge(label: string, key: string, isOn: boolean, tabId: string) {
@@ -371,7 +342,6 @@ export function updateFeatureStatus() {
  * Updates model selector with available models for the current service
  */
 export function updateModelSelector() {
-  // Check if modelSelector exists
   if (!elements.modelSelector) {
     console.warn("Model selector not found, skipping updateModelSelector");
     return;
@@ -413,25 +383,19 @@ export function updateModelSelector() {
       modelSelector.appendChild(option);
     });
 
-    // First try to use the currently selected model
     if (currentlySelectedModel && models.includes(currentlySelectedModel)) {
       elements.modelSelector.value = currentlySelectedModel;
     }
-    // Then try to use the saved model
     else if (savedModel && models.includes(savedModel)) {
       elements.modelSelector.value = savedModel;
     }
-    // Then try to use the default model from config
     else {
       const defaultModel = config.getDefaultModel();
 
-      // Try exact match first
       if (defaultModel && models.includes(defaultModel)) {
         elements.modelSelector.value = defaultModel;
       }
-      // Try matching without the :latest suffix
       else if (defaultModel) {
-        // Find model that matches without the :latest suffix (e.g., "llama3" matches "llama3:latest")
         const matchingModel = models.find(model =>
           model === defaultModel ||
           (model.endsWith(":latest") && model.slice(0, -7) === defaultModel),
@@ -469,10 +433,8 @@ export function populateServiceSelector() {
   }
   const serviceSelector = elements.serviceSelector;
 
-  // Clear existing options
   serviceSelector.innerHTML = "";
 
-  // Create and append options for each service in config
   Object.keys(config.services).forEach(serviceKey => {
     const serviceConfig = config.services[serviceKey];
     if (serviceConfig?.enabled === false) {
@@ -481,10 +443,8 @@ export function populateServiceSelector() {
     const option = document.createElement("option");
     option.value = serviceKey;
 
-    // Determine display name based on service key
     let displayName = serviceKey.charAt(0).toUpperCase() + serviceKey.slice(1);
 
-    // Add specific labels for known services
     switch (serviceKey) {
     case "openai":
       displayName = "OpenAI";
@@ -492,9 +452,6 @@ export function populateServiceSelector() {
     case "xai":
       displayName = "xAI (Grok)";
       break;
-    // case "huggingface":
-    //   displayName = "Hugging Face";
-    //   break;
     case "lmstudio":
       displayName = "LM Studio (Local)";
       break;
@@ -531,26 +488,21 @@ export function initializePersonalityInput() {
  * Organizes settings content into columns for wider panel layout
  */
 export function organizeSettingsLayout() {
-  // Apply to the Model tab
   const modelTab = document.getElementById("model-settings");
   if (modelTab) {
-    // Create wrapper if it doesn't exist
     if (!modelTab.querySelector(".settings-tab-columns")) {
       const groups = Array.from(modelTab.querySelectorAll<HTMLElement>(".settings-group"));
       const midpoint = Math.ceil(groups.length / 2);
 
-      // Create column wrapper
       const wrapper = document.createElement("div");
       wrapper.className = "settings-tab-columns";
 
-      // Create two columns
       const column1 = document.createElement("div");
       column1.className = "settings-column";
 
       const column2 = document.createElement("div");
       column2.className = "settings-column";
 
-      // Distribute groups between columns
       groups.forEach((group, index) => {
         if (index < midpoint) {
           column1.appendChild(group);
@@ -559,14 +511,11 @@ export function organizeSettingsLayout() {
         }
       });
 
-      // Replace content with new layout
       wrapper.appendChild(column1);
       wrapper.appendChild(column2);
 
-      // Replace content with the new layout
       const content = modelTab.querySelector(".tab-content-container");
       if (content) {
-        // Add new layout
         content.appendChild(wrapper);
       }
     }

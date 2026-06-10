@@ -4,14 +4,17 @@ import { responsesClient } from "./api.ts";
 import { refreshToolSettingsUI } from "../components/tools.ts";
 import { STORAGE_KEYS, writeJSON } from "../utils/storage.ts";
 /**
- * MCP Server Management
- * Handles configuration and management of URL-based Model Context Protocol servers
+ * Management of URL-based Model Context Protocol (MCP) servers.
+ *
+ * @remarks
+ * Persists user-configured MCP servers to localStorage, renders the settings
+ * list, and registers/unregisters them with the {@link responsesClient} so
+ * changes take effect without reloading.
  */
 
-// Storage key for MCP servers
 const MCP_SERVERS_STORAGE_KEY = STORAGE_KEYS.mcpServers;
 
-// A configured URL-based MCP server, as persisted in localStorage.
+/** A configured URL-based MCP server, as persisted in localStorage. */
 interface McpServer {
   server_label: string;
   server_url: string;
@@ -20,10 +23,7 @@ interface McpServer {
   description?: string;
 }
 
-/**
- * Get all configured MCP servers
- * @returns {Array} Array of server configurations
- */
+/** Returns all configured MCP servers, or `[]` on read/parse failure. */
 export function getMCPServers(): McpServer[] {
   try {
     const stored = localStorage.getItem(MCP_SERVERS_STORAGE_KEY);
@@ -35,8 +35,9 @@ export function getMCPServers(): McpServer[] {
 }
 
 /**
- * Save MCP servers to localStorage
- * @param {Array} servers - Array of server configurations
+ * Persists the full list of MCP servers to localStorage.
+ *
+ * @param servers - The servers to store.
  */
 function saveMCPServers(servers: McpServer[]) {
   try {
@@ -48,15 +49,16 @@ function saveMCPServers(servers: McpServer[]) {
 }
 
 /**
- * Add a new MCP server
- * @param {Object} server - Server configuration
- * @returns {boolean} Success status
+ * Adds a new MCP server.
+ *
+ * @param server - The server configuration to add.
+ * @returns `true` on success.
+ * @throws If a server with the same `server_label` already exists.
  */
 export function addMCPServer(server: McpServer) {
   try {
     const servers = getMCPServers();
 
-    // Check if server with same label already exists
     if (servers.some((s) => s.server_label === server.server_label)) {
       throw new Error(`Server with label "${server.server_label}" already exists`);
     }
@@ -71,9 +73,10 @@ export function addMCPServer(server: McpServer) {
 }
 
 /**
- * Remove an MCP server by label
- * @param {string} serverLabel - Label of server to remove
- * @returns {boolean} Success status
+ * Removes the MCP server with the given label.
+ *
+ * @param serverLabel - Label of the server to remove.
+ * @returns `true` on success.
  */
 export function removeMCPServer(serverLabel: string) {
   try {
@@ -87,9 +90,7 @@ export function removeMCPServer(serverLabel: string) {
   }
 }
 
-/**
- * Render the list of MCP servers in the UI
- */
+/** Renders the configured MCP servers into the settings list. */
 function renderMCPServersList() {
   const container = document.getElementById("mcp-servers-list");
   if (!container) return;
@@ -191,6 +192,12 @@ export function requestMcpServerRemoval(serverLabel: string, fallbackDisplayName
   }
 }
 
+/**
+ * Refreshes the tool-settings UI, optionally re-checking MCP availability.
+ *
+ * @param options - When `checkAvailability` is `true`, re-probes server
+ * availability and re-renders once it resolves.
+ */
 function refreshToolingState(options: { checkAvailability?: boolean } = {}) {
   const { checkAvailability = false } = options;
 
@@ -217,9 +224,7 @@ function refreshToolingState(options: { checkAvailability?: boolean } = {}) {
   }
 }
 
-/**
- * Handle removing a server
- */
+/** Click handler for a server's remove button. */
 function handleRemoveServer(event: Event) {
   const serverLabel = (event.currentTarget as HTMLElement).dataset.serverLabel;
   if (serverLabel) {
@@ -227,9 +232,7 @@ function handleRemoveServer(event: Event) {
   }
 }
 
-/**
- * Handle adding a new server from the form
- */
+/** Reads the add-server form, validates it, and registers the new server. */
 function handleAddServer() {
   const nameInput = document.getElementById("mcp-server-name") as HTMLInputElement | null;
   const labelInput = document.getElementById("mcp-server-label") as HTMLInputElement | null;
@@ -248,7 +251,6 @@ function handleAddServer() {
   const require_approval = approvalInput.value;
   const description = descriptionInput?.value.trim();
 
-  // Validate inputs
   if (!displayName) {
     if (showNotification) {
       showNotification("Please enter a display name", "error");
@@ -270,11 +272,9 @@ function handleAddServer() {
     return;
   }
 
-  // Validate URL format
   try {
     const url = new URL(server_url);
-    // URL validation successful if we get here
-    void url; // Explicitly mark as intentionally unused
+    void url;
   } catch {
     if (showNotification) {
       showNotification("Please enter a valid URL (e.g., http://localhost:9404/mcp)", "error");
@@ -282,7 +282,6 @@ function handleAddServer() {
     return;
   }
 
-  // Create server configuration matching the tools/catalog.ts TOOL_CATALOG format
   const server = {
     displayName,
     server_label,
@@ -291,7 +290,6 @@ function handleAddServer() {
     ...(description && { description }),
   };
 
-  // Add server
   try {
     addMCPServer(server);
     renderMCPServersList();
@@ -306,7 +304,6 @@ function handleAddServer() {
 
     refreshToolingState({ checkAvailability: true });
 
-    // Clear form
     nameInput.value = "";
     labelInput.value = "";
     urlInput.value = "";
@@ -323,14 +320,10 @@ function handleAddServer() {
   }
 }
 
-/**
- * Initialize MCP server management
- */
+/** Renders the initial server list and wires the add-server button. */
 export function initMCPServers() {
-  // Render initial list
   renderMCPServersList();
 
-  // Setup add server button
   const addButton = document.getElementById("add-mcp-server");
   if (addButton) {
     addButton.addEventListener("click", handleAddServer);

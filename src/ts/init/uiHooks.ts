@@ -1,14 +1,16 @@
 /**
- * UI hook registry — a small indirection that lets low-level modules (such as
- * config.js) trigger UI updates without importing the heavy component graph.
+ * UI hook registry.
  *
- * Components register their handlers here (e.g. settings.js sets
- * `uiHooks.updateModelsDropdown`), and callers invoke them defensively (the
- * hooks are optional since a handler may not be registered yet).
+ * @remarks
+ * A small indirection that lets low-level modules (such as `config.ts`) trigger
+ * UI updates without importing the heavy component graph. Components register
+ * their handlers here (e.g. `settings.ts` sets `uiHooks.updateModelsDropdown`),
+ * and callers invoke them defensively since a handler may not be registered yet.
  */
 export interface UiHooks {
-  /** Re-render the model dropdown; pass true when the model fetch errored. */
+  /** Re-render the model dropdown; pass `true` when the model fetch errored. */
   updateModelsDropdown?: (fetchError?: boolean) => void;
 }
 
+/** The shared UI hook registry instance. */
 export const uiHooks: UiHooks = {};

@@ -18,37 +18,30 @@ interface TtsVoice {
 export function initializeTts() {
   if (!ttsConfig) return;
 
-  // Initialize TTS provider selector
   if (elements.ttsProviderSelector) {
     const provider = (availableTtsVoices as Record<string, unknown>)?.[ttsConfig.provider] ? ttsConfig.provider : "openai";
     ttsConfig.provider = provider;
     elements.ttsProviderSelector.value = provider;
   }
 
-  // Populate TTS voice selector
   populateTtsVoiceSelector();
 
-  // Initialize TTS toggle state
   if (elements.ttsToggle) {
     elements.ttsToggle.checked = ttsConfig.enabled;
   }
 
-  // Initialize TTS autoplay toggle state
   if (elements.ttsAutoplayToggle) {
     elements.ttsAutoplayToggle.checked = ttsConfig.autoplay;
   }
 
-  // Initialize TTS instructions
   if (elements.ttsInstructionsInput) {
     elements.ttsInstructionsInput.value = ttsConfig.instructions || "";
-    // xAI TTS doesn't support voice instructions
     const instructionsItem = elements.ttsInstructionsInput.closest<HTMLElement>(".setting-item");
     if (instructionsItem) {
       instructionsItem.style.display = (ttsConfig.provider || "openai") === "xai" ? "none" : "";
     }
   }
 
-  // Wire the TTS voice-change listener.
   initTtsReferences();
 }
 
@@ -80,7 +73,6 @@ export function populateTtsVoiceSelector() {
       }
     }
 
-    // If current voice isn't in the new provider's list, select the first available
     const allVoiceIds = categories.flatMap(c => (voices[c] || []).map((v: TtsVoice) => v.id));
     if (!allVoiceIds.includes(ttsConfig.voice)) {
       ttsConfig.voice = allVoiceIds[0] || "";

@@ -14,11 +14,19 @@ import { STORAGE_KEYS } from "../../../utils/storage.ts";
 import { STATIC_TOOLS } from "../staticTools.ts";
 import type { McpServerConfig, ToolDefinition, ToolEntry } from "../../../../types/tools.ts";
 
+/** Rich tool entries (metadata + definition) forming the live registry. */
 export const TOOL_CATALOG: ToolEntry[] = [];
+
+/** Provider-facing tool definitions, kept in lockstep order with {@link TOOL_CATALOG}. */
 export const TOOL_DEFINITIONS: ToolDefinition[] = [];
 
-// User-configured MCP tools occupy the front of the catalog; static tools follow.
-// Tracking the boundary keeps MCP inserts/removals from disturbing static order.
+/**
+ * Number of user-configured MCP tools held at the front of the catalog.
+ *
+ * @remarks
+ * MCP tools occupy the front of the catalog and static tools follow; tracking
+ * the boundary keeps MCP inserts and removals from disturbing static order.
+ */
 let userMcpToolCount = 0;
 
 /** Returns a deep copy of a tool definition so catalog edits never alias state. */
@@ -108,8 +116,6 @@ export function findTool(key: string): ToolEntry | undefined {
   return TOOL_CATALOG.find(tool => tool.key === key);
 }
 
-// Populate the catalog at module load: persisted MCP servers first, then the
-// static builtin/function tools.
 loadUserMCPServers().forEach(server => {
   const entry = buildMcpToolEntry(server);
   if (entry) {

@@ -2,12 +2,13 @@ import { elements, state } from "../init/state.ts";
 import { STORAGE_KEYS } from "../utils/storage.ts";
 import type { Message } from "../../types/api.ts";
 /**
- * Chat export functionality
+ * Chat export.
+ *
+ * @remarks
+ * Normalizes the conversation history and serializes it to the user-selected
+ * format (txt, md, html, json, csv), persisting the chosen format as a
+ * preference and triggering a browser download.
  */
-
-// -----------------------------------------------------
-// Export functions
-// -----------------------------------------------------
 
 /** Per-export metadata shared with every format builder. */
 interface ExportMeta {
@@ -31,6 +32,7 @@ interface ExportFormat {
   build(messages: ExportMessage[], includeThinking: boolean, meta: ExportMeta): string;
 }
 
+/** Maps user-facing format names and extensions to canonical format keys. */
 const EXPORT_FORMAT_ALIASES: Record<string, string> = {
   txt: "txt",
   text: "txt",
@@ -43,6 +45,7 @@ const EXPORT_FORMAT_ALIASES: Record<string, string> = {
   csv: "csv",
 };
 
+/** Registered export formats keyed by canonical format key. */
 const EXPORT_FORMATS: Record<string, ExportFormat> = {
   txt: {
     extension: "txt",
@@ -177,6 +180,7 @@ const EXPORT_FORMATS: Record<string, ExportFormat> = {
   },
 };
 
+/** Resolves an alias or extension to a canonical format key, or `null`. */
 function normaliseExportFormat(input: string | null): string | null {
   if (!input) {
     return null;
@@ -185,12 +189,14 @@ function normaliseExportFormat(input: string | null): string | null {
   return EXPORT_FORMAT_ALIASES[key] || null;
 }
 
+/** Quotes and escapes a value for inclusion in a CSV cell. */
 function formatCsvValue(value: unknown) {
   const stringValue = value === null || value === undefined ? "" : String(value);
   const escaped = stringValue.replace(/"/g, "\"\"");
   return `"${escaped}"`;
 }
 
+/** Escapes HTML-special characters in a value for safe interpolation. */
 function escapeHtml(value: unknown) {
   if (value === null || value === undefined) {
     return "";
@@ -203,17 +209,22 @@ function escapeHtml(value: unknown) {
     .replace(/'/g, "&#39;");
 }
 
+/**
+ * Splits message text into displayable content and reasoning segments.
+ *
+ * @remarks
+ * The Responses API supplies reasoning separately, so no `<think>` parsing is
+ * done; the text is returned trimmed with an empty reasoning list.
+ */
 function separateThinkingSegments(text: unknown) {
-  // Thinking filters disabled - responses API provides reasoning separately
-  // No longer need to parse/filter <think> tags from content
   const thinkingSegments: string[] = [];
   if (typeof text !== "string") {
     return { stripped: "", thinking: thinkingSegments };
   }
-  // Return text as-is without filtering
   return { stripped: text.trim(), thinking: thinkingSegments };
 }
 
+/** Normalizes raw conversation history into export-ready message records. */
 function normaliseMessagesForExport(history: Message[]): ExportMessage[] {
   if (!Array.isArray(history)) {
     return [];
@@ -262,11 +273,13 @@ function normaliseMessagesForExport(history: Message[]): ExportMessage[] {
     });
 }
 
+/** Returns the persisted export-format preference, defaulting to `"md"`. */
 function getStoredExportFormat() {
   const stored = typeof localStorage !== "undefined" ? localStorage.getItem(STORAGE_KEYS.chatExportFormat) : null;
   return normaliseExportFormat(stored) || "md";
 }
 
+/** Persists the chosen export format, swallowing storage errors. */
 function persistExportFormatPreference(formatKey: string) {
   if (typeof localStorage === "undefined") {
     return;
@@ -278,6 +291,7 @@ function persistExportFormatPreference(formatKey: string) {
   }
 }
 
+/** Determines the active export format from the selector, falling back to the stored preference then `"md"`. */
 function resolveSelectedExportFormat() {
   const selectValue = elements.exportFormatSelector ? elements.exportFormatSelector.value : null;
   const normalised = normaliseExportFormat(selectValue);
@@ -316,7 +330,12 @@ export function initializeExportControls() {
 }
 
 /**
- * Exports the current chat conversation to a user-selected format
+ * Serializes the current conversation in the selected format and downloads it.
+ *
+ * @remarks
+ * No-ops (with a warning) when the format is unsupported or the conversation is
+ * empty. Whether reasoning is included depends on the "include thinking"
+ * checkbox.
  */
 export function exportChat() {
   const formatKey = resolveSelectedExportFormat();

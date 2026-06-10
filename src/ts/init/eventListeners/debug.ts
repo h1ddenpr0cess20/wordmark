@@ -1,5 +1,15 @@
+/**
+ * Debug-mode event listeners.
+ *
+ * @remarks
+ * Exposes a hidden developer affordance: triple-clicking the About tab toggles
+ * debug and verbose logging and shows a brief on-screen notification.
+ */
+
 import { applyConsoleLogging } from "../../../config/config.ts";
 import { state } from "../state.ts";
+
+/** Shows a transient toast announcing the new debug-mode state, then fades it out. */
 function showDebugToggleNotification(status: string) {
   const notification = document.createElement("div");
   notification.className = "debug-toggle-notification";
@@ -20,6 +30,7 @@ function showDebugToggleNotification(status: string) {
   }, 2000);
 }
 
+/** Flips debug and verbose logging, applies console settings, and notifies the user. */
 function toggleDebugMode() {
   state.debug = !state.debug;
   state.verboseLogging = !state.verboseLogging;
@@ -35,6 +46,7 @@ function toggleDebugMode() {
   showDebugToggleNotification(status);
 }
 
+/** Listens for three About-tab clicks within one second and toggles debug mode. */
 function setupAboutTabDebugToggle() {
   const aboutTab = document.getElementById("tab-about");
   if (!aboutTab) {

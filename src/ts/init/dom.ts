@@ -1,12 +1,15 @@
 /**
- * DOM initialization for chatbot application
+ * DOM initialization.
+ *
+ * @remarks
+ * Caches DOM element references into {@link elements}. The typed lookup helpers
+ * assert the concrete element type per call site to match the field declared on
+ * the `Elements` interface, since the DOM APIs only return the broad
+ * `HTMLElement` / `Element` types.
  */
 
 import { elements, state } from "./state.ts";
 
-// Typed element lookups: the concrete element type is asserted per call site to
-// match the field declared on the `Elements` interface (state.ts), since the DOM
-// APIs only return the broad `HTMLElement` / `Element` types.
 const byId = <T extends HTMLElement = HTMLElement>(id: string): T | null =>
   document.getElementById(id) as T | null;
 const bySel = <T extends Element = HTMLElement>(sel: string): T | null =>
@@ -39,9 +42,7 @@ export function initializeDOMReferences() {
   elements.setPersonalityButton = byId<HTMLButtonElement>("set-personality");
   elements.setCustomPromptButton = byId<HTMLButtonElement>("set-custom-prompt");
   elements.setNoPromptButton = byId<HTMLButtonElement>("set-no-prompt");
-  // Personality settings toggles
   elements.verboseModeToggle = byId<HTMLInputElement>("verbose-mode-toggle");
-  // TTS elements
   elements.ttsToggle = byId<HTMLInputElement>("tts-toggle");
   elements.ttsAutoplayToggle = byId<HTMLInputElement>("tts-autoplay-toggle");
   elements.ttsProviderSelector = byId<HTMLSelectElement>("tts-provider-selector");
@@ -51,24 +52,19 @@ export function initializeDOMReferences() {
   elements.stopTtsButton = byId<HTMLButtonElement>("stop-tts");
   elements.clearTtsCacheButton = byId<HTMLButtonElement>("clear-tts-cache");
 
-  // Location elements
   elements.locationToggle = byId<HTMLInputElement>("location-toggle");
   elements.locationStatus = byId("location-status");
 
-  // Tool calling toggle element
   elements.toolCallingToggle = byId<HTMLInputElement>("tool-calling-toggle");
   elements.dataSettingsToggle = byId<HTMLInputElement>("data-settings-toggle");
 
-  // Individual tools container
   elements.individualToolsContainer = byId("individual-tools-container");
 
-  // Chat history elements
   elements.historyButton = byId<HTMLButtonElement>("history-button");
   elements.historyPanel = byId("history-panel");
   elements.closeHistoryButton = bySel<HTMLButtonElement>(".close-history");
   elements.historyList = byId("history-list");
 
-  // Gallery elements
   elements.galleryButton = byId<HTMLButtonElement>("gallery-button");
   elements.galleryPanel = byId("gallery-panel");
   elements.closeGalleryButton = bySel<HTMLButtonElement>(".close-gallery");
@@ -83,7 +79,6 @@ export function initializeDOMReferences() {
       serviceSelector: Boolean(elements.serviceSelector),
       reasoningEffortSelector: Boolean(elements.reasoningEffortSelector),
       verbositySelector: Boolean(elements.verbositySelector),
-    // ...add more if needed
     });
   }
 }

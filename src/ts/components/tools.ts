@@ -1,3 +1,13 @@
+/**
+ * Tool settings management for Responses API integrations.
+ *
+ * @remarks
+ * Renders the tool list, persists toggle state, and synchronises with the
+ * Responses client so only enabled tools are sent with each request. The public
+ * API is assigned by the IIFE below and re-exported; the IIFE form preserves the
+ * module's private state and closure without re-indenting.
+ */
+
 import { elements } from "../init/state.ts";
 import { showInfo } from "../utils/notifications.ts";
 import { getMemoryConfig } from "../utils/memoryStorage.ts";
@@ -7,13 +17,7 @@ import { responsesClient } from "../services/api.ts";
 import { config } from "../../config/config.ts";
 import type { ToolCatalogEntry } from "../../types/tools.ts";
 import { isLocalService } from "../services/providers.ts";
-/**
- * Tool settings management for Responses API integrations.
- * Renders the tool list, persists toggle state, and synchronises with the
- * Responses client so only enabled tools are sent with each request.
- */
-// Public API is assigned by the IIFE below and re-exported; the IIFE form is
-// kept to preserve the module's private state/closure without re-indenting.
+
 let initToolsSettings: () => void;
 let updateMasterToolCallingStatus: (enabled: boolean) => void;
 let refreshToolSettingsUI: () => void;
@@ -466,9 +470,7 @@ let getToolsDescription: () => string;
         return;
       }
 
-      // Skip MCP servers on local network when using cloud AI services
       if (tool.type === "mcp" && !isLocalService(serviceKey)) {
-        // Get server URL from the tool definition
         const toolDef = responsesClient?.toolDefinitions?.find(def =>
           def.type === "mcp" && def.server_label === tool.key.replace("mcp:", ""),
         );

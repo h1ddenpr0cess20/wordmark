@@ -1,10 +1,12 @@
-import { state } from "../init/state.ts";
-import { icon } from "../utils/icons.ts";
 /**
- * Media Gallery functionality for the chatbot application.
+ * Media gallery.
+ *
+ * @remarks
  * Displays and manages generated or uploaded images and videos from IndexedDB.
  */
 
+import { state } from "../init/state.ts";
+import { icon } from "../utils/icons.ts";
 import {
   initImageDb,
   deleteImageFromDb,
@@ -16,11 +18,6 @@ import { createImageSlideshow } from "./ui/imageInteractions.ts";
 import type { GeneratedImage } from "../../types/common.ts";
 import { updatePanelOpenState } from "../init/eventListeners/settingsPanel.ts";
 
-// -----------------------------------------------------
-// Gallery functionality
-// -----------------------------------------------------
-
-// Global flag to track if slideshow is open
 state.isSlideshowOpen = false;
 
 /**
@@ -31,7 +28,6 @@ const initGallery = function() {
     return;
   }
 
-  // Add event listeners for gallery controls
   const galleryButton = document.getElementById("gallery-button");
   const closeGallery = document.querySelector<HTMLElement>(".close-gallery");
   const galleryPanel = document.getElementById("gallery-panel");
@@ -45,56 +41,47 @@ const initGallery = function() {
 
   state.galleryInitialized = true;
 
-  // Keep track of whether images have been loaded
   state.galleryImagesLoaded = false;
-  // Toggle gallery visibility when the gallery button is clicked
   galleryButton.addEventListener("click", () => {
     const isExpanded = galleryButton.getAttribute("aria-expanded") === "true";
     galleryButton.setAttribute("aria-expanded", String(!isExpanded));
     galleryPanel.setAttribute("aria-hidden", String(isExpanded));
 
     if (!isExpanded) {
-      galleryPanel.removeAttribute("inert"); // Ensure panel is not inert when opened
+      galleryPanel.removeAttribute("inert");
       showGalleryPlaceholders();
 
-      // Then load the actual images asynchronously
       setTimeout(() => {
         loadGalleryImages();
-      }, 50); // Small delay to ensure animation completes first
+      }, 50);
     } else {
-      galleryPanel.setAttribute("inert", "true"); // Make panel inert when closed
+      galleryPanel.setAttribute("inert", "true");
     }
 
     updatePanelOpenState();
   });
-  // Close gallery when the close button is clicked
   closeGallery.addEventListener("click", () => {
     galleryPanel.setAttribute("aria-hidden", "true");
-    galleryPanel.setAttribute("inert", "true"); // Make panel inert when closed
+    galleryPanel.setAttribute("inert", "true");
     galleryButton.setAttribute("aria-expanded", "false");
-    galleryButton.focus(); // Explicitly move focus
+    galleryButton.focus();
     updatePanelOpenState();
   });
 
-  // Refresh gallery when the refresh button is clicked
   if (refreshGalleryBtn) {
     refreshGalleryBtn.addEventListener("click", () => {
       loadGalleryImages();
     });
   }
 
-  // Handle bulk delete
   if (bulkDeleteBtn) {
     bulkDeleteBtn.addEventListener("click", () => {
       bulkDeleteSelectedImages();
     });
   }
 
-  // Initialize gallery tabs
   initializeGalleryTabs();
 
-  // Note: Outside click handling for all panels (gallery, settings, history)
-  // is consolidated in eventListeners.ts to avoid conflicts
 };
 
 /**
@@ -106,12 +93,10 @@ const showGalleryPlaceholders = function() {
     return;
   }
 
-  // Create 8 placeholder items (or adjust based on typical gallery size)
   galleryGrid.innerHTML = "";
   const count = state.galleryImages && state.galleryImages.length > 0 ?
     state.galleryImages.length : 8;
 
-  // Show count from last load
   const galleryCount = document.getElementById("gallery-count");
   if (galleryCount && state.galleryImages) {
     galleryCount.textContent = String(state.galleryImages.length || "...");
@@ -146,22 +131,17 @@ const loadGalleryImages = async function() {
   }
 
   try {
-    // Get all media records from IndexedDB
     const images = await getAllImagesFromDb();
 
-    // Filter images based on current tab
     const currentTab = state.currentGalleryTab || "generated";
     let visibleImages: GeneratedImage[];
 
     if (currentTab === "uploaded") {
-      // Show only uploaded images
       visibleImages = images.filter(img => img.filename && img.filename.startsWith("upload-"));
     } else {
-      // Show only generated images (not uploaded)
       visibleImages = images.filter(img => !img.filename || !img.filename.startsWith("upload-"));
     }
 
-    // Update individual tab counts
     const generatedImages = images.filter(img => !img.filename || !img.filename.startsWith("upload-"));
     const uploadedImages = images.filter(img => img.filename && img.filename.startsWith("upload-"));
 
@@ -190,21 +170,17 @@ const loadGalleryImages = async function() {
       return;
     }
 
-    // Sort images by timestamp, newest first
     visibleImages.sort((a, b) => {
       const dateA = a.timestamp ? new Date(a.timestamp) : new Date(0);
       const dateB = b.timestamp ? new Date(b.timestamp) : new Date(0);
       return dateB.getTime() - dateA.getTime();
     });
 
-    // Store images globally for slideshow access
     state.galleryImages = visibleImages;
     state.galleryImagesLoaded = true;
 
-    // Clear placeholders
     galleryGrid.innerHTML = "";
 
-    // Process images in batches to not block the UI
     const batchSize = 10;
 
     const processBatch = (startIndex: number) => {
@@ -214,18 +190,15 @@ const loadGalleryImages = async function() {
         const image = visibleImages[i];
         const mediaType = detectMediaType(image);
 
-        // Create gallery item
         const galleryItem = document.createElement("div");
         galleryItem.className = "gallery-item";
         galleryItem.dataset.filename = image.filename;
         galleryItem.dataset.index = String(i);
         galleryItem.dataset.mediaType = mediaType;
 
-        // Create selection bar at the top
         const selectionBar = document.createElement("div");
         selectionBar.className = "gallery-selection-bar";
 
-        // Create image container
         const imageContainer = document.createElement("div");
         imageContainer.className = "gallery-item-image-container";
 
@@ -251,7 +224,6 @@ const loadGalleryImages = async function() {
           imageContainer.appendChild(img);
         }
 
-        // Create checkbox for selection
         const selectContainer = document.createElement("label");
         selectContainer.className = "gallery-select-container";
         selectContainer.innerHTML = `
@@ -260,11 +232,9 @@ const loadGalleryImages = async function() {
                 `;
         selectionBar.appendChild(selectContainer);
 
-        // Create footer with actions
         const itemFooter = document.createElement("div");
         itemFooter.className = "gallery-item-footer";
 
-        // Create actions container
         const actions = document.createElement("div");
         actions.className = "gallery-actions";
         actions.innerHTML = `
@@ -272,7 +242,6 @@ const loadGalleryImages = async function() {
                     <button class="gallery-delete-btn" title="Delete ${mediaType}">${icon("trash", { width: 16, height: 16 })}</button>
                 `;
 
-        // Add event listeners to buttons
         const deleteBtn = actions.querySelector<HTMLElement>(".gallery-delete-btn");
         if (deleteBtn) {
           deleteBtn.addEventListener("click", (e: Event) => {
@@ -291,11 +260,9 @@ const loadGalleryImages = async function() {
           });
         }
 
-        // Add prompt truncated text (first few words) or "uploaded" label
         const truncatedPrompt = document.createElement("div");
         truncatedPrompt.className = "truncated-prompt";
 
-        // Check if this is uploaded media
         const isUploaded = image.filename && image.filename.startsWith("upload-");
 
         if (isUploaded) {
@@ -312,40 +279,33 @@ const loadGalleryImages = async function() {
         itemFooter.appendChild(truncatedPrompt);
         itemFooter.appendChild(actions);
 
-        // Stop propagation for checkbox to prevent triggering slideshow
         const checkbox = selectContainer.querySelector<HTMLElement>(".gallery-select-checkbox");
         if (checkbox) {
           checkbox.addEventListener("click", (e: Event) => {
             e.stopPropagation();
           });
 
-          // Also prevent propagation from the label
           selectContainer.addEventListener("click", (e: Event) => {
             e.stopPropagation();
           });
         }
 
-        // Add click event to show the viewer starting with this media item
         galleryItem.addEventListener("click", () => {
           startGallerySlideshow(i);
         });
 
-        // Append all elements to gallery item in the correct order
         galleryItem.appendChild(selectionBar);
         galleryItem.appendChild(imageContainer);
         galleryItem.appendChild(itemFooter);
 
-        // Add the complete item to the grid
         galleryGrid.appendChild(galleryItem);
       }
 
-      // Process next batch if needed
       if (endIndex < visibleImages.length) {
         setTimeout(() => processBatch(endIndex), 0);
       }
     };
 
-    // Start processing the first batch
     processBatch(0);
 
   } catch (error) {
@@ -355,8 +315,9 @@ const loadGalleryImages = async function() {
 };
 
 /**
- * Get all media records from IndexedDB
- * @returns {Promise<Array>} Promise resolving to an array of media objects
+ * Gets all media records from IndexedDB.
+ *
+ * @returns A promise resolving to an array of media objects.
  */
 const getAllImagesFromDb = function(): Promise<GeneratedImage[]> {
   return new Promise((resolve, reject) => {
@@ -396,26 +357,24 @@ const getAllImagesFromDb = function(): Promise<GeneratedImage[]> {
 };
 
 /**
- * Delete a media item from IndexedDB and remove it from the gallery
- * @param {string} filename - The filename of the media item to delete
+ * Deletes a media item from IndexedDB and removes it from the gallery.
+ *
+ * @param filename - The filename of the media item to delete.
  */
 const deleteImageAndUpdateGallery = async function(filename: string) {
   try {
     await deleteImageFromDb(filename);
 
-    // Remove the media element from the gallery
     const galleryItem = document.querySelector<HTMLElement>(`.gallery-item[data-filename="${filename}"]`);
     if (galleryItem) {
       galleryItem.remove();
 
-      // Update gallery count
       const galleryCount = document.getElementById("gallery-count");
       if (galleryCount) {
         const currentCount = parseInt(galleryCount.textContent || "0", 10);
         galleryCount.textContent = String(currentCount - 1);
       }
 
-      // Show empty message if no more media
       const galleryGrid = document.getElementById("gallery-grid");
       if (galleryGrid && galleryGrid.children.length === 0) {
         galleryGrid.innerHTML = "<div class=\"gallery-empty\">No media found in gallery</div>";
@@ -428,9 +387,10 @@ const deleteImageAndUpdateGallery = async function(filename: string) {
 };
 
 /**
- * Download a gallery media item
- * @param {string|Blob} imageData - Media data or display URL
- * @param {string} filename - The filename to save as
+ * Downloads a gallery media item.
+ *
+ * @param imageData - Media data or display URL.
+ * @param filename - The filename to save as.
  */
 const downloadGalleryImage = function(imageData: string | Blob, filename?: string) {
   downloadMediaSource(imageData, filename)
@@ -441,8 +401,9 @@ const downloadGalleryImage = function(imageData: string | Blob, filename?: strin
 };
 
 /**
- * Start the gallery slideshow from a specific index
- * @param {number} startIndex - The index to start from
+ * Starts the gallery slideshow from a specific index.
+ *
+ * @param startIndex - The index to start from.
  */
 const startGallerySlideshow = function(startIndex: number) {
   if (!state.galleryImages || state.galleryImages.length === 0) {
@@ -450,7 +411,6 @@ const startGallerySlideshow = function(startIndex: number) {
     return;
   }
 
-  // Use the shared slideshow function, passing gallery mode as true
   createImageSlideshow(state.galleryImages, startIndex, true);
 };
 
@@ -469,7 +429,6 @@ const bulkDeleteSelectedImages = async function() {
     return;
   }
 
-  // Show loading indicator
   const galleryGrid = document.getElementById("gallery-grid");
   const loadingIndicator = document.createElement("div");
   loadingIndicator.className = "bulk-delete-indicator";
@@ -495,13 +454,11 @@ const bulkDeleteSelectedImages = async function() {
 
     await Promise.all(deletePromises);
 
-    // Reload the gallery
     loadGalleryImages();
   } catch (error) {
     console.error("Error bulk deleting media:", error);
     alert("Some media items could not be deleted. Please try again.");
 
-    // Reload the gallery
     loadGalleryImages();
   }
 };
@@ -510,10 +467,8 @@ const bulkDeleteSelectedImages = async function() {
  * Initialize gallery tabs functionality
  */
 function initializeGalleryTabs() {
-  // Set the current active tab (default to 'generated')
   state.currentGalleryTab = "generated";
 
-  // Get tab elements
   const generatedTab = document.getElementById("gallery-tab-generated");
   const uploadedTab = document.getElementById("gallery-tab-uploaded");
 
@@ -522,7 +477,6 @@ function initializeGalleryTabs() {
     return;
   }
 
-  // Add click handlers for tabs
   generatedTab.addEventListener("click", () => {
     switchGalleryTab("generated");
   });
@@ -533,13 +487,13 @@ function initializeGalleryTabs() {
 }
 
 /**
- * Switch between gallery tabs
- * @param {string} tabName - 'generated' or 'uploaded'
+ * Switches between gallery tabs.
+ *
+ * @param tabName - Either `generated` or `uploaded`.
  */
 const switchGalleryTab = function(tabName: string) {
   state.currentGalleryTab = tabName;
 
-  // Update tab active states
   const tabs = document.querySelectorAll<HTMLElement>(".gallery-tab");
   tabs.forEach((tab) => {
     if (tab.dataset.tab === tabName) {
@@ -549,13 +503,11 @@ const switchGalleryTab = function(tabName: string) {
     }
   });
 
-  // Clear any selected checkboxes when switching tabs
   const checkboxes = document.querySelectorAll<HTMLInputElement>(".gallery-select-checkbox:checked");
   checkboxes.forEach((checkbox) => {
     checkbox.checked = false;
   });
 
-  // Reload gallery with the new filter
   loadGalleryImages();
 };
 

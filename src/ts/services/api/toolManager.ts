@@ -206,7 +206,6 @@ export function getEnabledToolDefinitions(serviceKey: string = getActiveServiceK
       return;
     }
 
-    // Shell and code_interpreter cannot be used together; shell wins if both enabled
     if (tool.key === "builtin:code_interpreter") {
       const shellEnabled = getToolPreference("builtin:shell", false);
       if (shellEnabled && serviceKey === "openai") {

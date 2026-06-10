@@ -1,6 +1,8 @@
 /**
  * Pure, side-effect-free helpers for choosing the default service at startup.
- * Kept separate from services.js (which pulls in UI modules) so the decision
+ *
+ * @remarks
+ * Kept separate from `services.ts` (which pulls in UI modules) so the decision
  * logic can be unit-tested without a DOM.
  */
 
@@ -13,12 +15,12 @@ function serviceHasKey(services: Record<string, ServiceConfig>, key: string) {
 }
 
 /**
- * Given the configured services and the current default, return another cloud
- * provider that has an API key when the current default is a keyless cloud
- * provider, otherwise null.
- * @param {object} services - config.services map
- * @param {string} current - current default service key
- * @returns {string|null} the cloud service key to switch to, or null
+ * Picks another cloud provider that has an API key when the current default is
+ * a keyless cloud provider.
+ *
+ * @param services - The `config.services` map.
+ * @param current - The current default service key.
+ * @returns The cloud service key to switch to, or `null`.
  */
 export function pickCloudFallback(services: Record<string, ServiceConfig>, current: string) {
   const currentIsCloud = isCloudService(current);

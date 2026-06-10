@@ -18,37 +18,29 @@
  */
 
 export const STORAGE_KEYS = {
-  // Per-service credentials (combined with the service id via the helpers below)
   apiKeyPrefix: "wordmark_api_key_",
   toolApiKeyPrefix: "wordmark_tool_api_key_",
 
-  // Local-provider server URLs
   lmStudioServerUrl: "wordmark_lmstudio_server_url",
   ollamaServerUrl: "wordmark_ollama_server_url",
 
-  // Tools / MCP
   toolPreferences: "wordmark_tool_preferences",
   mcpServers: "mcp_servers",
 
-  // Vector stores (file search)
   vectorStores: "wordmark_vector_stores",
   activeVectorStore: "active_vector_store",
 
-  // Location
   lastKnownLocation: "lastKnownLocation",
   locationEnabled: "locationEnabled",
 
-  // Memory
   memoryEnabled: "memoryEnabled",
   memoryLimit: "memoryLimit",
   memories: "memories",
 
-  // Model / response settings
   reasoningEffort: "reasoningEffort",
   responseVerbosity: "responseVerbosity",
   historyTokenBudget: "historyTokenBudget",
 
-  // Misc UI / feature flags
   selectedTheme: "selectedTheme",
   enableLogging: "enableLogging",
   enableFunctionCalling: "enableFunctionCalling",

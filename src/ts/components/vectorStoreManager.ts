@@ -1,8 +1,12 @@
-import { showError,showInfo } from "../utils/notifications.ts";
 /**
- * Vector Store Management UI Component
+ * Vector-store management UI.
+ *
+ * @remarks
+ * Browser UI for listing, activating, inspecting, and deleting vector stores,
+ * tracking the active-store selection metadata.
  */
 
+import { showError, showInfo } from "../utils/notifications.ts";
 import {
   listVectorStores,
   deleteVectorStore,
@@ -48,9 +52,7 @@ export async function initVectorStoreManager() {
 
   if (clearActiveButton) {
     clearActiveButton.addEventListener("click", () => {
-      // Clear the single "active" id
       clearActiveVectorStore();
-      // Clear all enabled/active metadata selections
       try {
         const meta = getVectorStoreMetadata();
         if (meta && typeof meta === "object") {
@@ -81,7 +83,6 @@ export async function refreshVectorStoreList(applyCooldown = true) {
 
   const activeIds = getActiveVectorStoreIds();
 
-  // Show loading state
   listContainer.innerHTML = "<div class=\"loading-text\">Loading vector stores...</div>";
 
   try {
@@ -98,7 +99,6 @@ export async function refreshVectorStoreList(applyCooldown = true) {
       return;
     }
 
-    // Build the list
     const listHtml = stores.map((store: any, index: number) => {
       const isActive = Array.isArray(activeIds) ? activeIds.includes(store.id) : (store.id === getActiveVectorStoreId());
       const meta = metadata[store.id] || {};
@@ -136,7 +136,6 @@ export async function refreshVectorStoreList(applyCooldown = true) {
 
     listContainer.innerHTML = listHtml;
 
-    // Attach event listeners
     listContainer.querySelectorAll(".store-enable-toggle").forEach(input => {
       input.addEventListener("change", async (e) => {
         const target = e.target as HTMLInputElement;
@@ -156,7 +155,6 @@ export async function refreshVectorStoreList(applyCooldown = true) {
               }
               return;
             }
-            // Save metadata to mark as enabled/active
             const store = await getVectorStore(storeId);
             const friendlyDisplayName = deriveFriendlyVectorStoreName(store);
             saveVectorStoreMetadata(storeId, {
@@ -169,7 +167,6 @@ export async function refreshVectorStoreList(applyCooldown = true) {
               showInfo(`Enabled vector store "${friendlyDisplayName || store.name || storeId}"`);
             }
           } else {
-            // Remove metadata; also clear primary active id if it matches
             const metadata = getVectorStoreMetadata();
             const friendlyDisplayName = metadata?.[storeId]?.friendlyName || metadata?.[storeId]?.name || storeId;
             removeVectorStoreMetadata(storeId);
@@ -210,7 +207,6 @@ export async function refreshVectorStoreList(applyCooldown = true) {
   } catch (error) {
     console.error("Failed to load vector stores:", error);
 
-    // Check if it's a CORS error
     const errorMessage = error instanceof Error ? error.message : "";
     const errorName = error instanceof Error ? error.name : "";
     const isCorsError = errorMessage.includes("CORS") ||
@@ -287,12 +283,10 @@ async function deleteVectorStoreById(storeId: string | null) {
     await deleteVectorStore(storeId);
     markVectorStoreApiCall();
 
-    // Clear if it was the active store
     if (getActiveVectorStoreId() === storeId) {
       clearActiveVectorStore();
     }
 
-    // Remove metadata
     removeVectorStoreMetadata(storeId);
 
     if (showInfo) {

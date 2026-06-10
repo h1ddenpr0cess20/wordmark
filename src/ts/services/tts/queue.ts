@@ -1,3 +1,11 @@
+/**
+ * TTS autoplay queue.
+ *
+ * @remarks
+ * Manages the queue of messages to read aloud, driving sequential autoplay and
+ * its start/stop lifecycle.
+ */
+
 import { ttsConfig, ttsRuntime, ttsMessageQueue } from "./config.ts";
 import { shouldSkipTts } from "./filters.ts";
 import { stopTtsAudio } from "./playback.ts";

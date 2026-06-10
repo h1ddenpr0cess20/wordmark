@@ -1,7 +1,7 @@
 # syntax=docker/dockerfile:1
 
 # --- Build stage: compile the Vite bundle ---
-FROM node:22-alpine AS build
+FROM node:24-alpine AS build
 WORKDIR /app
 
 # Install dependencies first (reproducible install from the lockfile)

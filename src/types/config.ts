@@ -1,5 +1,9 @@
-// Shared types for the application configuration object (`src/config/config.ts`).
+/**
+ * Shared types for the application configuration object
+ * ({@link Config}, defined in `src/config/config.ts`).
+ */
 
+/** Identifier for a built-in AI provider. */
 export type ServiceKey = "openai" | "lmstudio" | "ollama" | "xai";
 
 /** A model entry as returned by a provider's `/models` (or `/api/tags`) endpoint. */

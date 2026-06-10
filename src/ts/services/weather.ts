@@ -1,7 +1,15 @@
 /**
- * Weather tool implementation using Open-Meteo API
+ * Weather tool implementation backed by the Open-Meteo API.
  */
 
+/**
+ * Fetches a URL and parses the JSON response.
+ *
+ * @param url - The request URL.
+ * @param options - Optional `fetch` init.
+ * @returns The parsed JSON body.
+ * @throws If the response status is not OK.
+ */
 async function fetchJson(url: string, options?: RequestInit) {
   const response = await fetch(url, options);
   if (!response.ok) {
@@ -76,5 +84,5 @@ export async function openMeteoForecast(args: any = {}) {
   };
 }
 
-// Export the handler
+/** Public weather tool handler; alias of {@link openMeteoForecast}. */
 export const weatherToolHandler = openMeteoForecast;

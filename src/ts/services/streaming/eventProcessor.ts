@@ -1,3 +1,12 @@
+/**
+ * Streaming event processor.
+ *
+ * @remarks
+ * Dispatches Responses API stream events to the streaming runtime, translating
+ * each event type into the corresponding text, reasoning, and tool-output
+ * updates.
+ */
+
 import type { createStreamingRuntime } from "./runtime.ts";
 
 type StreamingRuntime = ReturnType<typeof createStreamingRuntime>;

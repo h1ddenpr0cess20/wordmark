@@ -1,4 +1,6 @@
-// Shared types for the tool catalog, MCP servers, and Responses-API tool defs.
+/**
+ * Shared types for the tool catalog, MCP servers, and Responses-API tool defs.
+ */
 
 /** A tool/function definition sent to the provider with each request. */
 export interface ToolDefinition {

@@ -11,66 +11,94 @@ import { uiHooks } from "../ts/init/uiHooks.ts";
 import { apiKeyStorageKey } from "../ts/utils/storage.ts";
 import type { Config, ModelListItem } from "../types/config.ts";
 
-// Console logging setup lives in utils/logger.ts. Importing it here (config is
-// the first app module evaluated) applies the logging behavior before the rest
-// of the app loads, preserving the original setup order. Re-exported so existing
-// importers (e.g. the debug settings toggle) keep their import path.
+/**
+ * Re-export of the console-logging installer.
+ *
+ * @remarks
+ * The setup lives in `utils/logger.ts`. Importing it here — config is the first
+ * app module evaluated — applies the logging behavior before the rest of the app
+ * loads, preserving the original setup order. Re-exported so existing importers
+ * (e.g. the debug settings toggle) keep their import path.
+ */
 export { applyConsoleLogging } from "../ts/utils/logger.ts";
 
-// MCP client behavior to avoid browser CORS requirements on MCP endpoints.
-// When true, the app will NOT make browser pings to MCP servers and will assume
-// they are online. This removes any need for Access-Control-Allow-Origin on MCP
-// servers because the actual MCP connection is handled by the AI service (e.g.
-// OpenAI Responses), not the browser.
+/**
+ * Whether MCP servers are assumed reachable without a browser-side health check.
+ *
+ * @remarks
+ * When `true`, the app does not ping MCP servers from the browser and treats
+ * them as online. This avoids any `Access-Control-Allow-Origin` requirement on
+ * MCP endpoints, since the actual MCP connection is made by the AI service
+ * (e.g. OpenAI Responses), not the browser.
+ */
 export const MCP_ASSUME_ONLINE = true;
 
-// Application version. Single source of truth is package.json ("version");
-// `__APP_VERSION__` is injected from it at build time by vite.config.ts (and by
-// tests/helpers/registerLoaders.mjs for the test runner). Bump package.json only.
+/**
+ * Application version.
+ *
+ * @remarks
+ * `package.json` (`version`) is the single source of truth; `__APP_VERSION__`
+ * is injected from it at build time by `vite.config.ts` (and by
+ * `tests/helpers/registerLoaders.mjs` for the test runner). Bump `package.json`
+ * only.
+ */
 export const APP_VERSION = __APP_VERSION__;
 
-// GitHub repository URL
+/** Canonical GitHub repository URL, surfaced in the About panel. */
 export const GITHUB_URL = "https://github.com/h1ddenpr0cess20/Wordmark";
 
-// Default system prompts
+/** Default system prompt used when no personality or custom prompt is set. */
 export const DEFAULT_SYSTEM_PROMPT = "You are a helpful AI assistant. Provide clear, accurate, and concise information. Respond in a friendly, professional, and engaging manner. Adapt your tone to the user’s needs and always prioritize usefulness and clarity.";
+
+/** Default personality description for the personality-based system prompt. */
 export const DEFAULT_PERSONALITY = "a helpful and knowledgeable assistant named Wordmark";
 
-// Prompt templates
-// The {guideline} placeholder will be replaced with either a short-response
-// guideline or an empty string based on the Verbose Mode toggle.
+/**
+ * Personality system-prompt template.
+ *
+ * @remarks
+ * The `{guideline}` placeholder is replaced with either a short-response
+ * guideline or an empty string depending on the Verbose Mode toggle;
+ * `{personality}`, `{datetime}`, and `{location}` are filled in at send time.
+ */
 export const PERSONALITY_PROMPT_TEMPLATE = "Assume the personality of {personality}. Roleplay and never break character, but avoid mentioning your name randomly. {guideline} \n [current date and location, for reference when needed: {datetime}, {location}]";
+
+/** Custom system-prompt template; `{custom_prompt}` is the user-supplied text. */
 export const CUSTOM_PROMPT_TEMPLATE = "{custom_prompt} \n (current date and location, for reference when needed: {datetime}, {location})";
 
-// Optional guideline that encourages shorter responses.
-// When Verbose Mode is enabled, the UI sets state.shortResponseGuideline to "".
+/**
+ * Guideline appended to prompts to encourage shorter responses.
+ *
+ * @remarks
+ * When Verbose Mode is enabled the UI clears `state.shortResponseGuideline`
+ * (sets it to `""`) so this text is omitted.
+ */
 export const DEFAULT_SHORT_RESPONSE_GUIDELINE = "Keep your responses relatively short and to the point unless the conversation context implies a longer response would be better (such as code, articles, poems, stories, etc.  use your best judgment).";
 
-// Logo configuration
+/** Logo rendering style key (see `components/logo.ts`). */
 export const LOGO_STYLE = "wordmark";
 
-// Seed the mutable runtime guideline with its default text.
 state.shortResponseGuideline = DEFAULT_SHORT_RESPONSE_GUIDELINE;
 
-// OpenAI API Configuration
+/**
+ * The application configuration: provider definitions plus the helper methods
+ * that resolve the currently active service.
+ */
 export const config: Config = {
-    // Default service to use
     defaultService: "openai",
 
-    // Enable OpenAI function calling
     enableFunctionCalling: true,
 
-    // Configure services (add more as needed)
     services: {
-        // Standard OpenAI service
         openai: {
             baseUrl: "https://api.openai.com/v1",
             apiKey: "",
             models: [],
             defaultModel: "gpt-5.4",
-            organization: null, // OpenAI organization ID (if applicable)
+            organization: null,
             modelsFetching: false,
 
+            /** Keeps only conversational chat models, excluding specialized and dated variants. */
             _isChatModel(modelId) {
                 const lowered = modelId.toLowerCase();
                 const prefixes = ["gpt-", "o1", "o3", "o4"];
@@ -78,15 +106,13 @@ export const config: Config = {
 
                 const blocked = ["preview", "audio", "computer-use", "transcribe", "tts", "image", "search", "realtime"];
                 if (blocked.some(f => lowered.includes(f))) return false;
-
-                // Exclude dated versions (e.g. gpt-4o-2024-08-06)
                 if (/-\d{4}-\d{2}-\d{2}$/.test(lowered)) return false;
 
                 return true;
             },
 
+            /** Fetches the OpenAI model list (chat models only) and refreshes the dropdown. */
             async fetchAndUpdateModels() {
-                // Ensure key is loaded from localStorage if not yet on config
                 if (!this.apiKey) {
                     const stored = localStorage.getItem(apiKeyStorageKey("openai"));
                     if (stored) this.apiKey = stored;
@@ -132,18 +158,24 @@ export const config: Config = {
             },
         },
 
-        // LM Studio - Local server with OpenAI-compatible API
         lmstudio: {
             baseUrl: "http://localhost:1234/v1",
-            apiKey: "", // Typically not required for LM Studio
-            models: [], // Initialize as empty, will be populated dynamically
+            apiKey: "",
+            models: [],
             defaultModel: "google/gemma-4-12b-qat",
             modelsFetching: false,
 
-            // Fetch and update LM Studio models (response expected like { "data": [ { "id": "openai/gpt-oss-20b", ... }, ... ] })
+            /**
+             * Fetches the LM Studio model list, filters out embedding models,
+             * and refreshes the dropdown.
+             *
+             * @remarks
+             * Accepts the OpenAI-style `{ data: [{ id }] }` shape as well as a
+             * bare array or `{ models }` array as fallbacks.
+             */
             async fetchAndUpdateModels() {
                 this.modelsFetching = true;
-                let apiRoot = this.baseUrl.replace(/\/+$/, ""); // normalize trailing slash
+                let apiRoot = this.baseUrl.replace(/\/+$/, "");
                 const endpoint = `${apiRoot}/models`;
                 console.info(`Fetching LM Studio models from: ${endpoint}`);
                 let fetchError = false;
@@ -155,12 +187,10 @@ export const config: Config = {
                         fetchError = true;
                     } else {
                         const data = await response.json();
-                        // LM Studio returns { "data": [ { "id": "model-id", ... }, ... ] } similar to OpenAI list
                         const isEmbeddingModel = (id: string) => /embed/i.test(id);
                         if (data && Array.isArray(data.data)) {
                             this.models = data.data.map((item: ModelListItem) => item.id).filter((id: unknown): id is string => typeof id === "string" && !isEmbeddingModel(id)).sort();
                         } else if (Array.isArray(data)) {
-                            // fallback: array of string ids
                             this.models = data.filter((id: string) => !isEmbeddingModel(id)).sort();
                         } else if (Array.isArray(data.models)) {
                             this.models = data.models.filter((id: string) => !isEmbeddingModel(id)).sort();
@@ -188,7 +218,6 @@ export const config: Config = {
                     this.modelsFetching = false;
                 }
 
-                // Attempt to update UI
                 if (typeof uiHooks.updateModelsDropdown === "function") {
                     uiHooks.updateModelsDropdown(fetchError);
                 } else {
@@ -197,18 +226,24 @@ export const config: Config = {
             },
         },
 
-        // Ollama - Local server with OpenAI-compatible Responses API
         ollama: {
             baseUrl: "http://localhost:11434/v1",
-            apiKey: "", // Typically not required for Ollama
-            models: [], // Initialize as empty, will be populated dynamically
+            apiKey: "",
+            models: [],
             defaultModel: "qwen3",
             modelsFetching: false,
 
-            // Fetch and update Ollama models (OpenAI-compatible /v1/models, fallback to /api/tags)
+            /**
+             * Fetches the Ollama model list and refreshes the dropdown.
+             *
+             * @remarks
+             * Tries the OpenAI-compatible `/v1/models` endpoint first and falls
+             * back to the native `/api/tags` endpoint if that fails or returns
+             * an unrecognized shape.
+             */
             async fetchAndUpdateModels() {
                 this.modelsFetching = true;
-                let apiRoot = this.baseUrl.replace(/\/+$/, ""); // normalize trailing slash
+                let apiRoot = this.baseUrl.replace(/\/+$/, "");
                 const endpoint = `${apiRoot}/models`;
                 console.info(`Fetching Ollama models from: ${endpoint}`);
                 let fetchError = false;
@@ -285,7 +320,6 @@ export const config: Config = {
 
                 this.modelsFetching = false;
 
-                // Attempt to update UI
                 if (typeof uiHooks.updateModelsDropdown === "function") {
                     uiHooks.updateModelsDropdown(fetchError);
                 } else {
@@ -294,7 +328,6 @@ export const config: Config = {
             },
         },
 
-        // xAI (Grok) service
         xai: {
             baseUrl: "https://api.x.ai/v1",
             apiKey: "",
@@ -302,6 +335,7 @@ export const config: Config = {
             defaultModel: "grok-4-1-fast-non-reasoning",
             modelsFetching: false,
 
+            /** Keeps only Grok chat models, excluding image/video/voice variants. */
             _isChatModel(modelId) {
                 const lowered = modelId.toLowerCase();
                 if (!lowered.startsWith("grok-")) return false;
@@ -309,8 +343,8 @@ export const config: Config = {
                 return !blocked.some(f => lowered.includes(f));
             },
 
+            /** Fetches the xAI model list (Grok chat models only) and refreshes the dropdown. */
             async fetchAndUpdateModels() {
-                // Ensure key is loaded from localStorage if not yet on config
                 if (!this.apiKey) {
                     const stored = localStorage.getItem(apiKeyStorageKey("xai"));
                     if (stored) this.apiKey = stored;
@@ -357,13 +391,24 @@ export const config: Config = {
         },
     },
 
-    // Helper function to check whether a configured service can be selected
+    /**
+     * Whether the given service exists and is selectable.
+     *
+     * @param serviceKey - Provider id to test.
+     * @returns `true` unless the service is missing or has `enabled === false`.
+     */
     isServiceEnabled: function(serviceKey) {
         const service = this.services && this.services[serviceKey];
         return Boolean(service && service.enabled !== false);
     },
 
-    // Helper function to normalize a service key to an enabled service
+    /**
+     * Resolves a service key to an enabled one.
+     *
+     * @param serviceKey - Preferred provider id.
+     * @returns `serviceKey` if enabled; otherwise `openai`, or the first enabled
+     * service, falling back to the original key when none qualify.
+     */
     normalizeServiceKey: function(serviceKey) {
         if (this.isServiceEnabled(serviceKey)) {
             return serviceKey;
@@ -374,7 +419,10 @@ export const config: Config = {
         return Object.keys(this.services || {}).find(key => this.isServiceEnabled(key)) || serviceKey;
     },
 
-    // Helper function to get the active service configuration
+    /**
+     * Returns the active service config, repointing {@link Config.defaultService}
+     * to an enabled service if the current default is disabled.
+     */
     getActiveService: function() {
         const serviceKey = this.normalizeServiceKey(this.defaultService);
         if (serviceKey && serviceKey !== this.defaultService) {
@@ -383,16 +431,19 @@ export const config: Config = {
         return this.services[serviceKey];
     },
 
-    // Helper to get the API key for the current service
+    /** Returns the API key for the active service (kept current by `apiKeys.ts`). */
     getApiKey: function() {
-        // First, check if the API key is available in the active service (which will be updated by apiKeys.ts)
         return this.getActiveService().apiKey;
     },
 
-    // Helper to get the base URL for the current service.
-    // LM Studio/Ollama URL overrides are applied by apiKeys.ts writing the
-    // chosen URL directly into services.<svc>.baseUrl, so reading the active
-    // service's baseUrl already reflects any stored override.
+    /**
+     * Returns the base URL for the active service.
+     *
+     * @remarks
+     * LM Studio/Ollama URL overrides are applied by `apiKeys.ts` writing the
+     * chosen URL directly into `services.<svc>.baseUrl`, so the active service's
+     * `baseUrl` already reflects any stored override.
+     */
     getBaseUrl: function() {
         const serviceKey = this.normalizeServiceKey(this.defaultService);
         if (serviceKey && serviceKey !== this.defaultService) {
@@ -401,13 +452,13 @@ export const config: Config = {
         return this.getActiveService().baseUrl;
     },
 
-    // Helper to get the default model for the current service
+    /** Returns the default model id for the active service. */
     getDefaultModel: function() {
         const activeService = this.getActiveService();
         return activeService.defaultModel;
     },
 
-    // Helper to get available models for the current service
+    /** Returns the available model ids for the active service. */
     getAvailableModels: function() {
         return this.getActiveService().models;
     },

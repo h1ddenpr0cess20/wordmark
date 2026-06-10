@@ -1,3 +1,12 @@
+/**
+ * Text-to-speech event listeners.
+ *
+ * @remarks
+ * Wires the TTS settings controls. Switching providers re-populates the voice
+ * list and hides the instructions field for xAI, which does not support voice
+ * instructions.
+ */
+
 import { elements } from "../state.ts";
 import {
   ttsConfig,
@@ -46,7 +55,6 @@ export function setupTtsEventListeners() {
       ttsConfig.provider = (availableTtsVoices as Record<string, unknown>)?.[providerSelect.value] ? providerSelect.value : "openai";
       providerSelect.value = ttsConfig.provider;
       populateTtsVoiceSelector();
-      // xAI TTS doesn't support voice instructions
       const instructionsItem = elements.ttsInstructionsInput?.closest<HTMLElement>(".setting-item");
       if (instructionsItem) {
         instructionsItem.style.display = ttsConfig.provider === "xai" ? "none" : "";

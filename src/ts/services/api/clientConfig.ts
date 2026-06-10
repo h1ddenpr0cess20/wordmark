@@ -1,13 +1,22 @@
+/**
+ * Responses client configuration helpers.
+ *
+ * @remarks
+ * Provides the request defaults and the selectors for the active service, model,
+ * base URL, and API key.
+ */
+
 import { elements } from "../../init/state.ts";
 import { config } from "../../../config/config.ts";
 import { isLocalService } from "../providers.ts";
-/**
- * Responses client configuration helpers.
- * Provides access to defaults and active service/model selectors.
- */
 
+/** Default model used when no model has been selected. */
 export const DEFAULT_MODEL = "gpt-5-mini";
+
+/** Default response verbosity. */
 export const DEFAULT_VERBOSITY = "medium";
+
+/** Default reasoning effort. */
 export const DEFAULT_REASONING_EFFORT = "low";
 
 function isConfiguredServiceEnabled(serviceKey: string | null | undefined): boolean {

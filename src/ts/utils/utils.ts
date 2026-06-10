@@ -1,14 +1,19 @@
 /**
- * Utility functions for the chatbot application
+ * Miscellaneous shared helpers: debouncing, input sanitization, and management
+ * of the collapsible reasoning ("thinking") containers.
  */
 
 import { state } from "../init/state.ts";
 import type { Attachment } from "../../types/api.ts";
+
 /**
- * Debounces a function call
- * @param {Function} func - The function to debounce
- * @param {number} wait - Time to wait in milliseconds
- * @returns {Function} - The debounced function
+ * Wraps a function so it only runs after `wait` ms have elapsed since the last
+ * call.
+ *
+ * @typeParam A - The wrapped function's argument tuple.
+ * @param func - The function to debounce.
+ * @param wait - Idle time in milliseconds before invocation.
+ * @returns The debounced wrapper.
  */
 export function debounce<A extends unknown[]>(func: (...args: A) => unknown, wait: number) {
   let timeout: ReturnType<typeof setTimeout> | undefined;
@@ -20,20 +25,22 @@ export function debounce<A extends unknown[]>(func: (...args: A) => unknown, wai
 }
 
 /**
- * Sanitizes user input to prevent XSS attacks
- * @param {string} text - Text to sanitize
- * @returns {string} - Sanitized text
+ * Escapes `<` and `>` in user input to prevent HTML injection.
+ *
+ * @param text - Raw text to escape.
+ * @returns The escaped text.
  */
 export function sanitizeInput(text: string): string {
   return text.replace(/</g, "&lt;").replace(/>/g, "&gt;");
 }
 
 /**
- * Toggle the visibility of the thinking/reasoning container
- * @param {string} id - The ID of the thinking container to toggle
+ * Toggles a reasoning container's collapsed state and remembers the preference.
+ *
+ * @param id - The id of the thinking container to toggle.
+ * @param event - Optional triggering event; bubbling and default are suppressed.
  */
 export function toggleThinking(id: string, event?: Event) {
-  // Prevent event bubbling that might affect other elements
   if (event) {
     event.stopPropagation();
     event.preventDefault();
@@ -45,25 +52,19 @@ export function toggleThinking(id: string, event?: Event) {
     return;
   }
 
-  // Get the current state before toggling
   const wasCollapsed = thinkingContainer.classList.contains("collapsed");
 
-  // Toggle this specific container's state
   thinkingContainer.classList.toggle("collapsed");
 
-  // Persist user preference for this specific thinking container ID
   if (!state.userThinkingState || typeof state.userThinkingState !== "object") {
     state.userThinkingState = {};
   }
-  // Store as 'expanded' boolean
   state.userThinkingState[id] = wasCollapsed === true;
 
-  // Debug logging
   if (state.verboseLogging) {
     console.log(`Toggled thinking container ${id}: ${wasCollapsed ? "expanded" : "collapsed"}`);
   }
 
-  // If we're expanding this container, scroll to show its content
   if (wasCollapsed) {
     const contentDiv = thinkingContainer.querySelector(".thinking-content");
     if (contentDiv) {
@@ -75,10 +76,16 @@ export function toggleThinking(id: string, event?: Event) {
 }
 
 /**
- * Replace base64 image data URLs in a user message with filename placeholders.
- * This prevents large base64 strings from being stored in conversation history.
- * @param {string} messageId - ID of the user message
- * @param {Array} placeholders - Array of placeholder strings like '[[IMAGE: file.jpg]]'
+ * Replaces inline base64 image data in a stored user message with filename
+ * placeholders, caching the stripped data URLs for later display.
+ *
+ * @remarks
+ * Keeps large base64 strings out of conversation history. If the placeholders
+ * are already present, only the base64 data is removed; otherwise the
+ * placeholders are prepended to the remaining text.
+ *
+ * @param messageId - Id of the user message to rewrite.
+ * @param placeholders - Placeholder strings such as `[[IMAGE: file.jpg]]`.
  */
 export function stripBase64FromHistory(messageId: string, placeholders: string[] = []) {
   if (!Array.isArray(state.conversationHistory)) {
@@ -117,28 +124,22 @@ export function stripBase64FromHistory(messageId: string, placeholders: string[]
 
   let textPart = typeof entry.content === "string" ? entry.content : "";
 
-  // Check if placeholders already exist in the content
   const existingPlaceholders = placeholders.filter(placeholder =>
     textPart.includes(placeholder),
   );
 
-  // If all placeholders already exist, just remove base64 data
   if (existingPlaceholders.length === placeholders.length) {
     entry.content = textPart.replace(/data:image\/[^;]+;base64,[^\s]+/g, "").trim();
     sanitizeAttachments();
     return;
   }
 
-  // Remove any base64 image data
   textPart = textPart.replace(/data:image\/[^;]+;base64,[^\s]+/g, "").trim();
   const placeholderText = placeholders.join("\n");
   entry.content = placeholderText + (textPart ? `\n\n${textPart}` : "");
   sanitizeAttachments();
 }
 
-// Reasoning/"thinking" containers are rendered as HTML strings during
-// streaming, so bind a single delegated click listener that toggles the
-// container whose title was clicked rather than per-element inline handlers.
 if (typeof document !== "undefined" && typeof document.addEventListener === "function") {
   document.addEventListener("click", (event) => {
     const target = event.target as Element | null;

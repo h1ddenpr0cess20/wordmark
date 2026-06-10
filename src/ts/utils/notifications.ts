@@ -1,12 +1,14 @@
 /**
- * Notification popup system for displaying error and status messages
+ * Toast-style notification system for transient error and status messages.
  */
 
-// Notification container
 let notificationContainer: HTMLElement | null = null;
 
 /**
- * Initialize the notification system
+ * Creates the notification container and injects its stylesheet.
+ *
+ * @remarks
+ * Idempotent and a no-op outside a DOM environment (e.g. Node tests).
  */
 export function initNotificationSystem() {
   if (typeof document === "undefined") {
@@ -14,15 +16,13 @@ export function initNotificationSystem() {
   }
   if (notificationContainer) {
     return;
-  } // Already initialized
+  }
 
-  // Create notification container
   notificationContainer = document.createElement("div");
   notificationContainer.id = "notification-container";
   notificationContainer.className = "notification-container";
   document.body.appendChild(notificationContainer);
 
-  // Add styles if not already present
   if (!document.getElementById("notification-styles")) {
     const style = document.createElement("style");
     style.id = "notification-styles";
@@ -146,48 +146,44 @@ export function initNotificationSystem() {
 }
 
 /**
- * Show a notification popup
- * @param {string} message - The message to display
- * @param {string} type - The type of notification (error, warning, success, info)
- * @param {number} duration - How long to show the notification (ms), 0 for persistent
+ * Displays a toast notification and returns its element.
+ *
+ * @param message - Text to display.
+ * @param type - Visual tone: `error`, `warning`, `success`, or `info`.
+ * @param duration - Auto-dismiss delay in milliseconds; `0` keeps it until
+ * the user closes it.
+ * @returns The notification element (for manual control), or `null` outside a
+ * DOM environment.
  */
 export function showNotification(message: string, type: string = "info", duration: number = 5000): HTMLElement | null {
   if (typeof document === "undefined") {
     return null;
   }
-  // Initialize if needed
   if (!notificationContainer) {
     initNotificationSystem();
   }
 
-  // Create notification element
   const notification = document.createElement("div");
   notification.className = `notification ${type}`;
 
-  // Create message element
   const messageEl = document.createElement("div");
   messageEl.className = "notification-message";
   messageEl.textContent = message;
 
-  // Create close button
   const closeBtn = document.createElement("button");
   closeBtn.className = "notification-close";
   closeBtn.innerHTML = "×";
   closeBtn.setAttribute("aria-label", "Close notification");
 
-  // Add elements to notification
   notification.appendChild(messageEl);
   notification.appendChild(closeBtn);
 
-  // Add to container
   notificationContainer!.appendChild(notification);
 
-  // Show notification with animation
   requestAnimationFrame(() => {
     notification.classList.add("show");
   });
 
-  // Auto-remove after duration (if not persistent)
   let autoRemoveTimeout: ReturnType<typeof setTimeout> | undefined;
   if (duration > 0) {
     autoRemoveTimeout = setTimeout(() => {
@@ -195,7 +191,6 @@ export function showNotification(message: string, type: string = "info", duratio
     }, duration);
   }
 
-  // Close button handler
   closeBtn.addEventListener("click", () => {
     if (autoRemoveTimeout) {
       clearTimeout(autoRemoveTimeout);
@@ -203,14 +198,10 @@ export function showNotification(message: string, type: string = "info", duratio
     removeNotification(notification);
   });
 
-  // Return notification element for manual control if needed
   return notification;
 }
 
-/**
- * Remove a notification with animation
- * @param {HTMLElement} notification - The notification element to remove
- */
+/** Animates a notification out and removes it from the DOM. */
 function removeNotification(notification: HTMLElement) {
   if (!notification || !notification.parentNode) {
     return;
@@ -222,44 +213,30 @@ function removeNotification(notification: HTMLElement) {
     if (notification.parentNode) {
       notification.parentNode.removeChild(notification);
     }
-  }, 300); // Match transition duration
+  }, 300);
 }
 
-/**
- * Show an error notification
- * @param {string} message - Error message
- */
+/** Shows an error notification (8s). */
 export function showError(message: string) {
   return showNotification(message, "error", 8000);
 }
 
-/**
- * Show a warning notification
- * @param {string} message - Warning message
- */
+/** Shows a warning notification (6s). */
 export function showWarning(message: string) {
   return showNotification(message, "warning", 6000);
 }
 
-/**
- * Show a success notification
- * @param {string} message - Success message
- */
+/** Shows a success notification (4s). */
 export function showSuccess(message: string) {
   return showNotification(message, "success", 4000);
 }
 
-/**
- * Show an info notification
- * @param {string} message - Info message
- */
+/** Shows an info notification (5s). */
 export function showInfo(message: string) {
   return showNotification(message, "info", 5000);
 }
 
-/**
- * Clear all notifications
- */
+/** Removes every currently visible notification. */
 export function clearAllNotifications() {
   if (notificationContainer) {
     const notifications = notificationContainer.querySelectorAll<HTMLElement>(".notification");
@@ -267,8 +244,6 @@ export function clearAllNotifications() {
   }
 }
 
-// Initialize when DOM is loaded (guarded so importing in non-DOM contexts,
-// such as Node tests, does not throw).
 if (typeof document !== "undefined") {
   if (document.readyState === "loading") {
     document.addEventListener("DOMContentLoaded", initNotificationSystem);

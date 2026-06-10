@@ -1,3 +1,11 @@
+/**
+ * Event listener setup.
+ *
+ * @remarks
+ * Aggregates the per-feature event-listener modules and wires them during
+ * startup.
+ */
+
 import { elements, state } from "./state.ts";
 import { showError } from "../utils/notifications.ts";
 import { STORAGE_KEYS } from "../utils/storage.ts";

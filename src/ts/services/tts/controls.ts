@@ -1,3 +1,11 @@
+/**
+ * Per-message TTS controls.
+ *
+ * @remarks
+ * Generates speech for a message and injects the inline play/pause/stop/download
+ * controls, including the placeholder state shown while audio is synthesizing.
+ */
+
 import { elements, state } from "../../init/state.ts";
 import { showError } from "../../utils/notifications.ts";
 import { exportAudioForDownload } from "../../utils/audioStorage.ts";

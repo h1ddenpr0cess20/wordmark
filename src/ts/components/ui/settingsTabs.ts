@@ -1,8 +1,13 @@
+/**
+ * Settings tabs.
+ */
+
 import { getApiKey } from "../../services/apiKeyStorage.ts";
 import { isLocalService } from "../../services/providers.ts";
 import { openSettingsAndSwitch } from "../../init/eventListeners/settingsPanel.ts";
 import { config } from "../../../config/config.ts";
 import { state } from "../../init/state.ts";
+
 /** Wires settings tab buttons so clicking one activates its tab and content panel. */
 export function initTabs() {
   const tabButtons = document.querySelectorAll<HTMLElement>(".tab-button");

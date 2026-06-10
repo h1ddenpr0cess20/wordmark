@@ -1,5 +1,5 @@
 /**
- * Model settings initialization for the chatbot application
+ * Model settings initialization: reasoning effort, verbosity, and history budget.
  */
 
 import { state, elements } from "./state.ts";
@@ -8,16 +8,26 @@ import { STORAGE_KEYS } from "../utils/storage.ts";
 import { serviceSupportsReasoning } from "../services/providers.ts";
 
 const REASONING_EFFORT_STORAGE_KEY = STORAGE_KEYS.reasoningEffort;
+
+/** Default reasoning effort. */
 export const DEFAULT_REASONING_EFFORT = "medium";
 const VALID_REASONING_EFFORTS = ["low", "medium", "high"];
 const DEFAULT_REASONING_HELP_TEXT = "Higher effort spends more time on structured reasoning before replying; lower effort responds faster.";
 const DISABLED_REASONING_HELP_TEXT = "Reasoning effort is unavailable for GPT-4/GPT-4.1 and Grok models without reasoning support.";
 const VERBOSITY_STORAGE_KEY = STORAGE_KEYS.responseVerbosity;
+
+/** Default response verbosity. */
 export const DEFAULT_VERBOSITY = "medium";
 const VALID_VERBOSITY_LEVELS = ["low", "medium", "high"];
 const HISTORY_TOKEN_BUDGET_STORAGE_KEY = STORAGE_KEYS.historyTokenBudget;
-// Balanced default: ~8k tokens of recent history keeps plenty of context
-// (~10-20 exchanges) while capping cost on long threads. 0 = no limit.
+
+/**
+ * Default history token budget.
+ *
+ * @remarks
+ * A balanced ~8k tokens of recent history keeps plenty of context (~10-20
+ * exchanges) while capping cost on long threads. `0` means no limit.
+ */
 export const DEFAULT_HISTORY_TOKEN_BUDGET = 8000;
 
 function normalizeReasoningEffort(value: string) {
@@ -115,9 +125,15 @@ function persistVerbosity(value: string) {
   }
 }
 
+/**
+ * Normalizes a history token budget value.
+ *
+ * @remarks
+ * `0` is a valid, explicit "no limit"; blank, negative, or invalid values fall
+ * back to {@link DEFAULT_HISTORY_TOKEN_BUDGET}.
+ */
 function normalizeHistoryTokenBudget(value: string | number | undefined) {
   const parsed = parseInt(String(value), 10);
-  // 0 is a valid, explicit "no limit". Blank/negative/invalid falls back to default.
   if (!Number.isFinite(parsed) || parsed < 0) {
     return DEFAULT_HISTORY_TOKEN_BUDGET;
   }

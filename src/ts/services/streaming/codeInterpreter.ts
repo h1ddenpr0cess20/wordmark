@@ -1,9 +1,9 @@
-import { icon } from "../../utils/icons.ts";
-import { showError } from "../../utils/notifications.ts";
 /**
  * Helpers for handling Code Interpreter outputs (files, logs) within responses.
  */
 
+import { icon } from "../../utils/icons.ts";
+import { showError } from "../../utils/notifications.ts";
 import {
   ensureApiKey,
   getBaseUrl,
@@ -13,6 +13,7 @@ import type { ResponseObject } from "../../../types/api.ts";
 const FILE_METADATA_CACHE = new Map<string, any>();
 const FILE_METADATA_PROMISES = new Map<string, Promise<any>>();
 
+/** A file produced by a Code Interpreter call. */
 export interface CodeAttachment {
   kind: "attachment";
   subtype: string;
@@ -27,12 +28,14 @@ export interface CodeAttachment {
   error: string | null;
 }
 
+/** Textual log output emitted by a Code Interpreter call. */
 export interface CodeLog {
   kind: "logs";
   callId: string | null;
   text: string;
 }
 
+/** Collected Code Interpreter outputs: produced files and log lines. */
 export interface CodeInterpreterOutputs {
   attachments: CodeAttachment[];
   logs: CodeLog[];
@@ -57,7 +60,6 @@ function looksLikeFileId(value: unknown) {
   if (typeof value !== "string" || !value) {
     return false;
   }
-  // Only match actual file IDs (cfile_xxx or file_xxx), not code strings
   return /^(cfile_|file_)[a-zA-Z0-9]+$/.test(value);
 }
 
@@ -109,7 +111,6 @@ function buildAttachmentFromObject(candidate: any, callId: string | null): CodeA
     ? candidate.bytes
     : (typeof candidate.size === "number" ? candidate.size : null);
 
-  // Extract container_id for container files
   const containerId = candidate.container_id || null;
 
   return {
@@ -283,7 +284,6 @@ export function extractCodeInterpreterOutputs(responsePayload: ResponseObject | 
   const rootOutputs = Array.isArray(responsePayload?.output) ? responsePayload.output : [];
   rootOutputs.forEach((item: any) => {
     inspectItem(item);
-    // Also check for annotations with container_file_citation
     if (item && Array.isArray(item.content)) {
       item.content.forEach((contentItem: any) => {
         if (contentItem && Array.isArray(contentItem.annotations)) {
@@ -448,12 +448,18 @@ async function fetchFileMetadata(fileId: string) {
   return promise;
 }
 
+/**
+ * Fills in an attachment's metadata by fetching it from the provider.
+ *
+ * @remarks
+ * Container files are skipped: they already carry metadata from their
+ * annotations and are marked ready immediately.
+ */
 async function hydrateAttachment(attachment: CodeAttachment | null) {
   if (!attachment || !attachment.fileId) {
     return attachment;
   }
 
-  // Skip metadata fetch for container files - they already have metadata from annotations
   if (attachment.containerId) {
     attachment.status = "ready";
     return attachment;
@@ -542,7 +548,6 @@ async function downloadFileContent(attachment: CodeAttachment | null) {
   const apiKey = ensureApiKey();
   const baseUrl = getBaseUrl();
 
-  // Use container endpoint if containerId is present, otherwise use regular files endpoint
   const url = attachment.containerId
     ? `${baseUrl}/containers/${attachment.containerId}/files/${attachment.fileId}/content`
     : `${baseUrl}/files/${attachment.fileId}/content`;
@@ -611,7 +616,6 @@ export function renderCodeInterpreterOutputs(messageElement: HTMLElement | null,
     return;
   }
 
-  // Remove previous rows but keep title element (first child)
   Array.from(container.querySelectorAll(".code-interpreter-file")).forEach((node) => node.remove());
 
   attachments.forEach((attachment: CodeAttachment) => {

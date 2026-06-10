@@ -1,12 +1,12 @@
+/**
+ * Message lifecycle helpers used during streaming and finalization.
+ */
+
 import { elements, state } from "../../init/state.ts";
 import { showError } from "../../utils/notifications.ts";
 import { updateBrowserHistory } from "../history/state.ts";
 import { saveCurrentConversation } from "../history/persistence.ts";
 import { ttsConfig, generateTtsForMessage } from "../tts.ts";
-/**
- * Message lifecycle helpers used during streaming and finalization.
- */
-
 import {
   imageDebugLog,
   processImageGenerationOutputs,
@@ -34,7 +34,6 @@ export function finalizeStreamedResponse(loadingMessage: HTMLElement | null, con
     return;
   }
 
-  // Raw provider payload: parsed below at the provider-response boundary.
   const responsePayload: any = contentObj && typeof contentObj === "object" ? contentObj.response || null : null;
   let content = contentObj && typeof contentObj === "object" ? (contentObj.content || "") : (contentObj || "");
   let reasoning = contentObj && typeof contentObj === "object" ? (contentObj.reasoning || "") : "";
@@ -278,7 +277,6 @@ export function finalizeStreamedResponse(loadingMessage: HTMLElement | null, con
 
   updateFinalMessage(loadingMessage);
 
-  // TTS uses the cleaned content (think tags stripped when present)
   if (ttsConfig.enabled) {
     generateTtsForMessage(content, loadingMessage.id);
   }

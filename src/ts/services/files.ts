@@ -1,13 +1,19 @@
 /**
- * Assistants Files Service
- * Mirrors the Python utility (upload/list/delete/delete-all) for browser usage.
- * Uses the same API config pattern as vectorStore.js.
+ * Assistants files service.
+ *
+ * @remarks
+ * Browser-side list/delete operations over the provider's `/files` endpoint,
+ * scoped to the `assistants` purpose. Uses the same API-config pattern as
+ * {@link ./vectorStore.ts}.
  */
 
 import { ensureApiKey, getBaseUrl } from "./api/clientConfig.ts";
 
 /**
- * List files with purpose "assistants"
+ * Lists files uploaded with the `assistants` purpose.
+ *
+ * @returns The provider's file list (`{ data: [...] }`).
+ * @throws If the request fails.
  */
 export async function listAssistantFiles() {
   const apiKey = ensureApiKey();
@@ -26,11 +32,14 @@ export async function listAssistantFiles() {
     throw new Error(`Failed to list assistant files: ${error}`);
   }
 
-  return response.json(); // { data: [...] }
+  return response.json();
 }
 
 /**
- * Delete a file by ID
+ * Deletes a single file by id.
+ *
+ * @param fileId - The file id to delete.
+ * @throws If the request fails.
  */
 export async function deleteFile(fileId: string) {
   const apiKey = ensureApiKey();
@@ -52,7 +61,9 @@ export async function deleteFile(fileId: string) {
 }
 
 /**
- * Delete all files with purpose "assistants"
+ * Deletes every `assistants`-purpose file, continuing past individual failures.
+ *
+ * @returns A summary `{ deleted, total, errors }`.
  */
 export async function deleteAllAssistantFiles() {
   const list = await listAssistantFiles();

@@ -1,6 +1,9 @@
 /**
  * Aggregated Responses API client.
- * Composes configuration, message preparation, network, and tool helpers.
+ *
+ * @remarks
+ * Composes the configuration, message-preparation, network, and tool helpers
+ * from `./api/*` into a single {@link responsesClient} facade.
  */
 
 import { getActiveServiceKey } from "./api/clientConfig.ts";
@@ -27,14 +30,20 @@ import {
   supportsClientSideTools,
 } from "./api/toolManager.ts";
 
+/**
+ * Facade over the Responses API helpers used throughout the app.
+ *
+ * @remarks
+ * `toolDefinitions` and `toolHandlers` are getters so the `toolManager`
+ * constants are read at runtime — the import cycle
+ * (`toolManager → apiKeys → tools → api → toolManager`) would otherwise hit
+ * them in the temporal dead zone during module evaluation.
+ */
 export const responsesClient = {
   buildInstructions,
   prepareInputMessages: serializeMessagesForRequest,
   collectFunctionCalls,
   runTurn,
-  // Getters defer reading these toolManager consts until runtime so that an
-  // import cycle (toolManager → apiKeys → tools → api → toolManager) does not
-  // hit them in the temporal dead zone during module evaluation.
   get toolDefinitions() { return TOOL_DEFINITIONS; },
   get toolHandlers() { return TOOL_HANDLERS; },
   getToolCatalog,

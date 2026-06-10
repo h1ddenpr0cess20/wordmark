@@ -1,4 +1,6 @@
-// Shared types for in-progress (pending) file/image attachments awaiting send.
+/**
+ * Shared types for in-progress (pending) file/image attachments awaiting send.
+ */
 
 /** A file belonging to an uploaded directory group. */
 export interface DirectoryFile {

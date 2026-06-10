@@ -1,3 +1,11 @@
+/**
+ * Conversation transcript rendering.
+ *
+ * @remarks
+ * Replays a stored conversation's messages into the chat view, restoring
+ * attachments and media from the supplied image cache.
+ */
+
 import { elements, state } from "../../init/state.ts";
 import { detectMediaType, getMediaDisplayUrl } from "../mediaTools.ts";
 import { updateMessageContent } from "../streaming/messageLifecycle.ts";
