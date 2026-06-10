@@ -1,19 +1,26 @@
-import { state } from "../init/state.ts";
-import { STORAGE_KEYS, writeJSON } from "../utils/storage.ts";
 /**
- * Location service for browser geolocation functionality
- * Provides location awareness for AI prompts
+ * Browser geolocation service.
+ *
+ * @remarks
+ * Resolves and caches the user's approximate location (reverse-geocoded to a
+ * human-readable string) so it can be injected into AI prompts, persisting the
+ * enabled state and last-known position to localStorage.
  */
 
-// Structural position type covering both a real GeolocationPosition (from
-// getCurrentPosition) and the lightweight object reconstructed from localStorage.
-// Only coordinates and timestamp are ever read.
+import { state } from "../init/state.ts";
+import { STORAGE_KEYS, writeJSON } from "../utils/storage.ts";
+
+/**
+ * Structural position type covering both a real `GeolocationPosition` and the
+ * lightweight object reconstructed from localStorage. Only coordinates and
+ * timestamp are ever read.
+ */
 interface GeoPositionLike {
   coords: { latitude: number; longitude: number };
   timestamp: number;
 }
 
-// Result returned by requestLocation: a success payload or an error message.
+/** Result of {@link requestLocation}: a success payload or an error message. */
 interface LocationResult {
   success?: boolean;
   error?: string;
@@ -22,7 +29,7 @@ interface LocationResult {
   coordinates?: { lat: number; lng: number };
 }
 
-// Location state management
+/** In-memory location state, mirrored to localStorage. */
 export const locationState: {
   enabled: boolean;
   position: GeoPositionLike | null;
@@ -38,8 +45,10 @@ export const locationState: {
 };
 
 /**
- * Request location permission and get current position
- * @returns {Promise<Object>} - Location data or error
+ * Requests geolocation permission and resolves the current position.
+ *
+ * @returns A success payload with coordinates and a formatted string, or an
+ * object with an `error` message. Never rejects.
  */
 export async function requestLocation(): Promise<LocationResult> {
   if (!navigator.geolocation) {
@@ -56,13 +65,11 @@ export async function requestLocation(): Promise<LocationResult> {
         locationState.error = null;
         locationState.lastFetched = new Date().toISOString();
 
-        // Try to get human-readable location
         try {
           const locationString = await formatLocationString(position);
           locationState.locationString = locationString;
           locationState.enabled = true;
 
-          // Save to localStorage for persistence
           localStorage.setItem(STORAGE_KEYS.locationEnabled, "true");
           writeJSON(STORAGE_KEYS.lastKnownLocation, {
             coords: {
@@ -87,7 +94,6 @@ export async function requestLocation(): Promise<LocationResult> {
             },
           });
         } catch {
-          // Even if reverse geocoding fails, we have coordinates
           const basicLocation = `Location: ${position.coords.latitude.toFixed(4)}, ${position.coords.longitude.toFixed(4)}`;
           locationState.locationString = basicLocation;
           locationState.enabled = true;
@@ -137,22 +143,26 @@ export async function requestLocation(): Promise<LocationResult> {
       {
         enableHighAccuracy: false,
         timeout: 10000,
-        maximumAge: 300000, // 5 minutes
+        maximumAge: 300000,
       },
     );
   });
 }
 
 /**
- * Format location data into a human-readable string
- * @param {Position} position - Geolocation position object
- * @returns {Promise<string>} - Formatted location string
+ * Reverse-geocodes a position into a human-readable location string.
+ *
+ * @remarks
+ * Uses BigDataCloud's free reverse-geocoding endpoint with a 5s timeout, and
+ * falls back to raw coordinates plus the local timezone if it fails.
+ *
+ * @param position - The geolocation position to format.
+ * @returns A `Location: ...` string including the resolved timezone.
  */
 export async function formatLocationString(position: GeoPositionLike) {
   const { latitude, longitude } = position.coords;
 
   try {
-    // Try to get location name via reverse geocoding (using a free service)
     const response = await fetch(
       `https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=${latitude}&longitude=${longitude}&localityLanguage=en`,
       { signal: AbortSignal.timeout(5000) },
@@ -181,14 +191,13 @@ export async function formatLocationString(position: GeoPositionLike) {
     console.warn("Reverse geocoding failed:", error);
   }
 
-  // Fallback to coordinates and timezone
   const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
   return `Location: ${latitude.toFixed(4)}, ${longitude.toFixed(4)} (${timezone})`;
 }
 
 /**
- * Get current location string for prompt templates
- * @returns {string} - Formatted location string or empty string
+ * Returns the current location as a parenthesized prompt fragment, or `""` when
+ * location is disabled or unknown.
  */
 export function getLocationForPrompt() {
   if (!locationState.enabled || !locationState.locationString) {
@@ -198,9 +207,7 @@ export function getLocationForPrompt() {
   return ` (${locationState.locationString})`;
 }
 
-/**
- * Disable location services
- */
+/** Disables location, clears cached state and storage, and refreshes the UI. */
 export function disableLocation() {
   locationState.enabled = false;
   locationState.position = null;
@@ -210,7 +217,6 @@ export function disableLocation() {
   localStorage.setItem(STORAGE_KEYS.locationEnabled, "false");
   localStorage.removeItem(STORAGE_KEYS.lastKnownLocation);
 
-  // Update UI if available
   updateLocationUI();
 
   if (state.verboseLogging) {
@@ -219,13 +225,16 @@ export function disableLocation() {
 }
 
 /**
- * Initialize location service from stored preferences
+ * Restores location state from stored preferences on startup.
+ *
+ * @remarks
+ * Reuses the cached position when it is under an hour old; otherwise (or when
+ * the cache is missing/corrupt) requests a fresh fix if location was enabled.
  */
 export function initializeLocationService() {
   const locationEnabled = localStorage.getItem(STORAGE_KEYS.locationEnabled) === "true";
   const lastKnownLocation = localStorage.getItem(STORAGE_KEYS.lastKnownLocation);
 
-  // Always restore the enabled state from localStorage first
   locationState.enabled = locationEnabled;
 
   if (locationEnabled && lastKnownLocation) {
@@ -234,7 +243,6 @@ export function initializeLocationService() {
       const now = Date.now();
       const storedTime = stored.timestamp;
 
-      // Use stored location if it's less than 1 hour old
       if (now - storedTime < 3600000) {
         locationState.locationString = stored.locationString;
         locationState.position = {
@@ -246,7 +254,6 @@ export function initializeLocationService() {
           console.info("Using stored location:", stored.locationString);
         }
       } else {
-        // Stored location is too old, request fresh location
         if (state.verboseLogging) {
           console.info("Stored location expired, requesting fresh location");
         }
@@ -255,27 +262,21 @@ export function initializeLocationService() {
     } catch (error) {
       console.warn("Failed to parse stored location:", error);
       localStorage.removeItem(STORAGE_KEYS.lastKnownLocation);
-      // If enabled but no valid stored location, try to get fresh location
       if (locationEnabled) {
         requestLocation();
       }
     }
   } else if (locationEnabled) {
-    // User had enabled location but there's no stored location data
-    // Try to get fresh location
     if (state.verboseLogging) {
       console.info("Location enabled but no stored data, requesting fresh location");
     }
     requestLocation();
   }
 
-  // Update UI if available
   updateLocationUI();
 }
 
-/**
- * Update location UI elements
- */
+/** Syncs the location toggle and status text in the settings UI with state. */
 export function updateLocationUI() {
   const locationToggle = document.getElementById("location-toggle") as HTMLInputElement | null;
   const locationStatus = document.getElementById("location-status");

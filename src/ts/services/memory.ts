@@ -1,11 +1,14 @@
 import { getMemories, addMemory, removeMemoryAt, getMemoryConfig } from "../utils/memoryStorage.ts";
 import { toolImplementations } from "./toolImplementations.ts";
 /**
- * Memory function definition and implementation
- * Exposes a separate function-call tool: `remember`
+ * Memory function-call tools.
+ *
+ * @remarks
+ * Defines and registers the `remember` and `forget` tools, which let the model
+ * persist and remove brief user memories via {@link toolImplementations}.
  */
 
-// Define the memory tool separately from normal tool definitions
+/** Tool definition for `remember`: stores a brief memory. */
 export const memoryToolDefinition = {
   type: "function",
   name: "remember",
@@ -24,7 +27,6 @@ export const memoryToolDefinition = {
   strict: false,
 };
 
-// Implementation registered in the shared tool-implementation registry
 toolImplementations.remember = async function(args) {
   try {
     const cfg = getMemoryConfig ? getMemoryConfig() : { enabled: false, limit: 25 };
@@ -44,7 +46,7 @@ toolImplementations.remember = async function(args) {
   }
 };
 
-// Define a companion tool for forgetting a memory by keyword
+/** Tool definition for `forget`: removes a stored memory by keyword. */
 export const forgetToolDefinition = {
   type: "function",
   name: "forget",
@@ -82,7 +84,6 @@ toolImplementations.forget = async function(args) {
     if (matches.length === 0) {
       return { ok: false, message: "No matching memory found", keyword, matches: [] };
     }
-    // Remove the first match by default
     const removedIndex = matches[0].index;
     const removed = matches[0].memory;
     if (removeMemoryAt) removeMemoryAt(removedIndex);

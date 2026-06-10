@@ -1,14 +1,21 @@
-import { state } from "../init/state.ts";
-import { showInfo } from "../utils/notifications.ts";
 /**
- * Vector Store and File Management Service
+ * Vector store and file-management service.
+ *
+ * @remarks
+ * Wraps the provider's `/files` and `/vector_stores` endpoints and tracks
+ * per-store metadata in localStorage, capping the number of active stores at
+ * {@link MAX_ACTIVE_VECTOR_STORES}.
  */
 
+import { state } from "../init/state.ts";
+import { showInfo } from "../utils/notifications.ts";
 import { ensureApiKey, getBaseUrl } from "./api/clientConfig.ts";
 import { STORAGE_KEYS, writeJSON } from "../utils/storage.ts";
 
-// Shape of the per-store metadata persisted in localStorage. Extra caller-
-// supplied fields are allowed; `lastUsed` is what we sort/evict on.
+/**
+ * Per-store metadata persisted in localStorage. Extra caller-supplied fields
+ * are allowed; `lastUsed` is what stores are sorted and evicted on.
+ */
 interface VectorStoreMetadataEntry {
   lastUsed?: number;
   name?: string;
@@ -157,10 +164,8 @@ export async function getVectorStoreFileStatus(vectorStoreId: string, fileId: st
  */
 export async function uploadAndAttachFiles(files: File[], vectorStoreName = "Chat Documents") {
   try {
-    // Filter files to only include supported types
     const { supported, unsupported } = filterSupportedFiles(files);
 
-    // Warn about unsupported files
     if (unsupported.length > 0) {
       const unsupportedNames = unsupported.map(f => f.name).join(", ");
       console.warn(`Skipping ${unsupported.length} unsupported file(s): ${unsupportedNames}`);
@@ -170,15 +175,12 @@ export async function uploadAndAttachFiles(files: File[], vectorStoreName = "Cha
       }
     }
 
-    // If no supported files, throw error
     if (supported.length === 0) {
       throw new Error("No supported files to upload. Supported formats: " + SUPPORTED_FILE_EXTENSIONS.join(", "));
     }
 
-    // Create vector store
     const vectorStore = await createVectorStore(vectorStoreName);
 
-    // Upload files and attach to vector store
     const attachments: { fileId: string; fileName: string; vectorStoreId: string; status: unknown }[] = [];
     for (const file of supported) {
       const uploadedFile = await uploadFile(file);
@@ -430,7 +432,6 @@ export function getActiveVectorStoreId() {
   try {
     return state.activeVectorStore || localStorage.getItem(STORAGE_KEYS.activeVectorStore) || null;
   } catch {
-    // Fallback if localStorage is unavailable (e.g., restricted environments)
     return state.activeVectorStore || null;
   }
 }
