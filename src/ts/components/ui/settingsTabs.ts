@@ -1,4 +1,4 @@
-import { getApiKey } from "../../services/apiKeys.ts";
+import { getApiKey } from "../../services/apiKeyStorage.ts";
 import { openSettingsAndSwitch } from "../../init/eventListeners/settingsPanel.ts";
 import { config } from "../../../config/config.ts";
 import { state } from "../../init/state.ts";

@@ -5,7 +5,7 @@
 import { state } from "../init/state.ts";
 import { loadImageFromDb, saveImageToDb } from "../utils/imageStorage.ts";
 import { toolImplementations } from "./toolImplementations.ts";
-import { getApiKey } from "./apiKeys.ts";
+import { getApiKey } from "./apiKeyStorage.ts";
 import { config } from "../../config/config.ts";
 import type { GeneratedImage } from "../../types/common.ts";
 

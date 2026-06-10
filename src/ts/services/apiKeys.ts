@@ -4,7 +4,7 @@ import { refreshToolSettingsUI } from "../components/tools.ts";
 import { config } from "../../config/config.ts";
 import { state } from "../init/state.ts";
 import { API_KEYS_STORAGE_PREFIX, loadApiKeysIntoConfig } from "./apiKeyStorage.ts";
-import { STORAGE_KEYS, toolApiKeyStorageKey } from "../utils/storage.ts";
+import { STORAGE_KEYS } from "../utils/storage.ts";
 /**
  * API key management functionality
  */
@@ -516,103 +516,6 @@ function loadApiKeys() {
  * @param {string} service - The service to get the key for
  * @returns {string|null} - The API key or null if not found
  */
-function getApiKey(service: string): string | null {
-  try {
-    // Try localStorage first
-    const storedKey = localStorage.getItem(`${API_KEYS_STORAGE_PREFIX}${service}`);
-    if (storedKey) {
-      return storedKey;
-    }
-
-    // Fall back to config if exists
-    if (config?.services?.[service]?.apiKey) {
-      return config.services[service].apiKey;
-    }
-
-    return null;
-  } catch (error) {
-    console.error(`Error getting API key for ${service}:`, error); return null;
-  }
-};
-
-/**
- * Gets a tool API key for a service from localStorage
- * @param {string} service - The service to get the key for (e.g., 'rapidapi', 'alphavantage')
- * @returns {string|null} - The API key or null if not found
- */
-function getToolApiKey(service: string): string | null {
-  try {
-  // Try localStorage first
-    const storedKey = localStorage.getItem(toolApiKeyStorageKey(service));
-    if (storedKey) {
-      return storedKey;
-    }
-
-    return null;
-  } catch (error) {
-    console.error(`Error getting tool API key for ${service}:`, error);
-    return null;
-  }
-};
-
-/**
- * Gets the LM Studio server URL from localStorage
- * @returns {string} - The LM Studio Base URL including /v1
- */
-function getLmStudioServerUrl() {
-  try {
-    // Try localStorage first
-    let storedUrl = localStorage.getItem(LMSTUDIO_SERVER_URL_KEY);
-    if (storedUrl) {
-      // Ensure the URL ends with /v1
-      if (!storedUrl.endsWith("/v1")) {
-        storedUrl = `${storedUrl}/v1`;
-      }
-      return storedUrl;
-    }
-
-    // Fall back to config if exists
-    if (config?.services?.lmstudio?.baseUrl) {
-      return config.services.lmstudio.baseUrl;
-    }
-
-    // Default fallback
-    return "http://localhost:1234/v1";
-  } catch (error) {
-    console.error("Error getting LM Studio server URL:", error);
-    return "http://localhost:1234/v1";
-  }
-};
-
-/**
- * Gets the Ollama server URL from localStorage
- * @returns {string} - The Ollama Base URL including /v1
- */
-function getOllamaServerUrl() {
-  try {
-    // Try localStorage first
-    let storedUrl = localStorage.getItem(OLLAMA_SERVER_URL_KEY);
-    if (storedUrl) {
-      // Ensure the URL ends with /v1
-      if (!storedUrl.endsWith("/v1")) {
-        storedUrl = `${storedUrl}/v1`;
-      }
-      return storedUrl;
-    }
-
-    // Fall back to config if exists
-    if (config?.services?.ollama?.baseUrl) {
-      return config.services.ollama.baseUrl;
-    }
-
-    // Default fallback
-    return "http://localhost:11434/v1";
-  } catch (error) {
-    console.error("Error getting Ollama server URL:", error);
-    return "http://localhost:11434/v1";
-  }
-};
-
 /**
  * Ensure API keys are loaded and warn if missing
  */
@@ -683,10 +586,6 @@ export {
   saveOllamaServerUrl,
   saveApiKeys,
   loadApiKeys,
-  getApiKey,
-  getToolApiKey,
-  getLmStudioServerUrl,
-  getOllamaServerUrl,
   ensureApiKeysLoaded,
   showApiKeyStatus,
 };

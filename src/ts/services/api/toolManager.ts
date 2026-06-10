@@ -6,7 +6,7 @@ import { getMemoryConfig } from "../../utils/memoryStorage.ts";
 import { getActiveServiceKey, getActiveModel } from "./clientConfig.ts";
 import { weatherToolHandler } from "../weather.ts";
 import { memoryToolDefinition, forgetToolDefinition } from "../memory.ts";
-import { getApiKey } from "../apiKeys.ts";
+import { getApiKey } from "../apiKeyStorage.ts";
 import { MCP_ASSUME_ONLINE, config } from "../../../config/config.ts";
 import { state } from "../../init/state.ts";
 import { STORAGE_KEYS, readJSON, writeJSON } from "../../utils/storage.ts";
