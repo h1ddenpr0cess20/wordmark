@@ -1,3 +1,11 @@
+/**
+ * Conversation URL state.
+ *
+ * @remarks
+ * Syncs the active conversation id to the browser address bar and restores a
+ * conversation from the URL on load.
+ */
+
 import { elements, state } from "../../init/state.ts";
 import { saveConversationToDb } from "../../utils/conversationStorage.ts";
 import { appendMessage } from "../../components/ui/chatMessages.ts";

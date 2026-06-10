@@ -1,3 +1,11 @@
+/**
+ * Conversation persistence.
+ *
+ * @remarks
+ * Saves, renames, loads, and starts conversations, bridging the in-memory chat
+ * state with the IndexedDB-backed store and the rendered transcript.
+ */
+
 import { elements, state } from "../../init/state.ts";
 import {
   saveConversationToDb,
@@ -142,9 +150,15 @@ function normalizePromptState() {
   return { promptType, promptContent };
 }
 
+/**
+ * Resolves immediately; render-path libraries are bundled, not loaded at runtime.
+ *
+ * @remarks
+ * `marked` and `highlight.js` are imported directly by the render path, so there
+ * is nothing to load on demand. Retained as an async seam for callers that await
+ * library readiness.
+ */
 function ensureLibrariesLoaded() {
-  // marked and highlight.js are bundled and imported directly by the render
-  // path; nothing to load at runtime.
   return Promise.resolve();
 }
 
