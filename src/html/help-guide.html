@@ -113,13 +113,17 @@
         <h2>Using Advanced Features</h2>
 
         <h3>Tools and Extensions</h3>
-        <p>Wordmark supports a small set of tools that extend the AI's capabilities:</p>
+        <p>Wordmark supports a set of tools that extend the AI's capabilities. Provider-managed tools are only available while the relevant service is active:</p>
         <ul>
-          <li><strong>Web Search:</strong> Let the AI use OpenAI-managed web search for fresh information when the OpenAI service is active.</li>
-          <li><strong>Weather Information:</strong> Get short forecasts via the built-in Open-Meteo helper.</li>
+          <li><strong>Web Search:</strong> Provider-managed web search for fresh information (OpenAI or xAI).</li>
+          <li><strong>Weather Information:</strong> Short 1–7 day forecasts via the built-in Open-Meteo helper (any provider, no key required).</li>
+          <li><strong>Code Interpreter:</strong> Let the AI run Python and work with files in the provider sandbox (OpenAI or xAI).</li>
+          <li><strong>Image Generation:</strong> Generate or edit images with the OpenAI image tool, or with xAI Grok Imagine (generate and edit) when using xAI.</li>
+          <li><strong>File Search:</strong> Search uploaded documents through vector stores (OpenAI).</li>
+          <li><strong>Shell:</strong> Run shell commands in a sandboxed container (OpenAI; off by default).</li>
           <li><strong>Custom MCP Servers:</strong> Register your own MCP endpoints to unlock additional domain-specific tools.</li>
         </ul>
-        <p><strong>Note:</strong> The built-in helpers do not require extra keys. MCP servers manage their own authentication and may need credentials on their side.</p>
+        <p><strong>Note:</strong> The built-in helpers do not require extra keys (Grok Imagine needs an xAI key). MCP servers manage their own authentication and may need credentials on their side.</p>
 
         <h3>Memory</h3>
         <p>Use the Memory feature to let the assistant remember or forget brief details you provide.</p>
@@ -160,15 +164,15 @@
         <h2>Getting Help</h2>
         <p>If you need further assistance:</p>
         <ul>
-          <li>Visit the <a href="https://github.com/h1ddenpr0cess20/Wordmark" target="_blank" rel="noopener">GitHub Repository</a> for documentation and updates</li>
-          <li>Report issues on the <a href="https://github.com/h1ddenpr0cess20/Wordmark/issues" target="_blank" rel="noopener">Issues page</a></li>
-          <li>Join discussions with other users on the <a href="https://github.com/h1ddenpr0cess20/Wordmark/discussions" target="_blank" rel="noopener">Discussions forum</a></li>
+          <li>Visit the <a href="https://github.com/h1ddenpr0cess20/wordmark" target="_blank" rel="noopener">GitHub Repository</a> for documentation and updates</li>
+          <li>Report issues on the <a href="https://github.com/h1ddenpr0cess20/wordmark/issues" target="_blank" rel="noopener">Issues page</a></li>
+          <li>Join discussions with other users on the <a href="https://github.com/h1ddenpr0cess20/wordmark/discussions" target="_blank" rel="noopener">Discussions forum</a></li>
         </ul>
       </section>
     </main>
 
     <footer class="help-footer">
-      <p>&copy; 2025 Dustin Whyte | <a href="../../index.html">Back to Wordmark</a></p>
+      <p>&copy; 2025–2026 Dustin Whyte | <a href="../../index.html">Back to Wordmark</a></p>
     </footer>
   </div>
 </body>
