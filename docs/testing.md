@@ -2,7 +2,7 @@
 
 Wordmark ships with a lightweight Node test suite (via the built-in `node --test` runner) that focuses on deterministic validation of the app's TypeScript modules. The goal is to keep confidence high without introducing a heavyweight integration harness.
 
-The specs themselves are TypeScript and type-checked under strict mode (see [TypeScript Conversion](./typescript-conversion.md)). Browser-global test doubles are cast `as unknown as <LibType>` at the assignment boundary so the source under test still sees the real lib types.
+The specs themselves are TypeScript and type-checked under strict mode. Browser-global test doubles are cast `as unknown as <LibType>` at the assignment boundary so the source under test still sees the real lib types.
 
 ## Running the Suite
 

@@ -3,7 +3,7 @@
 High-level
 
 - Build: [Vite](https://vite.dev) (rolldown). `npm run dev` serves the app; `npm run build` bundles to `dist/`. The browser no longer loads raw source files.
-- Language: TypeScript (strict). `npm run typecheck` type-checks the source; `npm run typecheck:tests` type-checks the test suite. See [TypeScript Conversion](./typescript-conversion.md).
+- Language: TypeScript (strict). `npm run typecheck` type-checks the source; `npm run typecheck:tests` type-checks the test suite.
 - Entrypoint: `index.html` → `src/ts/main.ts` (single ES module entry that imports everything else)
 - Config: `src/config/config.ts` (service endpoints, defaults; exports `config`, `APP_VERSION`, prompt templates, `applyConsoleLogging`)
 - App code: `src/ts/**` — pure ES modules using explicit `import`/`export`. There are no `window.*` app globals; only genuine browser APIs (`window.addEventListener`, `indexedDB`, etc.) touch `window`.
