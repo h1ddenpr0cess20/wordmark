@@ -8,7 +8,7 @@
 
 import type { AppState, Elements } from "../../types/state.ts";
 
-// Mutable runtime state.
+/** Authoritative store for shared, mutable runtime state. */
 export const state: AppState = {
   conversationHistory: [],
   activeAbortController: null,
@@ -18,7 +18,6 @@ export const state: AppState = {
   isResponsePending: false,
   activeLoadingMessageId: null,
 
-  // Chat history / conversation tracking
   currentConversationId: null,
   currentConversationName: null,
   generatedImages: [],
@@ -28,38 +27,29 @@ export const state: AppState = {
   currentVerbosity: "medium",
   imageDataCache: new Map(),
 
-  // Pending attachment uploads (cleared after a message is sent)
   pendingUploads: [],
   pendingDocuments: [],
 
-  // Per-message thinking/reasoning toggle state, keyed by message id
   userThinkingState: {},
 
-  // Generated images rendered into messages, keyed by message id
   messageImages: {},
 
-  // Gallery panel state
   galleryImages: [],
   galleryImagesLoaded: false,
   galleryInitialized: false,
   currentGalleryTab: "generated",
 
-  // Image slideshow / lightbox open flag
   isSlideshowOpen: false,
 
-  // Active vector store id for file-search (in-memory; not persisted here)
   activeVectorStore: null,
 
-  // Runtime logging flags (toggled at runtime; initial defaults here, the
-  // short-response guideline default text is seeded by config.ts at load).
   debug: false,
   verboseLogging: false,
   shortResponseGuideline: "",
 };
 
-// DOM element references — populated by dom.ts after panels load.
+/** Cached DOM element references, populated by `dom.ts` after panels load. */
 export const elements: Elements = {
-  // Main UI elements
   chatBox: null,
   userInput: null,
   sendButton: null,
@@ -67,21 +57,18 @@ export const elements: Elements = {
   settingsPanel: null,
   closeSettingsButton: null,
 
-  // Model and service controls
   modelSelector: null,
   serviceSelector: null,
   reasoningEffortSelector: null,
   verbositySelector: null,
   historyTokenBudgetInput: null,
 
-  // Prompt configuration elements
   personalityPromptRadio: null,
   personalityInput: null,
   customPromptRadio: null,
   systemPromptCustom: null,
   noPromptRadio: null,
 
-  // Action buttons
   clearMemoryButton: null,
   exportChatButton: null,
   exportFormatSelector: null,
@@ -92,7 +79,6 @@ export const elements: Elements = {
   verboseModeToggle: null,
   dataSettingsToggle: null,
 
-  // TTS-related references
   ttsToggle: null,
   ttsAutoplayToggle: null,
   ttsProviderSelector: null,
@@ -102,21 +88,17 @@ export const elements: Elements = {
   stopTtsButton: null,
   clearTtsCacheButton: null,
 
-  // Location-related references
   locationToggle: null,
   locationStatus: null,
 
-  // Tool calling toggle reference
   toolCallingToggle: null,
   individualToolsContainer: null,
 
-  // Chat history references
   historyButton: null,
   historyPanel: null,
   closeHistoryButton: null,
   historyList: null,
 
-  // Gallery references
   galleryButton: null,
   galleryPanel: null,
   closeGalleryButton: null,

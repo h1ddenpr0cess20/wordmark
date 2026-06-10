@@ -1,14 +1,14 @@
-import { APP_VERSION, GITHUB_URL } from "../../config/config.ts";
-import { state } from "./state.ts";
 /**
- * About tab and configuration initialization for the chatbot application
+ * About-tab initialization.
  */
 
+import { APP_VERSION, GITHUB_URL } from "../../config/config.ts";
+import { state } from "./state.ts";
+
 /**
- * Initialize About tab information and configuration display
+ * Initializes the About tab's version and configuration display.
  */
 export function initializeAboutTab() {
-  // Set up About tab information
   const appVersionElement = document.getElementById("app-version");
   if (appVersionElement) {
     appVersionElement.textContent = APP_VERSION || "0.0.0";

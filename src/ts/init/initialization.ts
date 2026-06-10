@@ -1,6 +1,8 @@
 /**
- * Main initialization coordinator for the chatbot application
- * This file loads all initialization modules and coordinates the startup process
+ * Main initialization coordinator.
+ *
+ * @remarks
+ * Loads all initialization modules and coordinates the startup sequence.
  */
 
 import { elements, state } from "./state.ts";
@@ -44,7 +46,6 @@ export async function initialize() {
       console.info("Initializing chatbot application...");
     }
 
-    // Initialize DOM references first
     initializeDOMReferences();
     if (state.verboseLogging) {
       console.info("DOM references initialized.");
@@ -52,59 +53,47 @@ export async function initialize() {
 
     initImageUploads();
 
-    // Initialize textarea height to prevent shrinking when typing
     initializeTextareaHeight();
 
-    // Check if essential elements are available
     if (!elements.modelSelector || !elements.userInput) {
       console.error("Essential DOM elements not found. Check your HTML structure.");
       return;
     }
 
-    // Initialize default values from config
     initializeDefaultValues();
 
-    // Initialize Markdown parser (Marked)
     initializeMarked();
     if (state.verboseLogging) {
       console.info("Marked (markdown) initialized.");
     }
 
-    // Initialize About tab
     initializeAboutTab();
 
-    // Initialize model parameter controls with values from config
     initializeModelSettings();
 
-    // Set initial conversation name based on personality/prompt type
     initializeConversationName();
 
-    // Setup event listeners
     setupEventListeners();
     if (state.verboseLogging) {
       console.info("Event listeners set up.");
     }
 
-    // Initialize tabs in settings panel
     initTabs();
     if (state.verboseLogging) {
       console.info("Settings panel tabs initialized.");
     }
 
-    // Initialize tools settings
     initToolsSettings();
     if (state.verboseLogging) {
       console.info("Tools settings initialized.");
     }
 
-    // Initialize memory settings (separate from tools UI)
     {
       try {
         initMemorySettings();
         if (state.verboseLogging) {
           console.info("Memory settings initialized.");
         }
-        // Sync feature badges after memory init
         updateFeatureStatus();
 
       } catch (e) {
@@ -112,7 +101,6 @@ export async function initialize() {
       }
     }
 
-    // Initialize MCP servers management
     try {
       initMCPServers();
       if (state.verboseLogging) {
@@ -122,7 +110,6 @@ export async function initialize() {
       console.error("MCP servers initialization failed:", e);
     }
 
-    // Try to load from URL if available
     try {
       loadFromUrl();
       if (state.verboseLogging) {
@@ -132,30 +119,21 @@ export async function initialize() {
       console.warn("Error loading from URL:", e);
     }
 
-    // Initialize services and models
     initializeServicesAndModels();
 
-    // Initialize TTS voice selector and provider state
     initializeTts();
 
-    // Initialize mobile keyboard handling
     initializeMobileKeyboardHandling();
     if (state.verboseLogging) {
       console.info("Mobile keyboard handling initialized.");
     }
-    // Call these functions to initialize the UI
     updateParameterControls();
 
-    // Ensure API keys are loaded before fetching models
     ensureApiKeysLoaded();
     if (state.verboseLogging) {
       console.info("API keys loaded from localStorage.");
     }
 
-    // Fetch models dynamically now that API keys are available. First try to
-    // auto-select a default provider when no cloud API keys are configured
-    // (LM Studio, then Ollama). If that already fetched models, skip the
-    // standard fetch to avoid a duplicate request.
     const runStandardModelInit = () => {
       initializeServiceModels();
     };
@@ -167,7 +145,6 @@ export async function initialize() {
       })
       .catch(runStandardModelInit);
 
-    // Explicitly initialize personality input
     initializePersonalityInput();
 
     updateModelSelector();
@@ -176,33 +153,24 @@ export async function initialize() {
       console.info("UI controls and selectors initialized.");
     }
 
-    // Add scroll event listener to chatBox to track when user manually scrolls
     setupScrollTracking();
 
-    // Focus the user input safely (checks for mobile device)
     focusInputField();
 
-    // Initialize tool calling toggle state
     initializeToolCalling();
     updateFeatureStatus();
 
-    // Apply data settings enabled/disabled state to the Data tab UI
     try { applyDataSettingsState(); } catch { /* noop */ }
 
     renderChatHistoryList();
 
-    // Initialize Verbose Mode toggle state
     initializeVerboseMode();
 
-    // Load location services if previously enabled
     if (localStorage.getItem(STORAGE_KEYS.locationEnabled) === "true") {
       initializeLocationService();
     }
-    // Ensure feature badges render at least once on startup
     updateFeatureStatus();
 
-    // Check if API keys are missing and auto-open the API keys tab if needed
-    // Add a delay so users can see the chat interface before the API key menu appears
     setTimeout(() => {
       openApiKeysTabIfNeeded();
     }, 2000);
@@ -211,12 +179,10 @@ export async function initialize() {
       console.info("Chatbot application initialization complete.");
     }
 
-    // Mark body as loaded to show the interface
     document.body.classList.add("loaded");
 
   } catch (error) {
     console.error("Initialization error:", error);
-    // Still show the interface even if there's an error
     document.body.classList.add("loaded");
   }
 }
@@ -236,7 +202,7 @@ function setupScrollTracking() {
 }
 
 /**
- * Focus user input safely (handles mobile devices via mobileHandling.js)
+ * Focuses the user input safely, deferring to mobile-aware handling.
  */
 function focusInputField() {
   focusUserInputSafely();
@@ -247,7 +213,6 @@ function focusInputField() {
  */
 function initializeTextareaHeight() {
   if (elements.userInput) {
-    // Set initial height to the default value from CSS
     elements.userInput.style.height = "56px";
   }
 }

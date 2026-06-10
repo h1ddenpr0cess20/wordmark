@@ -1,19 +1,21 @@
 /**
- * Markdown (marked) initialization for the chatbot application
+ * Markdown (marked) initialization.
  */
 
 import { marked } from "marked";
 
 /**
- * Initialize the marked library with custom configuration
+ * Initializes the marked library with custom configuration.
+ *
+ * @remarks
+ * marked v16+ passes a single token object to renderer methods, so the link
+ * renderer reads `{ href, title, tokens }` and renders the inline text via the
+ * bound parser, adding `target`/`rel` for safety.
  */
 export function initializeMarked() {
-  // Configure marked. Marked v16+ passes a single token object to renderer
-  // methods, so the link renderer reads { href, title, tokens } and renders the
-  // inline text via the bound parser, adding target/rel for safety.
   marked.use({
     gfm: true,
-    breaks: true, // Keep this change as it helps with line breaks
+    breaks: true,
     pedantic: false,
     renderer: {
       link(token) {
