@@ -23,6 +23,7 @@ import {
   supportsResponseIncludeFields,
   usesServerManagedTools,
 } from "../providers.ts";
+import { extractOutputText, extractReasoningText } from "./responseNormalization.ts";
 import {
   getEnabledToolDefinitions,
   isClientSideToolType,
@@ -252,7 +253,7 @@ export async function runTurn({
       previousResponseId: previousAssistantHadImages ? previousResponseId : null,
     });
 
-    let responsePayload: any = null;
+    let responsePayload: ResponseObject | null = null;
     let streamedText = "";
     let streamedReasoning = "";
 
@@ -265,36 +266,8 @@ export async function runTurn({
         streamedReasoning = result.reasoningText || "";
       } else {
         responsePayload = await executeNonStreamingRequest(body, abortController);
-        streamedText = responsePayload.output_text || "";
-        const flattenContent = (items: any[]): string => items
-          .map((item: any) => {
-            if (typeof item === "string") {
-              return item;
-            }
-            if (item && typeof item === "object") {
-              if (typeof item.content === "string") {
-                return item.content;
-              }
-              if (typeof item.text === "string") {
-                return item.text;
-              }
-            }
-            return "";
-          })
-          .join("");
-        if (responsePayload.reasoning && typeof responsePayload.reasoning === "string") {
-          streamedReasoning = responsePayload.reasoning;
-        } else if (responsePayload.reasoning && Array.isArray(responsePayload.reasoning)) {
-          streamedReasoning = flattenContent(responsePayload.reasoning);
-        } else if (responsePayload.reasoning && Array.isArray(responsePayload.reasoning.output)) {
-          streamedReasoning = responsePayload.reasoning.output.map((item: any) => item?.content || "").join("");
-        } else if (typeof responsePayload.reasoning_content === "string") {
-          streamedReasoning = responsePayload.reasoning_content;
-        } else if (Array.isArray(responsePayload.reasoning_content)) {
-          streamedReasoning = flattenContent(responsePayload.reasoning_content);
-        } else if (responsePayload.reasoning && typeof responsePayload.reasoning === "object" && typeof responsePayload.reasoning.content === "string") {
-          streamedReasoning = responsePayload.reasoning.content;
-        }
+        streamedText = extractOutputText(responsePayload);
+        streamedReasoning = extractReasoningText(responsePayload);
       }
     } catch (error) {
       const message = error instanceof Error ? error.message : "";
@@ -346,7 +319,7 @@ export async function runTurn({
     if (!actionableCalls.length) {
       return {
         response: responsePayload,
-        outputText: (aggregateText || streamedText || responsePayload.output_text || ""),
+        outputText: (aggregateText || streamedText || extractOutputText(responsePayload)),
         reasoningText: (aggregateReasoning || streamedReasoning || ""),
       };
     }
