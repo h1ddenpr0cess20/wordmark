@@ -3,6 +3,8 @@
  * Provides functions for storing and retrieving TTS audio from IndexedDB
  */
 
+import { openDatabase } from "./idb.ts";
+
 // IndexedDB database configuration
 const AUDIO_DB_NAME = "wordmark-audio";
 const AUDIO_DB_VERSION = 1;
@@ -27,21 +29,10 @@ export interface StoredAudio {
  * @returns {Promise} - Promise that resolves when the database is ready
  */
 export function initAudioDb() {
-  return new Promise<void>((resolve, reject) => {
-    if (typeof window === "undefined" || window.indexedDB === undefined) {
-      console.error("IndexedDB is not supported in this browser");
-      reject(new Error("IndexedDB not supported"));
-      return;
-    }
-    const request = window.indexedDB.open(AUDIO_DB_NAME, AUDIO_DB_VERSION);
-
-    request.onerror = () => {
-      console.error("IndexedDB error:", request.error);
-      reject(request.error);
-    };
-
-    request.onupgradeneeded = () => {
-      const db = request.result;
+  return openDatabase({
+    name: AUDIO_DB_NAME,
+    version: AUDIO_DB_VERSION,
+    onUpgrade: (db) => {
       // Create an object store for audio files if it doesn't exist
       if (!db.objectStoreNames.contains(AUDIO_STORE_NAME)) {
         // Use autoIncrement to generate unique IDs
@@ -53,13 +44,10 @@ export function initAudioDb() {
 
         console.info("Created TTS audio store in IndexedDB");
       }
-    };
-
-    request.onsuccess = () => {
-      audioDb = request.result;
-      console.info("IndexedDB initialized for TTS audio storage");
-      resolve();
-    };
+    },
+  }).then((db) => {
+    audioDb = db;
+    console.info("IndexedDB initialized for TTS audio storage");
   });
 }
 

@@ -4,6 +4,7 @@
  */
 
 import type { ConversationRecord } from "../../types/common.ts";
+import { openDatabase } from "./idb.ts";
 
 // IndexedDB database configuration
 const CONVO_DB_NAME = "wordmark-conversations";
@@ -18,34 +19,20 @@ let conversationDb: IDBDatabase | null = null;
  * @returns {Promise} - Promise that resolves when the database is ready
  */
 export function initConversationDb() {
-  return new Promise<void>((resolve, reject) => {
-    if (typeof window === "undefined" || window.indexedDB === undefined) {
-      console.error("IndexedDB is not supported in this browser");
-      reject(new Error("IndexedDB not supported"));
-      return;
-    }
-
-    const request = window.indexedDB.open(CONVO_DB_NAME, CONVO_DB_VERSION);
-
-    request.onerror = () => {
-      console.error("Conversation IndexedDB error:", request.error);
-      reject(request.error);
-    };
-
-    request.onupgradeneeded = () => {
-      const db = request.result;
+  return openDatabase({
+    name: CONVO_DB_NAME,
+    version: CONVO_DB_VERSION,
+    errorLabel: "Conversation IndexedDB error:",
+    onUpgrade: (db) => {
       // Create an object store for conversations if it doesn't exist
       if (!db.objectStoreNames.contains(CONVO_STORE_NAME)) {
         db.createObjectStore(CONVO_STORE_NAME, { keyPath: "id" });
         console.info("Created conversation store in IndexedDB");
       }
-    };
-
-    request.onsuccess = () => {
-      conversationDb = request.result;
-      console.info("IndexedDB initialized for conversation storage");
-      resolve();
-    };
+    },
+  }).then((db) => {
+    conversationDb = db;
+    console.info("IndexedDB initialized for conversation storage");
   });
 }
 

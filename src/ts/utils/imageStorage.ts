@@ -3,6 +3,8 @@
  * Provides functions for storing and retrieving images from IndexedDB
  */
 
+import { openDatabase } from "./idb.ts";
+
 // IndexedDB database configuration
 const IMAGE_DB_NAME = "wordmark-images";
 const IMAGE_DB_VERSION = 1;
@@ -33,33 +35,19 @@ export function getImageDb() {
  * @returns {Promise} - Promise that resolves when the database is ready
  */
 export function initImageDb() {
-  return new Promise<void>((resolve, reject) => {
-    if (typeof window === "undefined" || window.indexedDB === undefined) {
-      console.error("IndexedDB is not supported in this browser");
-      reject(new Error("IndexedDB not supported"));
-      return;
-    }
-    const request = window.indexedDB.open(IMAGE_DB_NAME, IMAGE_DB_VERSION);
-
-    request.onerror = () => {
-      console.error("IndexedDB error:", request.error);
-      reject(request.error);
-    };
-
-    request.onupgradeneeded = () => {
-      const db = request.result;
+  return openDatabase({
+    name: IMAGE_DB_NAME,
+    version: IMAGE_DB_VERSION,
+    onUpgrade: (db) => {
       // Create an object store for images if it doesn't exist
       if (!db.objectStoreNames.contains(IMAGE_STORE_NAME)) {
         db.createObjectStore(IMAGE_STORE_NAME, { keyPath: "filename" });
         console.info("Created image store in IndexedDB");
       }
-    };
-
-    request.onsuccess = () => {
-      imageDb = request.result;
-      console.info("IndexedDB initialized for image storage");
-      resolve();
-    };
+    },
+  }).then((db) => {
+    imageDb = db;
+    console.info("IndexedDB initialized for image storage");
   });
 }
 
