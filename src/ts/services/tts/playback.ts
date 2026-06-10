@@ -1,3 +1,11 @@
+/**
+ * TTS audio playback.
+ *
+ * @remarks
+ * Plays, stops, and tracks the active TTS audio element, syncing the inline
+ * controls and advancing the autoplay queue on completion.
+ */
+
 import { ttsConfig, ttsRuntime, ttsSvgIcons } from "./config.ts";
 import { ttsAudioResources } from "./resources.ts";
 import { playNextMessageInQueue, playQueuedTtsMessage } from "./queue.ts";

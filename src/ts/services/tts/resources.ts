@@ -1,3 +1,11 @@
+/**
+ * TTS audio resource registry.
+ *
+ * @remarks
+ * Tracks generated object URLs and their backing audio data per message,
+ * persisting playable audio to IndexedDB and revoking URLs on cleanup.
+ */
+
 import { saveAudioToDb } from "../../utils/audioStorage.ts";
 import { ttsConfig, ttsRuntime } from "./config.ts";
 import { stopTtsAudio } from "./playback.ts";
@@ -9,6 +17,7 @@ interface TtsAudioResource {
   audioData: ArrayBuffer;
 }
 
+/** Per-message store of generated TTS audio URLs and their backing data. */
 export const ttsAudioResources = {
   activeUrls: new Map<string, TtsAudioResource>(),
 

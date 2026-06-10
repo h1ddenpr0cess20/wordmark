@@ -1,3 +1,11 @@
+/**
+ * TTS provider API client.
+ *
+ * @remarks
+ * Sends text to the active provider's speech endpoint and returns the
+ * synthesized audio for playback.
+ */
+
 import { elements } from "../../init/state.ts";
 import { ttsConfig } from "./config.ts";
 import { config } from "../../../config/config.ts";

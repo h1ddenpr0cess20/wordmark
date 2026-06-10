@@ -1,3 +1,10 @@
+/**
+ * TTS initialization.
+ *
+ * @remarks
+ * Wires the TTS settings controls to their runtime state on startup.
+ */
+
 import { elements } from "../../init/state.ts";
 import { ttsConfig } from "./config.ts";
 

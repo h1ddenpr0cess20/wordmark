@@ -1,6 +1,10 @@
+/**
+ * Text-to-speech configuration, shared runtime state, and voice catalog.
+ */
+
 import { icon } from "../../utils/icons.ts";
 
-// TTS configuration object and basic runtime state
+/** User-facing TTS settings (provider, voice, autoplay). */
 export const ttsConfig = {
   enabled: false,
   provider: "openai",
@@ -9,7 +13,7 @@ export const ttsConfig = {
   autoplay: true,
 };
 
-// SVG Icons for TTS controls
+/** Pre-rendered SVG markup for the TTS playback controls. */
 export const ttsSvgIcons = {
   play: icon("play", { width: 14, height: 14 }).trim(),
   pause: icon("pause", { width: 14, height: 14 }).trim(),
@@ -17,9 +21,13 @@ export const ttsSvgIcons = {
   download: icon("download", { width: 14, height: 14 }).trim(),
 };
 
-// Mutable runtime tracking shared across the TTS modules. ESM imports can't be
-// reassigned across module boundaries, so the changing values live as fields on
-// this shared object.
+/**
+ * Mutable runtime state shared across the TTS modules.
+ *
+ * @remarks
+ * ESM bindings can't be reassigned across module boundaries, so the changing
+ * values live as fields on this shared object.
+ */
 export const ttsRuntime: {
   activeTtsAudio: HTMLAudioElement | null;
   activeTtsAudioUrl: string | null;
@@ -32,9 +40,10 @@ export const ttsRuntime: {
   errorShown: false,
 };
 
+/** Pending message texts queued for sequential TTS playback. */
 export const ttsMessageQueue: string[] = [];
 
-// Hint available voices to the UI (per provider)
+/** Selectable voices per provider, grouped by gender, for the settings UI. */
 export const availableTtsVoices = {
   openai: {
     neutral: [
