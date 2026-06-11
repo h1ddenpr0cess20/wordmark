@@ -26,7 +26,11 @@
 @import url('./components/layout/mobile/layout.css');
 @import url('./components/layout/mobile/device.css');
 @import url('./components/layout/mobile/panels.css');
-@import url('./components/ui/controls.css');
+@import url('./components/ui/controls/input.css');
+@import url('./components/ui/controls/header-buttons.css');
+@import url('./components/ui/controls/toggles.css');
+@import url('./components/ui/controls/tts.css');
+@import url('./components/ui/controls/upload.css');
 @import url('./components/ui/settings/panel.css');
 @import url('./components/ui/settings/about.css');
 @import url('./components/ui/settings/forms.css');
@@ -38,7 +42,10 @@
 @import url('./components/ui/pages.css');
 @import url('./components/ui/file-attachments.css');
 @import url('./components/ui/vector-store-manager.css');
-@import url('./components/features/history.css');
+@import url('./components/features/history/panel.css');
+@import url('./components/features/history/toolbar.css');
+@import url('./components/features/history/table.css');
+@import url('./components/features/history/list.css');
 @import url('./components/features/gallery/panel.css');
 @import url('./components/features/gallery/grid-items.css');
 @import url('./components/features/gallery/slideshow.css');

@@ -1,0 +1,140 @@
+#upload-button {
+  position: absolute;
+  right: 55px;
+  bottom: 5px;
+  background: transparent;
+  color: var(--accent-color);
+  border: none;
+  border-radius: 6px;
+  width: 48px;
+  height: 48px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  z-index: 2;
+  margin: 0;
+  padding: 0;
+}
+
+#upload-button:hover {
+  color: var(--accent-color);
+  transform: scale(1.05);
+}
+
+#upload-button:active {
+  transform: scale(0.95);
+}
+
+.upload-previews {
+  display: flex;
+  gap: 6px;
+  margin-bottom: 6px;
+}
+
+.upload-preview-container {
+  position: relative;
+  display: inline-block;
+}
+
+.upload-preview-img {
+  width: 40px;
+  height: 40px;
+  object-fit: cover;
+  border-radius: 4px;
+  display: block;
+}
+
+.upload-preview-remove {
+  position: absolute;
+  top: -6px;
+  right: -6px;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background-color: var(--error-bg);
+  color: white;
+  border: 2px solid var(--bg-primary);
+  font-size: 12px;
+  font-weight: bold;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+  line-height: 1;
+  padding: 0;
+}
+
+.upload-preview-remove:hover {
+  background-color: var(--error-color);
+  transform: scale(1.1);
+}
+
+.input-wrapper.drag-over {
+  background-color: rgba(var(--accent-color-rgb), 0.1);
+  border-radius: 8px;
+  position: relative;
+}
+
+.input-wrapper.drag-over::before {
+  content: "Drop images here to attach";
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background-color: var(--accent-color);
+  color: var(--bg-primary);
+  padding: 8px 16px;
+  border-radius: 4px;
+  font-size: 0.9rem;
+  font-weight: 500;
+  z-index: 10;
+  pointer-events: none;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+}
+
+.input-wrapper.drag-over #user-input {
+  border-color: var(--accent-color);
+  border-width: 2px;
+  opacity: 0.7;
+}
+.upload-menu {
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  padding: 4px;
+  z-index: 1000;
+  min-width: 180px;
+}
+
+.upload-menu-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  border: none;
+  background: transparent;
+  color: var(--text-primary);
+  cursor: pointer;
+  border-radius: 6px;
+  transition: background-color 0.2s;
+  font-size: 0.95rem;
+  width: 100%;
+  text-align: left;
+}
+
+.upload-menu-item:hover {
+  background: var(--bg-tertiary);
+}
+
+.upload-menu-item svg {
+  flex-shrink: 0;
+  color: var(--text-secondary);
+}
+
+.upload-menu-item:hover svg {
+  color: var(--accent-color);
+}

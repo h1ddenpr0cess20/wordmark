@@ -1,0 +1,63 @@
+.tts-controls {
+  display: flex;
+  align-items: center;
+  margin-top: 8px;
+  gap: 8px;
+}
+.tts-play-pause, .tts-stop, .tts-download {
+  padding: 6px;
+  border-radius: 6px;
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 28px;
+  height: 28px;
+  transition: background-color 0.2s, transform 0.1s;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+.tts-play-pause {
+  background-color: var(--accent-color);
+  color: var(--button-text-color);
+}
+.tts-play-pause:hover {
+  background-color: var(--accent-hover, #0056b3);
+  transform: translateY(-1px);
+}
+.tts-stop {
+  background-color: var(--error-bg, #e74c3c);
+  color: var(--error-contrast, white);
+}
+.tts-stop:hover {
+  background-color: var(--error-hover, #c0392b);
+  transform: translateY(-1px);
+}
+.tts-download {
+  background-color: var(--info-color, #3498db);
+  color: var(--info-contrast, white);
+}
+.tts-download:hover {
+  background-color: var(--info-hover, #2980b9);
+  transform: translateY(-1px);
+}
+.tts-status {
+  font-size: 0.85em;
+  color: var(--text-secondary);
+  font-style: italic;
+  display: none;
+}
+.tts-loading-spinner {
+  display: none;
+  width: 12px;
+  height: 12px;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  border-radius: 50%;
+  border-top-color: white;
+  animation: tts-spin 1s linear infinite;
+  margin-right: 4px;
+}
+@keyframes tts-spin {
+  to { transform: rotate(360deg); }
+}
+
