@@ -39,7 +39,7 @@
   .message-content,
   p,
   div:not(#header-title):not(.settings-group h3),
-  span:not(.tab-button),
+  span:not(.tab-button):not(.label),
   button:not(#send-button),
   input:not([type="range"]),
   select,
@@ -49,15 +49,15 @@
   code {
     font-size: 1rem;
   }
-  
+
   pre code {
     font-size: 0.65rem;
   }
-  
+
   .theme-teletext .message-content,
   .theme-teletext p,
   .theme-teletext div:not(#header-title):not(.settings-group h3),
-  .theme-teletext span:not(.tab-button),
+  .theme-teletext span:not(.tab-button):not(.label),
   .theme-teletext button:not(#send-button),
   .theme-teletext input,
   .theme-teletext select,
@@ -65,15 +65,15 @@
   .theme-teletext code {
     font-size: 0.85rem !important;
   }
-  
+
   .theme-teletext #user-input {
     font-size: 0.75rem !important;
   }
-  
+
   .theme-terminal .message-content,
   .theme-terminal p,
   .theme-terminal div:not(#header-title):not(.settings-group h3),
-  .theme-terminal span:not(.tab-button),
+  .theme-terminal span:not(.tab-button):not(.label),
   .theme-terminal button:not(#send-button),
   .theme-terminal input,
   .theme-terminal select,
@@ -81,12 +81,12 @@
   .theme-terminal code {
     font-size: 0.85rem !important;
   }
-  
+
   /* Neon theme font size adjustments for mobile */
   [class*="theme-neon-"] .message-content,
   [class*="theme-neon-"] p,
   [class*="theme-neon-"] div:not(#header-title):not(.settings-group h3),
-  [class*="theme-neon-"] span:not(.tab-button),
+  [class*="theme-neon-"] span:not(.tab-button):not(.label),
   [class*="theme-neon-"] button:not(#send-button),
   [class*="theme-neon-"] input:not([type="range"]),
   [class*="theme-neon-"] select,
@@ -96,7 +96,7 @@
   [class*="theme-neon-"] code {
     font-size: 0.8rem !important;
   }
-  
+
   [class*="theme-neon-"] pre code {
     font-size: 0.75rem !important;
   }
@@ -132,32 +132,27 @@
     justify-content: flex-start;
   }
 
+  /* The logo bar is fixed above the header, so pad just enough to clear it,
+     then stack the model name + prompt + feature badges tightly below. */
   #header {
-    padding: 72px 20px 18px;
+    padding: 58px 16px 10px;
+    gap: 2px;
   }
 
-  .header-content {
-    gap: 12px;
-    width: 100%;
-    padding-right: 0;
+  /* #header-title holds the active model name (set in JS). The selector needs
+     #header to outrank the desktop "#header h1" rule; keep it small + 1 line. */
+  #header #header-title {
+    font-size: 0.95rem;
+    font-weight: 600;
+    max-width: 100%;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
   }
 
-  .header-top-row {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 10px;
-    width: 100%;
-  }
-
-  .header-top-row .feature-status {
-    width: 100%;
-    justify-content: flex-start;
-    align-items: flex-start;
-  }
-  
   #wordmark-logo {
-    width: clamp(36px, 12vw, 42px);
-    height: clamp(36px, 12vw, 42px);
+    width: clamp(30px, 9vw, 34px);
+    height: clamp(30px, 9vw, 34px);
     margin-top: 0;
   }
 
@@ -165,15 +160,7 @@
     font-size: clamp(0.82rem, 3.4vw, 1rem);
     letter-spacing: clamp(0.06em, 0.16em, 0.18em);
   }
-  
-  #header-title {
-    font-size: 1.1rem;
-    max-width: 100%;
-    width: 100%;
-    white-space: normal;
-    overflow: visible;
-  }
-  
+
   #model-info {
     max-width: 100%;
     width: 100%;
@@ -219,21 +206,22 @@
     display: none;
   }
 
-  /* Feature badges: compact on mobile */
+  /* Feature badges: shrink them down on mobile so they don't dominate the header */
   .feature-status {
-    font-size: 0.8rem;
-    gap: 6px;
-    margin-top: 4px;
-    max-width: 95%;
+    font-size: 0.62rem;
+    gap: 4px;
+    margin-top: 2px;
+    max-width: 100%;
     flex-wrap: wrap;
   }
   .feature-status .feature-badge {
-    padding: 2px 6px;
+    padding: 1px 6px;
+    gap: 4px;
     border-width: 1px;
   }
   .feature-status .feature-badge .dot {
-    width: 8px;
-    height: 8px;
+    width: 6px;
+    height: 6px;
   }
   
   .gallery-slideshow {
@@ -368,7 +356,7 @@
   .message-content,
   p,
   div:not(#header-title):not(.settings-group h3),
-  span:not(.tab-button),
+  span:not(.tab-button):not(.label),
   button:not(#send-button),
   input:not([type="range"]),
   select,
@@ -377,7 +365,7 @@
   .setting-description {
     font-size: 0.9rem;
   }
-  
+
   pre code,
   .message-content pre code {
     font-size: 0.55rem;
