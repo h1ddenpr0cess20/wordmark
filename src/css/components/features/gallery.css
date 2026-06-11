@@ -236,16 +236,6 @@
   width: 16px;
   height: 16px;
 }
-.gallery-info {
-  position: absolute;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  background: rgba(var(--bg-primary-rgb), 0.8);
-  color: var(--text-primary);
-  padding: 8px;
-  z-index: 1;
-}
 
 .gallery-item-footer {
   height: 35px;
@@ -283,19 +273,6 @@
 .gallery-actions button:hover {
   background-color: var(--accent-color);
   color: var(--text-primary);
-}
-
-.gallery-prompt {
-  font-size: 0.8rem;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  max-width: 100%;
-}
-
-.gallery-date {
-  font-size: 0.7rem;
-  opacity: 0.7;
 }
 
 .gallery-actions {
@@ -347,7 +324,6 @@
   font-style: italic;
 }
 .gallery-empty,
-.gallery-loading,
 .gallery-error {
   grid-column: 1 / -1;
   padding: 60px 40px;
@@ -364,10 +340,6 @@
   margin-top: 10px;
   opacity: 0.7;
   font-size: 0.85rem;
-}
-
-.gallery-loading {
-  background-color: var(--bg-primary);
 }
 
 .gallery-error {

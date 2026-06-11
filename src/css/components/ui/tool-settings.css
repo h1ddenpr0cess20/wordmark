@@ -1,71 +1,6 @@
 #content-tools .settings-group {
   margin-bottom: 20px;
 }
-.tool-category {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  margin-bottom: 12px;
-}
-
-.tool-category-header {
-  font-size: 1rem;
-  font-weight: 600;
-  color: var(--text-primary);
-  padding: 8px 12px;
-  margin-bottom: 8px;
-  text-align: center;
-  cursor: pointer;
-  user-select: none;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-}
-
-.tool-category-header .category-name {
-  transition: color 0.2s ease;
-}
-
-.tool-category-header:hover .category-name {
-  color: var(--accent-color);
-}
-
-.tool-category-header:focus {
-  outline: 2px solid var(--accent-color);
-  outline-offset: 2px;
-}
-
-.tool-category-header:active {
-  transform: scale(0.98);
-}
-
-.category-toggle-icon {
-  font-size: 0.8rem;
-  transition: transform 0.2s ease;
-}
-
-.category-name {
-  font-weight: 600;
-}
-
-.tool-category.collapsed .tool-category-grid {
-  display: none;
-  max-height: 0;
-  opacity: 0;
-}
-
-.tool-category.collapsed .category-toggle-icon {
-  transform: rotate(0deg);
-}
-
-.tool-category-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-  gap: 8px;
-  transition: all 0.3s ease;
-  overflow: hidden;
-}
 
 .tool-toggle-item {
   margin-bottom: 0;
@@ -367,10 +302,6 @@
 }
 
 @media screen and (max-width: 768px) {
-  .tool-category-grid {
-    grid-template-columns: 1fr;
-    gap: 6px;
-  }
 
   .tool-toggle-item {
     padding: 6px 10px;
@@ -379,19 +310,6 @@
   .tool-toggle-item label {
     font-size: 0.85rem;
   }
-}
-
-@media screen and (max-width: 600px) {
-  .tool-category-grid {
-    grid-template-columns: 1fr;
-  }
-}
-
-.settings-action-row {
-  display: flex;
-  justify-content: flex-end;
-  margin-top: 16px;
-  gap: 12px;
 }
 
 .mcp-server-description {

@@ -87,13 +87,6 @@
   border-radius: 0;
 }
 
-.theme-terminal .assistant-message::after {
-  content: "_";
-  display: inline-block;
-  color: var(--text-primary);
-  animation: terminal-blink 1s step-end infinite;
-}
-
 @keyframes terminal-blink {
   0%, 100% { opacity: 1; }
   50% { opacity: 0; }
@@ -253,7 +246,6 @@
 .theme-teletext .tab-content,
 .theme-teletext .settings-group,
 .theme-teletext .setting-item,
-.theme-teletext .range-container,
 .theme-teletext input[type="range"],
 .theme-teletext input[type="number"],
 .theme-teletext input[type="text"] {
@@ -574,10 +566,6 @@
 .theme-teletext .setting-item label {
   color: #00ffff;
   letter-spacing: 0.08em;
-}
-
-.theme-teletext .range-container input[type="range"] {
-  accent-color: #00ffff;
 }
 
 .theme-teletext #feature-status {

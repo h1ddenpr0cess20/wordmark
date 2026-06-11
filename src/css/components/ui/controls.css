@@ -155,19 +155,6 @@
   color: var(--accent-color);
 }
 
-#stop-button {
-  background-color: var(--error-bg);
-  color: var(--button-text-color);
-}
-
-#stop-button:hover {
-  background-color: #5a3a3a;
-}
-
-#stop-button:active {
-  transform: scale(0.95);
-}
-
 .toggle-container {
   position: relative;
   display: inline-block;
@@ -224,7 +211,7 @@ input:focus + .toggle-switch {
   margin-top: 8px;
   gap: 8px;
 }
-.tts-play-pause, .tts-stop, .tts-refresh, .tts-download {
+.tts-play-pause, .tts-stop, .tts-download {
   padding: 6px;
   border-radius: 6px;
   border: none;
@@ -251,14 +238,6 @@ input:focus + .toggle-switch {
 }
 .tts-stop:hover {
   background-color: var(--error-hover, #c0392b);
-  transform: translateY(-1px);
-}
-.tts-refresh {
-  background-color: var(--success-color, #27ae60);
-  color: var(--success-contrast, white);
-}
-.tts-refresh:hover {
-  background-color: var(--success-hover, #219a52);
   transform: translateY(-1px);
 }
 .tts-download {

@@ -47,7 +47,6 @@
   select,
   option,
   .setting-item,
-  .setting-description,
   code {
     font-size: 1rem;
   }
@@ -92,7 +91,6 @@
   [class*="theme-neon-"] select,
   [class*="theme-neon-"] option,
   [class*="theme-neon-"] .setting-item,
-  [class*="theme-neon-"] .setting-description,
   [class*="theme-neon-"] code {
     font-size: 0.8rem !important;
   }
@@ -344,8 +342,7 @@
   input:not([type="range"]),
   select,
   option,
-  .setting-item,
-  .setting-description {
+  .setting-item {
     font-size: 0.9rem;
   }
 
@@ -477,14 +474,12 @@
   }
 
   .settings-tab-columns,
-  #model-settings .tab-content,
-  #tts-settings .tab-content {
+  #model-settings .tab-content {
     flex-direction: column;
   }
 
   .settings-column,
-  #model-settings .settings-group,
-  #tts-settings .settings-group {
+  #model-settings .settings-group {
     width: 100%;
   }
 
@@ -663,11 +658,6 @@
 
   .about-content {
     padding: 10px 0;
-  }
-
-  .donation-section {
-    max-width: 100%;
-    padding: 15px 10px 0;
   }
 
   .footer-info {

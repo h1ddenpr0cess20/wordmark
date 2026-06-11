@@ -67,16 +67,6 @@
   display: none;
 }
 
-.theme-golden .assistant-message {
-  border-left: 3px solid;
-  border-image: linear-gradient(to bottom, #ffd700, #d4af37, #ffd700) 1;
-}
-
-.theme-golden .user-message {
-  border-right: 3px solid;
-  border-image: linear-gradient(to bottom, #ffd700, #d4af37, #ffd700) 1;
-}
-
 .theme-golden #send-button {
   background: transparent !important;
   color: var(--text-primary) !important;
@@ -150,16 +140,6 @@
 
 .theme-silver .message-content::before {
   display: none;
-}
-
-.theme-silver .assistant-message {
-  border-left: 3px solid;
-  border-image: linear-gradient(to bottom, #e0e0e0, #a0a0a0, #e0e0e0) 1;
-}
-
-.theme-silver .user-message {
-  border-right: 3px solid;
-  border-image: linear-gradient(to bottom, #e0e0e0, #a0a0a0, #e0e0e0) 1;
 }
 
 .theme-silver #send-button {

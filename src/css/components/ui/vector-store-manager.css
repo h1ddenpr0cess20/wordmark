@@ -114,17 +114,6 @@
   border-color: var(--accent-color);
 }
 
-.btn-activate {
-  background: var(--accent-color);
-  color: white;
-  border-color: var(--accent-color);
-}
-
-.btn-activate:hover {
-  background: var(--accent-hover);
-  border-color: var(--accent-hover);
-}
-
 .btn-delete {
   background: var(--error-color, #dc3545);
   color: #fff;

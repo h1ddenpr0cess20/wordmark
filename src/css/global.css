@@ -57,8 +57,7 @@ a:hover {
 #history-panel,
 #gallery-panel,
 .thinking-content,
-.slideshow-container,
-.fullscreen-image-container {
+.slideshow-container {
   scrollbar-gutter: stable;
 }
 ::-webkit-scrollbar {
@@ -76,15 +75,6 @@ a:hover {
 
 ::-webkit-scrollbar-thumb:hover {
   background: var(--accent-hover);
-}
-.scrollable {
-  scrollbar-gutter: stable;
-  overflow-y: auto;
-}
-@supports not (scrollbar-gutter: stable) {
-  .scrollable {
-    padding-right: 8px;
-  }
 }
 .debug-toggle-notification {
   position: fixed;
