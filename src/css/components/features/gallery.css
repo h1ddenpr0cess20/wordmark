@@ -1,4 +1,3 @@
-/* Gallery panel styling */
 #gallery-panel {
   position: absolute;
   top: 0;
@@ -66,8 +65,6 @@
 #gallery-panel .close-gallery:hover {
   border-color: var(--accent-color);
 }
-
-/* Gallery tools */
 .gallery-tools {
   display: flex;
   padding: 12px 16px;
@@ -95,8 +92,6 @@
   background-color: var(--accent-color);
   border-color: var(--accent-color);
 }
-
-/* Gallery tabs */
 .gallery-tabs {
   display: flex;
   background-color: var(--bg-secondary);
@@ -135,8 +130,6 @@
 .gallery-tab svg {
   flex-shrink: 0;
 }
-
-/* Gallery grid */
 #gallery-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
@@ -148,8 +141,6 @@
   transform: translateZ(0);
   -webkit-overflow-scrolling: touch;
 }
-
-/* Gallery grid with relative positioning for the bulk delete indicator */
 #gallery-grid.deleting-images {
   position: relative;
 }
@@ -220,8 +211,6 @@
   color: #fff;
   pointer-events: none;
 }
-
-/* Gallery item selection bar */
 .gallery-selection-bar {
   display: flex;
   position: absolute;
@@ -247,8 +236,6 @@
   width: 16px;
   height: 16px;
 }
-
-/* Gallery item info overlay */
 .gallery-info {
   position: absolute;
   bottom: 0;
@@ -345,8 +332,6 @@
   width: 15px;
   height: 15px;
 }
-
-/* Truncated prompt in footer */
 .truncated-prompt {
   font-size: 0.75rem;
   white-space: nowrap;
@@ -356,15 +341,11 @@
   flex: 1;
   min-width: 0;
 }
-
-/* Uploaded image label styling */
 .truncated-prompt.uploaded-label {
   color: var(--accent-color);
   font-weight: 500;
   font-style: italic;
 }
-
-/* Gallery empty & loading states */
 .gallery-empty,
 .gallery-loading,
 .gallery-error {
@@ -393,8 +374,6 @@
   background-color: var(--error-bg);
   color: var(--error-text);
 }
-
-/* Gallery slideshow */
 .gallery-slideshow {
   position: fixed;
   top: 0;
@@ -439,8 +418,6 @@
   justify-content: center;
   align-items: center;
 }
-
-/* Slideshow image styling */
 .gallery-slideshow-media,
 .gallery-slideshow-image,
 .gallery-slideshow-video {
@@ -459,8 +436,6 @@
 .gallery-slideshow-video {
   background: #000;
 }
-
-/* Position the icon buttons in the absolute upper right corner of the screen */
 .gallery-slideshow-top-controls {
   position: fixed;
   top: 20px;
@@ -469,8 +444,6 @@
   gap: 10px;
   z-index: 1010;
 }
-
-/* Style for the icon buttons */
 .slideshow-icon-btn {
   background-color: var(--bg-secondary);
   border: 2px solid var(--border-color);
@@ -501,8 +474,6 @@
   outline-offset: 2px;
   background-color: var(--accent-color);
 }
-
-/* Navigation controls */
 .gallery-slideshow-nav {
   position: fixed;
   top: 50%;
@@ -545,8 +516,6 @@
 .gallery-slideshow-next {
   right: 20px;
 }
-
-/* Bottom info panel styling */
 .gallery-slideshow-info {
   margin-top: 15px;
   padding: 20px;
@@ -579,8 +548,6 @@
   justify-content: space-between;
   align-items: center;
 }
-
-/* Counter styling when inside h3 as a span */
 .gallery-slideshow-info h3 .gallery-slideshow-counter {
   font-size: 0.8rem;
   color: var(--text-secondary);
@@ -604,8 +571,6 @@
   color: var(--text-primary);
   text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
 }
-
-/* Prompt text styling within description box */
 .gallery-slideshow-info .prompt-text {
   display: block;
   margin-top: 4px;
@@ -616,14 +581,10 @@
   opacity: 0.95;
   line-height: 1.4;
 }
-
-/* Uploaded image info styling in slideshow */
 .gallery-slideshow-info .prompt-text.uploaded-info {
   color: var(--accent-color);
   font-weight: 500;
 }
-
-/* Bulk delete indicator styling */
 .bulk-delete-indicator {
   position: absolute;
   top: 50%;
@@ -637,12 +598,10 @@
   text-align: center;
   border: 1px solid var(--border-color);
 }
-
-/* Gallery placeholder animations */
 .gallery-placeholder .placeholder-pulse {
-  background: linear-gradient(90deg, 
-    var(--bg-secondary) 0%, 
-    var(--bg-primary) 50%, 
+  background: linear-gradient(90deg,
+    var(--bg-secondary) 0%,
+    var(--bg-primary) 50%,
     var(--bg-secondary) 100%);
   background-size: 200% 100%;
   animation: placeholder-pulse 2s ease-in-out infinite;
@@ -657,8 +616,6 @@
     background-position: -200% 0;
   }
 }
-
-/* Custom scrollbar styling for description box */
 .gallery-slideshow-info::-webkit-scrollbar {
   width: 8px;
 }
@@ -677,8 +634,6 @@
 .gallery-slideshow-info::-webkit-scrollbar-thumb:hover {
   background: rgba(var(--text-primary-rgb), 0.5);
 }
-
-/* Responsive adjustments for gallery slideshow info */
 @media screen and (max-width: 1200px) {
   .gallery-slideshow-info {
     width: 70vw;

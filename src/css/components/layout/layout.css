@@ -1,4 +1,3 @@
-/* Container */
 #chat-container {
   width: 80vw;
   background-color: var(--bg-secondary);
@@ -13,8 +12,6 @@
   height: auto;
   animation: fadeInContainer 0.5s ease-out;
 }
-
-/* Header */
 #header {
   background-color: var(--bg-primary);
   padding: 18px 20px 0px 20px;
@@ -47,20 +44,16 @@
   cursor: pointer;
   transition: color 0.16s ease;
 }
-
-/* Prompt container for header */
 .prompt-container {
-  min-height: 0; /* remove forced gap under title */
+  min-height: 0;
   max-width: 100%;
   overflow: hidden;
-  display: -webkit-box !important;  
+  display: -webkit-box !important;
   -webkit-line-clamp: 2;
   line-clamp: 2;
   -webkit-box-orient: vertical;
   line-height: 1.4rem;
 }
-
-/* Chat box */
 #chat-box {
   flex: 1;
   overflow-y: auto;
@@ -68,8 +61,6 @@
   display: flex;
   flex-direction: column;
 }
-
-/* --- Branding and Logo --- */
 
 #logo-container {
   position: fixed;
@@ -154,10 +145,8 @@ body.panel-open #logo-container {
 body.panel-open #logo-container.logo-ready {
   opacity: 0;
 }
-
-/* Feature status line under model/prompt area */
 .feature-status {
-  margin-top: 0; /* remove extra space */
+  margin-top: 0;
   font-size: 0.72rem;
   color: var(--text-secondary);
   min-height: 0;
@@ -183,8 +172,6 @@ body.panel-open #logo-container.logo-ready {
   width: 7px;
   height: 7px;
   border-radius: 50%;
-  /* Use a neutral text tone for OFF state to ensure contrast in neon themes
-     where --border-color often equals --accent-color */
   background: var(--text-tertiary);
   cursor: pointer;
 }
@@ -196,11 +183,9 @@ body.panel-open #logo-container.logo-ready {
 .feature-status .feature-badge[data-state="off"] {
   opacity: 0.7;
 }
-
-/* Accent hover treatments */
 #header-title:hover,
 #header-title:focus-visible {
-  color: var(--accent-hover, var(--accent-color));  
+  color: var(--accent-hover, var(--accent-color));
 }
 
 #model-info:hover,
@@ -212,7 +197,7 @@ body.panel-open #logo-container.logo-ready {
 .feature-status .feature-badge:hover,
 .feature-status .feature-badge:focus-visible {
   color: var(--accent-color);
-    
+
 }
 
 .feature-status .feature-badge:hover .dot,

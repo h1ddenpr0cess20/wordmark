@@ -1,5 +1,3 @@
-/* Metal theme variables and styles (Golden and Silver) */
-
 .theme-golden {
   --bg-primary: #1a1308;
   --bg-secondary: #2a200f;
@@ -33,8 +31,6 @@
   --body-bg-color-2: #1c1e20;
   --button-text-color: #1a1c1e;
 }
-
-/* Golden theme special effects */
 .theme-golden #chat-container {
   background-image: linear-gradient(
     45deg,
@@ -54,13 +50,13 @@
 .theme-golden .message-content {
   position: relative;
   border-radius: 12px;
-  background: linear-gradient(135deg, 
-    rgba(255, 215, 0, 0.1) 0%, 
-    rgba(255, 215, 0, 0.05) 50%, 
+  background: linear-gradient(135deg,
+    rgba(255, 215, 0, 0.1) 0%,
+    rgba(255, 215, 0, 0.05) 50%,
     rgba(255, 215, 0, 0.15) 100%);
   border: 2px solid var(--accent-color);
   animation: metalBorderTwinkle 4s infinite ease-in-out;
-  box-shadow: 
+  box-shadow:
     0 0 15px rgba(255, 215, 0, 0.4),
     0 0 25px rgba(255, 215, 0, 0.2),
     0 0 35px rgba(255, 215, 0, 0.05),
@@ -120,8 +116,6 @@
   border-bottom: 2px solid var(--accent-color);
   color: var(--text-primary) !important;
 }
-
-/* Silver theme special effects */
 .theme-silver #chat-container {
   background-image: linear-gradient(
     45deg,
@@ -141,13 +135,13 @@
 .theme-silver .message-content {
   position: relative;
   border-radius: 12px;
-  background: linear-gradient(135deg, 
-    rgba(192, 192, 192, 0.1) 0%, 
-    rgba(192, 192, 192, 0.05) 50%, 
+  background: linear-gradient(135deg,
+    rgba(192, 192, 192, 0.1) 0%,
+    rgba(192, 192, 192, 0.05) 50%,
     rgba(192, 192, 192, 0.15) 100%);
   border: 2px solid var(--accent-color);
-  animation: metalBorderTwinkle 4s infinite ease-in-out; 
-  box-shadow: 
+  animation: metalBorderTwinkle 4s infinite ease-in-out;
+  box-shadow:
     0 0 15px rgba(192, 192, 192, 0.5),
     0 0 25px rgba(192, 192, 192, 0.3),
     0 0 35px rgba(192, 192, 192, 0.1),
@@ -207,13 +201,11 @@
   border-bottom: 2px solid var(--accent-color);
   color: var(--text-primary) !important;
 }
-
-/* Chat input shimmer effects */
 .theme-golden #user-input {
   border-radius: 12px;
-  background: linear-gradient(135deg, 
-    rgba(255, 215, 0, 0.08) 0%, 
-    rgba(255, 215, 0, 0.03) 50%, 
+  background: linear-gradient(135deg,
+    rgba(255, 215, 0, 0.08) 0%,
+    rgba(255, 215, 0, 0.03) 50%,
     rgba(255, 215, 0, 0.12) 100%);
   box-shadow:    0 0 0 2px var(--accent-color),
     0 0 10px rgba(255, 215, 0, 0.2),
@@ -228,9 +220,9 @@
 
 .theme-silver #user-input {
   border-radius: 12px;
-  background: linear-gradient(135deg, 
-    rgba(192, 192, 192, 0.08) 0%, 
-    rgba(192, 192, 192, 0.03) 50%, 
+  background: linear-gradient(135deg,
+    rgba(192, 192, 192, 0.08) 0%,
+    rgba(192, 192, 192, 0.03) 50%,
     rgba(192, 192, 192, 0.12) 100%);
   box-shadow:    0 0 0 2px var(--accent-color),
     0 0 10px rgba(192, 192, 192, 0.3),
@@ -242,8 +234,6 @@
 .theme-silver #user-input::before {
   display: none;
 }
-
-/* Metal theme header glow effects */
 .theme-golden h1,
 .theme-golden h2,
 .theme-golden h3 {
@@ -255,8 +245,6 @@
 .theme-silver h3 {
   text-shadow: 0 0 5px #c0c0c0, 0 0 10px #c0c0c0, 0 0 15px #c0c0c0;
 }
-
-/* Metal theme logo glow effects (hover only) */
 .theme-golden #wordmark-logo,
 .theme-silver #wordmark-logo {
   filter: none;
@@ -275,8 +263,6 @@
 .theme-silver #wordmark-logo:focus-visible {
   filter: drop-shadow(0 0 5px #c0c0c0) drop-shadow(0 0 10px #c0c0c0) drop-shadow(0 0 15px #c0c0c0);
 }
-
-/* Metal theme button glow effects */
 .theme-golden .copy-btn:hover,
 .theme-golden #settings-button:hover,
 .theme-golden #gallery-button:hover,

@@ -1,4 +1,3 @@
-/* Document preview styles */
 .document-preview {
   background: var(--bg-tertiary);
   border: 1px solid var(--border-color);
@@ -53,8 +52,6 @@
   border-color: var(--accent-color);
   background: var(--bg-secondary);
 }
-
-/* Attached documents in user messages */
 .attached-documents {
   display: flex;
   flex-direction: column;
@@ -95,8 +92,6 @@
   flex-shrink: 0;
   white-space: nowrap;
 }
-
-/* Directory preview styles */
 .directory-preview {
   flex-direction: column;
   align-items: stretch !important;

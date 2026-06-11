@@ -1,4 +1,3 @@
-/* Input container */
 .input-container {
   display: flex;
   padding: 14px 16px;
@@ -61,7 +60,6 @@
   fill: currentColor;
   stroke: none;
 }
-
 
 #send-button .stopping-spinner {
   position: absolute;
@@ -157,7 +155,6 @@
   color: var(--accent-color);
 }
 
-
 #stop-button {
   background-color: var(--error-bg);
   color: var(--button-text-color);
@@ -193,7 +190,7 @@
   transition: background-color 0.2s;
   border: 1px solid var(--border-color);
   cursor: pointer;
-  
+
 }
 
 .toggle-switch:after {
@@ -394,8 +391,6 @@ input:focus + .toggle-switch {
   border-width: 2px;
   opacity: 0.7;
 }
-
-/* Upload menu */
 .upload-menu {
   background: var(--bg-secondary);
   border: 1px solid var(--border-color);

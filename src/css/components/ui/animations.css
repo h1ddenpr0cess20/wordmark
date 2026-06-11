@@ -1,4 +1,3 @@
-/* Animations */
 @keyframes fadeIn {
   from {
     opacity: 0;
@@ -32,37 +31,33 @@
     transform: translateY(-10px);
   }
 }
-
-/* Subtle metal border twinkle effect */
 @keyframes metalBorderTwinkle {
   0% {
-    box-shadow: 0 0 5px rgba(255, 255, 255, 0.2), 
+    box-shadow: 0 0 5px rgba(255, 255, 255, 0.2),
                 0 0 10px var(--accent-color, gold),
                 0 0 20px rgba(255, 255, 255, 0.1);
   }
   25% {
-    box-shadow: 0 0 8px rgba(255, 255, 255, 0.3), 
+    box-shadow: 0 0 8px rgba(255, 255, 255, 0.3),
                 0 0 15px var(--accent-color, gold),
                 0 0 25px rgba(255, 255, 255, 0.15);
   }
   50% {
-    box-shadow: 0 0 5px rgba(255, 255, 255, 0.2), 
+    box-shadow: 0 0 5px rgba(255, 255, 255, 0.2),
                 0 0 12px var(--accent-color, gold),
                 0 0 20px rgba(255, 255, 255, 0.1);
   }
   75% {
-    box-shadow: 0 0 7px rgba(255, 255, 255, 0.25), 
+    box-shadow: 0 0 7px rgba(255, 255, 255, 0.25),
                 0 0 15px var(--accent-color, gold),
                 0 0 22px rgba(255, 255, 255, 0.12);
   }
   100% {
-    box-shadow: 0 0 5px rgba(255, 255, 255, 0.2), 
+    box-shadow: 0 0 5px rgba(255, 255, 255, 0.2),
                 0 0 10px var(--accent-color, gold),
                 0 0 20px rgba(255, 255, 255, 0.1);
   }
 }
-
-/* Apply faster animations by default */
 .message {
   animation: fadeIn 0.2s ease-out;
 }
@@ -96,8 +91,6 @@
 .loading-dot:nth-child(3) {
   animation: loadingDot 0.8s infinite 0.4s;
 }
-
-/* Media generation spinner */
 .media-generation-spinner {
   display: flex;
   align-items: center;

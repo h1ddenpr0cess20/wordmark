@@ -1,4 +1,3 @@
-/* Base styles */
 body {
   font-family: 'Roboto', 'Segoe UI', Arial, sans-serif;
   background: linear-gradient(
@@ -12,12 +11,9 @@ body {
   display: flex;
   justify-content: center;
   align-items: center;
-  /* Add smooth transitions for theme changes */
   transition: background 0.5s ease, color 0.5s ease;
-  overflow: hidden; /* Prevent body scrolling on mobile */
+  overflow: hidden;
 }
-
-/* Hide chat interface until JavaScript initializes */
 #chat-container {
   opacity: 0;
   visibility: hidden;
@@ -28,22 +24,17 @@ body.loaded #chat-container {
   opacity: 1;
   visibility: visible;
 }
-
-/* Apply Roboto to all input elements and UI controls for consistency */
-input, 
-textarea, 
-select, 
-button, 
-.message-content, 
+input,
+textarea,
+select,
+button,
+.message-content,
 .tab-button,
 .setting-item,
 #user-input {
   font-family: 'Roboto', 'Segoe UI', Arial, sans-serif;
 }
-
-/* Apply theme class to body by default */
 body:not([class*="theme-"]) {
-  /* Default to dark gray theme if no theme class is present */
   background-color: var(--bg-primary);
 }
 
@@ -52,8 +43,6 @@ body:not([class*="theme-"]) {
   margin: 0;
   padding: 0;
 }
-
-/* Global themed link styling (applies across app, including chat) */
 a {
   color: var(--accent-color);
   text-decoration: underline;
@@ -63,10 +52,8 @@ a {
 a:hover {
   color: var(--accent-hover);
 }
-
-/* Global scrollbar gutter to prevent layout shifts when scrollbars appear/disappear */
 .tab-content-container,
-#chat-box, 
+#chat-box,
 #history-panel,
 #gallery-panel,
 .thinking-content,
@@ -74,8 +61,6 @@ a:hover {
 .fullscreen-image-container {
   scrollbar-gutter: stable;
 }
-
-/* Scrollbar styling */
 ::-webkit-scrollbar {
   width: 8px;
 }
@@ -92,21 +77,15 @@ a:hover {
 ::-webkit-scrollbar-thumb:hover {
   background: var(--accent-hover);
 }
-
-/* Utility class for consistent scrollbars */
 .scrollable {
   scrollbar-gutter: stable;
   overflow-y: auto;
 }
-
-/* For browsers that don't support scrollbar-gutter */
 @supports not (scrollbar-gutter: stable) {
   .scrollable {
-    padding-right: 8px; /* Fallback padding to account for scrollbar */
+    padding-right: 8px;
   }
 }
-
-/* Debug toggle notification styles */
 .debug-toggle-notification {
   position: fixed;
   top: 20px;

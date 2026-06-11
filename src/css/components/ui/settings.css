@@ -68,12 +68,12 @@
   position: relative;
   flex-wrap: nowrap;
   width: 100%;
-  overflow-x: auto; 
+  overflow-x: auto;
   overflow-y: hidden;
   background-color: var(--bg-primary);
-  scrollbar-width: thin; 
+  scrollbar-width: thin;
   scrollbar-color: var(--accent-color) var(--bg-secondary);
-} 
+}
 
 .settings-tabs::-webkit-scrollbar {
   height: 8px;
@@ -269,23 +269,18 @@
   color: var(--text-primary);
 }
 
-
 .setting-item {
   margin-bottom: 16px;
 }
-
-/* Scrollable container for Assistants File Manager list */
 #assistant-file-list {
-  max-height: 260px; /* adjust as needed to fit panel */
+  max-height: 260px;
   overflow-y: auto;
   overflow-x: hidden;
-  padding-right: 4px; /* allow space for scrollbar */
+  padding-right: 4px;
   border: 1px solid var(--border-color);
   border-radius: 6px;
   background: var(--bg-secondary);
 }
-
-/* Optional item spacing inside the list */
 #assistant-file-list .assistant-file-item {
   padding: 8px 10px;
   border-bottom: 1px solid var(--border-color);
@@ -294,8 +289,6 @@
 #assistant-file-list .assistant-file-item:last-child {
   border-bottom: none;
 }
-
-/* Smooth thin scrollbar theming */
 #assistant-file-list {
   scrollbar-width: thin;
   scrollbar-color: var(--accent-color) var(--bg-secondary);
@@ -314,8 +307,6 @@
 #assistant-file-list::-webkit-scrollbar-thumb:hover {
   background: var(--accent-hover);
 }
-
-/* Themed links inside settings content (applies across all tabs) */
 .settings-group a,
 .setting-item a,
 .tab-content a {
@@ -347,39 +338,27 @@
   border-radius: 4px;
   font-size: 0.9rem;
 }
-
-/* Improve number input theming and spacing for steppers */
 .setting-item input[type="number"] {
   color: var(--text-primary);
   background-color: var(--bg-secondary);
   border-color: var(--border-color);
-  /* Hint browser to render built-in controls with appropriate theme */
   color-scheme: dark light;
 }
-
-/* Compact numeric input for small values (e.g., memory limit) */
 .setting-item input.number-compact {
   width: auto;
-  max-width: 96px; /* fits up to 3 digits comfortably */
+  max-width: 96px;
   text-align: right;
-  /* Keep default inline padding; we’ll add space by shifting the steppers */
 }
-
-/* WebKit spin buttons: slightly dim and ensure comfortable hit area */
 .setting-item input.number-compact::-webkit-outer-spin-button,
 .setting-item input.number-compact::-webkit-inner-spin-button {
   opacity: 0.7;
 }
-
-/* Add actual gap between digits and arrows by shifting the steppers away from the text */
 .setting-item input.number-compact::-webkit-inner-spin-button {
-  margin-inline-start: 8px; /* creates space between number and arrows */
+  margin-inline-start: 8px;
 }
-
-/* Firefox steppers */
 .setting-item input.number-compact::-moz-number-spin-up,
 .setting-item input.number-compact::-moz-number-spin-down {
-  margin-inline-start: 8px; /* creates space between number and arrows */
+  margin-inline-start: 8px;
 }
 
 .setting-item textarea {
@@ -441,7 +420,7 @@
 
 .range-container input[type="range"]:focus::-webkit-slider-track {
   border-color: var(--accent-color);
-  box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.2), 
+  box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.2),
               0 0 0 2px color-mix(in srgb, var(--accent-color) 30%, transparent);
 }
 
@@ -480,7 +459,7 @@
 
 .range-container input[type="range"]:focus::-moz-range-track {
   border-color: var(--accent-color);
-  box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.2), 
+  box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.2),
               0 0 0 2px color-mix(in srgb, var(--accent-color) 30%, transparent);
 }
 
@@ -508,13 +487,13 @@
 @media (prefers-contrast: high) {
   .range-container input[type="range"]:focus::-webkit-slider-thumb {
     border: 3px solid var(--accent-color);
-    box-shadow: 0 0 0 2px var(--bg-primary), 
+    box-shadow: 0 0 0 2px var(--bg-primary),
                 0 0 0 4px var(--accent-color);
   }
-  
+
   .range-container input[type="range"]:focus::-moz-range-thumb {
     border: 3px solid var(--accent-color);
-    box-shadow: 0 0 0 2px var(--bg-primary), 
+    box-shadow: 0 0 0 2px var(--bg-primary),
                 0 0 0 4px var(--accent-color);
   }
 }
@@ -527,7 +506,7 @@
   .range-container input[type="range"]::-moz-range-track {
     transition: none;
   }
-  
+
   .range-container input[type="range"]::-webkit-slider-thumb:hover,
   .range-container input[type="range"]::-moz-range-thumb:hover {
     transform: none;
@@ -683,12 +662,12 @@
     grid-template-columns: repeat(3, 1fr);
     gap: 6px;
   }
-  
+
   .preset-button {
     padding: 8px;
     font-size: 0.85rem;
   }
-  
+
   .personality-presets h4 {
     font-size: 0.9rem;
   }
@@ -733,10 +712,8 @@
   border: 1px solid var(--border-color);
 }
 
-
-
-.settings-button, 
-#set-personality, 
+.settings-button,
+#set-personality,
 #reset-personality,
 #set-custom-prompt,
 #set-no-prompt,
@@ -751,7 +728,7 @@
   cursor: pointer;
 }
 
-#set-personality, 
+#set-personality,
 #set-custom-prompt,
 #set-no-prompt,
 #test-tts,
@@ -1010,7 +987,7 @@
 
 @media (max-width: 768px) {
   .range-container input[type="range"] {
-    height: 32px; 
+    height: 32px;
     margin: 12px 0;
   }
 
@@ -1019,26 +996,26 @@
     width: 28px;
     margin-top: -8px;
   }
-  
+
   .range-container input[type="range"]::-moz-range-thumb {
     height: 28px;
     width: 28px;
   }
-  
+
   .range-container input[type="range"]::-webkit-slider-track {
     height: 12px;
   }
-  
+
   .range-container input[type="range"]::-moz-range-track {
     height: 12px;
   }
-  
+
   .theme-teletext .range-container input[type="range"]::-webkit-slider-thumb {
     width: 24px;
     height: 24px;
     margin-top: -6px;
   }
-  
+
   .theme-teletext .range-container input[type="range"]::-moz-range-thumb {
     width: 24px;
     height: 24px;
@@ -1050,17 +1027,17 @@
     min-height: 28px;
     min-width: 28px;
   }
-  
+
   .range-container input[type="range"]::-moz-range-thumb {
     min-height: 28px;
     min-width: 28px;
   }
-  
+
   .range-container input[type="range"]::-webkit-slider-thumb:hover {
     transform: none;
     box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
   }
-  
+
   .range-container input[type="range"]::-moz-range-thumb:hover {
     transform: none;
     box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
@@ -1079,8 +1056,6 @@
   font-family: inherit;
   letter-spacing: 0.5px;
 }
-
-/* Utility classes for inline style replacement */
 .hidden {
   display: none;
 }
@@ -1088,25 +1063,19 @@
 .with-margin {
   margin-top: 8px;
 }
-
-/* Data tab disable state */
 #content-data[data-disabled] .settings-group {
   opacity: 0.5;
   user-select: none;
   filter: grayscale(0.2);
-  pointer-events: none; /* disable interactions by default */
+  pointer-events: none;
 }
-
-/* Keep the Data toggle interactive when disabled (target the group that contains the toggle) */
 #content-data[data-disabled] .settings-group:has(#data-settings-toggle),
 #content-data[data-disabled] .settings-group:first-of-type {
   opacity: 1;
   user-select: auto;
   filter: none;
-  pointer-events: auto; /* allow clicking the toggle to re-enable */
+  pointer-events: auto;
 }
-
-/* Explicitly ensure the Data toggle controls are clickable */
 #content-data[data-disabled] label[for="data-settings-toggle"],
 #content-data[data-disabled] #data-settings-toggle,
 #content-data[data-disabled] #data-settings-toggle + .toggle-switch,

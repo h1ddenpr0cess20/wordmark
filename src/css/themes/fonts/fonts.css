@@ -1,14 +1,3 @@
-/* Font definitions for the application 
- * 
- * This file contains all font face definitions for the application:
- * - Roboto (Primary UI font - WOFF2 format)
- * - TeletextFont (Theme-specific font - TTF format)
- * - Perfect DOS VGA (Theme-specific font - TTF format)
- * - Orbitron (Futuristic font for neon themes - Web font)
- */
-
-/* ===== Orbitron Font ===== */
-/* Used for neon themes - futuristic appearance */
 @font-face {
   font-family: 'Orbitron';
   src: url('files/orbitron/Orbitron-Regular.woff2') format('woff2');
@@ -16,8 +5,6 @@
   font-style: normal;
   font-display: swap;
 }
-
-/* ===== Roboto Font Family ===== */
 @font-face {
   font-family: 'Roboto';
   src: url('files/roboto/Roboto-Regular.woff2') format('woff2');
@@ -49,9 +36,6 @@
   font-style: italic;
   font-display: swap;
 }
-
-/* ===== Teletext Font ===== */
-/* Used for the teletext/videotex theme */
 @font-face {
   font-family: 'TeletextFont';
   src: url('files/teletext/MODE7GX3.ttf') format('truetype');
@@ -59,9 +43,6 @@
   font-style: normal;
   font-display: swap;
 }
-
-/* ===== Perfect DOS VGA Font ===== */
-/* Used for terminal/retro computing theme */
 @font-face {
   font-family: 'Perfect DOS VGA';
   src: url('../fonts/dos/perfect_dos_vga_437_win.ttf') format('truetype');
@@ -69,8 +50,6 @@
   font-style: normal;
   font-display: swap;
 }
-
-/* Apply Teletext font when Teletext theme is active */
 .theme-teletext body,
 .theme-teletext input,
 .theme-teletext textarea,
@@ -99,14 +78,10 @@
   letter-spacing: 0.05em;
   line-height: 1.2;
 }
-
-/* Special styling for Teletext header */
 .theme-teletext #header-title {
   text-transform: uppercase;
   position: relative;
 }
-
-/* Create a Teletext-style header row */
 .theme-teletext #header {
   background-color: #0000ff !important;
   color: #ffff00 !important;
@@ -117,8 +92,6 @@
   position: relative;
 }
 
-/* Red block removed */
-
 .theme-teletext #header h1 {
   color: #ffff00 !important;
 }
@@ -126,13 +99,9 @@
 .theme-teletext #model-info {
   color: #00ffff !important;
 }
-
-/* Additional style for input container to look like Teletext */
 .theme-teletext .input-container {
   border-top: 2px solid #00ffff;
 }
-
-/* Improve contrast for text on cyan backgrounds */
 .theme-teletext button[style*="var(--accent-color)"] {
   color: #000000 !important;
 }
@@ -141,8 +110,6 @@
 .theme-teletext .setting-item label {
   color: #ffff00 !important;
 }
-
-/* Ensure tabs and settings have proper Teletext styling */
 .theme-teletext .settings-tabs .tab-button {
   border-radius: 0;
 }
@@ -151,18 +118,12 @@
   background-color: #0000ff;
   color: #ffff00;
 }
-
-/* Fix any contrast issues in the settings panel */
 .theme-teletext p[style*="var(--text-secondary)"] {
   color: #00ffff !important;
 }
-
-/* Make sure settings titles stand out */
 .theme-teletext .settings-group h3 {
   color: #ffff00 !important;
 }
-
-/* Terminal theme font styles */
 .theme-terminal body,
 .theme-terminal input,
 .theme-terminal textarea,
@@ -191,13 +152,6 @@
   letter-spacing: 0.05em;
   line-height: 1.2;
 }
-
-/* Left margin for logo container removed */
-
-/* Responsive font scaling for special themes */
-
-/* ===== Neon Theme Font Styles ===== */
-/* Apply Orbitron font to all neon themes */
 [class*="theme-neon-"] body,
 [class*="theme-neon-"] input,
 [class*="theme-neon-"] textarea,
@@ -228,8 +182,6 @@
   letter-spacing: 0.08em;
   line-height: 1.3;
 }
-
-/* Special glow effect for neon theme headers */
 [class*="theme-neon-"] h1,
 [class*="theme-neon-"] h2,
 [class*="theme-neon-"] h3 {

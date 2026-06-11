@@ -328,8 +328,6 @@
 .tools-bulk-actions button:hover {
   background-color: var(--accent-hover);
 }
-
-/* Generic action button for small inline actions */
 .tool-action-button {
   margin-left: 10px;
   font-size: 0.85rem;
@@ -345,8 +343,6 @@
 .tool-action-button:hover {
   background-color: var(--accent-hover);
 }
-
-/* Memory list layout */
 .memory-list {
   display: flex;
   flex-direction: column;
@@ -375,11 +371,11 @@
     grid-template-columns: 1fr;
     gap: 6px;
   }
-  
+
   .tool-toggle-item {
     padding: 6px 10px;
   }
-  
+
   .tool-toggle-item label {
     font-size: 0.85rem;
   }
@@ -402,8 +398,6 @@
   font-size: 0.8rem;
   margin-top: 4px;
 }
-
-/* MCP Add Form Styling */
 
 .mcp-add-form {
   display: flex;

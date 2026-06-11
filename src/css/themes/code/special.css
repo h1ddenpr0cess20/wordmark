@@ -1,12 +1,9 @@
-/* Special theme code syntax highlighting */
-
-/* Teletext Theme Code Blocks */
 .theme-teletext {
-  --code-number: #ff0000; /* numbers/literals/bullets */
-  --code-accent: #ffff00; /* keywords/types/titles */
-  --code-accent-2: #00ffff; /* attributes/built_in/title */
-  --code-string: #00ff00; /* strings/regex */
-  --code-comment: #ff00ff; /* comments/quotes */
+  --code-number: #ff0000;
+  --code-accent: #ffff00;
+  --code-accent-2: #00ffff;
+  --code-string: #00ff00;
+  --code-comment: #ff00ff;
 }
 .theme-teletext pre {
   background-color: #000000 !important;
@@ -26,7 +23,7 @@
   color: #ffff00 !important;
 }
 
-.theme-teletext .hljs-attribute, 
+.theme-teletext .hljs-attribute,
 .theme-teletext .hljs-built_in {
   color: #00ffff !important;
 }
@@ -46,8 +43,6 @@
   font-style: italic;
 }
 
-/* number/literal/bullet colors provided by --code-number */
-
 .theme-teletext .hljs-variable,
 .theme-teletext .hljs-tag,
 .theme-teletext .hljs-name,
@@ -62,14 +57,12 @@
 .theme-teletext .hljs-meta-string {
   color: #ffff00 !important;
 }
-
-/* Terminal Theme Code Blocks */
 .theme-terminal {
-  --code-number: #ff3333; /* numbers/literals/bullets */
-  --code-accent: #88ff88; /* keywords */
-  --code-accent-2: #33ff33; /* built_in/function/title */
-  --code-string: #ffff33; /* strings */
-  --code-comment: #33cc33; /* comments */
+  --code-number: #ff3333;
+  --code-accent: #88ff88;
+  --code-accent-2: #33ff33;
+  --code-string: #ffff33;
+  --code-comment: #33cc33;
 }
 .theme-terminal pre {
   background-color: #000000 !important;
@@ -85,9 +78,6 @@
 .theme-terminal .hljs-string { color: #ffff33 !important; }
 .theme-terminal .hljs-comment { color: #33cc33 !important; }
 .theme-terminal .hljs-function { color: #33ff33 !important; }
-/* number color provided by --code-number */
-
-/* Override copy button styles to match special themes only */
 .theme-teletext pre .copy-btn,
 .theme-terminal pre .copy-btn {
   background: transparent !important;
