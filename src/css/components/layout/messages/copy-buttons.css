@@ -1,0 +1,65 @@
+.message-content img:hover {
+  transform: scale(1.02);
+}
+
+.copy-btn {
+  position: absolute;
+  top: 5px;
+  right: 5px;
+  background: transparent;
+  border: none;
+  color: var(--text-primary);
+  border-radius: 4px;
+  padding: 6px;
+  font-size: 12px;
+  cursor: pointer;
+  opacity: 0.8;
+  transition: opacity 0.2s, color 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+}
+
+.copy-btn:hover {
+  opacity: 1;
+  color: var(--accent-color);
+}
+
+.message-copy-btn {
+  position: absolute;
+  bottom: 8px;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-color);
+  color: var(--text-primary);
+  border-radius: 50%;
+  padding: 6px;
+  font-size: 12px;
+  cursor: pointer;
+  opacity: 0.7;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  z-index: 2;
+}
+
+.message-copy-btn:hover {
+  opacity: 1;
+  color: var(--accent-color);
+  border-color: var(--accent-color);
+  transform: scale(1.05);
+}
+
+.message.assistant .message-copy-btn {
+  right: -38px;
+}
+
+.message.user .message-copy-btn {
+  left: -38px;
+}
+

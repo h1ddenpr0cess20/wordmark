@@ -1,0 +1,158 @@
+.setting-item {
+  margin-bottom: 16px;
+}
+#assistant-file-list {
+  max-height: 260px;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding-right: 4px;
+  border: 1px solid var(--border-color);
+  border-radius: 6px;
+  background: var(--bg-secondary);
+}
+#assistant-file-list .assistant-file-item {
+  padding: 8px 10px;
+  border-bottom: 1px solid var(--border-color);
+}
+
+#assistant-file-list .assistant-file-item:last-child {
+  border-bottom: none;
+}
+#assistant-file-list {
+  scrollbar-width: thin;
+  scrollbar-color: var(--accent-color) var(--bg-secondary);
+}
+#assistant-file-list::-webkit-scrollbar {
+  width: 8px;
+}
+#assistant-file-list::-webkit-scrollbar-track {
+  background: var(--bg-secondary);
+  border-radius: 6px;
+}
+#assistant-file-list::-webkit-scrollbar-thumb {
+  background: var(--accent-color);
+  border-radius: 6px;
+}
+#assistant-file-list::-webkit-scrollbar-thumb:hover {
+  background: var(--accent-hover);
+}
+.settings-group a,
+.setting-item a,
+.tab-content a {
+  color: var(--accent-color);
+  text-decoration: underline;
+  transition: color 0.2s ease;
+}
+
+.settings-group a:hover,
+.setting-item a:hover,
+.tab-content a:hover {
+  color: var(--accent-hover);
+}
+
+.setting-item label {
+  display: block;
+  margin-bottom: 6px;
+  font-size: 0.9rem;
+  color: var(--text-primary);
+}
+
+.setting-item select,
+.setting-item input {
+  width: 100%;
+  padding: 8px 10px;
+  background-color: var(--bg-secondary);
+  border: 1px solid var(--border-color);
+  color: var(--text-primary);
+  border-radius: 4px;
+  font-size: 0.9rem;
+}
+.setting-item input[type="number"] {
+  color: var(--text-primary);
+  background-color: var(--bg-secondary);
+  border-color: var(--border-color);
+  color-scheme: dark light;
+}
+.setting-item input.number-compact {
+  width: auto;
+  max-width: 96px;
+  text-align: right;
+}
+.setting-item input.number-compact::-webkit-outer-spin-button,
+.setting-item input.number-compact::-webkit-inner-spin-button {
+  opacity: 0.7;
+}
+.setting-item input.number-compact::-webkit-inner-spin-button {
+  margin-inline-start: 8px;
+}
+.setting-item input.number-compact::-moz-number-spin-up,
+.setting-item input.number-compact::-moz-number-spin-down {
+  margin-inline-start: 8px;
+}
+
+.setting-item textarea {
+  height: 100px;
+  width: 100%;
+  padding: 8px 10px;
+  background-color: var(--bg-secondary);
+  border: 1px solid var(--border-color);
+  color: var(--text-primary);
+  border-radius: 4px;
+  font-size: 0.9rem;
+  resize: vertical;
+}
+
+.radio-group {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+
+.radio-label {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 10px 16px;
+  background-color: var(--bg-secondary);
+  border: 1px solid var(--border-color);
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  user-select: none;
+  position: relative;
+  min-width: 120px;
+  text-align: center;
+}
+
+.radio-label:hover {
+  background-color: var(--accent-hover);
+  border-color: var(--accent-color);
+}
+
+.radio-label input[type="radio"] {
+  position: absolute;
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.radio-text {
+  color: var(--text-primary);
+  font-size: 0.9rem;
+  font-weight: 500;
+  text-align: center;
+  width: 100%;
+}
+
+.radio-label:has(input[type="radio"]:checked) {
+  background-color: var(--accent-color);
+  border-color: var(--accent-color);
+  color: var(--button-text-color);
+}
+
+.radio-label:has(input[type="radio"]:checked) .radio-text {
+  color: var(--button-text-color);
+  font-weight: 600;
+}
+

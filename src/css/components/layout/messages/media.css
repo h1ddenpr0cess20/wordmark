@@ -1,0 +1,75 @@
+.image-download-btn {
+  position: absolute;
+  top: 5px;
+  right: 5px;
+  background-color: transparent;
+  color: var(--accent-color);
+  border: 0px transparent;
+  border-radius: 50%;
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  opacity: 0;
+  transition: all 0.2s ease;
+  z-index: 2;
+
+}
+
+.image-container:hover .image-download-btn {
+  opacity: 1;
+}
+
+.image-download-btn svg {
+  width: 22px;
+  height: 22px;
+  fill: currentColor;
+  filter: drop-shadow(0 0 2px rgba(0, 0, 0, 0.3));
+}
+
+.video-expand-btn {
+  position: absolute;
+  top: 5px;
+  left: 5px;
+  background-color: transparent;
+  color: var(--accent-color);
+  border: none;
+  padding: 4px;
+  cursor: pointer;
+  opacity: 0;
+  transition: all 0.2s ease;
+  z-index: 2;
+}
+
+.image-container:hover .video-expand-btn {
+  opacity: 1;
+}
+
+.video-expand-btn svg {
+  width: 22px;
+  height: 22px;
+  fill: currentColor;
+  filter: drop-shadow(0 0 2px rgba(0, 0, 0, 0.3));
+}
+
+.generated-images {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+
+.generated-images img {
+  margin: 0;
+}
+
+.generated-images video {
+  margin: 0;
+  max-width: 320px;
+  max-height: 240px;
+  border-radius: 8px;
+  background: #000;
+}
+
