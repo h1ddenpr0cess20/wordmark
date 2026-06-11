@@ -37,7 +37,9 @@
 @import url('./components/ui/settings/personality.css');
 @import url('./components/ui/settings/theme-misc.css');
 @import url('./components/ui/api-keys.css');
-@import url('./components/ui/tool-settings.css');
+@import url('./components/ui/tool-settings/items.css');
+@import url('./components/ui/tool-settings/badges-actions.css');
+@import url('./components/ui/tool-settings/mcp-form.css');
 @import url('./components/ui/animations.css');
 @import url('./components/ui/pages.css');
 @import url('./components/ui/file-attachments.css');

@@ -1,0 +1,137 @@
+#content-tools .settings-group {
+  margin-bottom: 20px;
+}
+
+.tool-toggle-item {
+  margin-bottom: 0;
+  padding: 8px 12px;
+  border: 1px solid var(--border-color);
+  border-radius: 6px;
+  background-color: var(--bg-secondary);
+  transition: border-color 0.2s, box-shadow 0.2s;
+  cursor: pointer;
+  min-height: auto;
+  position: relative;
+}
+
+.tool-toggle-item:hover {
+  border-color: var(--accent-color);
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.1);
+}
+
+.tool-toggle-item label {
+  font-weight: 600;
+  color: var(--text-primary);
+  cursor: pointer;
+  font-size: 0.9rem;
+  margin-bottom: 0;
+}
+
+.tool-help-icon {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  width: 14px;
+  height: 14px;
+  font-size: 9px;
+  background-color: var(--accent-color);
+  color: var(--button-text-color);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0.7;
+  transition: opacity 0.2s ease;
+  cursor: help;
+  z-index: 2;
+  user-select: none;
+}
+
+.tool-help-icon:hover,
+.tool-help-icon:focus {
+  opacity: 1;
+  outline: 2px solid var(--accent-color);
+  outline-offset: 2px;
+}
+
+#individual-tools-container {
+  margin-top: 15px;
+  max-height: 600px;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+#individual-tools-container::-webkit-scrollbar {
+  width: 8px;
+}
+
+#individual-tools-container::-webkit-scrollbar-track {
+  background: var(--bg-secondary);
+  border-radius: 4px;
+}
+
+#individual-tools-container::-webkit-scrollbar-thumb {
+  background-color: var(--accent-color);
+  border-radius: 4px;
+  transition: background-color 0.2s ease;
+}
+
+#individual-tools-container::-webkit-scrollbar-thumb:hover {
+  background-color: var(--accent-hover);
+}
+
+.tool-toggle-item input[type="checkbox"]:disabled + .toggle-switch {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.tool-toggle-content {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 16px;
+}
+
+.tool-info {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  flex: 1;
+}
+
+.tool-title-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.tool-name {
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.tool-description {
+  margin: 0;
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+  line-height: 1.4;
+}
+
+.tool-note {
+  font-size: 0.75rem;
+  color: var(--text-tertiary);
+}
+
+.tool-toggle-control {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.tool-toggle-control .toggle-container {
+  margin-left: 0;
+}
+
