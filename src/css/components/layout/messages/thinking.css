@@ -1,0 +1,154 @@
+@keyframes blinkCursor {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0; }
+}
+
+@keyframes fadeOutCursor {
+  0% { opacity: 1; }
+  100% { opacity: 0; }
+}
+
+.thinking-container {
+  background-color: rgba(var(--text-primary-rgb, 255, 255, 255), 0.03);
+  border-radius: 10px;
+  font-size: 0.95rem;
+  line-height: 1.45;
+  color: var(--text-secondary);
+  overflow: hidden;
+  transition: all 0.3s ease;
+  border: 1px solid rgba(var(--text-primary-rgb, 255, 255, 255), 0.08);
+  padding: 14px 16px 16px;
+  margin-top: 16px;
+  max-width: 50vw;
+  width: fit-content;
+}
+
+.thinking-container:not(.collapsed) {
+  margin-bottom: 20px;
+}
+
+.thinking-title {
+  font-weight: 600;
+  margin-bottom: 12px;
+  color: var(--accent-color);
+  font-size: 0.92rem;
+  cursor: pointer;
+  user-select: none;
+  display: flex;
+  align-items: center;
+  padding: 0;
+  padding: 14px 16px 16px 0;
+}
+
+.thinking-title::before {
+  content: "▼";
+  margin-right: 6px;
+  font-size: 0.75rem;
+  transition: transform 0.3s;
+  color: var(--accent-color);
+}
+
+.thinking-title::after {
+  content: "(click to expand)";
+  font-size: 0.75rem;
+  font-weight: normal;
+  opacity: 0.7;
+  color: var(--text-secondary);
+  margin-left: auto;
+  padding-left: 10px;
+}
+
+.thinking-container:not(.collapsed) .thinking-title::after {
+  content: "(click to collapse)";
+}
+
+.thinking-container.collapsed {
+  background-color: transparent;
+  border-color: transparent;
+  height: min-content;
+  overflow: visible;
+  padding: 0;
+  margin-top: 12px;
+}
+
+.thinking-container.collapsed .thinking-title {
+  margin-bottom: 0;
+}
+
+.thinking-container.collapsed .thinking-title::before {
+  transform: rotate(-90deg);
+}
+
+.thinking-container.collapsed .thinking-content {
+  display: none;
+}
+
+.thinking-content {
+  max-height: 280px;
+  overflow-y: auto;
+  padding-right: 6px;
+  display: block;
+  color: var(--text-primary);
+  white-space: normal;
+}
+
+.thinking-content p {
+  margin: 0 0 12px 0;
+}
+
+.thinking-content p:last-child {
+  margin-bottom: 0;
+}
+
+.thinking-content code {
+  font-family: 'Menlo', 'Monaco', 'Courier New', monospace;
+  font-size: 0.86rem;
+  background-color: rgba(var(--text-primary-rgb, 255, 255, 255), 0.05);
+  padding: 0.15em 0.35em;
+  border-radius: 6px;
+}
+
+.thinking-content pre {
+  margin: 12px 0;
+  background-color: var(--code-bg);
+  border: 1px solid var(--code-border);
+  padding: 12px;
+  border-radius: 8px;
+  overflow-x: auto;
+}
+
+@media (max-width: 640px) {
+  .thinking-container {
+    max-width: 100%;
+    width: 100%;
+    font-size: 0.85rem;
+    line-height: 1.4;
+    padding: 12px 14px 14px;
+    margin-top: 12px;
+  }
+
+  .thinking-container:not(.collapsed) {
+    margin-bottom: 16px;
+  }
+
+  .thinking-title {
+    font-size: 0.85rem;
+    padding: 12px 14px 12px 0;
+  }
+
+  .thinking-title::before {
+    font-size: 0.7rem;
+  }
+
+  .thinking-title::after {
+    font-size: 0.7rem;
+    padding-left: 8px;
+  }
+
+  .thinking-content {
+    max-height: 220px;
+    font-size: 0.85rem;
+    padding-right: 4px;
+  }
+}
+

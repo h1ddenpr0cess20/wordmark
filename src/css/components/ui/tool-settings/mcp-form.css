@@ -1,0 +1,46 @@
+.mcp-server-description {
+  font-size: 0.8rem;
+  margin-top: 4px;
+}
+
+.mcp-add-form {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.mcp-add-form .form-row {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.mcp-add-form .form-row label {
+  font-weight: 600;
+  color: var(--text-primary);
+  font-size: 0.9rem;
+}
+
+.mcp-add-form .form-row input,
+.mcp-add-form .form-row textarea {
+  padding: 8px 12px;
+  border: 1px solid var(--border-color);
+  border-radius: 4px;
+  background-color: var(--bg-secondary);
+  color: var(--text-primary);
+  font-size: 0.9rem;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.mcp-add-form .form-row input:focus,
+.mcp-add-form .form-row textarea:focus {
+  outline: none;
+  border-color: var(--accent-color);
+  box-shadow: 0 0 0 2px rgba(var(--accent-color-rgb, 63, 94, 251), 0.1);
+}
+
+.mcp-add-form .form-row textarea {
+  font-family: monospace;
+  resize: vertical;
+  min-height: 60px;
+}

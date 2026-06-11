@@ -1,0 +1,40 @@
+#settings-button,
+#history-button,
+#gallery-button {
+  position: absolute;
+  top: 20px;
+  border: 1px solid var(--border-color);
+  color: var(--text-secondary);
+  background-color: var(--bg-secondary);
+  border-radius: 50%;
+  width: 38px;
+  height: 38px;
+  font-size: 18px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  cursor: pointer;
+  transition: all 0.2s;
+  z-index: 100;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+}
+
+#settings-button {
+  right: 20px;
+}
+
+#history-button {
+  right: 68px;
+}
+
+#gallery-button {
+  right: 118px;
+}
+
+#settings-button:hover,
+#history-button:hover,
+#gallery-button:hover {
+  border-color: var(--accent-color);
+  color: var(--accent-color);
+}
+

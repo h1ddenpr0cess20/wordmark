@@ -1,0 +1,26 @@
+@media screen and (max-width: 1200px) {
+  .gallery-slideshow-info {
+    width: 70vw;
+    min-width: 350px;
+    max-width: 700px;
+  }
+}
+
+@media screen and (max-width: 768px) {
+  .gallery-slideshow-info {
+    width: 85vw;
+    min-width: 300px;
+    max-width: none;
+    padding: 15px;
+    max-height: 40vh;
+  }
+}
+
+@media screen and (max-width: 480px) {
+  .gallery-slideshow-info {
+    width: 95vw;
+    min-width: 280px;
+    padding: 12px;
+    font-size: 0.9rem;
+  }
+}

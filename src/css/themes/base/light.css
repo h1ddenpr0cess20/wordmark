@@ -1,5 +1,3 @@
-/* Light theme variables and styles */
-
 .theme-light-gray {
   --bg-primary: #f0f0f0;
   --bg-secondary: #e0e0e0;
@@ -8,8 +6,6 @@
   --accent-color: #999999;
   --accent-hover: #777777;
   --border-color: #cccccc;
-  
-  /* RGB equivalents for transparency effects */
   --bg-primary-rgb: 240, 240, 240;
   --bg-secondary-rgb: 224, 224, 224;
   --text-primary-rgb: 51, 51, 51;
@@ -17,7 +13,7 @@
   --accent-color-rgb: 153, 153, 153;
   --accent-hover-rgb: 119, 119, 119;
   --border-color-rgb: 204, 204, 204;
-  
+
   --user-bg: #d8d8d8;
   --assistant-bg: #e8e8e8;
   --error-bg: #ffe5e5;

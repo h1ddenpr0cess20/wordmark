@@ -1,0 +1,73 @@
+#history-panel {
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 700px;
+  height: 100%;
+  background-color: var(--bg-primary);
+  box-shadow: -2px 0 10px rgba(0, 0, 0, 0.2);
+  z-index: 1000;
+  overflow: hidden;
+  transition: transform 0.25s ease;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  transform: translateX(100%);
+}
+
+#history-panel[aria-hidden="false"] {
+  transform: translateX(0);
+}
+
+#history-panel .settings-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20px 20px 10px;
+  border-bottom: 1px solid var(--border-color);
+  background-color: var(--bg-primary);
+  flex-shrink: 0;
+  margin: 0;
+}
+
+.history-export-controls {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  padding: 12px 20px;
+  background-color: var(--bg-secondary);
+  border-bottom: 1px solid var(--border-color);
+  flex-shrink: 0;
+}
+
+.history-export-controls .export-format-select {
+  flex: 1 1 auto;
+}
+
+.history-export-controls #export-chat {
+  flex: 0 0 auto;
+  white-space: nowrap;
+}
+
+#history-button:hover {
+  border-color: var(--accent-color);
+}
+
+.close-history {
+  width: 28px;
+  height: 28px;
+  background: none;
+  border: 1px solid var(--border-color);
+  color: var(--text-secondary);
+  border-radius: 50%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-size: 18px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.close-history:hover {
+  border-color: var(--accent-color);
+}

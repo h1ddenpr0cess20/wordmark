@@ -1,20 +1,14 @@
-/* Base theme styles that apply to all themes */
-
-/* This file contains common theme infrastructure and any shared styles */
-/* Individual theme variables are defined in separate files */
-
-/* Common theme animations and effects */
 @keyframes metal-shimmer {
   0%, 100% {
-    box-shadow: 
+    box-shadow:
       0 0 0 2px var(--accent-color),
       0 0 15px rgba(255, 255, 255, 0.2),
       0 0 25px var(--accent-color),
       inset 0 1px 0 rgba(255, 255, 255, 0.3);
   }
   50% {
-    box-shadow: 
-      0 0 0 2px var(--accent-hover), 
+    box-shadow:
+      0 0 0 2px var(--accent-hover),
       0 0 20px rgba(255, 255, 255, 0.3),
       0 0 35px var(--accent-color),
       inset 0 1px 0 rgba(255, 255, 255, 0.4);
@@ -37,10 +31,6 @@
     opacity: 0;
   }
 }
-
-/* (Removed duplicate global font-family assignment; kept in global.css) */
-
-/* Common theme utilities */
 .theme-preview {
   display: flex;
   align-items: center;

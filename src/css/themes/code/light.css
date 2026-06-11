@@ -1,15 +1,12 @@
-/* Light theme code syntax highlighting */
-
-/* Light Gray Theme Code Blocks */
 .theme-light-gray {
   --code-bg: #e0e0e0;
   --code-border: #cccccc;
   --code-text: #333333;
-  --code-string: #008800; /* strings/regExp/additions */
-  --code-accent: #0066cc; /* keywords/types/titles */
-  --code-accent-2: #0077aa; /* attributes/built_in/title */
-  --code-number: #aa5500; /* numbers/literals/bullets */
-  --code-comment: #808080; /* comments/quotes */
+  --code-string: #008800;
+  --code-accent: #0066cc;
+  --code-accent-2: #0077aa;
+  --code-number: #aa5500;
+  --code-comment: #808080;
 }
 
 .theme-light-gray .hljs-keyword,
@@ -21,7 +18,7 @@
   color: #0066cc !important;
 }
 
-.theme-light-gray .hljs-attribute, 
+.theme-light-gray .hljs-attribute,
 .theme-light-gray .hljs-built_in {
   color: #0077aa !important;
 }
@@ -44,7 +41,6 @@
 .theme-light-gray .hljs-literal,
 .theme-light-gray .hljs-number,
 .theme-light-gray .hljs-bullet {
-  /* Moved to variable to reduce duplication */
 }
 
 .theme-light-gray .hljs-variable,
@@ -61,8 +57,6 @@
 .theme-light-gray .hljs-meta-string {
   color: #8855aa !important;
 }
-
-/* Light Red Theme Code Blocks */
 .theme-light-red {
   --code-bg: #ffe5e5;
   --code-border: #ffcccc;
@@ -83,7 +77,7 @@
   color: #cc2200 !important;
 }
 
-.theme-light-red .hljs-attribute, 
+.theme-light-red .hljs-attribute,
 .theme-light-red .hljs-built_in {
   color: #aa0077 !important;
 }
@@ -103,8 +97,6 @@
   font-style: italic;
 }
 
-/* number/literal/bullet colors provided by --code-number */
-
 .theme-light-red .hljs-variable,
 .theme-light-red .hljs-tag,
 .theme-light-red .hljs-name,
@@ -119,8 +111,6 @@
 .theme-light-red .hljs-meta-string {
   color: #992080 !important;
 }
-
-/* Light Orange Theme Code Blocks */
 .theme-light-orange {
   --code-bg: #fff0e0;
   --code-border: #ffe0bb;
@@ -141,7 +131,7 @@
   color: #cc5500 !important;
 }
 
-.theme-light-orange .hljs-attribute, 
+.theme-light-orange .hljs-attribute,
 .theme-light-orange .hljs-built_in {
   color: #aa5000 !important;
 }
@@ -161,8 +151,6 @@
   font-style: italic;
 }
 
-/* number/literal/bullet colors provided by --code-number */
-
 .theme-light-orange .hljs-variable,
 .theme-light-orange .hljs-tag,
 .theme-light-orange .hljs-name,
@@ -177,8 +165,6 @@
 .theme-light-orange .hljs-meta-string {
   color: #b85300 !important;
 }
-
-/* Light Yellow Theme Code Blocks */
 .theme-light-yellow {
   --code-bg: #fffbe0;
   --code-border: #fff6bb;
@@ -199,7 +185,7 @@
   color: #996600 !important;
 }
 
-.theme-light-yellow .hljs-attribute, 
+.theme-light-yellow .hljs-attribute,
 .theme-light-yellow .hljs-built_in {
   color: #885500 !important;
 }
@@ -219,8 +205,6 @@
   font-style: italic;
 }
 
-/* number/literal/bullet colors provided by --code-number */
-
 .theme-light-yellow .hljs-variable,
 .theme-light-yellow .hljs-tag,
 .theme-light-yellow .hljs-name,
@@ -235,8 +219,6 @@
 .theme-light-yellow .hljs-meta-string {
   color: #887700 !important;
 }
-
-/* Light Green Theme Code Blocks */
 .theme-light-green {
   --code-bg: #e0ffe0;
   --code-border: #ccffcc;
@@ -257,7 +239,7 @@
   color: #007700 !important;
 }
 
-.theme-light-green .hljs-attribute, 
+.theme-light-green .hljs-attribute,
 .theme-light-green .hljs-built_in {
   color: #008855 !important;
 }
@@ -277,8 +259,6 @@
   font-style: italic;
 }
 
-/* number/literal/bullet colors provided by --code-number */
-
 .theme-light-green .hljs-variable,
 .theme-light-green .hljs-tag,
 .theme-light-green .hljs-name,
@@ -293,8 +273,6 @@
 .theme-light-green .hljs-meta-string {
   color: #007744 !important;
 }
-
-/* Light Blue Theme Code Blocks */
 .theme-light-blue {
   --code-bg: #e0f0ff;
   --code-border: #cce5ff;
@@ -315,7 +293,7 @@
   color: #0066cc !important;
 }
 
-.theme-light-blue .hljs-attribute, 
+.theme-light-blue .hljs-attribute,
 .theme-light-blue .hljs-built_in {
   color: #0077bb !important;
 }
@@ -335,8 +313,6 @@
   font-style: italic;
 }
 
-/* number/literal/bullet colors provided by --code-number */
-
 .theme-light-blue .hljs-variable,
 .theme-light-blue .hljs-tag,
 .theme-light-blue .hljs-name,
@@ -351,8 +327,6 @@
 .theme-light-blue .hljs-meta-string {
   color: #0077aa !important;
 }
-
-/* Light Purple Theme Code Blocks */
 .theme-light-purple {
   --code-bg: #f0e0ff;
   --code-border: #e5ccff;
@@ -373,7 +347,7 @@
   color: #6600cc !important;
 }
 
-.theme-light-purple .hljs-attribute, 
+.theme-light-purple .hljs-attribute,
 .theme-light-purple .hljs-built_in {
   color: #7700bb !important;
 }
@@ -393,8 +367,6 @@
   font-style: italic;
 }
 
-/* number/literal/bullet colors provided by --code-number */
-
 .theme-light-purple .hljs-variable,
 .theme-light-purple .hljs-tag,
 .theme-light-purple .hljs-name,
@@ -409,8 +381,6 @@
 .theme-light-purple .hljs-meta-string {
   color: #7700aa !important;
 }
-
-/* Light Pink Theme Code Blocks */
 .theme-light-pink {
   --code-bg: #ffe0f0;
   --code-border: #ffcce5;
@@ -431,7 +401,7 @@
   color: #cc0066 !important;
 }
 
-.theme-light-pink .hljs-attribute, 
+.theme-light-pink .hljs-attribute,
 .theme-light-pink .hljs-built_in {
   color: #bb0077 !important;
 }
@@ -451,8 +421,6 @@
   font-style: italic;
 }
 
-/* number/literal/bullet colors provided by --code-number */
-
 .theme-light-pink .hljs-variable,
 .theme-light-pink .hljs-tag,
 .theme-light-pink .hljs-name,
@@ -467,8 +435,6 @@
 .theme-light-pink .hljs-meta-string {
   color: #aa0077 !important;
 }
-
-/* Minimal Light Theme Code Blocks */
 .theme-minimal-light {
   --code-bg: #f8f8f8;
   --code-border: #eeeeee;
@@ -490,7 +456,7 @@
   color: #444444 !important;
 }
 
-.theme-minimal-light .hljs-attribute, 
+.theme-minimal-light .hljs-attribute,
 .theme-minimal-light .hljs-type,
 .theme-minimal-light .hljs-built_in,
 .theme-minimal-light .hljs-title.function_ {
@@ -538,5 +504,3 @@
 .theme-minimal-light .hljs-selector-pseudo {
   color: #444444 !important;
 }
-
-/* Copy button: unified in messages.css and code/base.css */

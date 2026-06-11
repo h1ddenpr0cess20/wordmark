@@ -1,7 +1,6 @@
-/* Global Tooltip System */
 .tooltip {
   position: fixed;
-  z-index: 9999; /* Higher than any other element */
+  z-index: 9999;
   background-color: var(--bg-primary);
   border: 1px solid var(--border-color);
   border-radius: 6px;

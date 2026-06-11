@@ -1,15 +1,12 @@
-/* Dark theme code syntax highlighting */
-
-/* Dark Gray Theme Code Blocks */
 .theme-dark-gray {
   --code-bg: #1a1a1a;
   --code-border: #404040;
   --code-text: #e6e6e6;
-  --code-string: #98c379; /* strings/regExp/additions */
-  --code-accent: #61afef; /* keywords/types/titles */
-  --code-number: #d19a66; /* numbers/literals/bullets */
-  --code-comment: #707070; /* comments/quotes */
-  --code-accent-2: #56b6c2; /* attributes/built_in/title */
+  --code-string: #98c379;
+  --code-accent: #61afef;
+  --code-number: #d19a66;
+  --code-comment: #707070;
+  --code-accent-2: #56b6c2;
 }
 
 .theme-dark-gray .hljs-keyword,
@@ -19,9 +16,9 @@
   color: #61afef !important;
 }
 
-.theme-dark-gray .hljs-attribute, 
-.theme-dark-gray .hljs-built_in, 
-.theme-dark-gray .hljs-title, 
+.theme-dark-gray .hljs-attribute,
+.theme-dark-gray .hljs-built_in,
+.theme-dark-gray .hljs-title,
 .theme-dark-gray .hljs-title.function_ {
   color: #56b6c2 !important;
 }
@@ -41,8 +38,6 @@
   font-style: italic;
 }
 
-/* number/literal/bullet colors provided by --code-number */
-
 .theme-dark-gray .hljs-variable,
 .theme-dark-gray .hljs-tag,
 .theme-dark-gray .hljs-name,
@@ -57,8 +52,6 @@
 .theme-dark-gray .hljs-meta-string {
   color: #e6c07b !important;
 }
-
-/* Dark Red Theme Code Blocks */
 .theme-dark-red {
   --code-bg: #251212;
   --code-border: #5e2c2c;
@@ -79,7 +72,7 @@
   color: #ff8f8f !important;
 }
 
-.theme-dark-red .hljs-attribute, 
+.theme-dark-red .hljs-attribute,
 .theme-dark-red .hljs-built_in {
   color: #ff7070 !important;
 }
@@ -99,8 +92,6 @@
   font-style: italic;
 }
 
-/* number/literal/bullet colors provided by --code-number */
-
 .theme-dark-red .hljs-variable,
 .theme-dark-red .hljs-tag,
 .theme-dark-red .hljs-name,
@@ -115,8 +106,6 @@
 .theme-dark-red .hljs-meta-string {
   color: #ffb3b3 !important;
 }
-
-/* Dark Orange Theme Code Blocks */
 .theme-dark-orange {
   --code-bg: #221810;
   --code-border: #5e4626;
@@ -137,7 +126,7 @@
   color: #ffb86c !important;
 }
 
-.theme-dark-orange .hljs-attribute, 
+.theme-dark-orange .hljs-attribute,
 .theme-dark-orange .hljs-built_in {
   color: #ffa54f !important;
 }
@@ -157,8 +146,6 @@
   font-style: italic;
 }
 
-/* number/literal/bullet colors provided by --code-number */
-
 .theme-dark-orange .hljs-variable,
 .theme-dark-orange .hljs-tag,
 .theme-dark-orange .hljs-name,
@@ -173,8 +160,6 @@
 .theme-dark-orange .hljs-meta-string {
   color: #ffce94 !important;
 }
-
-/* Dark Yellow Theme Code Blocks */
 .theme-dark-yellow {
   --code-bg: #22200f;
   --code-border: #5e5826;
@@ -195,7 +180,7 @@
   color: #fff06b !important;
 }
 
-.theme-dark-yellow .hljs-attribute, 
+.theme-dark-yellow .hljs-attribute,
 .theme-dark-yellow .hljs-built_in {
   color: #ffdc4f !important;
 }
@@ -215,8 +200,6 @@
   font-style: italic;
 }
 
-/* number/literal/bullet colors provided by --code-number */
-
 .theme-dark-yellow .hljs-variable,
 .theme-dark-yellow .hljs-tag,
 .theme-dark-yellow .hljs-name,
@@ -231,8 +214,6 @@
 .theme-dark-yellow .hljs-meta-string {
   color: #fff9a8 !important;
 }
-
-/* Dark Green Theme Code Blocks */
 .theme-dark-green {
   --code-bg: #0f1f15;
   --code-border: #265e46;
@@ -253,7 +234,7 @@
   color: #6bffa0 !important;
 }
 
-.theme-dark-green .hljs-attribute, 
+.theme-dark-green .hljs-attribute,
 .theme-dark-green .hljs-built_in {
   color: #4fffb2 !important;
 }
@@ -273,8 +254,6 @@
   font-style: italic;
 }
 
-/* number/literal/bullet colors provided by --code-number */
-
 .theme-dark-green .hljs-variable,
 .theme-dark-green .hljs-tag,
 .theme-dark-green .hljs-name,
@@ -289,8 +268,6 @@
 .theme-dark-green .hljs-meta-string {
   color: #a8fff9 !important;
 }
-
-/* Dark Blue Theme Code Blocks */
 .theme-dark-blue {
   --code-bg: #0f1820;
   --code-border: #26425e;
@@ -311,7 +288,7 @@
   color: #6ba5ff !important;
 }
 
-.theme-dark-blue .hljs-attribute, 
+.theme-dark-blue .hljs-attribute,
 .theme-dark-blue .hljs-built_in {
   color: #4f9fff !important;
 }
@@ -331,8 +308,6 @@
   font-style: italic;
 }
 
-/* number/literal/bullet colors provided by --code-number */
-
 .theme-dark-blue .hljs-variable,
 .theme-dark-blue .hljs-tag,
 .theme-dark-blue .hljs-name,
@@ -347,8 +322,6 @@
 .theme-dark-blue .hljs-meta-string {
   color: #a8c4ff !important;
 }
-
-/* Dark Purple Theme Code Blocks */
 .theme-dark-purple {
   --code-bg: #15101f;
   --code-border: #46265e;
@@ -369,7 +342,7 @@
   color: #c36bff !important;
 }
 
-.theme-dark-purple .hljs-attribute, 
+.theme-dark-purple .hljs-attribute,
 .theme-dark-purple .hljs-built_in {
   color: #b54fff !important;
 }
@@ -389,8 +362,6 @@
   font-style: italic;
 }
 
-/* number/literal/bullet colors provided by --code-number */
-
 .theme-dark-purple .hljs-variable,
 .theme-dark-purple .hljs-tag,
 .theme-dark-purple .hljs-name,
@@ -405,8 +376,6 @@
 .theme-dark-purple .hljs-meta-string {
   color: #e2a8ff !important;
 }
-
-/* Dark Pink Theme Code Blocks */
 .theme-dark-pink {
   --code-bg: #1f0f18;
   --code-border: #5e2646;
@@ -427,7 +396,7 @@
   color: #ff6bc3 !important;
 }
 
-.theme-dark-pink .hljs-attribute, 
+.theme-dark-pink .hljs-attribute,
 .theme-dark-pink .hljs-built_in {
   color: #ff4fb5 !important;
 }
@@ -447,8 +416,6 @@
   font-style: italic;
 }
 
-/* number/literal/bullet colors provided by --code-number */
-
 .theme-dark-pink .hljs-variable,
 .theme-dark-pink .hljs-tag,
 .theme-dark-pink .hljs-name,
@@ -463,8 +430,6 @@
 .theme-dark-pink .hljs-meta-string {
   color: #ffa8e2 !important;
 }
-
-/* Super Dark Theme Code Blocks with Red Accents */
 .theme-super-dark {
   --code-bg: #0a0a0a;
   --code-border: #330000;
@@ -485,7 +450,7 @@
   color: #ff6666 !important;
 }
 
-.theme-super-dark .hljs-attribute, 
+.theme-super-dark .hljs-attribute,
 .theme-super-dark .hljs-built_in {
   color: #ff4444 !important;
 }
@@ -505,8 +470,6 @@
   font-style: italic;
 }
 
-/* number/literal/bullet colors provided by --code-number */
-
 .theme-super-dark .hljs-variable,
 .theme-super-dark .hljs-tag,
 .theme-super-dark .hljs-name,
@@ -521,8 +484,6 @@
 .theme-super-dark .hljs-meta-string {
   color: #ff7777 !important;
 }
-
-/* Minimal Dark Theme Code Blocks */
 .theme-minimal-dark {
   --code-bg: #181818;
   --code-border: #333333;
@@ -544,7 +505,7 @@
   color: #ffffff !important;
 }
 
-.theme-minimal-dark .hljs-attribute, 
+.theme-minimal-dark .hljs-attribute,
 .theme-minimal-dark .hljs-type,
 .theme-minimal-dark .hljs-built_in,
 .theme-minimal-dark .hljs-title.function_ {
@@ -592,5 +553,3 @@
 .theme-minimal-dark .hljs-selector-pseudo {
   color: #aaaaaa !important;
 }
-
-/* Copy button: unified in messages.css and code/base.css */
