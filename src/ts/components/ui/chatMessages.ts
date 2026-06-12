@@ -21,19 +21,7 @@ function renderAssistantIcon(senderElement: HTMLElement) {
     </svg>
   `;
 
-  const originalSelector = document.querySelector;
-  document.querySelector = function(selector: string) {
-    if (selector === "#wordmark-logo g") {
-      return senderElement.querySelector("g");
-    }
-    return originalSelector.call(document, selector);
-  };
-
-  try {
-    renderWordmarkLogo();
-  } finally {
-    document.querySelector = originalSelector;
-  }
+  renderWordmarkLogo(senderElement.querySelector("g"));
 }
 
 /**
@@ -52,7 +40,7 @@ export function appendMessage(sender: string, content: string, type: string, ski
     messageElement.classList.add(type);
   }
 
-  const messageId = `msg-${Date.now()}`;
+  const messageId = generateMessageId();
   messageElement.id = messageId;
 
   const senderElement = document.createElement("div");

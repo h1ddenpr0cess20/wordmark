@@ -10,7 +10,7 @@ import { elements, state } from "../../init/state.ts";
 import { detectMediaType, getMediaDisplayUrl } from "../mediaTools.ts";
 import { updateMessageContent } from "../streaming/messageLifecycle.ts";
 import { updatePromptVisibility } from "../../components/ui/settingsControls.ts";
-import { highlightAndAddCopyButtons, addMessageCopyButton } from "../../components/messages.ts";
+import { highlightAndAddCopyButtons, addMessageCopyButton, generateMessageId } from "../../components/messages.ts";
 import { appendMessage } from "../../components/ui/chatMessages.ts";
 import { renderWordmarkLogo } from "../../components/logo.ts";
 import { setupImageInteractions } from "../../components/ui/imageInteractions.ts";
@@ -153,7 +153,7 @@ export function renderConversationMessages(convo: ConversationRecord, imageCache
 
     const messageElement = document.createElement("div");
     messageElement.classList.add("message", "assistant");
-    const messageId = msg.id || `msg-history-${Date.now()}`;
+    const messageId = msg.id || generateMessageId();
     messageElement.id = messageId;
 
     const sender = document.createElement("div");
@@ -164,19 +164,7 @@ export function renderConversationMessages(convo: ConversationRecord, imageCache
       </svg>
     `;
 
-    const originalSelector = document.querySelector;
-    document.querySelector = function(selector: string) {
-      if (selector === "#wordmark-logo g") {
-        return sender.querySelector("g");
-      }
-      return originalSelector.call(document, selector);
-    };
-
-    try {
-      renderWordmarkLogo();
-    } finally {
-      document.querySelector = originalSelector;
-    }
+    renderWordmarkLogo(sender.querySelector("g"));
 
     messageElement.appendChild(sender);
 

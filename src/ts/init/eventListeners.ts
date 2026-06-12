@@ -63,7 +63,9 @@ export function setupEventListeners() {
     try {
       const enabled = getDataSettingsEnabled();
       dataSettingsToggle.checked = enabled;
-    } catch {}
+    } catch (e) {
+      console.warn("Failed to read data-settings preference:", e);
+    }
 
     dataSettingsToggle.addEventListener("change", (e) => {
       const on = (e.target as HTMLInputElement).checked;
