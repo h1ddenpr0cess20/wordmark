@@ -1,62 +1,3 @@
-.theme-teletext {
-  --code-number: #ff0000;
-  --code-accent: #ffff00;
-  --code-accent-2: #00ffff;
-  --code-string: #00ff00;
-  --code-comment: #ff00ff;
-}
-.theme-teletext pre {
-  background-color: #000000 !important;
-  border: 1px solid #0000ff !important;
-}
-
-.theme-teletext pre code {
-  color: #ffffff !important;
-}
-
-.theme-teletext .hljs-keyword,
-.theme-teletext .hljs-meta,
-.theme-teletext .hljs-selector-tag,
-.theme-teletext .hljs-title,
-.theme-teletext .hljs-title.function_,
-.theme-teletext .hljs-type {
-  color: #ffff00 !important;
-}
-
-.theme-teletext .hljs-attribute,
-.theme-teletext .hljs-built_in {
-  color: #00ffff !important;
-}
-
-.theme-teletext .hljs-string,
-.theme-teletext .hljs-attr,
-.theme-teletext .hljs-addition,
-.theme-teletext .hljs-doctag,
-.theme-teletext .hljs-regexp,
-.theme-teletext .hljs-symbol {
-  color: #00ff00 !important;
-}
-
-.theme-teletext .hljs-comment,
-.theme-teletext .hljs-quote {
-  color: #ff00ff !important;
-  font-style: italic;
-}
-
-.theme-teletext .hljs-variable,
-.theme-teletext .hljs-tag,
-.theme-teletext .hljs-name,
-.theme-teletext .hljs-template-variable,
-.theme-teletext .hljs-deletion {
-  color: #00ffff !important;
-}
-
-.theme-teletext .hljs-property,
-.theme-teletext .hljs-subst,
-.theme-teletext .hljs-params,
-.theme-teletext .hljs-meta-string {
-  color: #ffff00 !important;
-}
 .theme-terminal {
   --code-number: #ff3333;
   --code-accent: #88ff88;
@@ -78,7 +19,6 @@
 .theme-terminal .hljs-string { color: #ffff33 !important; }
 .theme-terminal .hljs-comment { color: #33cc33 !important; }
 .theme-terminal .hljs-function { color: #33ff33 !important; }
-.theme-teletext pre .copy-btn,
 .theme-terminal pre .copy-btn {
   background: transparent !important;
   color: var(--text-primary) !important;
@@ -90,8 +30,59 @@
   z-index: 10 !important;
 }
 
-.theme-teletext pre .copy-btn:hover,
 .theme-terminal pre .copy-btn:hover {
   background-color: var(--accent-hover) !important;
   opacity: 1 !important;
+}
+.theme-blueprint {
+  --code-number: #ffd28a;
+  --code-accent: #7fd4ff;
+  --code-accent-2: #b3e6ff;
+  --code-string: #a8e6a3;
+  --code-comment: #6d8fb5;
+}
+
+.theme-blueprint pre {
+  background-color: rgba(6, 24, 48, 0.92) !important;
+  border: 1px dashed #3d6ea5 !important;
+}
+
+.theme-blueprint pre code {
+  color: #e8f1fb !important;
+  font-family: "Courier New", monospace;
+}
+
+.theme-blueprint .hljs-keyword,
+.theme-blueprint .hljs-meta,
+.theme-blueprint .hljs-selector-tag,
+.theme-blueprint .hljs-title,
+.theme-blueprint .hljs-title.function_,
+.theme-blueprint .hljs-type {
+  color: #7fd4ff !important;
+}
+
+.theme-blueprint .hljs-string,
+.theme-blueprint .hljs-attr,
+.theme-blueprint .hljs-addition,
+.theme-blueprint .hljs-regexp,
+.theme-blueprint .hljs-symbol {
+  color: #a8e6a3 !important;
+}
+
+.theme-blueprint .hljs-comment,
+.theme-blueprint .hljs-quote {
+  color: #6d8fb5 !important;
+  font-style: italic;
+}
+
+.theme-blueprint .hljs-number {
+  color: #ffd28a !important;
+}
+
+.theme-blueprint .hljs-variable,
+.theme-blueprint .hljs-tag,
+.theme-blueprint .hljs-name,
+.theme-blueprint .hljs-built_in,
+.theme-blueprint .hljs-attribute {
+  color: #b3e6ff !important;
 }

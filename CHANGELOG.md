@@ -4,18 +4,24 @@ All notable changes to Wordmark are documented here. Earlier versions didn't fol
 
 ## [3.0.4] - 2026-06-12
 
-Packaging and project-metadata maintenance. No runtime behavior changes.
+Packaging/project-metadata maintenance plus a small round of theme cleanup.
+
+### Added
+- **USA theme flag background** — the USA theme now renders a dimmed US-flag backdrop behind a translucent, blurred chat panel.
+- **Blueprint theme** — a dashed-grid "blueprint" special theme with matching code highlighting.
 
 ### Changed
 - **`package.json` metadata** — rewrote the stale `description` and `keywords` to reflect the current platform (TypeScript, xAI/Grok, Ollama, tool calling, MCP, TTS); dropped pre-3.0.0 `javascript`/`es6`/`modular` keywords.
 - **Dependency bumps** — `dompurify`, `eslint`, `@types/node`, `globals` (in-range) plus `html-validate` 10→11 and `npm-check-updates` 19→22.
 
 ### Removed
+- **Teletext theme** — removed entirely, including its CSS, the bundled `MODE7GX3.ttf` font asset, and mobile overrides.
 - **Bogus `os`/`cpu` fields** — removed from `package.json`; a browser app has no native binaries, and they needlessly blocked `npm install` on other platforms.
 - **Dead `funding` field** — pointed at a `#-support` README anchor removed in the earlier project cleanup.
 - **Stale `files` entries** — `robots.txt`/`sitemap.xml` no longer exist in the repo.
 
 ### Fixed
+- **USA flag sizing** — the flag background now uses `cover` sizing (was distorting at `100% 100%`) with a solid fallback color, so it scales proportionally and shows no white gaps across screen sizes.
 - **`.gitignore` inconsistencies** — stopped ignoring the tracked `package-lock.json` (required by `npm ci` in Docker/CI); replaced a brittle single-file Claude rule with a blanket `.claude/` ignore.
 - **Changelog backfill** — added the previously missing `[3.0.2]` and `[3.0.3]` entries.
 
