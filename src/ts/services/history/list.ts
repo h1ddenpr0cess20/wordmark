@@ -13,19 +13,7 @@ import {
 } from "../../utils/conversationStorage.ts";
 import { DEFAULT_PERSONALITY } from "../../../config/config.ts";
 import { startNewConversation, loadConversation, renameConversation } from "./persistence.ts";
-
-/** Escapes HTML-special characters in a value for safe interpolation. */
-function escapeHtml(value: unknown) {
-  if (value === null || value === undefined) {
-    return "";
-  }
-  return String(value)
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;")
-    .replace(/"/g, "&quot;")
-    .replace(/'/g, "&#39;");
-}
+import { escapeHtml } from "../../utils/sanitize.ts";
 
 /**
  * Renders the saved-conversation list into the history panel, wiring each

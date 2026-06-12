@@ -1,6 +1,7 @@
 import { elements, state } from "../init/state.ts";
 import { STORAGE_KEYS } from "../utils/storage.ts";
 import type { Message } from "../../types/api.ts";
+import { escapeHtml } from "../utils/sanitize.ts";
 /**
  * Chat export.
  *
@@ -194,19 +195,6 @@ function formatCsvValue(value: unknown) {
   const stringValue = value === null || value === undefined ? "" : String(value);
   const escaped = stringValue.replace(/"/g, "\"\"");
   return `"${escaped}"`;
-}
-
-/** Escapes HTML-special characters in a value for safe interpolation. */
-function escapeHtml(value: unknown) {
-  if (value === null || value === undefined) {
-    return "";
-  }
-  return String(value)
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;")
-    .replace(/"/g, "&quot;")
-    .replace(/'/g, "&#39;");
 }
 
 /**

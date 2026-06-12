@@ -6,6 +6,7 @@ import { state } from "../init/state.ts";
 import { showInfo } from "../utils/notifications.ts";
 import { filterSupportedFiles } from "../services/vectorStore.ts";
 import type { DirectoryFile } from "../../types/attachments.ts";
+import { escapeHtml } from "../utils/sanitize.ts";
 
 state.pendingUploads = [];
 state.pendingDocuments = [];
@@ -492,7 +493,7 @@ function showPendingUploadPreviews() {
       docInfo.className = "document-info";
       docInfo.innerHTML = `
         <span class="doc-icon">📁</span>
-        <span class="doc-name">${doc.directoryName}</span>
+        <span class="doc-name">${escapeHtml(doc.directoryName)}</span>
         <span class="doc-size">${directoryFiles.length} file${directoryFiles.length !== 1 ? "s" : ""} (${formatFileSize(totalSize)})</span>
       `;
 
@@ -515,7 +516,7 @@ function showPendingUploadPreviews() {
         const displayName = file.relativePath || file.name;
         fileItem.innerHTML = `
           <span class="file-item-icon">📄</span>
-          <span class="file-item-name">${displayName}</span>
+          <span class="file-item-name">${escapeHtml(displayName)}</span>
           <span class="file-item-size">${formatFileSize(file.size)}</span>
         `;
         fileList.appendChild(fileItem);
@@ -541,7 +542,7 @@ function showPendingUploadPreviews() {
       docInfo.className = "document-info";
       docInfo.innerHTML = `
         <span class="doc-icon">📄</span>
-        <span class="doc-name">${doc.name}</span>
+        <span class="doc-name">${escapeHtml(doc.name)}</span>
         <span class="doc-size">${formatFileSize(doc.size || 0)}</span>
       `;
 

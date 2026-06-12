@@ -8,6 +8,7 @@
 import { showError, showInfo } from "../utils/notifications.ts";
 import { listAssistantFiles, deleteFile as deleteAssistantFile, deleteAllAssistantFiles } from "../services/files.ts";
 import { uploadFile as uploadAssistantFile } from "../services/vectorStore.ts";
+import { escapeHtml } from "../utils/sanitize.ts";
 
 /**
  * Initializes the Assistants file manager.
@@ -168,11 +169,3 @@ async function handleDeleteAllAssistantFiles() {
   }
 }
 
-/**
- * Escape HTML to prevent XSS
- */
-function escapeHtml(text: unknown) {
-  const div = document.createElement("div");
-  div.textContent = String(text ?? "");
-  return div.innerHTML;
-}
