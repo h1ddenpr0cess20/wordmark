@@ -14,6 +14,19 @@ import {
 import { DEFAULT_PERSONALITY } from "../../../config/config.ts";
 import { startNewConversation, loadConversation, renameConversation } from "./persistence.ts";
 
+/** Escapes HTML-special characters in a value for safe interpolation. */
+function escapeHtml(value: unknown) {
+  if (value === null || value === undefined) {
+    return "";
+  }
+  return String(value)
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;");
+}
+
 /**
  * Renders the saved-conversation list into the history panel, wiring each
  * entry's load, rename, and delete actions.
@@ -292,15 +305,15 @@ export function renderChatHistoryList() {
 
         row.innerHTML = `
           <td class="col-title">
-            <div class="history-title">${title}</div>
+            <div class="history-title">${escapeHtml(title)}</div>
           </td>
           <td class="col-prompt">
-            <span class="prompt-type ${promptClass}">${promptInfo}</span>
+            <span class="prompt-type ${promptClass}">${escapeHtml(promptInfo)}</span>
           </td>
           <td class="col-model">
             <div class="model-info">
-              <div class="model-name">${modelInfo}</div>
-              <div class="service-name">${serviceInfo}</div>
+              <div class="model-name">${escapeHtml(modelInfo)}</div>
+              <div class="service-name">${escapeHtml(serviceInfo)}</div>
             </div>
           </td>
           <td class="col-stats">
