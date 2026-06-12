@@ -122,3 +122,63 @@ test('exportChat builds markdown export, dedupes reasoning, and triggers downloa
   assert.equal(reasoningMatches.length, 1);
   assert.ok(blobText.includes('Second thought'));
 });
+
+// Minimal document/URL stubs that capture the exported blob without a DOM.
+function setupExportCapture(format: string) {
+  globalThis.localStorage = createLocalStorage();
+  const capture: { blob: Blob | null } = { blob: null };
+  globalThis.document = {
+    body: { appendChild() {}, removeChild() {} },
+    getElementById() { return null; },
+    createElement() {
+      return { href: '', download: '', click() {} };
+    },
+  } as unknown as Document;
+  globalThis.URL = {
+    createObjectURL(blob: Blob) { capture.blob = blob; return 'blob:mock'; },
+    revokeObjectURL() {},
+  } as unknown as typeof URL;
+  globalThis.window = {} as Window & typeof globalThis;
+  elements.exportFormatSelector = { value: format } as unknown as HTMLSelectElement;
+  return capture;
+}
+
+test('exportChat escapes HTML-special message content in html exports', async () => {
+  const capture = setupExportCapture('html');
+  state.conversationHistory = [
+    {
+      role: 'user',
+      content: '<img src=x onerror=alert(1)>',
+      reasoning: [],
+      timestamp: '"><script>alert(2)</script>',
+    },
+  ] as unknown as typeof state.conversationHistory;
+
+  exportChat();
+
+  assert.ok(capture.blob);
+  const html = await (capture.blob as Blob).text();
+  assert.ok(!html.includes('<img src=x onerror=alert(1)>'));
+  assert.ok(!html.includes('<script>alert(2)</script>'));
+  assert.ok(html.includes('&lt;img src=x onerror=alert(1)&gt;'));
+  assert.ok(html.includes('&quot;&gt;&lt;script&gt;alert(2)&lt;/script&gt;'));
+});
+
+test('exportChat quotes and escapes CSV cells containing delimiters and quotes', async () => {
+  const capture = setupExportCapture('csv');
+  state.conversationHistory = [
+    {
+      role: 'user',
+      content: 'a,b "quoted"\nnew line',
+      reasoning: [],
+      timestamp: '2024-01-01T10:00:00Z',
+    },
+  ] as unknown as typeof state.conversationHistory;
+
+  exportChat();
+
+  assert.ok(capture.blob);
+  const csv = await (capture.blob as Blob).text();
+  assert.ok(csv.startsWith('"role","sender","content","reasoning","timestamp"'));
+  assert.ok(csv.includes('"a,b ""quoted""\nnew line"'));
+});

@@ -7,6 +7,7 @@
  */
 
 import { showError, showInfo } from "../utils/notifications.ts";
+import { escapeHtml } from "../utils/sanitize.ts";
 import {
   listVectorStores,
   deleteVectorStore,
@@ -369,11 +370,3 @@ function formatBytes(bytes: number) {
   return Math.round(bytes / Math.pow(k, i) * 100) / 100 + " " + sizes[i];
 }
 
-/**
- * Escape HTML to prevent XSS
- */
-function escapeHtml(text: string) {
-  const div = document.createElement("div");
-  div.textContent = text;
-  return div.innerHTML;
-}

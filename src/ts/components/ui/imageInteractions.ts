@@ -10,6 +10,7 @@ import { state } from "../../init/state.ts";
 import { icon } from "../../utils/icons.ts";
 import { deleteImageFromDb } from "../../utils/imageStorage.ts";
 import { isMobileDevice } from "../../utils/mobileHandling.ts";
+import { escapeHtml } from "../../utils/sanitize.ts";
 import { detectMediaType, downloadMediaSource } from "../../services/mediaTools.ts";
 
 /** Normalized media descriptor consumed by the slideshow viewer. */
@@ -336,19 +337,14 @@ export function createImageSlideshow(images: any[], startIndex: number, isGaller
       ? `User uploaded ${item.mediaType} - no prompt available`
       : item.prompt;
 
-    const formattedPrompt = String(displayPrompt || "")
-      .replace(/&/g, "&amp;")
-      .replace(/</g, "&lt;")
-      .replace(/>/g, "&gt;")
-      .replace(/"/g, "&quot;")
-      .replace(/'/g, "&#x27;");
+    const formattedPrompt = escapeHtml(displayPrompt || "");
 
     infoPanel.innerHTML = `
       <h3>Media Details <span class="gallery-slideshow-counter">${currentIndex + 1} / ${images.length}</span></h3>
       <p><strong>${item.uploaded ? "Type:" : "Prompt:"}</strong><br><span class="prompt-text ${item.uploaded ? "uploaded-info" : ""}">${formattedPrompt || "No prompt available"}</span></p>
-      <p><strong>Media Type:</strong> ${item.mediaType}</p>
+      <p><strong>Media Type:</strong> ${escapeHtml(item.mediaType)}</p>
       <p><strong>Date:</strong> ${date}</p>
-      <p><strong>Filename:</strong> ${item.filename || "Unknown"}</p>
+      <p><strong>Filename:</strong> ${escapeHtml(item.filename || "Unknown")}</p>
     `;
   };
 

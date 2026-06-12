@@ -37,9 +37,13 @@ function buildWordmarkLogo(svgContainer: Element | null) {
   svgContainer.appendChild(wPath);
 }
 
-/** Draws the animated wordmark logo into the header's SVG container. */
-export function renderWordmarkLogo() {
-  const svgContainer = document.querySelector("#wordmark-logo g");
+/**
+ * Draws the animated wordmark logo into an SVG `<g>` container.
+ *
+ * @param target - Container to draw into; defaults to the header logo's group.
+ */
+export function renderWordmarkLogo(target?: Element | null) {
+  const svgContainer = target ?? document.querySelector("#wordmark-logo g");
   if (!svgContainer) return;
 
   clearContainer(svgContainer);
@@ -53,5 +57,5 @@ export function renderWordmarkLogo() {
 }
 
 if (typeof document !== "undefined") {
-  document.addEventListener("DOMContentLoaded", renderWordmarkLogo);
+  document.addEventListener("DOMContentLoaded", () => renderWordmarkLogo());
 }

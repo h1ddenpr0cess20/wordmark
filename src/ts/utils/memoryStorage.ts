@@ -9,6 +9,15 @@ const MEMORY_ENABLED_KEY = STORAGE_KEYS.memoryEnabled;
 const MEMORY_LIMIT_KEY = STORAGE_KEYS.memoryLimit;
 const MEMORIES_KEY = STORAGE_KEYS.memories;
 
+/** Dispatches a memory event; tolerated to fail outside a browser (e.g. tests). */
+function emitMemoryEvent(name: string, detail: Record<string, unknown>) {
+  try {
+    window.dispatchEvent(new CustomEvent(name, { detail }));
+  } catch (e) {
+    console.warn(`Failed to dispatch ${name} event:`, e);
+  }
+}
+
 /** Seeds the enabled/limit/memories keys with defaults when absent. */
 function ensureMemoryDefaults() {
   if (localStorage.getItem(MEMORY_ENABLED_KEY) === null) {
@@ -34,7 +43,7 @@ export function getMemoryConfig() {
 /** Enables or disables the memory feature and emits a `memories:config` event. */
 export function setMemoryEnabled(enabled: boolean) {
   localStorage.setItem(MEMORY_ENABLED_KEY, enabled ? "true" : "false");
-  try { window.dispatchEvent(new CustomEvent("memories:config", { detail: { key: "enabled", value: Boolean(enabled) } })); } catch {}
+  emitMemoryEvent("memories:config", { key: "enabled", value: Boolean(enabled) });
 }
 
 /** Sets the maximum stored memories (≥ 1), trimming the oldest beyond the limit. */
@@ -45,9 +54,9 @@ export function setMemoryLimit(limit: string | number) {
   if (mems.length > newLimit) {
     const trimmed = mems.slice(-newLimit);
     writeJSON(MEMORIES_KEY, trimmed);
-    try { window.dispatchEvent(new CustomEvent("memories:changed", { detail: { type: "trim", count: trimmed.length } })); } catch {}
+    emitMemoryEvent("memories:changed", { type: "trim", count: trimmed.length });
   }
-  try { window.dispatchEvent(new CustomEvent("memories:config", { detail: { key: "limit", value: newLimit } })); } catch {}
+  emitMemoryEvent("memories:config", { key: "limit", value: newLimit });
 }
 
 /** Returns the stored memory strings, or `[]` if none/parse fails. */
@@ -77,14 +86,14 @@ export function addMemory(text: string) {
   mems.push(trimmed);
   const final = mems.length > limit ? mems.slice(-limit) : mems;
   writeJSON(MEMORIES_KEY, final);
-  try { window.dispatchEvent(new CustomEvent("memories:changed", { detail: { type: "add", value: trimmed } })); } catch {}
+  emitMemoryEvent("memories:changed", { type: "add", value: trimmed });
   return { ok: true, count: final.length };
 }
 
 /** Removes all stored memories and emits a `memories:changed` clear event. */
 export function clearAllMemories() {
   writeJSON(MEMORIES_KEY, []);
-  try { window.dispatchEvent(new CustomEvent("memories:changed", { detail: { type: "clear" } })); } catch {}
+  emitMemoryEvent("memories:changed", { type: "clear" });
   return { ok: true };
 }
 
@@ -98,7 +107,7 @@ export function removeMemoryAt(index: number) {
   if (index < 0 || index >= mems.length) return { ok: false, reason: "range" };
   mems.splice(index, 1);
   writeJSON(MEMORIES_KEY, mems);
-  try { window.dispatchEvent(new CustomEvent("memories:changed", { detail: { type: "remove", index } })); } catch {}
+  emitMemoryEvent("memories:changed", { type: "remove", index });
   return { ok: true, count: mems.length };
 }
 

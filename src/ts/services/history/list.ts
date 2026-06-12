@@ -13,6 +13,7 @@ import {
 } from "../../utils/conversationStorage.ts";
 import { DEFAULT_PERSONALITY } from "../../../config/config.ts";
 import { startNewConversation, loadConversation, renameConversation } from "./persistence.ts";
+import { escapeHtml } from "../../utils/sanitize.ts";
 
 /**
  * Renders the saved-conversation list into the history panel, wiring each
@@ -292,15 +293,15 @@ export function renderChatHistoryList() {
 
         row.innerHTML = `
           <td class="col-title">
-            <div class="history-title">${title}</div>
+            <div class="history-title">${escapeHtml(title)}</div>
           </td>
           <td class="col-prompt">
-            <span class="prompt-type ${promptClass}">${promptInfo}</span>
+            <span class="prompt-type ${promptClass}">${escapeHtml(promptInfo)}</span>
           </td>
           <td class="col-model">
             <div class="model-info">
-              <div class="model-name">${modelInfo}</div>
-              <div class="service-name">${serviceInfo}</div>
+              <div class="model-name">${escapeHtml(modelInfo)}</div>
+              <div class="service-name">${escapeHtml(serviceInfo)}</div>
             </div>
           </td>
           <td class="col-stats">

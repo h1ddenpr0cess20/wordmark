@@ -7,6 +7,7 @@ import { loadImageFromDb, saveImageToDb } from "../utils/imageStorage.ts";
 import { toolImplementations } from "./toolImplementations.ts";
 import { getApiKey } from "./apiKeyStorage.ts";
 import { config } from "../../config/config.ts";
+import { escapeHtml } from "../utils/sanitize.ts";
 import type { GeneratedImage } from "../../types/common.ts";
 
 interface RegisterMediaOptions {
@@ -34,18 +35,6 @@ const XAI_IMAGE_ASPECT_RATIOS = [
   "3:2", "2:3", "2:1", "1:2",
   "19.5:9", "9:19.5", "20:9", "9:20", "auto",
 ];
-
-function escapeHtmlAttribute(value: unknown): string {
-  if (value === null || value === undefined) {
-    return "";
-  }
-  return String(value)
-    .replace(/&/g, "&amp;")
-    .replace(/"/g, "&quot;")
-    .replace(/'/g, "&#39;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;");
-}
 
 /** Reports whether a MIME type is a video type. */
 export function isVideoMimeType(mimeType: string = ""): boolean {
@@ -107,11 +96,11 @@ function makeFilename(prefix: string, mimeType: string): string {
 /** Builds a sanitized `<video>` or `<img>` thumbnail element for a media record. */
 export function buildMediaRecordHtml(record: GeneratedImage): string {
   const mediaType = detectMediaType(record);
-  const safeFilename = escapeHtmlAttribute(record.filename || "");
-  const safePrompt = escapeHtmlAttribute(record.prompt || "");
-  const safeTimestamp = escapeHtmlAttribute(record.timestamp || "");
-  const safeAlt = escapeHtmlAttribute(record.prompt || (mediaType === "video" ? "Generated video" : "Generated image"));
-  const src = escapeHtmlAttribute(record.url || "");
+  const safeFilename = escapeHtml(record.filename || "");
+  const safePrompt = escapeHtml(record.prompt || "");
+  const safeTimestamp = escapeHtml(record.timestamp || "");
+  const safeAlt = escapeHtml(record.prompt || (mediaType === "video" ? "Generated video" : "Generated image"));
+  const src = escapeHtml(record.url || "");
 
   if (mediaType === "video") {
     return `<video src="${src}" class="generated-video-thumbnail" data-media-type="video" data-filename="${safeFilename}" data-prompt="${safePrompt}" data-timestamp="${safeTimestamp}" controls playsinline preload="metadata"></video>`;
