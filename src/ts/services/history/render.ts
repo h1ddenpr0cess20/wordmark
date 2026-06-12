@@ -16,12 +16,13 @@ import { renderWordmarkLogo } from "../../components/logo.ts";
 import { setupImageInteractions } from "../../components/ui/imageInteractions.ts";
 import { updateHeaderInfo, updateModelSelector } from "../../components/settings.ts";
 import { config } from "../../../config/config.ts";
+import { escapeHtml } from "../../utils/sanitize.ts";
 import type { ConversationRecord, GeneratedImage } from "../../../types/common.ts";
 import type { Message } from "../../../types/api.ts";
 
 function createMissingMediaPlaceholder(filename: string, mediaType = "image") {
   const label = mediaType === "video" ? "Video" : "Image";
-  return `<div class='image-placeholder' style='padding:40px;background:#f1f1f1;border-radius:8px;margin:8px 0;text-align:center;font-style:italic;color:#666;'>${label} could not be loaded: ${filename}</div>`;
+  return `<div class='image-placeholder' style='padding:40px;background:#f1f1f1;border-radius:8px;margin:8px 0;text-align:center;font-style:italic;color:#666;'>${label} could not be loaded: ${escapeHtml(filename)}</div>`;
 }
 
 function findMediaRecord(convo: ConversationRecord, filename: string) {
@@ -114,7 +115,7 @@ function replaceImagePlaceholders(content: Message["content"], convo: Conversati
       state.imageDataCache.set(trimmed, src);
     }
 
-    return `<img src="${src}" alt="${img.prompt || "Generated Image"}" class="generated-image-thumbnail" data-media-type="image" data-filename="${trimmed}" data-prompt="${img.prompt || ""}" data-timestamp="${img.timestamp || ""}" style="max-width:160px;max-height:160px;border-radius:8px;margin:8px 0;cursor:pointer;" />`;
+    return `<img src="${escapeHtml(src)}" alt="${escapeHtml(img.prompt || "Generated Image")}" class="generated-image-thumbnail" data-media-type="image" data-filename="${escapeHtml(trimmed)}" data-prompt="${escapeHtml(img.prompt || "")}" data-timestamp="${escapeHtml(img.timestamp || "")}" style="max-width:160px;max-height:160px;border-radius:8px;margin:8px 0;cursor:pointer;" />`;
   });
 }
 
@@ -199,7 +200,7 @@ export function renderConversationMessages(convo: ConversationRecord, imageCache
     }
 
     displayContent = displayContent.replace(new RegExp("\\[\\[(?:MEDIA|IMAGE): ([^\\]]+)\\]\\]", "g"), (placeholder: string) => `
-      <span class="hidden-image-placeholder">${placeholder}</span>
+      <span class="hidden-image-placeholder">${escapeHtml(placeholder)}</span>
     `);
 
     if (imageFilenames.length > 0) {
