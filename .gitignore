@@ -4,5 +4,4 @@ key.pem
 node_modules
 dist
 CLAUDE.md
-package-lock.json
-.claude/projects/-home-senku-wordmark/memory/project_provider_capability_registry.md
+.claude/

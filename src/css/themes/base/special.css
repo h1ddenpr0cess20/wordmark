@@ -15,26 +15,6 @@
   --button-text-color: #33ff33;
 }
 
-.theme-teletext {
-  --bg-primary: #000000;
-  --bg-secondary: #000000;
-  --text-primary: #ffffff;
-  --text-secondary: #ffff00;
-  --accent-color: #00ffff;
-  --accent-hover: #00cccc;
-  --border-color: #0000ff;
-  --user-bg: #0000ff;
-  --assistant-bg: #000000;
-  --error-bg: #ff0000;
-  --error-text: #ffff00;
-  --body-bg-color-1: #000000;
-  --body-bg-color-2: #000000;
-  --button-text-color: #000000;
-  --code-bg: rgba(0, 0, 0, 0.92);
-  --code-border: #00ffff;
-  --code-inline-bg: rgba(0, 255, 255, 0.18);
-  --bg-hover: rgba(0, 0, 102, 0.7);
-}
 .theme-terminal #chat-container {
   font-family: "Courier New", monospace;
 }
@@ -187,454 +167,6 @@
   scrollbar-gutter: stable;
   padding-right: 2px;
 }
-.theme-teletext #chat-container {
-  font-family: "Courier New", monospace;
-  background-color: #000000;
-  color: #ffffff;
-  border: 3px solid #0000ff;
-  box-shadow:
-    0 0 0 2px #ffff00,
-    0 24px 48px rgba(0, 0, 0, 0.55);
-  border-radius: 2px;
-}
-
-.theme-teletext #chat-container::before {
-  content: "";
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: linear-gradient(
-    to bottom,
-    transparent 0%,
-    rgba(0, 0, 0, 0.1) 50%,
-    transparent 100%
-  );
-  background-size: 100% 2px;
-  pointer-events: none;
-  opacity: 0.2;
-  z-index: 10;
-  animation: scanlines 8s linear infinite;
-}
-
-@keyframes scanlines {
-  0% { background-position: 0 0; }
-  100% { background-position: 0 100%; }
-}
-
-.theme-teletext button {
-  border-radius: 0 !important;
-}
-
-.theme-teletext #settings-panel {
-  border-radius: 0;
-}
-
-.theme-teletext .message {
-  border-radius: 0;
-}
-
-.theme-teletext .input-container,
-.theme-teletext input,
-.theme-teletext textarea,
-.theme-teletext #user-input,
-.theme-teletext select,
-.theme-teletext option,
-.theme-teletext .settings-tabs,
-.theme-teletext .tab-button,
-.theme-teletext .tab-content,
-.theme-teletext .settings-group,
-.theme-teletext .setting-item,
-.theme-teletext input[type="range"],
-.theme-teletext input[type="number"],
-.theme-teletext input[type="text"] {
-  border-radius: 0 !important;
-}
-
-.theme-teletext .color-dot {
-  border-radius: 0 !important;
-  width: 20px;
-  height: 20px;
-}
-
-.theme-teletext pre code,
-.theme-teletext .code-block {
-  background-color: #000000;
-  color: #ffffff;
-  border-radius: 0;
-  border: 1px solid #00ffff;
-  box-shadow: inset 0 0 8px rgba(0, 255, 255, 0.25);
-}
-
-.theme-teletext .hljs-keyword { color: #ffff00; }
-.theme-teletext .hljs-string { color: #00ffff; }
-.theme-teletext .hljs-comment { color: #ff0000; }
-.theme-teletext .hljs-function { color: #ffffff; }
-.theme-teletext .hljs-number { color: #00ff00; }
-
-.theme-teletext .settings-tabs {
-  gap: 2px;
-}
-.theme-teletext .tab-button {
-  padding: 10px 8px;
-  font-size: 0.8rem !important;
-}
-.theme-teletext .tab-content-container,
-.theme-teletext #chat-box,
-.theme-teletext #history-panel,
-.theme-teletext #gallery-panel {
-  scrollbar-gutter: stable;
-  scrollbar-width: thin;
-}
-.theme-teletext ::-webkit-scrollbar {
-  width: 8px;
-}
-.theme-teletext body,
-.theme-teletext input,
-.theme-teletext textarea,
-.theme-teletext button,
-.theme-teletext select,
-.theme-teletext .message-content,
-.theme-teletext h1,
-.theme-teletext h2,
-.theme-teletext h3,
-.theme-teletext h4,
-.theme-teletext h5,
-.theme-teletext h6,
-.theme-teletext p,
-.theme-teletext pre,
-.theme-teletext code,
-.theme-teletext label,
-.theme-teletext span,
-.theme-teletext div,
-.theme-teletext option,
-.theme-teletext .tab-button,
-.theme-teletext .radio-text,
-.theme-teletext .settings-group,
-.theme-teletext .setting-item,
-.theme-teletext .personality-header {
-  font-family: 'TeletextFont', monospace !important;
-  letter-spacing: 0.05em;
-  line-height: 1.2;
-}
-.theme-teletext #header-title {
-  text-transform: uppercase;
-  position: relative;
-}
-.theme-teletext #header {
-  background: linear-gradient(90deg, #0000cc 0%, #000066 100%) !important;
-  color: #ffff00 !important;
-  padding: 8px 16px;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  position: relative;
-  border-bottom: 2px solid #ffff00;
-  box-shadow: inset 0 -4px 0 0 rgba(0, 0, 0, 0.55);
-}
-
-.theme-teletext #header h1 {
-  color: #ffff00 !important;
-}
-
-.theme-teletext #model-info {
-  color: #00ffff !important;
-}
-
-.theme-teletext #logo-container {
-  background-color: #0000c8;
-  border: 2px solid #ffff00;
-  border-radius: 2px;
-  box-shadow:
-    0 0 0 2px #000000,
-    0 10px 26px rgba(0, 0, 0, 0.6);
-  padding: 10px 18px;
-  gap: 12px;
-}
-
-.theme-teletext #wordmark-logo {
-  filter: none;
-  background-color: #000000;
-  border-radius: 2px;
-  box-shadow: inset 0 0 0 2px #ffff00;
-  padding: 4px;
-}
-
-.theme-teletext #wordmark-logo circle {
-  fill: rgba(0, 0, 0, 0.85);
-  stroke: #ffff00;
-}
-
-.theme-teletext #wordmark-logo path {
-  stroke: #00ffff;
-  stroke-linecap: square;
-}
-
-.theme-teletext #logo-wordmark {
-  color: #ffff00;
-  font-family: 'TeletextFont', monospace !important;
-  letter-spacing: 0.32em;
-  text-shadow: 0 0 16px rgba(255, 255, 0, 0.55);
-  filter: drop-shadow(0 0 10px rgba(0, 0, 0, 0.9));
-}
-
-.theme-teletext #logo-container:hover #logo-wordmark,
-.theme-teletext #logo-container:focus-within #logo-wordmark {
-  color: #00ffff;
-  text-shadow: 0 0 18px rgba(0, 255, 255, 0.6);
-}
-
-.theme-teletext #logo-container:hover #wordmark-logo,
-.theme-teletext #logo-container:focus-within #wordmark-logo {
-  box-shadow: inset 0 0 0 2px #00ffff;
-}
-
-.theme-teletext a {
-  color: #00ffff;
-  text-decoration: underline;
-  text-decoration-thickness: 2px;
-  text-decoration-color: #ffff00;
-}
-
-.theme-teletext a:hover,
-.theme-teletext a:focus-visible {
-  color: #ffff00;
-  text-decoration-color: #00ffff;
-}
-
-.theme-teletext .message {
-  position: relative;
-}
-
-.theme-teletext .message .message-content {
-  border-radius: 0;
-  border: 2px solid #0000ff;
-  box-shadow:
-    inset 0 0 12px rgba(0, 0, 0, 0.6),
-    0 0 0 2px #000000,
-    0 16px 24px rgba(0, 0, 0, 0.55);
-  letter-spacing: 0.06em;
-  text-shadow: 0 0 6px rgba(0, 0, 0, 0.4);
-}
-
-.theme-teletext .message.user .message-content {
-  background: linear-gradient(180deg, #0010b5 0%, #000a7c 100%);
-  color: #ffff00;
-  border-color: #ffff00;
-}
-
-.theme-teletext .message.assistant .message-content {
-  background: linear-gradient(180deg, #000000 0%, #001821 100%);
-  color: #00ffff;
-  border-color: #00ffff;
-}
-
-.theme-teletext .message .message-sender {
-  background-color: #000000;
-  border-radius: 2px;
-  padding: 6px;
-  border: 2px solid #ffff00;
-  box-shadow:
-    0 0 0 2px #000000,
-    0 6px 12px rgba(0, 0, 0, 0.55);
-}
-
-.theme-teletext .message.assistant .message-sender {
-  border-color: #00ffff;
-}
-
-.theme-teletext .message .sender-icon {
-  width: 28px;
-  height: 28px;
-  color: currentColor;
-}
-
-.theme-teletext .message.assistant .sender-icon {
-  color: #00ffff;
-}
-
-.theme-teletext .message.user .sender-icon {
-  color: #ffff00;
-}
-
-.theme-teletext .message-content code:not(pre code) {
-  border: 1px solid #00ffff;
-}
-
-.theme-teletext .message-content blockquote {
-  background: rgba(0, 0, 0, 0.65);
-  border-color: #ffff00;
-}
-
-.theme-teletext .message-content table {
-  background: rgba(0, 0, 0, 0.75);
-}
-
-.theme-teletext .message-content thead th {
-  background-color: rgba(0, 0, 80, 0.9);
-  color: #ffff00;
-}
-
-.theme-teletext .message-content tbody tr:nth-child(even) {
-  background-color: rgba(0, 255, 255, 0.08);
-}
-
-.theme-teletext .input-container {
-  border-top: 2px solid #00ffff;
-  background-color: #000000;
-  box-shadow: inset 0 12px 32px rgba(0, 17, 153, 0.3);
-}
-
-.theme-teletext #user-input {
-  background-color: #000000;
-  border: 2px solid #ffff00;
-  color: #ffff00;
-  box-shadow: inset 0 0 0 2px #000000;
-  caret-color: #00ffff;
-}
-
-.theme-teletext #user-input::placeholder {
-  color: rgba(255, 255, 0, 0.65);
-}
-
-.theme-teletext #send-button {
-  background-color: transparent !important;
-  color: #00ffff !important;
-  border: 2px solid transparent !important;
-  box-sizing: border-box;
-  transition: color 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease;
-}
-
-.theme-teletext #send-button:hover,
-.theme-teletext #send-button:focus-visible {
-  color: #ffff00 !important;
-  transform: scale(1.05);
-  box-shadow: 0 0 18px rgba(255, 255, 0, 0.35);
-}
-
-.theme-teletext #settings-button,
-.theme-teletext #history-button,
-.theme-teletext #gallery-button {
-  background-color: #0000cc;
-  color: #ffff00;
-  border: 2px solid #ffff00;
-  box-shadow:
-    0 0 0 2px #000000,
-    0 8px 18px rgba(0, 0, 0, 0.45);
-  border-radius: 2px;
-  width: 48px;
-  height: 48px;
-}
-
-.theme-teletext #settings-button:hover,
-.theme-teletext #history-button:hover,
-.theme-teletext #gallery-button:hover,
-.theme-teletext #settings-button:focus-visible,
-.theme-teletext #history-button:focus-visible,
-.theme-teletext #gallery-button:focus-visible {
-  background-color: #00ffff;
-  color: #000000;
-  border-color: #00ffff;
-}
-
-.theme-teletext .settings-tabs .tab-button {
-  border: 2px solid #00ffff;
-  background-color: #000000;
-  color: #00ffff;
-  letter-spacing: 0.08em;
-}
-
-.theme-teletext .settings-tabs .tab-button.active {
-  background-color: #0000ff;
-  color: #ffff00;
-  border-color: #ffff00;
-}
-
-.theme-teletext .settings-group {
-  border: 2px solid rgba(0, 255, 255, 0.35);
-  padding: 14px;
-  background-color: rgba(0, 0, 0, 0.7);
-  box-shadow: inset 0 0 20px rgba(0, 0, 0, 0.45);
-}
-
-.theme-teletext .settings-group h3 {
-  color: #ffff00 !important;
-  letter-spacing: 0.12em;
-}
-
-.theme-teletext .setting-item label {
-  color: #00ffff;
-  letter-spacing: 0.08em;
-}
-
-.theme-teletext #feature-status {
-  background-color: rgba(0, 0, 0, 0.75);
-  border-top: 2px solid #00ffff;
-  padding: 4px 8px;
-  letter-spacing: 0.12em;
-}
-
-.theme-teletext .feature-status .feature-badge {
-  border: 2px solid #ffff00;
-  background: #000000;
-  color: #ffff00;
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
-}
-
-.theme-teletext textarea,
-.theme-teletext input[type="text"],
-.theme-teletext input[type="number"] {
-  background-color: #000000;
-  border: 2px solid #00ffff;
-  color: #00ffff;
-  box-shadow: inset 0 0 0 2px #000000;
-}
-
-.theme-teletext select {
-  background-color: #000000;
-  border: 2px solid #ffff00;
-  color: #ffff00;
-}
-
-.theme-teletext option {
-  background-color: #000000;
-  color: #00ffff;
-}
-
-.theme-teletext ::-webkit-scrollbar-thumb {
-  background-color: #00ffff;
-}
-
-.theme-teletext ::-webkit-scrollbar-track {
-  background-color: #000000;
-}
-.theme-teletext .input-container {
-  border-top: 2px solid #00ffff;
-}
-.theme-teletext button[style*="var(--accent-color)"] {
-  color: #000000 !important;
-}
-
-.theme-teletext .radio-text,
-.theme-teletext .setting-item label {
-  color: #ffff00 !important;
-}
-.theme-teletext .settings-tabs .tab-button {
-  border-radius: 0;
-}
-
-.theme-teletext .settings-tabs .tab-button.active {
-  background-color: #0000ff;
-  color: #ffff00;
-}
-.theme-teletext p[style*="var(--text-secondary)"] {
-  color: #00ffff !important;
-}
-.theme-teletext .settings-group h3 {
-  color: #ffff00 !important;
-}
 .theme-terminal body,
 .theme-terminal input,
 .theme-terminal textarea,
@@ -662,4 +194,151 @@
   font-family: 'Courier New', monospace !important;
   letter-spacing: 0.05em;
   line-height: 1.2;
+}
+
+.theme-blueprint {
+  --bg-primary: #0b2e59;
+  --bg-secondary: #0a2748;
+  --text-primary: #e8f1fb;
+  --text-secondary: #9fc3e8;
+  --accent-color: #7fd4ff;
+  --accent-hover: #b3e6ff;
+  --border-color: #3d6ea5;
+  --user-bg: #123a6b;
+  --assistant-bg: #0d3260;
+  --error-bg: #5a1f2e;
+  --error-text: #ffb3c0;
+  --body-bg-color-1: #081f3d;
+  --body-bg-color-2: #0b2e59;
+  --button-text-color: #e8f1fb;
+  --code-bg: rgba(6, 24, 48, 0.92);
+  --code-border: #3d6ea5;
+  --code-inline-bg: rgba(127, 212, 255, 0.14);
+  --bg-hover: rgba(127, 212, 255, 0.12);
+}
+
+.theme-blueprint #chat-container {
+  font-family: "Courier New", monospace;
+}
+
+.theme-blueprint #chat-container::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  pointer-events: none;
+  background-image:
+    linear-gradient(rgba(159, 195, 232, 0.07) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(159, 195, 232, 0.07) 1px, transparent 1px),
+    linear-gradient(rgba(159, 195, 232, 0.04) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(159, 195, 232, 0.04) 1px, transparent 1px);
+  background-size: 80px 80px, 80px 80px, 16px 16px, 16px 16px;
+  z-index: 10;
+}
+
+.theme-blueprint .message {
+  border-radius: 0;
+}
+
+.theme-blueprint .message .message-content {
+  border-radius: 0;
+  border: 1px dashed var(--border-color);
+  box-shadow: 2px 2px 0 rgba(8, 31, 61, 0.6);
+}
+
+.theme-blueprint .message.user .message-content {
+  border-color: var(--accent-color);
+}
+
+.theme-blueprint button,
+.theme-blueprint #settings-panel,
+.theme-blueprint input,
+.theme-blueprint textarea,
+.theme-blueprint select,
+.theme-blueprint .tab-button,
+.theme-blueprint .settings-group,
+.theme-blueprint .setting-item {
+  border-radius: 0 !important;
+}
+
+.theme-blueprint #user-input {
+  background-color: rgba(8, 31, 61, 0.7);
+  border: 1px dashed var(--border-color);
+  color: var(--text-primary);
+  caret-color: var(--accent-color);
+}
+
+.theme-blueprint #user-input::placeholder {
+  color: rgba(159, 195, 232, 0.55);
+}
+
+.theme-blueprint .settings-group {
+  border: 1px dashed var(--border-color);
+  background-color: rgba(8, 31, 61, 0.55);
+}
+
+.theme-blueprint .settings-group h3 {
+  color: var(--accent-color) !important;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+}
+
+.theme-blueprint .tab-button {
+  border: 1px solid transparent;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.theme-blueprint .tab-button.active {
+  border: 1px dashed var(--accent-color) !important;
+  background: transparent !important;
+  color: var(--accent-color) !important;
+}
+
+.theme-blueprint #header-title {
+  text-transform: uppercase;
+  letter-spacing: 0.18em;
+}
+
+.theme-blueprint #wordmark-logo circle {
+  fill: transparent;
+  stroke: var(--accent-color);
+  stroke-dasharray: 6 4;
+}
+
+.theme-blueprint #wordmark-logo path {
+  stroke: #ffffff;
+}
+
+.theme-blueprint pre,
+.theme-blueprint pre code,
+.theme-blueprint .code-block {
+  background-color: rgba(6, 24, 48, 0.92);
+  border-radius: 0;
+  font-family: "Courier New", monospace;
+}
+
+.theme-blueprint body,
+.theme-blueprint input,
+.theme-blueprint textarea,
+.theme-blueprint button,
+.theme-blueprint select,
+.theme-blueprint .message-content,
+.theme-blueprint h1,
+.theme-blueprint h2,
+.theme-blueprint h3,
+.theme-blueprint p,
+.theme-blueprint pre,
+.theme-blueprint code,
+.theme-blueprint label,
+.theme-blueprint span,
+.theme-blueprint option,
+.theme-blueprint .tab-button,
+.theme-blueprint .radio-text,
+.theme-blueprint .settings-group,
+.theme-blueprint .setting-item {
+  font-family: "Courier New", monospace !important;
+  letter-spacing: 0.04em;
 }

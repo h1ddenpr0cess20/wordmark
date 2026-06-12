@@ -37,92 +37,11 @@
   font-display: swap;
 }
 @font-face {
-  font-family: 'TeletextFont';
-  src: url('files/teletext/MODE7GX3.ttf') format('truetype');
-  font-weight: normal;
-  font-style: normal;
-  font-display: swap;
-}
-@font-face {
   font-family: 'Perfect DOS VGA';
   src: url('../fonts/dos/perfect_dos_vga_437_win.ttf') format('truetype');
   font-weight: normal;
   font-style: normal;
   font-display: swap;
-}
-.theme-teletext body,
-.theme-teletext input,
-.theme-teletext textarea,
-.theme-teletext button,
-.theme-teletext select,
-.theme-teletext .message-content,
-.theme-teletext h1,
-.theme-teletext h2,
-.theme-teletext h3,
-.theme-teletext h4,
-.theme-teletext h5,
-.theme-teletext h6,
-.theme-teletext p,
-.theme-teletext pre,
-.theme-teletext code,
-.theme-teletext label,
-.theme-teletext span,
-.theme-teletext div,
-.theme-teletext option,
-.theme-teletext .tab-button,
-.theme-teletext .radio-text,
-.theme-teletext .settings-group,
-.theme-teletext .setting-item,
-.theme-teletext .personality-header {
-  font-family: 'TeletextFont', monospace !important;
-  letter-spacing: 0.05em;
-  line-height: 1.2;
-}
-.theme-teletext #header-title {
-  text-transform: uppercase;
-  position: relative;
-}
-.theme-teletext #header {
-  background-color: #0000ff !important;
-  color: #ffff00 !important;
-  padding: 8px 16px;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  position: relative;
-}
-
-.theme-teletext #header h1 {
-  color: #ffff00 !important;
-}
-
-.theme-teletext #model-info {
-  color: #00ffff !important;
-}
-.theme-teletext .input-container {
-  border-top: 2px solid #00ffff;
-}
-.theme-teletext button[style*="var(--accent-color)"] {
-  color: #000000 !important;
-}
-
-.theme-teletext .radio-text,
-.theme-teletext .setting-item label {
-  color: #ffff00 !important;
-}
-.theme-teletext .settings-tabs .tab-button {
-  border-radius: 0;
-}
-
-.theme-teletext .settings-tabs .tab-button.active {
-  background-color: #0000ff;
-  color: #ffff00;
-}
-.theme-teletext p[style*="var(--text-secondary)"] {
-  color: #00ffff !important;
-}
-.theme-teletext .settings-group h3 {
-  color: #ffff00 !important;
 }
 .theme-terminal body,
 .theme-terminal input,

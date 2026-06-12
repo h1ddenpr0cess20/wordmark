@@ -1,7 +1,7 @@
 {
   "name": "wordmark",
-  "version": "3.0.3",
-  "description": "Client-side AI assistant supporting OpenAI, xAI, and local LM Studio/Ollama servers.",
+  "version": "3.0.4",
+  "description": "Client-side, backend-free AI assistant platform for OpenAI and xAI Grok (Responses API) plus local LM Studio/Ollama servers, with tool calling, MCP servers, web/X search, image generation, TTS, and fully local storage.",
   "main": "index.html",
   "type": "module",
   "scripts": {
@@ -29,16 +29,20 @@
     "assistant",
     "chatbot",
     "openai",
+    "xai",
+    "grok",
     "responses-api",
     "lmstudio",
+    "ollama",
     "local-ai",
     "llm",
     "generative-ai",
     "conversational-ai",
+    "tool-calling",
+    "mcp",
+    "tts",
     "web-app",
-    "javascript",
-    "es6",
-    "modular",
+    "typescript",
     "privacy",
     "client-side",
     "open-source"
@@ -70,13 +74,13 @@
   ],
   "devDependencies": {
     "@eslint/js": "^10.0.1",
-    "@types/node": "^25.9.2",
+    "@types/node": "^25.9.3",
     "@typescript-eslint/eslint-plugin": "^8.61.0",
     "@typescript-eslint/parser": "^8.61.0",
-    "eslint": "^10.0.3",
-    "globals": "^17.4.0",
-    "html-validate": "^10.11.2",
-    "npm-check-updates": "^19.6.5",
+    "eslint": "^10.5.0",
+    "globals": "^17.6.0",
+    "html-validate": "^11.4.0",
+    "npm-check-updates": "^22.2.3",
     "tsx": "^4.22.4",
     "typescript": "^6.0.3",
     "typescript-eslint": "^8.61.0",
@@ -87,9 +91,7 @@
     "src/",
     "public/",
     "README.md",
-    "LICENSE",
-    "robots.txt",
-    "sitemap.xml"
+    "LICENSE"
   ],
   "directories": {
     "doc": "."
@@ -98,21 +100,8 @@
     "port": 8080,
     "https_port": 8443
   },
-  "funding": {
-    "type": "crypto",
-    "url": "https://github.com/h1ddenpr0cess20/Wordmark#-support"
-  },
-  "os": [
-    "darwin",
-    "linux",
-    "win32"
-  ],
-  "cpu": [
-    "x64",
-    "arm64"
-  ],
   "dependencies": {
-    "dompurify": "^3.4.8",
+    "dompurify": "^3.4.10",
     "highlight.js": "^11.11.1",
     "marked": "^18.0.5"
   }
