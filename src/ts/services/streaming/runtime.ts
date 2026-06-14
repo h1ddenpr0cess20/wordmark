@@ -246,7 +246,7 @@ export function createStreamingRuntime({
       targetPayload.output = Array.isArray(targetPayload.output) ? targetPayload.output : [];
     }
     accumulatedImageOutputs.forEach((img, index) => {
-      const outputEntry: any = {
+      const outputEntry: Record<string, unknown> = {
         id: `image-output-${Date.now()}-${index}-${Math.random().toString(36).slice(2, 8)}`,
         type: IMAGE_GENERATION_CALL_TYPE,
         mime_type: img.mimeType || "image/png",
