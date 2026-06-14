@@ -451,7 +451,7 @@ function buildHeaders(provider: string): Record<string, string> {
   return headers;
 }
 
-async function responseToJson(response: Response): Promise<any> {
+async function responseToJson(response: Response): Promise<unknown> {
   if (!response.ok) {
     const text = await response.text().catch(() => "");
     throw new Error(`${response.status} ${response.statusText}${text ? `: ${text}` : ""}`);
