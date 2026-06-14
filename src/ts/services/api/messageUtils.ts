@@ -522,7 +522,6 @@ function buildPersonalityInstruction() {
 
 function buildLocationString() {
   return getLocationForPrompt();
-  return "";
 }
 
 function buildTimestampString() {

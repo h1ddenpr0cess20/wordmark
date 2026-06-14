@@ -51,7 +51,7 @@ export default [
       "require-await": "off",
       "no-empty-function": "off",
       "no-lonely-if": "off",
-      "no-unreachable": "off",
+      "no-unreachable": "error",
       "no-undefined": "off",
       "brace-style": "off",
       "prefer-const": "off",
