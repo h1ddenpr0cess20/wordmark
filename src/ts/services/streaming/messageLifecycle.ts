@@ -22,7 +22,8 @@ import {
 } from "./thinkingUtils.ts";
 import { highlightAndAddCopyButtons, generateMessageId, addMessageCopyButton } from "../../components/messages.ts";
 import { setupImageInteractions } from "../../components/ui/imageInteractions.ts";
-import type { StreamedMessageContent } from "../../../types/api.ts";
+import type { StreamedMessageContent, ResponseObject } from "../../../types/api.ts";
+import { isRecord } from "../../utils/utils.ts";
 
 /**
  * Finalizes a streamed assistant message: renders content/reasoning, processes
@@ -34,18 +35,22 @@ export function finalizeStreamedResponse(loadingMessage: HTMLElement | null, con
     return;
   }
 
-  const responsePayload: any = contentObj && typeof contentObj === "object" ? contentObj.response || null : null;
+  const responsePayload: unknown = contentObj && typeof contentObj === "object" ? contentObj.response || null : null;
   let content = contentObj && typeof contentObj === "object" ? (contentObj.content || "") : (contentObj || "");
   let reasoning = contentObj && typeof contentObj === "object" ? (contentObj.reasoning || "") : "";
 
-  function extractOutputText(payload: any) {
-    if (!payload) {
+  function extractOutputText(payload: unknown): string {
+    if (!isRecord(payload)) {
       return "";
     }
     if (Array.isArray(payload.output)) {
       return payload.output
-        .filter((item: any) => item && item.type === "output_text")
-        .map((item: any) => item.text || item.content || "")
+        .filter((item): item is Record<string, unknown> => isRecord(item) && item.type === "output_text")
+        .map((item) => {
+          if (typeof item.text === "string" && item.text) return item.text;
+          if (typeof item.content === "string" && item.content) return item.content;
+          return "";
+        })
         .join("");
     }
     if (typeof payload.output_text === "string") {
@@ -57,17 +62,17 @@ export function finalizeStreamedResponse(loadingMessage: HTMLElement | null, con
     return "";
   }
 
-  function extractReasoningText(payload: any) {
-    if (!payload) {
+  function extractReasoningText(payload: unknown): string {
+    if (!isRecord(payload)) {
       return "";
     }
-    const flattenContentArray = (items: any[]) => {
+    const flattenContentArray = (items: unknown[]) => {
       return items
-        .map((item: any) => {
+        .map((item: unknown) => {
           if (typeof item === "string") {
             return item;
           }
-          if (item && typeof item === "object") {
+          if (isRecord(item)) {
             if (typeof item.text === "string") {
               return item.text;
             }
@@ -79,14 +84,15 @@ export function finalizeStreamedResponse(loadingMessage: HTMLElement | null, con
         })
         .join("");
     };
-    if (payload.reasoning && typeof payload.reasoning === "string") {
-      return payload.reasoning;
+    const reasoning = payload.reasoning;
+    if (typeof reasoning === "string") {
+      return reasoning;
     }
-    if (payload.reasoning && Array.isArray(payload.reasoning)) {
-      return payload.reasoning.map((item: any) => item?.content || "").join("");
+    if (Array.isArray(reasoning)) {
+      return reasoning.map((item: unknown) => (isRecord(item) && typeof item.content === "string" ? item.content : "")).join("");
     }
-    if (payload.reasoning && Array.isArray(payload.reasoning.output)) {
-      return payload.reasoning.output.map((item: any) => item?.content || "").join("");
+    if (isRecord(reasoning) && Array.isArray(reasoning.output)) {
+      return reasoning.output.map((item: unknown) => (isRecord(item) && typeof item.content === "string" ? item.content : "")).join("");
     }
     if (typeof payload.reasoning_content === "string") {
       return payload.reasoning_content;
@@ -94,8 +100,8 @@ export function finalizeStreamedResponse(loadingMessage: HTMLElement | null, con
     if (Array.isArray(payload.reasoning_content)) {
       return flattenContentArray(payload.reasoning_content);
     }
-    if (payload.reasoning && typeof payload.reasoning === "object" && typeof payload.reasoning.content === "string") {
-      return payload.reasoning.content;
+    if (isRecord(reasoning) && typeof reasoning.content === "string") {
+      return reasoning.content;
     }
     return "";
   }
@@ -120,12 +126,12 @@ export function finalizeStreamedResponse(loadingMessage: HTMLElement | null, con
   let codeInterpreterOutputs: CodeInterpreterOutputs = { attachments: [], logs: [] };
   if (responsePayload) {
     try {
-      processImageGenerationOutputs(responsePayload);
+      processImageGenerationOutputs(responsePayload as ResponseObject | null);
     } catch (error) {
       console.error("Failed to process image generation outputs:", error);
     }
     try {
-      codeInterpreterOutputs = extractCodeInterpreterOutputs(responsePayload);
+      codeInterpreterOutputs = extractCodeInterpreterOutputs(responsePayload as ResponseObject | null);
     } catch (error) {
       console.error("Failed to extract code interpreter outputs:", error);
       codeInterpreterOutputs = { attachments: [], logs: [] };
@@ -187,7 +193,7 @@ export function finalizeStreamedResponse(loadingMessage: HTMLElement | null, con
     id: loadingMessage.id,
     timestamp: new Date().toISOString(),
     hasImages: willHaveImages,
-    responseId: responsePayload && responsePayload.id ? responsePayload.id : undefined,
+    responseId: isRecord(responsePayload) && typeof responsePayload.id === "string" ? responsePayload.id : undefined,
     codeInterpreterOutputs,
   });
 
