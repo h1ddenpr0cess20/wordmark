@@ -469,14 +469,7 @@ export function buildDeveloperMessage() {
     return "";
   }
   const locationInfo = getLocationForPrompt();
-  const timestamp = (() => {
-    try {
-      return new Intl.DateTimeFormat(undefined, { dateStyle: "full", timeStyle: "short" })
-        .format(new Date());
-    } catch {
-      return new Date().toISOString();
-    }
-  })();
+  const timestamp = buildTimestampString();
   let developerBlock = instructions;
   if (locationInfo && !developerBlock.includes(locationInfo)) {
     developerBlock += `\nCurrent location context${locationInfo}`;
@@ -512,16 +505,12 @@ function buildPersonalityInstruction() {
     || "Assume the personality of {personality}. Roleplay and never break character.{guideline}";
   const guideline = state.shortResponseGuideline || "";
   const datetime = buildTimestampString();
-  const location = buildLocationString();
+  const location = getLocationForPrompt();
   return template
     .replace("{personality}", personality)
     .replace("{guideline}", guideline)
     .replace("{datetime}", datetime)
     .replace("{location}", location || "Unknown location");
-}
-
-function buildLocationString() {
-  return getLocationForPrompt();
 }
 
 function buildTimestampString() {
