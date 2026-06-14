@@ -88,7 +88,7 @@ export function normalizeServerBaseUrl(rawUrl: string): string {
  *
  * @param text - The source text.
  * @param max - Maximum length before truncation.
- * @returns The original text, or its first `max` chars plus `…` ("...").
+ * @returns The original text, or its first `max` chars followed by "...".
  */
 export function truncate(text: string, max: number): string {
   return text.length > max ? text.slice(0, max) + "..." : text;
