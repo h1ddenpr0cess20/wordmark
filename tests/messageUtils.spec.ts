@@ -52,6 +52,22 @@ test('estimateTokens and estimateMessageTokens use the ~4 chars/token heuristic'
   assert.equal(estimateMessageTokens({ role: 'user', content: '12345678' }), 6);
 });
 
+test('estimateMessageTokens handles array, object, and empty content', () => {
+  // array parts: string / {text} / {output} are joined with spaces
+  // ['hello','world'].join(' ') = 11 chars -> ceil(11/4)=3, +4 overhead = 7
+  assert.equal(
+    estimateMessageTokens({ role: 'assistant', content: [{ text: 'hello' }, { output: 'world' }] }),
+    7,
+  );
+  // object content reads .text: 'abcd' -> 1 token, +4 = 5
+  assert.equal(estimateMessageTokens({ role: 'assistant', content: { text: 'abcd' } }), 5);
+  // missing content -> empty text -> 0 tokens, +4 overhead
+  assert.equal(estimateMessageTokens({ role: 'user' }), 4);
+  // non-object inputs are zero-cost
+  assert.equal(estimateMessageTokens(null), 0);
+  assert.equal(estimateMessageTokens('nope'), 0);
+});
+
 test('serializeMessagesForRequest includes input_image parts for inline attachments', () => {
   state.imageDataCache = new Map();
   state.generatedImages = [];
