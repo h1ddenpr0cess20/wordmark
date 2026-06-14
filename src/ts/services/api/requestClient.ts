@@ -13,10 +13,10 @@ import {
   supportsReasoningEffort,
 } from "./clientConfig.ts";
 import {
-  buildDeveloperMessage,
   collectFunctionCalls,
   serializeMessagesForRequest,
 } from "./messageUtils.ts";
+import { buildDeveloperMessage } from "./instructions.ts";
 import { windowMessagesByTokenBudget } from "./tokenBudget.ts";
 import {
   serviceSupportsReasoning,
