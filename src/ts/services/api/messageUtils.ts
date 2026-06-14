@@ -482,8 +482,6 @@ export function buildDeveloperMessage() {
     if (toolsDescription) {
       developerBlock += `\n${toolsDescription.trim()}`;
     }
-  }
-  if (config?.enableFunctionCalling) {
     const mediaToolInstructions = getMediaToolInstructions();
     if (mediaToolInstructions) {
       developerBlock += `\n${mediaToolInstructions.trim()}`;
