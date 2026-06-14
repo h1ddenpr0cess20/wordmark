@@ -104,6 +104,7 @@ export async function refreshVectorStoreList(applyCooldown = true) {
     const listHtml = stores.map((store: unknown, index: number) => {
       const rec = isRecord(store) ? store : {};
       const storeId = typeof rec.id === "string" ? rec.id : "";
+      const safeStoreId = escapeHtml(storeId);
       const isActive = Array.isArray(activeIds) ? activeIds.includes(storeId) : (storeId === getActiveVectorStoreId());
       const meta = metadata[storeId] || {};
       const createdDate = new Date(Number(rec.created_at) * 1000).toLocaleDateString();
@@ -111,7 +112,7 @@ export async function refreshVectorStoreList(applyCooldown = true) {
       const friendlyName = escapeHtml(buildFriendlyVectorStoreName(store, meta, index));
 
       return `
-        <div class="vector-store-item ${isActive ? "active" : ""}" data-store-id="${storeId}">
+        <div class="vector-store-item ${isActive ? "active" : ""}" data-store-id="${safeStoreId}">
           <div class="vector-store-header">
             <div class="vector-store-name">
               ${isActive ? "<span class=\"active-badge\">Active</span>" : ""}
@@ -120,16 +121,16 @@ export async function refreshVectorStoreList(applyCooldown = true) {
             <div class="vector-store-actions">
             <div class="tool-toggle-control" title="Enable/disable this store for File Search">
               <div class="toggle-container">
-                <input type="checkbox" id="enable-${storeId}" class="store-enable-toggle" data-store-id="${storeId}" ${isActive ? "checked" : ""}>
-                <label for="enable-${storeId}" class="toggle-switch"></label>
+                <input type="checkbox" id="enable-${safeStoreId}" class="store-enable-toggle" data-store-id="${safeStoreId}" ${isActive ? "checked" : ""}>
+                <label for="enable-${safeStoreId}" class="toggle-switch"></label>
               </div>
             </div>
-            <button class="tool-action-button btn-view" data-store-id="${storeId}" title="View details">View</button>
-            <button class="btn-small btn-delete" data-store-id="${storeId}" title="Delete this vector store">Delete</button>
+            <button class="tool-action-button btn-view" data-store-id="${safeStoreId}" title="View details">View</button>
+            <button class="btn-small btn-delete" data-store-id="${safeStoreId}" title="Delete this vector store">Delete</button>
           </div>
           </div>
           <div class="vector-store-meta">
-            <span class="meta-item"><strong>ID:</strong> ${storeId}</span>
+            <span class="meta-item"><strong>ID:</strong> ${safeStoreId}</span>
             <span class="meta-item"><strong>Files:</strong> ${fileCount}</span>
             <span class="meta-item"><strong>Created:</strong> ${createdDate}</span>
             ${meta.lastUsed ? `<span class="meta-item"><strong>Last Used:</strong> ${new Date(meta.lastUsed).toLocaleString()}</span>` : ""}
