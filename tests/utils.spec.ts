@@ -11,8 +11,25 @@ globalThis.document = globalThis.document || ({
   querySelectorAll: () => [],
 } as unknown as Document);
 
-const { debounce, sanitizeInput, stripBase64FromHistory, toggleThinking, formatFileSize } =
-  await import("../src/ts/utils/utils.ts");
+const {
+  debounce,
+  sanitizeInput,
+  stripBase64FromHistory,
+  toggleThinking,
+  formatFileSize,
+  normalizeServerBaseUrl,
+} = await import("../src/ts/utils/utils.ts");
+
+test("normalizeServerBaseUrl trims and strips trailing slash and /v1", () => {
+  assert.equal(normalizeServerBaseUrl("  http://localhost:1234  "), "http://localhost:1234");
+  assert.equal(normalizeServerBaseUrl("http://localhost:1234/"), "http://localhost:1234");
+  assert.equal(normalizeServerBaseUrl("http://localhost:1234/v1"), "http://localhost:1234");
+  assert.equal(normalizeServerBaseUrl("http://localhost:1234/v1/"), "http://localhost:1234");
+  assert.equal(normalizeServerBaseUrl("http://localhost:11434"), "http://localhost:11434");
+  // only a single trailing slash is removed (matches the original behavior)
+  assert.equal(normalizeServerBaseUrl("http://localhost:1234/v1//"), "http://localhost:1234/v1/");
+  assert.equal(normalizeServerBaseUrl(""), "");
+});
 
 test("formatFileSize renders B/KB/MB with one-decimal precision", () => {
   assert.equal(formatFileSize(0), "0 B");

@@ -15,6 +15,7 @@ import { state } from "../init/state.ts";
 import { API_KEYS_STORAGE_PREFIX, loadApiKeysIntoConfig } from "./apiKeyStorage.ts";
 import { STORAGE_KEYS } from "../utils/storage.ts";
 import { isLocalService } from "./providers.ts";
+import { normalizeServerBaseUrl } from "../utils/utils.ts";
 
 const LMSTUDIO_SERVER_URL_KEY = STORAGE_KEYS.lmStudioServerUrl;
 const OLLAMA_SERVER_URL_KEY = STORAGE_KEYS.ollamaServerUrl;
@@ -164,15 +165,7 @@ function initApiKeys(retryCount: number = 0) {
 function saveLmStudioServerUrl() {
   try {
     if (lmStudioServerUrlInput && lmStudioServerUrlInput.value) {
-      let serverUrl = lmStudioServerUrlInput.value.trim();
-
-      if (serverUrl.endsWith("/")) {
-        serverUrl = serverUrl.slice(0, -1);
-      }
-
-      if (serverUrl.endsWith("/v1")) {
-        serverUrl = serverUrl.slice(0, -3);
-      }
+      const serverUrl = normalizeServerBaseUrl(lmStudioServerUrlInput.value);
 
       localStorage.setItem(LMSTUDIO_SERVER_URL_KEY, serverUrl);
 
@@ -256,15 +249,7 @@ function saveLmStudioServerUrl() {
 function saveOllamaServerUrl() {
   try {
     if (ollamaServerUrlInput && ollamaServerUrlInput.value) {
-      let serverUrl = ollamaServerUrlInput.value.trim();
-
-      if (serverUrl.endsWith("/")) {
-        serverUrl = serverUrl.slice(0, -1);
-      }
-
-      if (serverUrl.endsWith("/v1")) {
-        serverUrl = serverUrl.slice(0, -3);
-      }
+      const serverUrl = normalizeServerBaseUrl(ollamaServerUrlInput.value);
 
       localStorage.setItem(OLLAMA_SERVER_URL_KEY, serverUrl);
 

@@ -64,6 +64,25 @@ export function pickString(record: Record<string, unknown>, keys: string[]): str
 }
 
 /**
+ * Normalizes a user-entered local-inference server URL for storage: trims
+ * surrounding whitespace and strips a single trailing slash and/or `/v1`
+ * suffix so a canonical base (without the version segment) is persisted.
+ *
+ * @param rawUrl - The raw URL as typed by the user.
+ * @returns The normalized base URL (no trailing slash, no `/v1`).
+ */
+export function normalizeServerBaseUrl(rawUrl: string): string {
+  let serverUrl = rawUrl.trim();
+  if (serverUrl.endsWith("/")) {
+    serverUrl = serverUrl.slice(0, -1);
+  }
+  if (serverUrl.endsWith("/v1")) {
+    serverUrl = serverUrl.slice(0, -3);
+  }
+  return serverUrl;
+}
+
+/**
  * Formats a byte count as a short human-readable size (B, KB, or MB).
  *
  * @remarks
