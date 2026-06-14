@@ -83,6 +83,18 @@ export function normalizeServerBaseUrl(rawUrl: string): string {
 }
 
 /**
+ * Truncates `text` to at most `max` characters, appending an ellipsis when
+ * the text was actually shortened.
+ *
+ * @param text - The source text.
+ * @param max - Maximum length before truncation.
+ * @returns The original text, or its first `max` chars plus `…` ("...").
+ */
+export function truncate(text: string, max: number): string {
+  return text.length > max ? text.slice(0, max) + "..." : text;
+}
+
+/**
  * Formats a byte count as a short human-readable size (B, KB, or MB).
  *
  * @remarks

@@ -18,7 +18,15 @@ const {
   toggleThinking,
   formatFileSize,
   normalizeServerBaseUrl,
+  truncate,
 } = await import("../src/ts/utils/utils.ts");
+
+test("truncate appends an ellipsis only when text exceeds the max", () => {
+  assert.equal(truncate("hello", 10), "hello");
+  assert.equal(truncate("hello", 5), "hello"); // exactly max -> unchanged
+  assert.equal(truncate("hello world", 5), "hello...");
+  assert.equal(truncate("", 3), "");
+});
 
 test("normalizeServerBaseUrl trims and strips trailing slash and /v1", () => {
   assert.equal(normalizeServerBaseUrl("  http://localhost:1234  "), "http://localhost:1234");
