@@ -8,6 +8,7 @@
  */
 
 import type { createStreamingRuntime } from "./runtime.ts";
+import { isRecord } from "../../utils/utils.ts";
 
 type StreamingRuntime = ReturnType<typeof createStreamingRuntime>;
 
@@ -35,9 +36,9 @@ function safeTruncate(str: unknown, max = 800): string {
   return text.length > max ? `${text.slice(0, max)}…` : text;
 }
 
-function formatToolArgs(args: any, inline = false) {
+function formatToolArgs(args: unknown, inline = false) {
   if (!args) return "";
-  let parsed = null;
+  let parsed: unknown = null;
   if (typeof args === "string") {
     try {
       parsed = JSON.parse(args);
@@ -47,7 +48,7 @@ function formatToolArgs(args: any, inline = false) {
   } else if (typeof args === "object") {
     parsed = args;
   }
-  if (!parsed || typeof parsed !== "object") return "";
+  if (!isRecord(parsed)) return "";
 
   if (inline) {
     const keys = Object.keys(parsed);
@@ -67,10 +68,10 @@ function formatToolArgs(args: any, inline = false) {
   }
 }
 
-function extractQueriesFromArgs(argsStr: any) {
+function extractQueriesFromArgs(argsStr: unknown) {
   const queries: string[] = [];
   if (!argsStr) return queries;
-  let parsed = null;
+  let parsed: unknown = null;
   if (typeof argsStr === "string") {
     try {
       parsed = JSON.parse(argsStr);
@@ -80,15 +81,15 @@ function extractQueriesFromArgs(argsStr: any) {
   } else if (typeof argsStr === "object") {
     parsed = argsStr;
   }
-  if (!parsed || typeof parsed !== "object") return queries;
+  if (!isRecord(parsed)) return queries;
 
   const candidates: string[] = [];
   if (typeof parsed.query === "string") candidates.push(parsed.query);
   if (Array.isArray(parsed.queries)) {
-    parsed.queries.forEach((q: any) => { if (typeof q === "string") candidates.push(q); });
+    parsed.queries.forEach((q: unknown) => { if (typeof q === "string") candidates.push(q); });
   }
   if (Array.isArray(parsed.searches)) {
-    parsed.searches.forEach((q: any) => { if (typeof q === "string") candidates.push(q); });
+    parsed.searches.forEach((q: unknown) => { if (typeof q === "string") candidates.push(q); });
   }
   if (typeof parsed.q === "string") candidates.push(parsed.q);
 
@@ -103,18 +104,17 @@ function extractQueriesFromArgs(argsStr: any) {
   return queries;
 }
 
-function extractDeltaText(payload: any) {
-  if (!payload) return "";
-  if (typeof payload.delta === "string") {
-    return payload.delta;
+function extractDeltaText(payload: unknown): string {
+  if (!isRecord(payload)) return "";
+  const delta = payload.delta;
+  if (typeof delta === "string") {
+    return delta;
   }
-  if (payload.delta && typeof payload.delta === "object") {
-    if (typeof payload.delta.text === "string") {
-      return payload.delta.text;
-    }
-    if (Array.isArray(payload.delta) && payload.delta.length > 0) {
-      return payload.delta.map((item: any) => (typeof item === "string" ? item : "")).join("");
-    }
+  if (Array.isArray(delta) && delta.length > 0) {
+    return delta.map((item: unknown) => (typeof item === "string" ? item : "")).join("");
+  }
+  if (isRecord(delta) && typeof delta.text === "string") {
+    return delta.text;
   }
   if (typeof payload.text === "string") {
     return payload.text;
@@ -122,15 +122,15 @@ function extractDeltaText(payload: any) {
   return "";
 }
 
-function flattenContentArray(items: any[]): string {
-  return items.map((item: any) => pluckReasoningValue(item)).join("");
+function flattenContentArray(items: unknown[]): string {
+  return items.map((item: unknown) => pluckReasoningValue(item)).join("");
 }
 
-function pluckReasoningValue(value: any): string {
+function pluckReasoningValue(value: unknown): string {
   if (!value) return "";
   if (typeof value === "string") return value;
   if (Array.isArray(value)) return flattenContentArray(value);
-  if (typeof value === "object") {
+  if (isRecord(value)) {
     if (typeof value.content === "string") return value.content;
     if (Array.isArray(value.content)) return flattenContentArray(value.content);
     if (typeof value.text === "string") return value.text;
@@ -143,11 +143,11 @@ function pluckReasoningValue(value: any): string {
   return "";
 }
 
-function getNestedValue(source: any, path: string[]) {
-  return path.reduce((value: any, key: string) => (value == null ? undefined : value[key]), source);
+function getNestedValue(source: unknown, path: string[]): unknown {
+  return path.reduce<unknown>((value, key) => (isRecord(value) ? value[key] : undefined), source);
 }
 
-function extractReasoningText(payload: any) {
+function extractReasoningText(payload: unknown): string {
   if (!payload) return "";
 
   const candidatePaths = [

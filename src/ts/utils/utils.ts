@@ -35,6 +35,17 @@ export function sanitizeInput(text: string): string {
 }
 
 /**
+ * Narrows an unknown value to a plain key/value record (a non-null,
+ * non-array object).
+ *
+ * @param value - The value to test.
+ * @returns True when `value` is a non-array object.
+ */
+export function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === "object" && value !== null && !Array.isArray(value);
+}
+
+/**
  * Toggles a reasoning container's collapsed state and remembers the preference.
  *
  * @param id - The id of the thinking container to toggle.
