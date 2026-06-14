@@ -75,7 +75,7 @@ function createMediaElement(mediaRecord: GeneratedImage, src: string, messageId 
   return imgEl;
 }
 
-function extractTextContent(content: Message["content"]): string {
+export function extractTextContent(content: Message["content"]): string {
   if (typeof content === "string") {
     return content;
   }
