@@ -31,7 +31,7 @@ Modules
 - `services/`: API and feature services
   - `api.ts`: aggregates the Responses client helpers so UI modules can run turns and manage tools
   - `providers.ts`: provider capability registry — pure predicates (`isLocalService`, `serviceSupportsReasoning`, `usesServerManagedTools`, …) that replace scattered `serviceKey === …` checks
-  - `api/`: split helpers for configuration (`clientConfig.ts`), message prep (`messageUtils.ts`), request execution (`requestClient.ts`), non-streaming response normalization (`responseNormalization.ts`), and the tool system (`toolManager.ts` facade + `tools/catalog.ts`, `tools/preferences.ts`, `tools/mcp.ts`, `staticTools.ts`)
+  - `api/`: split helpers for configuration (`clientConfig.ts`), message prep (`messageUtils.ts`), token estimation/history windowing (`tokenBudget.ts`), request execution (`requestClient.ts`), non-streaming response normalization (`responseNormalization.ts`), and the tool system (`toolManager.ts` facade + `tools/catalog.ts`, `tools/preferences.ts`, `tools/mcp.ts`, `staticTools.ts`)
   - `streaming.ts`: orchestrates SSE consumption; wires the runtime/event processor and finalises messages
   - `streaming/runtime.ts`: maintains incremental output, reasoning buffers, DOM updates, and image attachment staging
   - `streaming/eventProcessor.ts`: parses SSE event types for reasoning, tool status, image generation, and error handling (provider-agnostic — one unified event vocabulary); pure payload parsing/formatting lives in `streaming/eventParsing.ts`

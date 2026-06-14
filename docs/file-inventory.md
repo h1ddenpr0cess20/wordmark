@@ -28,7 +28,8 @@ Purpose: quick orientation to the current project layout, key entry points, and 
     - `messages.ts`: Render and stream assistant/user messages; attachment previews.
     - `settings.ts`: Settings panel logic (API keys, service/model, tools, memory).
     - `theme.ts`: Theme switching and persistence.
-    - `attachments.ts`: Image/file uploads and previews.
+    - `attachments.ts`: Image/file upload ingestion (menu, drag-drop, paste, validation).
+    - `attachmentPreviews.ts`: Renders pending image/document/directory previews and per-item removal.
     - `tools.ts`: Tool configuration UI hooked to the Responses client (`services/api.ts`).
     - `memory.ts`: Memory tab UI (enable, limit, add/remove/clear).
     - `aboutPopups.ts`, `logo.ts`, `ui/`: Ancillary UI + shared UI helpers (settings tabs, image interactions).
@@ -39,6 +40,7 @@ Purpose: quick orientation to the current project layout, key entry points, and 
       - `requestClient.ts`: Network layer for streaming/non-streaming requests; orchestrates tool execution loops
       - `clientConfig.ts`: Service configuration helpers (active model, API key, base URL, reasoning support)
       - `messageUtils.ts`: Message serialization for Responses API (multimodal content, function calls, system prompts)
+      - `tokenBudget.ts`: Token estimation (~4 chars/token) and history-window trimming to a per-request budget
       - `responseNormalization.ts`: Folds non-streaming provider response shapes into normalized output/reasoning strings
       - `toolManager.ts`: Facade — request-time tool filtering + UI catalog view; re-exports the `tools/` sub-modules
       - `tools/catalog.ts`: The mutable tool registry (`TOOL_CATALOG`/`TOOL_DEFINITIONS`) + typed mutators
