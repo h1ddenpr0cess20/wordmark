@@ -58,6 +58,9 @@ export async function openMeteoForecast(args: unknown = {}) {
   }
 
   const loc = geocode.results[0];
+  if (!loc || typeof loc !== "object") {
+    return { error: `City '${city}' not found` };
+  }
   const lat = loc.latitude;
   const lon = loc.longitude;
   if (lat == null || lon == null) {
