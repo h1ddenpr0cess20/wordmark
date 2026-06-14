@@ -12,3 +12,21 @@ export const IMAGE_PLACEHOLDER_PATTERN = "\\[\\[IMAGE:\\s*([^\\]]+)\\]\\]";
 export function createImagePlaceholderRegex(): RegExp {
   return new RegExp(IMAGE_PLACEHOLDER_PATTERN, "g");
 }
+
+/** Regex source matching IMAGE or MEDIA placeholders; capture group 1 is the filename. */
+export const MEDIA_PLACEHOLDER_PATTERN = "\\[\\[(?:IMAGE|MEDIA):\\s*([^\\]]+)\\]\\]";
+
+/** A fresh global regex for IMAGE or MEDIA placeholders (capture group 1 = filename). */
+export function createMediaPlaceholderRegex(): RegExp {
+  return new RegExp(MEDIA_PLACEHOLDER_PATTERN, "g");
+}
+
+/** Builds the canonical `[[IMAGE: filename]]` placeholder string. */
+export function imagePlaceholder(filename: string): string {
+  return `[[IMAGE: ${filename}]]`;
+}
+
+/** Builds the canonical `[[MEDIA: filename]]` placeholder string. */
+export function mediaPlaceholder(filename: string): string {
+  return `[[MEDIA: ${filename}]]`;
+}

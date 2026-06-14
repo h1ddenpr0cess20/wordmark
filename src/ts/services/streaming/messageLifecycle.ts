@@ -22,6 +22,7 @@ import {
 } from "./thinkingUtils.ts";
 import { highlightAndAddCopyButtons, generateMessageId, addMessageCopyButton } from "../../components/messages.ts";
 import { setupImageInteractions } from "../../components/ui/imageInteractions.ts";
+import { createMediaPlaceholderRegex, mediaPlaceholder } from "../../utils/placeholders.ts";
 import type { StreamedMessageContent, ResponseObject } from "../../../types/api.ts";
 import { isRecord } from "../../utils/utils.ts";
 
@@ -168,7 +169,7 @@ export function finalizeStreamedResponse(loadingMessage: HTMLElement | null, con
   }
 
   let fullContent = content;
-  const hasExistingImagePlaceholders = /\[\[(?:IMAGE|MEDIA): [^\]]+\]\]/.test(fullContent);
+  const hasExistingImagePlaceholders = createMediaPlaceholderRegex().test(fullContent);
   const willHaveImages = !hasExistingImagePlaceholders &&
                          state.currentGeneratedImageHtml &&
                          state.currentGeneratedImageHtml.length > 0;
@@ -177,7 +178,7 @@ export function finalizeStreamedResponse(loadingMessage: HTMLElement | null, con
     const imageList = state.currentGeneratedImageHtml
       .map(html => {
         const match = html.match(/data-filename="([^"]+)"/);
-        return match ? `[[MEDIA: ${match[1]}]]` : null;
+        return match ? mediaPlaceholder(match[1]) : null;
       })
       .filter(Boolean)
       .join("\n");

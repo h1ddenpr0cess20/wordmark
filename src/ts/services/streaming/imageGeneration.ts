@@ -4,6 +4,7 @@
 
 import { state } from "../../init/state.ts";
 import { registerGeneratedMedia } from "../mediaTools.ts";
+import { imagePlaceholder, mediaPlaceholder } from "../../utils/placeholders.ts";
 import type { ResponseObject } from "../../../types/api.ts";
 import { isRecord, pickString } from "../../utils/utils.ts";
 
@@ -46,7 +47,7 @@ export function ensureImagesHaveMessageIds() {
     let associatedMessage = null;
 
     for (const msg of assistantMessages) {
-      if (typeof msg.content === "string" && (msg.content.includes(`[[IMAGE: ${img.filename}]]`) || msg.content.includes(`[[MEDIA: ${img.filename}]]`))) {
+      if (typeof msg.content === "string" && img.filename && (msg.content.includes(imagePlaceholder(img.filename)) || msg.content.includes(mediaPlaceholder(img.filename)))) {
         associatedMessage = msg;
         break;
       }

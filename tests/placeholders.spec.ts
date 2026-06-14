@@ -1,9 +1,28 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 
-const { IMAGE_PLACEHOLDER_PATTERN, createImagePlaceholderRegex } = await import(
-  "../src/ts/utils/placeholders.js"
-);
+const {
+  IMAGE_PLACEHOLDER_PATTERN,
+  createImagePlaceholderRegex,
+  createMediaPlaceholderRegex,
+  imagePlaceholder,
+  mediaPlaceholder,
+} = await import("../src/ts/utils/placeholders.js");
+
+test("builders produce strings the matching regexes accept", () => {
+  assert.equal(imagePlaceholder("a.png"), "[[IMAGE: a.png]]");
+  assert.equal(mediaPlaceholder("b.mp4"), "[[MEDIA: b.mp4]]");
+  assert.match(imagePlaceholder("a.png"), createImagePlaceholderRegex());
+  assert.match(imagePlaceholder("a.png"), createMediaPlaceholderRegex());
+  assert.match(mediaPlaceholder("b.mp4"), createMediaPlaceholderRegex());
+});
+
+test("createMediaPlaceholderRegex matches both IMAGE and MEDIA, image regex does not match MEDIA", () => {
+  assert.match("[[MEDIA: v.mp4]]", createMediaPlaceholderRegex());
+  assert.match("[[IMAGE: i.png]]", createMediaPlaceholderRegex());
+  assert.doesNotMatch("[[MEDIA: v.mp4]]", createImagePlaceholderRegex());
+  assert.equal(createMediaPlaceholderRegex().exec("[[MEDIA: v.mp4]]")?.[1], "v.mp4");
+});
 
 test("createImagePlaceholderRegex captures the filename and is global", () => {
   const re = createImagePlaceholderRegex();

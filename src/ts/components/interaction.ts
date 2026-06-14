@@ -6,6 +6,7 @@ import { elements, state } from "../init/state.ts";
 import { showError, showInfo } from "../utils/notifications.ts";
 
 import { sanitizeInput, stripBase64FromHistory, formatFileSize } from "../utils/utils.ts";
+import { imagePlaceholder } from "../utils/placeholders.ts";
 import { saveImageToDb } from "../utils/imageStorage.ts";
 import { scrollInputIntoView } from "../utils/mobileHandling.ts";
 import { finalizeStreamedResponse, removeLoadingIndicator } from "../services/streaming/messageLifecycle.ts";
@@ -61,7 +62,7 @@ export async function sendMessage() {
     up.filename = filename;
     up.timestamp = new Date().toISOString();
     uploadHtml += `<img src="${up.dataUrl}" alt="Uploaded Image" class="generated-image-thumbnail" data-filename="${filename}" data-timestamp="${up.timestamp}" />`;
-    placeholders.push(`[[IMAGE: ${filename}]]`);
+    placeholders.push(imagePlaceholder(filename));
     const mimeType = (up.file && up.file.type) || (typeof up.dataUrl === "string" && up.dataUrl.startsWith("data:")
       ? up.dataUrl.split(";")[0].replace("data:", "")
       : "image/png");
