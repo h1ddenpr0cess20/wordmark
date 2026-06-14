@@ -9,6 +9,7 @@ import {
   getBaseUrl,
 } from "../api/clientConfig.ts";
 import type { ResponseObject } from "../../../types/api.ts";
+import { isRecord } from "../../utils/utils.ts";
 
 const FILE_METADATA_CACHE = new Map<string, any>();
 const FILE_METADATA_PROMISES = new Map<string, Promise<any>>();
@@ -72,8 +73,26 @@ function inferSubtype(type: unknown, mimeType: unknown) {
   return "file";
 }
 
-function extractFileId(candidate: any) {
-  if (!candidate || typeof candidate !== "object") {
+/**
+ * Returns the first own property among `keys` whose value is a non-empty
+ * string.
+ *
+ * @param record - Source object.
+ * @param keys - Candidate keys in priority order.
+ * @returns The matching string, or null when none qualify.
+ */
+function pickString(record: Record<string, unknown>, keys: string[]): string | null {
+  for (const key of keys) {
+    const value = record[key];
+    if (typeof value === "string" && value) {
+      return value;
+    }
+  }
+  return null;
+}
+
+function extractFileId(candidate: unknown): string | null {
+  if (!isRecord(candidate)) {
     return null;
   }
   const possibleKeys = [
@@ -97,21 +116,18 @@ function extractFileId(candidate: any) {
   return null;
 }
 
-function buildAttachmentFromObject(candidate: any, callId: string | null): CodeAttachment | null {
+function buildAttachmentFromObject(candidate: unknown, callId: string | null): CodeAttachment | null {
   const fileId = extractFileId(candidate);
-  if (!fileId) {
+  if (!fileId || !isRecord(candidate)) {
     return null;
   }
-  const mimeType = candidate.mime_type || candidate.content_type || candidate.media_type || null;
-  let filename = candidate.filename || candidate.name || candidate.path || null;
-  if (!filename && candidate.display_name) {
-    filename = candidate.display_name;
-  }
+  const mimeType = pickString(candidate, ["mime_type", "content_type", "media_type"]);
+  const filename = pickString(candidate, ["filename", "name", "path", "display_name"]);
   const bytes = typeof candidate.bytes === "number"
     ? candidate.bytes
     : (typeof candidate.size === "number" ? candidate.size : null);
 
-  const containerId = candidate.container_id || null;
+  const containerId = pickString(candidate, ["container_id"]);
 
   return {
     kind: "attachment",
@@ -119,7 +135,7 @@ function buildAttachmentFromObject(candidate: any, callId: string | null): CodeA
     callId: callId || null,
     fileId,
     containerId,
-    filename: filename || null,
+    filename,
     mimeType,
     bytes,
     index: null,
