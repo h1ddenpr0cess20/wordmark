@@ -115,135 +115,55 @@ async function loadContentIntoContainer(url: string, containerId: string) {
   }
 }
 
-/** Opens the privacy popup, hiding the about pane and loading its content. */
-async function showPrivacyPopup() {
-  const aboutContent = document.querySelector<HTMLElement>("#content-about .about-content");
-  const privacyPopup = document.getElementById("privacy-popup");
+/** Per-popup wiring: the popup element id and the bundled content to load into it. */
+const ABOUT_POPUPS: Record<string, { popupId: string; url: string; containerId: string }> = {
+  privacy: { popupId: "privacy-popup", url: "src/html/privacy-policy.html", containerId: "privacy-content-container" },
+  contact: { popupId: "contact-popup", url: "src/html/contact.html", containerId: "contact-content-container" },
+  terms: { popupId: "terms-popup", url: "src/html/terms-of-service.html", containerId: "terms-content-container" },
+  help: { popupId: "help-popup", url: "src/html/help-guide.html", containerId: "help-content-container" },
+};
 
-  if (aboutContent && privacyPopup) {
+/** Opens the named about popup, hiding the about pane and loading its content. */
+async function showPopup(name: string) {
+  const cfg = ABOUT_POPUPS[name];
+  const aboutContent = document.querySelector<HTMLElement>("#content-about .about-content");
+  const popup = cfg ? document.getElementById(cfg.popupId) : null;
+
+  if (cfg && aboutContent && popup) {
     aboutContent.style.display = "none";
-    privacyPopup.style.display = "flex";
+    popup.style.display = "flex";
 
-    await loadContentIntoContainer("src/html/privacy-policy.html", "privacy-content-container");
+    await loadContentIntoContainer(cfg.url, cfg.containerId);
 
-    privacyPopup.offsetHeight;
-    privacyPopup.classList.add("active");
+    popup.offsetHeight;
+    popup.classList.add("active");
   }
 }
 
-/** Closes the privacy popup and restores the about pane after the transition. */
-function hidePrivacyPopup() {
+/** Closes the named about popup and restores the about pane after the transition. */
+function hidePopup(name: string) {
+  const cfg = ABOUT_POPUPS[name];
   const aboutContent = document.querySelector<HTMLElement>("#content-about .about-content");
-  const privacyPopup = document.getElementById("privacy-popup");
+  const popup = cfg ? document.getElementById(cfg.popupId) : null;
 
-  if (aboutContent && privacyPopup) {
-    privacyPopup.classList.remove("active");
+  if (aboutContent && popup) {
+    popup.classList.remove("active");
     setTimeout(() => {
-      privacyPopup.style.display = "none";
-      aboutContent.style.display = "";
-    }, 250);
-  }
-}
-
-/** Opens the contact popup, hiding the about pane and loading its content. */
-async function showContactPopup() {
-  const aboutContent = document.querySelector<HTMLElement>("#content-about .about-content");
-  const contactPopup = document.getElementById("contact-popup");
-
-  if (aboutContent && contactPopup) {
-    aboutContent.style.display = "none";
-    contactPopup.style.display = "flex";
-
-    await loadContentIntoContainer("src/html/contact.html", "contact-content-container");
-
-    contactPopup.offsetHeight;
-    contactPopup.classList.add("active");
-  }
-}
-
-/** Closes the contact popup and restores the about pane after the transition. */
-function hideContactPopup() {
-  const aboutContent = document.querySelector<HTMLElement>("#content-about .about-content");
-  const contactPopup = document.getElementById("contact-popup");
-
-  if (aboutContent && contactPopup) {
-    contactPopup.classList.remove("active");
-    setTimeout(() => {
-      contactPopup.style.display = "none";
-      aboutContent.style.display = "";
-    }, 250);
-  }
-}
-
-/** Opens the terms popup, hiding the about pane and loading its content. */
-async function showTermsPopup() {
-  const aboutContent = document.querySelector<HTMLElement>("#content-about .about-content");
-  const termsPopup = document.getElementById("terms-popup");
-
-  if (aboutContent && termsPopup) {
-    aboutContent.style.display = "none";
-    termsPopup.style.display = "flex";
-
-    await loadContentIntoContainer("src/html/terms-of-service.html", "terms-content-container");
-
-    termsPopup.offsetHeight;
-    termsPopup.classList.add("active");
-  }
-}
-
-/** Closes the terms popup and restores the about pane after the transition. */
-function hideTermsPopup() {
-  const aboutContent = document.querySelector<HTMLElement>("#content-about .about-content");
-  const termsPopup = document.getElementById("terms-popup");
-
-  if (aboutContent && termsPopup) {
-    termsPopup.classList.remove("active");
-    setTimeout(() => {
-      termsPopup.style.display = "none";
-      aboutContent.style.display = "";
-    }, 250);
-  }
-}
-
-/** Opens the help popup, hiding the about pane and loading its content. */
-async function showHelpPopup() {
-  const aboutContent = document.querySelector<HTMLElement>("#content-about .about-content");
-  const helpPopup = document.getElementById("help-popup");
-
-  if (aboutContent && helpPopup) {
-    aboutContent.style.display = "none";
-    helpPopup.style.display = "flex";
-
-    await loadContentIntoContainer("src/html/help-guide.html", "help-content-container");
-
-    helpPopup.offsetHeight;
-    helpPopup.classList.add("active");
-  }
-}
-
-/** Closes the help popup and restores the about pane after the transition. */
-function hideHelpPopup() {
-  const aboutContent = document.querySelector<HTMLElement>("#content-about .about-content");
-  const helpPopup = document.getElementById("help-popup");
-
-  if (aboutContent && helpPopup) {
-    helpPopup.classList.remove("active");
-    setTimeout(() => {
-      helpPopup.style.display = "none";
+      popup.style.display = "none";
       aboutContent.style.display = "";
     }, 250);
   }
 }
 
 const POPUP_ACTIONS = {
-  "show-privacy": showPrivacyPopup,
-  "hide-privacy": hidePrivacyPopup,
-  "show-contact": showContactPopup,
-  "hide-contact": hideContactPopup,
-  "show-terms": showTermsPopup,
-  "hide-terms": hideTermsPopup,
-  "show-help": showHelpPopup,
-  "hide-help": hideHelpPopup,
+  "show-privacy": () => showPopup("privacy"),
+  "hide-privacy": () => hidePopup("privacy"),
+  "show-contact": () => showPopup("contact"),
+  "hide-contact": () => hidePopup("contact"),
+  "show-terms": () => showPopup("terms"),
+  "hide-terms": () => hidePopup("terms"),
+  "show-help": () => showPopup("help"),
+  "hide-help": () => hidePopup("help"),
 };
 
 if (typeof document !== "undefined" && typeof document.addEventListener === "function") {
