@@ -16,8 +16,8 @@ import {
   buildDeveloperMessage,
   collectFunctionCalls,
   serializeMessagesForRequest,
-  windowMessagesByTokenBudget,
 } from "./messageUtils.ts";
+import { windowMessagesByTokenBudget } from "./tokenBudget.ts";
 import {
   serviceSupportsReasoning,
   supportsResponseIncludeFields,

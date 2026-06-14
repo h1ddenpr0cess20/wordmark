@@ -6,10 +6,12 @@ globalThis.window = globalThis.window || {};
 
 const {
   serializeMessagesForRequest,
+} = await import('../src/ts/services/api/messageUtils.js');
+const {
   estimateTokens,
   estimateMessageTokens,
   windowMessagesByTokenBudget,
-} = await import('../src/ts/services/api/messageUtils.js');
+} = await import('../src/ts/services/api/tokenBudget.js');
 
 test('windowMessagesByTokenBudget returns all messages when budget is 0 (no limit)', () => {
   const messages = [
