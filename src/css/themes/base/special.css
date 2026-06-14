@@ -579,3 +579,107 @@
 .theme-eink .personality-header {
   font-family: "Charter", "Iowan Old Style", "Georgia", serif !important;
 }
+
+.theme-synthwave {
+  --bg-primary: #1a0b2e;
+  --bg-secondary: #241139;
+  --text-primary: #f6e7ff;
+  --text-secondary: #c6a3ff;
+  --accent-color: #ff2e97;
+  --accent-hover: #ff6ec7;
+  --border-color: #6a2c9c;
+  --user-bg: #2d1b4e;
+  --assistant-bg: #1f1235;
+  --error-bg: #4a1228;
+  --error-text: #ff6b9d;
+  --body-bg-color-1: #0d0420;
+  --body-bg-color-2: #2a0f4a;
+  --button-text-color: #f6e7ff;
+  --code-bg: rgba(13, 4, 32, 0.9);
+  --code-border: #6a2c9c;
+  --code-inline-bg: rgba(255, 46, 151, 0.14);
+  --bg-hover: rgba(255, 46, 151, 0.12);
+}
+
+/* 80s sunset: a neon perspective grid receding to a glowing horizon. */
+.theme-synthwave #chat-container::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  pointer-events: none;
+  background-image:
+    linear-gradient(rgba(0, 234, 255, 0.08) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 46, 151, 0.07) 1px, transparent 1px),
+    radial-gradient(ellipse at 50% 120%, rgba(255, 46, 151, 0.18), transparent 60%);
+  background-size: 44px 44px, 44px 44px, 100% 100%;
+  z-index: 10;
+}
+
+.theme-synthwave #header-title {
+  color: var(--accent-color);
+  text-shadow: 0 0 6px rgba(255, 46, 151, 0.7), 0 0 14px rgba(255, 46, 151, 0.4);
+  letter-spacing: 0.14em;
+}
+
+.theme-synthwave .message .message-content {
+  border: 1px solid var(--border-color);
+  box-shadow: 0 0 10px rgba(106, 44, 156, 0.4);
+}
+
+.theme-synthwave .message.user .message-content {
+  border-color: var(--accent-color);
+  box-shadow: 0 0 10px rgba(255, 46, 151, 0.35);
+}
+
+.theme-synthwave #user-input {
+  background-color: rgba(13, 4, 32, 0.7);
+  border: 1px solid var(--border-color);
+  color: var(--text-primary);
+  caret-color: var(--accent-color);
+}
+
+.theme-synthwave #user-input::placeholder {
+  color: rgba(198, 163, 255, 0.55);
+}
+
+.theme-synthwave .settings-group {
+  border: 1px solid var(--border-color);
+  background-color: rgba(13, 4, 32, 0.5);
+}
+
+.theme-synthwave .settings-group h3 {
+  color: #00eaff !important;
+  text-shadow: 0 0 6px rgba(0, 234, 255, 0.55);
+  letter-spacing: 0.08em;
+}
+
+.theme-synthwave .tab-button.active {
+  background: transparent !important;
+  color: var(--accent-color) !important;
+  border-bottom: 2px solid var(--accent-color) !important;
+}
+
+.theme-synthwave #wordmark-logo circle {
+  fill: transparent;
+  stroke: #00eaff;
+}
+
+.theme-synthwave #wordmark-logo path {
+  stroke: var(--accent-color);
+}
+
+.theme-synthwave pre,
+.theme-synthwave pre code,
+.theme-synthwave .code-block {
+  background-color: rgba(13, 4, 32, 0.9);
+  border: 1px solid var(--code-border);
+}
+
+.theme-synthwave .hljs-keyword { color: #ff2e97; }
+.theme-synthwave .hljs-string { color: #5cffd0; }
+.theme-synthwave .hljs-comment { color: #8a6cc0; font-style: italic; }
+.theme-synthwave .hljs-function { color: #00eaff; }
+.theme-synthwave .hljs-number { color: #ffd166; }
