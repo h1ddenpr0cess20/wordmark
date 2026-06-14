@@ -8,6 +8,7 @@ import { toolImplementations } from "./toolImplementations.ts";
 import { getApiKey } from "./apiKeyStorage.ts";
 import { config } from "../../config/config.ts";
 import { escapeHtml } from "../utils/sanitize.ts";
+import { isRecord } from "../utils/utils.ts";
 import type { GeneratedImage } from "../../types/common.ts";
 
 interface RegisterMediaOptions {
@@ -229,15 +230,16 @@ export async function resolveLatestMediaReference(kind: string): Promise<string 
   return null;
 }
 
-function parseImageResponse(payload: any): ParsedImage[] {
-  const candidates = Array.isArray(payload?.data) ? payload.data : [];
+function parseImageResponse(payload: unknown): ParsedImage[] {
+  const data = isRecord(payload) ? payload.data : undefined;
+  const candidates = Array.isArray(data) ? data : [];
   return candidates
-    .map((item: any): ParsedImage | null => {
-      if (!item || typeof item !== "object") {
+    .map((item: unknown): ParsedImage | null => {
+      if (!isRecord(item)) {
         return null;
       }
       if (typeof item.b64_json === "string" && item.b64_json.trim()) {
-        const mimeType = item.mime_type || "image/png";
+        const mimeType = typeof item.mime_type === "string" ? item.mime_type : "image/png";
         return {
           mimeType,
           url: `data:${mimeType};base64,${item.b64_json.trim()}`,
@@ -245,7 +247,7 @@ function parseImageResponse(payload: any): ParsedImage[] {
       }
       if (typeof item.url === "string" && item.url.trim()) {
         return {
-          mimeType: item.mime_type || "image/png",
+          mimeType: typeof item.mime_type === "string" ? item.mime_type : "image/png",
           url: item.url.trim(),
         };
       }
@@ -457,43 +459,54 @@ async function responseToJson(response: Response): Promise<any> {
   return response.json();
 }
 
-async function fetchJson(url: string, options: RequestInit = {}): Promise<any> {
+async function fetchJson(url: string, options: RequestInit = {}): Promise<unknown> {
   const response = await fetch(url, options);
   return responseToJson(response);
 }
 
-function normalizePrompt(args: any = {}) {
-  const prompt = String(args.prompt || "").trim();
+function normalizePrompt(args: unknown) {
+  const raw = isRecord(args) ? args.prompt : undefined;
+  const prompt = String(raw ?? "").trim();
   if (!prompt) {
     throw new Error("A prompt is required.");
   }
   return prompt;
 }
 
-async function generateGrokImage(args: any, mode: string): Promise<any> {
+interface GrokImageResult {
+  ok: true;
+  backend: string;
+  mediaType: string;
+  count: number;
+  filenames: (string | undefined)[];
+}
+
+async function generateGrokImage(args: unknown, mode: string): Promise<GrokImageResult> {
+  const a = isRecord(args) ? args : {};
   const prompt = normalizePrompt(args);
   const provider = "xai";
   const endpoint = mode === "edit" ? "/images/edits" : "/images/generations";
-  const payload: any = {
+  const n = Number(a.n);
+  const payload: Record<string, unknown> = {
     model: XAI_IMAGE_MODEL,
     prompt,
-    n: Number.isFinite(Number(args.n)) ? Math.max(1, Math.min(10, Number(args.n))) : 1,
+    n: Number.isFinite(n) ? Math.max(1, Math.min(10, n)) : 1,
     response_format: "b64_json",
   };
 
-  if (typeof args.aspect_ratio === "string" && XAI_IMAGE_ASPECT_RATIOS.includes(args.aspect_ratio)) {
-    payload.aspect_ratio = args.aspect_ratio;
+  if (typeof a.aspect_ratio === "string" && XAI_IMAGE_ASPECT_RATIOS.includes(a.aspect_ratio)) {
+    payload.aspect_ratio = a.aspect_ratio;
   }
-  if (typeof args.resolution === "string" && ["1k", "2k"].includes(args.resolution)) {
-    payload.resolution = args.resolution;
+  if (typeof a.resolution === "string" && ["1k", "2k"].includes(a.resolution)) {
+    payload.resolution = a.resolution;
   }
 
   if (mode === "edit") {
-    let imageUrls = Array.isArray(args.image_urls)
-      ? args.image_urls.filter((value: any) => typeof value === "string" && value.trim()).map((value: string) => value.trim())
+    let imageUrls: string[] = Array.isArray(a.image_urls)
+      ? a.image_urls.filter((value: unknown): value is string => typeof value === "string" && Boolean(value.trim())).map((value) => value.trim())
       : [];
-    if (!imageUrls.length && typeof args.image_url === "string" && args.image_url.trim()) {
-      imageUrls = [args.image_url.trim()];
+    if (!imageUrls.length && typeof a.image_url === "string" && a.image_url.trim()) {
+      imageUrls = [a.image_url.trim()];
     }
     if (!imageUrls.length) {
       const latestImage = await resolveLatestMediaReference("image");
@@ -528,7 +541,7 @@ async function generateGrokImage(args: any, mode: string): Promise<any> {
     filename: makeFilename(mode === "edit" ? "edited" : "generated", image.mimeType),
     mimeType: image.mimeType,
     model: XAI_IMAGE_MODEL,
-    callId: response.id || null,
+    callId: isRecord(response) && typeof response.id === "string" ? response.id : null,
   }));
 
   return {
@@ -540,9 +553,9 @@ async function generateGrokImage(args: any, mode: string): Promise<any> {
   };
 }
 
-toolImplementations.grok_generate_image = async function(args: any) {
-  return generateGrokImage(args || {}, "generate");
+toolImplementations.grok_generate_image = async function(args: unknown) {
+  return generateGrokImage(args ?? {}, "generate");
 };
-toolImplementations.grok_edit_image = async function(args: any) {
-  return generateGrokImage(args || {}, "edit");
+toolImplementations.grok_edit_image = async function(args: unknown) {
+  return generateGrokImage(args ?? {}, "edit");
 };
