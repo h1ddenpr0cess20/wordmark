@@ -34,6 +34,7 @@ export interface CodeInterpreterOutputs {
   logs: CodeLog[];
 }
 
+/** Shared collector state threaded through the recursive output walk. */
 interface GatherContext {
   callId: string | null;
   pushAttachment: (attachment: CodeAttachment | null) => void;
@@ -41,6 +42,7 @@ interface GatherContext {
   visitedObjects: WeakSet<object> | null;
 }
 
+/** Reports whether a tool name denotes a code-interpreter call (`code_interpreter`/`python`). */
 function isCodeInterpreterName(rawName: unknown) {
   if (typeof rawName !== "string") {
     return false;
@@ -49,6 +51,7 @@ function isCodeInterpreterName(rawName: unknown) {
   return name === "code_interpreter" || name === "python" || name === "code-interpreter";
 }
 
+/** Reports whether a string matches a provider file-id shape (`cfile_`/`file_` prefix). */
 function looksLikeFileId(value: unknown) {
   if (typeof value !== "string" || !value) {
     return false;
@@ -56,6 +59,7 @@ function looksLikeFileId(value: unknown) {
   return /^(cfile_|file_)[a-zA-Z0-9]+$/.test(value);
 }
 
+/** Classifies an attachment as `"image"` (by type or MIME) or otherwise `"file"`. */
 function inferSubtype(type: unknown, mimeType: unknown) {
   const lowerType = typeof type === "string" ? type.toLowerCase() : "";
   const lowerMime = typeof mimeType === "string" ? mimeType.toLowerCase() : "";
@@ -65,6 +69,7 @@ function inferSubtype(type: unknown, mimeType: unknown) {
   return "file";
 }
 
+/** Finds the first file-id-shaped value among a record's known id keys, or `null`. */
 function extractFileId(candidate: unknown): string | null {
   if (!isRecord(candidate)) {
     return null;
@@ -90,6 +95,12 @@ function extractFileId(candidate: unknown): string | null {
   return null;
 }
 
+/**
+ * Builds a {@link CodeAttachment} from a candidate object that carries a file
+ * id, resolving MIME type, filename, byte size, and container id.
+ *
+ * @returns The attachment, or `null` if no usable file id is present.
+ */
 function buildAttachmentFromObject(candidate: unknown, callId: string | null): CodeAttachment | null {
   const fileId = extractFileId(candidate);
   if (!fileId || !isRecord(candidate)) {
@@ -118,6 +129,12 @@ function buildAttachmentFromObject(candidate: unknown, callId: string | null): C
   };
 }
 
+/**
+ * Recursively walks an arbitrary value, pushing any discovered file
+ * attachments and log entries into the collector `context`. Bare file-id
+ * strings, log-typed records, and attachment objects are all recognized;
+ * `context.visitedObjects` guards against cyclic structures.
+ */
 function gatherOutputsFromValue(value: unknown, context: GatherContext) {
   const {
     callId,
