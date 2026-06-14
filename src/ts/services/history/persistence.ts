@@ -166,7 +166,7 @@ function preloadImages(convo: ConversationRecord) {
   const imageLoadPromises: Promise<void>[] = [];
   const imageCache = new Map<string, string | Blob>();
 
-  (convo.images || []).forEach((imgRef) => {
+  (Array.isArray(convo.images) ? convo.images : []).forEach((imgRef) => {
     const filename = imgRef.filename;
     if (imgRef.isStoredInDb && filename) {
       const loadPromise = loadImageFromDb?.(filename)
@@ -339,7 +339,7 @@ function loadConversationIntoUI(convo: ConversationRecord, imageCache: Map<strin
     : [];
 
   state.conversationHistory = filteredMessages;
-  state.generatedImages = convo.images || [];
+  state.generatedImages = Array.isArray(convo.images) ? convo.images : [];
   state.currentConversationId = convo.id || null;
   state.currentConversationName = convo.name || null;
   state.loadedSystemPrompt = convo.systemPrompt || null;
