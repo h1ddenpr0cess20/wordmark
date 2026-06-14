@@ -52,6 +52,69 @@ test('estimateTokens and estimateMessageTokens use the ~4 chars/token heuristic'
   assert.equal(estimateMessageTokens({ role: 'user', content: '12345678' }), 6);
 });
 
+test('estimateMessageTokens handles array, object, and empty content', () => {
+  // array parts: string / {text} / {output} are joined with spaces
+  // ['hello','world'].join(' ') = 11 chars -> ceil(11/4)=3, +4 overhead = 7
+  assert.equal(
+    estimateMessageTokens({ role: 'assistant', content: [{ text: 'hello' }, { output: 'world' }] }),
+    7,
+  );
+  // object content reads .text: 'abcd' -> 1 token, +4 = 5
+  assert.equal(estimateMessageTokens({ role: 'assistant', content: { text: 'abcd' } }), 5);
+  // missing content -> empty text -> 0 tokens, +4 overhead
+  assert.equal(estimateMessageTokens({ role: 'user' }), 4);
+  // non-object inputs are zero-cost
+  assert.equal(estimateMessageTokens(null as never), 0);
+  assert.equal(estimateMessageTokens('nope' as never), 0);
+});
+
+test('serializeMessagesForRequest returns [] for non-array input and drops invalid entries', () => {
+  assert.deepEqual(serializeMessagesForRequest(undefined), []);
+  assert.deepEqual(serializeMessagesForRequest('nope' as never), []);
+  const result = serializeMessagesForRequest([null, 'x', { role: 'assistant', content: 'ok' }] as never);
+  assert.equal(result.length, 1);
+  assert.equal(result[0].content, 'ok');
+});
+
+test('serializeMessagesForRequest preserves envelope fields and passes assistant string content through', () => {
+  const result = serializeMessagesForRequest([
+    { role: 'assistant', type: 'message', name: 'bot', content: 'plain reply' },
+  ]);
+  assert.deepEqual(result[0], { role: 'assistant', type: 'message', name: 'bot', content: 'plain reply' });
+});
+
+test('serializeMessagesForRequest passes through tool-call fields', () => {
+  const result = serializeMessagesForRequest([
+    {
+      type: 'function_call',
+      arguments: '{"a":1}',
+      call_id: 'c1',
+      output: 'done',
+      tool_call_id: 't1',
+    },
+  ]);
+  assert.deepEqual(result[0], {
+    type: 'function_call',
+    arguments: '{"a":1}',
+    call_id: 'c1',
+    output: 'done',
+    tool_call_id: 't1',
+  });
+});
+
+test('serializeMessagesForRequest normalizes array string parts and copies object parts', () => {
+  const objectPart = { type: 'output_text', text: 'kept' };
+  const result = serializeMessagesForRequest([
+    { role: 'assistant', content: ['loose string', objectPart] },
+  ] as never);
+  assert.deepEqual(result[0].content, [
+    { type: 'output_text', text: 'loose string' },
+    { type: 'output_text', text: 'kept' },
+  ]);
+  // object parts are shallow-copied, not aliased
+  assert.notEqual(result[0].content[1], objectPart);
+});
+
 test('serializeMessagesForRequest includes input_image parts for inline attachments', () => {
   state.imageDataCache = new Map();
   state.generatedImages = [];

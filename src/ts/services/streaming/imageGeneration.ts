@@ -4,7 +4,9 @@
 
 import { state } from "../../init/state.ts";
 import { registerGeneratedMedia } from "../mediaTools.ts";
+import { imagePlaceholder, mediaPlaceholder } from "../../utils/placeholders.ts";
 import type { ResponseObject } from "../../../types/api.ts";
+import { isRecord, pickString } from "../../utils/utils.ts";
 
 /** Response output type identifying an image-generation call. */
 export const IMAGE_GENERATION_CALL_TYPE = "image_generation_call";
@@ -45,7 +47,7 @@ export function ensureImagesHaveMessageIds() {
     let associatedMessage = null;
 
     for (const msg of assistantMessages) {
-      if (typeof msg.content === "string" && (msg.content.includes(`[[IMAGE: ${img.filename}]]`) || msg.content.includes(`[[MEDIA: ${img.filename}]]`))) {
+      if (typeof msg.content === "string" && img.filename && (msg.content.includes(imagePlaceholder(img.filename)) || msg.content.includes(mediaPlaceholder(img.filename)))) {
         associatedMessage = msg;
         break;
       }
@@ -149,7 +151,7 @@ function coerceImageDataUrl(rawValue: unknown, mimeTypeHint: unknown) {
  * cyclic structures.
  */
 export function collectImageCandidates(
-  value: any,
+  value: unknown,
   accumulator: ImageCandidate[],
   defaultMime: string | undefined,
   seen: Set<string>,
@@ -188,7 +190,7 @@ export function collectImageCandidates(
   };
 
   if (Array.isArray(value)) {
-    value.forEach(item => collectImageCandidates(item, accumulator, defaultMime, seen, visited));
+    value.forEach((item: unknown) => collectImageCandidates(item, accumulator, defaultMime, seen, visited));
     return;
   }
 
@@ -197,8 +199,8 @@ export function collectImageCandidates(
     return;
   }
 
-  if (typeof value === "object") {
-    const candidateMime = value.mime_type || value.media_type || value.content_type || defaultMime;
+  if (isRecord(value)) {
+    const candidateMime = pickString(value, ["mime_type", "media_type", "content_type"]) ?? defaultMime;
     const candidateKeys = [
       "b64_json",
       "base64",
@@ -241,8 +243,8 @@ export function collectImageCandidates(
   }
 }
 
-function extractPromptFromImageCall(call: any) {
-  if (!call || typeof call !== "object") {
+function extractPromptFromImageCall(call: unknown) {
+  if (!isRecord(call)) {
     return "";
   }
   if (typeof call.revised_prompt === "string" && call.revised_prompt.trim()) {
@@ -251,7 +253,7 @@ function extractPromptFromImageCall(call: any) {
   if (typeof call.prompt === "string" && call.prompt.trim()) {
     return call.prompt.trim();
   }
-  let argumentsSource = call.arguments;
+  let argumentsSource: unknown = call.arguments;
   if (typeof argumentsSource === "string") {
     try {
       argumentsSource = JSON.parse(argumentsSource);
@@ -259,7 +261,7 @@ function extractPromptFromImageCall(call: any) {
       argumentsSource = null;
     }
   }
-  if (argumentsSource && typeof argumentsSource === "object") {
+  if (isRecord(argumentsSource)) {
     if (typeof argumentsSource.prompt === "string" && argumentsSource.prompt.trim()) {
       return argumentsSource.prompt.trim();
     }
@@ -270,24 +272,28 @@ function extractPromptFromImageCall(call: any) {
       return argumentsSource.description.trim();
     }
   }
-  if (call.metadata && typeof call.metadata === "object") {
+  if (isRecord(call.metadata)) {
+    const metadata = call.metadata;
     const keys = ["prompt", "description", "request"];
     for (const key of keys) {
-      if (typeof call.metadata[key] === "string" && call.metadata[key].trim()) {
-        return call.metadata[key].trim();
+      const value = metadata[key];
+      if (typeof value === "string" && value.trim()) {
+        return value.trim();
       }
     }
   }
   return "";
 }
 
-function detectImageCallMode(call: any) {
-  const candidates = [
-    call?.mode,
-    call?.metadata?.mode,
+function detectImageCallMode(call: unknown) {
+  const record = isRecord(call) ? call : undefined;
+  const metadata = record && isRecord(record.metadata) ? record.metadata : undefined;
+  const candidates: unknown[] = [
+    record?.mode,
+    metadata?.mode,
   ];
-  const args = call?.arguments;
-  if (args && typeof args === "object") {
+  const args = record?.arguments;
+  if (isRecord(args)) {
     if (typeof args.mode === "string") {
       candidates.push(args.mode);
     }
@@ -297,8 +303,8 @@ function detectImageCallMode(call: any) {
   }
   if (typeof args === "string") {
     try {
-      const parsed = JSON.parse(args);
-      if (parsed && typeof parsed === "object" && typeof parsed.mode === "string") {
+      const parsed: unknown = JSON.parse(args);
+      if (isRecord(parsed) && typeof parsed.mode === "string") {
         candidates.push(parsed.mode);
       }
     } catch {
@@ -306,10 +312,10 @@ function detectImageCallMode(call: any) {
     }
   }
   const found = candidates.find(value => typeof value === "string" && value.trim());
-  return found ? found.trim().toLowerCase() : "";
+  return typeof found === "string" ? found.trim().toLowerCase() : "";
 }
 
-function determineSourceLabel(node: any, mode: string) {
+function determineSourceLabel(node: unknown, mode: string) {
   if (mode) {
     if (mode.includes("edit")) {
       return "image_edit";
@@ -318,7 +324,7 @@ function determineSourceLabel(node: any, mode: string) {
       return "image_variation";
     }
   }
-  if (node && typeof node.type === "string") {
+  if (isRecord(node) && typeof node.type === "string") {
     const lowered = node.type.toLowerCase();
     if (lowered.includes("edit")) {
       return "image_edit";
@@ -343,7 +349,7 @@ export function processImageGenerationOutputs(responsePayload: ResponseObject | 
   const outputs = Array.isArray(responsePayload.output) ? responsePayload.output : [];
   imageDebugLog("Scanning response payload for image calls.", {
     outputLength: outputs.length,
-    rawOutputKeys: outputs.map((item: any) => item && item.type),
+    rawOutputKeys: outputs.map((item) => item && item.type),
   });
 
   if (!Array.isArray(state.currentGeneratedImageHtml)) {
@@ -355,7 +361,7 @@ export function processImageGenerationOutputs(responsePayload: ResponseObject | 
 
   const globalSeen = new Set();
 
-  const imageGenerationOutputs = outputs.filter((entry: any) => {
+  const imageGenerationOutputs = outputs.filter((entry) => {
     if (!entry || typeof entry !== "object") {
       return false;
     }
@@ -369,34 +375,36 @@ export function processImageGenerationOutputs(responsePayload: ResponseObject | 
   imageDebugLog("Filtered to image generation outputs only.", {
     totalOutputs: outputs.length,
     imageGenerationOutputs: imageGenerationOutputs.length,
-    types: imageGenerationOutputs.map((item: any) => item.type),
+    types: imageGenerationOutputs.map((item) => item.type),
   });
 
   const candidateEntries = imageGenerationOutputs.length ? imageGenerationOutputs : [];
 
-  candidateEntries.forEach((entry: any, idx: number) => {
-    if (!entry || typeof entry !== "object") {
+  candidateEntries.forEach((entry, idx: number) => {
+    if (!isRecord(entry)) {
       return;
     }
     const entrySeen = new Set<string>();
     const localVisited = typeof WeakSet !== "undefined" ? new WeakSet() : null;
     const collected: ImageCandidate[] = [];
+    const entryType = typeof entry.type === "string" ? entry.type : null;
+    const entryMime = pickString(entry, ["mime_type", "media_type"]) ?? undefined;
 
     imageDebugLog("Inspecting response output entry", {
       index: idx,
-      type: entry.type || null,
-      keys: Object.keys(entry || {}),
+      type: entryType,
+      keys: Object.keys(entry),
     });
 
-    collectImageCandidates(entry, collected, entry.mime_type || entry.media_type, entrySeen, localVisited);
-    collectImageCandidates(entry.result, collected, entry.mime_type || entry.media_type, entrySeen, localVisited);
-    collectImageCandidates(entry.output, collected, entry.mime_type || entry.media_type, entrySeen, localVisited);
-    collectImageCandidates(entry.images, collected, entry.mime_type || entry.media_type, entrySeen, localVisited);
+    collectImageCandidates(entry, collected, entryMime, entrySeen, localVisited);
+    collectImageCandidates(entry.result, collected, entryMime, entrySeen, localVisited);
+    collectImageCandidates(entry.output, collected, entryMime, entrySeen, localVisited);
+    collectImageCandidates(entry.images, collected, entryMime, entrySeen, localVisited);
 
     imageDebugLog("Collected image candidates from entry", {
       index: idx,
       candidateCount: collected.length,
-      entryType: entry.type,
+      entryType,
     });
 
     imageDebugLog("Collected image candidates", {
@@ -416,7 +424,9 @@ export function processImageGenerationOutputs(responsePayload: ResponseObject | 
     const prompt = extractPromptFromImageCall(entry) || extractPromptFromImageCall(responsePayload);
     const mode = detectImageCallMode(entry) || detectImageCallMode(responsePayload);
     const sourceLabel = determineSourceLabel(entry, mode);
-    const callId = entry.id || responsePayload.id || undefined;
+    const callId = (typeof entry.id === "string" ? entry.id : null)
+      || (typeof responsePayload.id === "string" ? responsePayload.id : null)
+      || undefined;
 
     collected.forEach((image, index) => {
       if (globalSeen.has(image.dataUrl)) {

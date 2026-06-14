@@ -2,6 +2,8 @@
  * Weather tool implementation backed by the Open-Meteo API.
  */
 
+import { isRecord } from "../utils/utils.ts";
+
 /**
  * Fetches a URL and parses the JSON response.
  *
@@ -25,13 +27,14 @@ async function fetchJson(url: string, options?: RequestInit) {
  *
  * @returns The forecast result, or `{ error }` when the city is missing/unresolved.
  */
-export async function openMeteoForecast(args: any = {}) {
-  const city = (args.city || "").trim();
+export async function openMeteoForecast(args: unknown = {}) {
+  const a = isRecord(args) ? args : {};
+  const city = (typeof a.city === "string" ? a.city : "").trim();
   if (!city) {
     return { error: "city is required" };
   }
 
-  let normalizedDays = Number.parseInt(args.days, 10);
+  let normalizedDays = Number.parseInt(String(a.days ?? ""), 10);
   if (!Number.isFinite(normalizedDays)) {
     normalizedDays = 1;
   }
@@ -55,6 +58,9 @@ export async function openMeteoForecast(args: any = {}) {
   }
 
   const loc = geocode.results[0];
+  if (!loc || typeof loc !== "object") {
+    return { error: `City '${city}' not found` };
+  }
   const lat = loc.latitude;
   const lon = loc.longitude;
   if (lat == null || lon == null) {
@@ -73,6 +79,10 @@ export async function openMeteoForecast(args: any = {}) {
     forecast = await fetchJson(`https://api.open-meteo.com/v1/forecast?${params.toString()}`);
   } catch (error) {
     return { error: `forecast request failed: ${error instanceof Error ? error.message : ""}` };
+  }
+
+  if (!forecast || typeof forecast !== "object") {
+    return { error: "forecast response was empty or invalid" };
   }
 
   return {

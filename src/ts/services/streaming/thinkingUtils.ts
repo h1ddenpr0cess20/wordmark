@@ -4,6 +4,7 @@
 
 import { marked } from "marked";
 import { sanitizeWithMedia } from "../../utils/sanitize.ts";
+import { createImagePlaceholderRegex } from "../../utils/placeholders.ts";
 
 /**
  * Renders streamed markdown to sanitized HTML: closes any dangling code
@@ -24,7 +25,7 @@ export function processMainContentMarkdown(mainText: string) {
 
   let parsedContent = sanitizeWithMedia(marked.parse(html, { async: false }));
 
-  parsedContent = parsedContent.replace(/\[\[IMAGE: ([^\]]+)\]\]/g, (match) => {
+  parsedContent = parsedContent.replace(createImagePlaceholderRegex(), (match) => {
     return `<span class="hidden-image-placeholder">${match}</span>`;
   });
 

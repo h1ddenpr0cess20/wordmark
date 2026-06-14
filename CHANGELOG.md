@@ -2,6 +2,28 @@
 
 All notable changes to Wordmark are documented here. Earlier versions didn't follow proper semver — this changelog reflects what actually shipped, not what the version numbers said at the time.
 
+## [3.1.0] - 2026-06-14
+
+A large robustness + test-coverage pass plus user-facing theme additions. Minor bump: new themes are user-facing features; everything else is backward-compatible fixes and internal cleanup.
+
+### Added
+- **6 new special themes** — Parchment, E-Ink, Synthwave, Solarized, Nord, and Dracula.
+- **Test coverage** — suite grew from 179 to 268 tests, covering previously-untested pure logic (token budgeting, function-call collection, tool/memory tools, the tool catalog, media helpers, and more).
+- **ESLint guard rails** — enabled `no-unreachable` plus 17 other correctness rules.
+
+### Fixed
+- **`loadFromUrl` malformed `?chat=`** — a non-array `messages` left `conversationHistory` as a non-array and corrupted downstream code; now `Array.isArray`-guarded with a non-object early return (+regression tests).
+- **SSE `processEvent`** — `data: null` threw at `payload.type`; now guarded against non-object payloads (+regression test).
+- **Conversation load** — a corrupted non-array `images` field no longer fails the whole load.
+- **Weather tool** — guarded `forecast`/geocode-element access that could throw on an empty or odd API body.
+
+### Changed
+- **Accessibility/security** — `rel="noopener"` on external API-key links; decorative-icon `aria-hidden` sweep across `icon()` and static HTML.
+- **DRY/refactors** — consolidated `showInlineStatus`, `truncate`, `normalizeServerBaseUrl`, default server-URL constants, timestamp/guard helpers, and a single source of truth for `[[IMAGE: …]]`/`[[MEDIA: …]]` placeholders.
+
+### Removed
+- Unreachable/dead code flagged by the newly enabled lint rules.
+
 ## [3.0.4] - 2026-06-12
 
 Packaging/project-metadata maintenance plus a small round of theme cleanup.

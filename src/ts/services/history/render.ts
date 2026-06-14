@@ -17,6 +17,7 @@ import { setupImageInteractions } from "../../components/ui/imageInteractions.ts
 import { updateHeaderInfo, updateModelSelector } from "../../components/settings.ts";
 import { config } from "../../../config/config.ts";
 import { escapeHtml } from "../../utils/sanitize.ts";
+import { createImagePlaceholderRegex } from "../../utils/placeholders.ts";
 import type { ConversationRecord, GeneratedImage } from "../../../types/common.ts";
 import type { Message } from "../../../types/api.ts";
 
@@ -75,7 +76,7 @@ function createMediaElement(mediaRecord: GeneratedImage, src: string, messageId 
   return imgEl;
 }
 
-function extractTextContent(content: Message["content"]): string {
+export function extractTextContent(content: Message["content"]): string {
   if (typeof content === "string") {
     return content;
   }
@@ -95,7 +96,7 @@ function replaceImagePlaceholders(content: Message["content"], convo: Conversati
     return "";
   }
 
-  return text.replace(/\[\[IMAGE: ([^\]]+)\]\]/g, (match: string, filename: string) => {
+  return text.replace(createImagePlaceholderRegex(), (match: string, filename: string) => {
     const trimmed = filename.trim();
     const img = findMediaRecord(convo, trimmed);
     if (!img) {

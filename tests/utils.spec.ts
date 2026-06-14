@@ -11,8 +11,46 @@ globalThis.document = globalThis.document || ({
   querySelectorAll: () => [],
 } as unknown as Document);
 
-const { debounce, sanitizeInput, stripBase64FromHistory, toggleThinking } =
-  await import("../src/ts/utils/utils.ts");
+const {
+  debounce,
+  sanitizeInput,
+  stripBase64FromHistory,
+  toggleThinking,
+  formatFileSize,
+  normalizeServerBaseUrl,
+  truncate,
+} = await import("../src/ts/utils/utils.ts");
+
+test("truncate appends an ellipsis only when text exceeds the max", () => {
+  assert.equal(truncate("hello", 10), "hello");
+  assert.equal(truncate("hello", 5), "hello"); // exactly max -> unchanged
+  assert.equal(truncate("hello world", 5), "hello...");
+  assert.equal(truncate("", 3), "");
+});
+
+test("normalizeServerBaseUrl trims and strips trailing slash and /v1", () => {
+  assert.equal(normalizeServerBaseUrl("  http://localhost:1234  "), "http://localhost:1234");
+  assert.equal(normalizeServerBaseUrl("http://localhost:1234/"), "http://localhost:1234");
+  assert.equal(normalizeServerBaseUrl("http://localhost:1234/v1"), "http://localhost:1234");
+  assert.equal(normalizeServerBaseUrl("http://localhost:1234/v1/"), "http://localhost:1234");
+  assert.equal(normalizeServerBaseUrl("http://localhost:11434"), "http://localhost:11434");
+  // only a single trailing slash is removed (matches the original behavior)
+  assert.equal(normalizeServerBaseUrl("http://localhost:1234/v1//"), "http://localhost:1234/v1/");
+  assert.equal(normalizeServerBaseUrl(""), "");
+});
+
+test("formatFileSize renders B/KB/MB with one-decimal precision", () => {
+  assert.equal(formatFileSize(0), "0 B");
+  assert.equal(formatFileSize(512), "512 B");
+  assert.equal(formatFileSize(1023), "1023 B");
+  assert.equal(formatFileSize(1024), "1.0 KB");
+  assert.equal(formatFileSize(1536), "1.5 KB");
+  assert.equal(formatFileSize(1024 * 1024 - 1), "1024.0 KB");
+  assert.equal(formatFileSize(1024 * 1024), "1.0 MB");
+  assert.equal(formatFileSize(5 * 1024 * 1024), "5.0 MB");
+  // sizes are not promoted past MB
+  assert.equal(formatFileSize(1024 * 1024 * 1024), "1024.0 MB");
+});
 const { state } = await import("../src/ts/init/state.ts");
 
 test("sanitizeInput escapes angle brackets", () => {

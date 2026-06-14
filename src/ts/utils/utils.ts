@@ -35,6 +35,81 @@ export function sanitizeInput(text: string): string {
 }
 
 /**
+ * Narrows an unknown value to a plain key/value record (a non-null,
+ * non-array object).
+ *
+ * @param value - The value to test.
+ * @returns True when `value` is a non-array object.
+ */
+export function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === "object" && value !== null && !Array.isArray(value);
+}
+
+/**
+ * Returns the first own property among `keys` whose value is a non-empty
+ * string.
+ *
+ * @param record - Source object.
+ * @param keys - Candidate keys in priority order.
+ * @returns The matching string, or null when none qualify.
+ */
+export function pickString(record: Record<string, unknown>, keys: string[]): string | null {
+  for (const key of keys) {
+    const value = record[key];
+    if (typeof value === "string" && value) {
+      return value;
+    }
+  }
+  return null;
+}
+
+/**
+ * Normalizes a user-entered local-inference server URL for storage: trims
+ * surrounding whitespace and strips a single trailing slash and/or `/v1`
+ * suffix so a canonical base (without the version segment) is persisted.
+ *
+ * @param rawUrl - The raw URL as typed by the user.
+ * @returns The normalized base URL (no trailing slash, no `/v1`).
+ */
+export function normalizeServerBaseUrl(rawUrl: string): string {
+  let serverUrl = rawUrl.trim();
+  if (serverUrl.endsWith("/")) {
+    serverUrl = serverUrl.slice(0, -1);
+  }
+  if (serverUrl.endsWith("/v1")) {
+    serverUrl = serverUrl.slice(0, -3);
+  }
+  return serverUrl;
+}
+
+/**
+ * Truncates `text` to at most `max` characters, appending an ellipsis when
+ * the text was actually shortened.
+ *
+ * @param text - The source text.
+ * @param max - Maximum length before truncation.
+ * @returns The original text, or its first `max` chars followed by "...".
+ */
+export function truncate(text: string, max: number): string {
+  return text.length > max ? text.slice(0, max) + "..." : text;
+}
+
+/**
+ * Formats a byte count as a short human-readable size (B, KB, or MB).
+ *
+ * @remarks
+ * KB/MB are rendered to one decimal place; sizes are not promoted past MB.
+ *
+ * @param bytes - The size in bytes.
+ * @returns A label such as `512 B`, `1.5 KB`, or `3.0 MB`.
+ */
+export function formatFileSize(bytes: number): string {
+  if (bytes < 1024) return bytes + " B";
+  if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + " KB";
+  return (bytes / (1024 * 1024)).toFixed(1) + " MB";
+}
+
+/**
  * Toggles a reasoning container's collapsed state and remembers the preference.
  *
  * @param id - The id of the thinking container to toggle.
@@ -74,6 +149,9 @@ export function toggleThinking(id: string, event?: Event) {
     }
   }
 }
+
+/** Matches inline base64 image data URIs that should be stripped from stored history. */
+const INLINE_BASE64_IMAGE_PATTERN = /data:image\/[^;]+;base64,[^\s]+/g;
 
 /**
  * Replaces inline base64 image data in a stored user message with filename
@@ -129,12 +207,12 @@ export function stripBase64FromHistory(messageId: string, placeholders: string[]
   );
 
   if (existingPlaceholders.length === placeholders.length) {
-    entry.content = textPart.replace(/data:image\/[^;]+;base64,[^\s]+/g, "").trim();
+    entry.content = textPart.replace(INLINE_BASE64_IMAGE_PATTERN, "").trim();
     sanitizeAttachments();
     return;
   }
 
-  textPart = textPart.replace(/data:image\/[^;]+;base64,[^\s]+/g, "").trim();
+  textPart = textPart.replace(INLINE_BASE64_IMAGE_PATTERN, "").trim();
   const placeholderText = placeholders.join("\n");
   entry.content = placeholderText + (textPart ? `\n\n${textPart}` : "");
   sanitizeAttachments();

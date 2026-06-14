@@ -30,5 +30,18 @@ export default defineConfig({
   build: {
     outDir: "dist",
     emptyOutDir: true,
+    rollupOptions: {
+      output: {
+        // Split the heavy, rarely-changing vendor libraries out of the main
+        // app chunk so they cache independently across app deploys.
+        manualChunks(id: string) {
+          if (id.includes("node_modules/highlight.js")) return "highlight";
+          if (id.includes("node_modules/marked") || id.includes("node_modules/dompurify")) {
+            return "markdown";
+          }
+          return undefined;
+        },
+      },
+    },
   },
 });

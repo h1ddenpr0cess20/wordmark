@@ -14,6 +14,7 @@ import {
 import { DEFAULT_PERSONALITY } from "../../../config/config.ts";
 import { startNewConversation, loadConversation, renameConversation } from "./persistence.ts";
 import { escapeHtml } from "../../utils/sanitize.ts";
+import { truncate } from "../../utils/utils.ts";
 
 /**
  * Renders the saved-conversation list into the history panel, wiring each
@@ -251,7 +252,7 @@ export function renderChatHistoryList() {
             const part = userMsg.content.find(p => p.type === "input_text" || p.type === "text");
             text = part ? (part.text || (typeof part.content === "string" ? part.content : "") || "") : "";
           }
-          title = text.substring(0, 50) + (text.length > 50 ? "..." : "");
+          title = truncate(text, 50);
         } else {
           title = "(No user message)";
         }
@@ -278,7 +279,7 @@ export function renderChatHistoryList() {
             promptClass = "personality";
           } else if (convo.systemPrompt.type === "custom") {
             const content = convo.systemPrompt.content || "";
-            promptInfo = content.substring(0, 30) + (content.length > 30 ? "..." : "");
+            promptInfo = truncate(content, 30);
             promptClass = "custom";
           } else {
             promptInfo = "None";

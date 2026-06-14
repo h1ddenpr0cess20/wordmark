@@ -58,9 +58,13 @@ export function loadFromUrl() {
     }
 
     const chatData = JSON.parse(decodeURIComponent(urlParams.get("chat") || ""));
-    state.conversationHistory = chatData.messages || [];
+    if (!chatData || typeof chatData !== "object") {
+      return;
+    }
+    const messages: Message[] = Array.isArray(chatData.messages) ? chatData.messages : [];
+    state.conversationHistory = messages;
 
-    (chatData.messages || []).forEach((msg: Message) => {
+    messages.forEach((msg: Message) => {
       if (msg.role !== "system") {
         const content = typeof msg.content === "string" ? msg.content : "";
         appendMessage(msg.role === "user" ? "You" : "  ", content, msg.role || "");

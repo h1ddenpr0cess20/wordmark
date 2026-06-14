@@ -51,7 +51,7 @@ export default [
       "require-await": "off",
       "no-empty-function": "off",
       "no-lonely-if": "off",
-      "no-unreachable": "off",
+      "no-unreachable": "error",
       "no-undefined": "off",
       "brace-style": "off",
       "prefer-const": "off",
@@ -97,7 +97,25 @@ export default [
       "symbol-description": "error",
       "curly": "off",
       "no-throw-literal": "error",
-      "no-implicit-coercion": "error"
+      "no-implicit-coercion": "error",
+
+      "no-cond-assign": "error",
+      "no-dupe-else-if": "error",
+      "no-duplicate-case": "error",
+      "no-self-assign": "error",
+      "no-self-compare": "error",
+      "no-unsafe-negation": "error",
+      "no-constant-binary-expression": "error",
+      "use-isnan": "error",
+      "valid-typeof": "error",
+      "no-fallthrough": "error",
+      "no-sparse-arrays": "error",
+      "getter-return": "error",
+      "no-async-promise-executor": "error",
+      "no-dupe-keys": "error",
+      "no-compare-neg-zero": "error",
+      "no-unsafe-finally": "error",
+      "no-misleading-character-class": "error"
     }
   }
 ];

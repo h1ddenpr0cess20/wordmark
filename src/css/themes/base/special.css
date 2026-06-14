@@ -342,3 +342,578 @@
   font-family: "Courier New", monospace !important;
   letter-spacing: 0.04em;
 }
+
+.theme-parchment {
+  --bg-primary: #f4ecd8;
+  --bg-secondary: #ece0c4;
+  --text-primary: #3b2f1e;
+  --text-secondary: #6b5a3e;
+  --accent-color: #8b5a2b;
+  --accent-hover: #a8703a;
+  --border-color: #c9b68c;
+  --user-bg: #e7dabb;
+  --assistant-bg: #f0e7d0;
+  --error-bg: #f0d6cc;
+  --error-text: #8b2f1e;
+  --body-bg-color-1: #efe5cf;
+  --body-bg-color-2: #e1d2ad;
+  --button-text-color: #3b2f1e;
+  --code-bg: rgba(59, 47, 30, 0.06);
+  --code-border: #c9b68c;
+  --code-inline-bg: rgba(139, 90, 43, 0.12);
+  --bg-hover: rgba(139, 90, 43, 0.1);
+}
+
+.theme-parchment #chat-container::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  pointer-events: none;
+  /* faint paper grain plus a warm vignette so the page reads as aged stock */
+  background-image:
+    radial-gradient(circle at 20% 15%, rgba(139, 90, 43, 0.05) 0, transparent 55%),
+    radial-gradient(circle at 80% 85%, rgba(139, 90, 43, 0.05) 0, transparent 55%),
+    repeating-linear-gradient(0deg, rgba(59, 47, 30, 0.025) 0, rgba(59, 47, 30, 0.025) 1px, transparent 1px, transparent 4px);
+  z-index: 10;
+}
+
+.theme-parchment .message .message-content {
+  border: 1px solid var(--border-color);
+  box-shadow: 0 1px 2px rgba(59, 47, 30, 0.12);
+}
+
+.theme-parchment .message.user .message-content {
+  border-color: var(--accent-color);
+}
+
+.theme-parchment #user-input {
+  background-color: rgba(255, 252, 244, 0.75);
+  border: 1px solid var(--border-color);
+  color: var(--text-primary);
+  caret-color: var(--accent-color);
+}
+
+.theme-parchment #user-input::placeholder {
+  color: rgba(107, 90, 62, 0.6);
+}
+
+.theme-parchment .settings-group {
+  border: 1px solid var(--border-color);
+  background-color: rgba(255, 252, 244, 0.55);
+}
+
+.theme-parchment .settings-group h3 {
+  color: var(--accent-color) !important;
+  letter-spacing: 0.06em;
+}
+
+.theme-parchment #header-title {
+  letter-spacing: 0.1em;
+}
+
+.theme-parchment .tab-button.active {
+  background: transparent !important;
+  color: var(--accent-color) !important;
+  border-bottom: 2px solid var(--accent-color) !important;
+}
+
+.theme-parchment pre,
+.theme-parchment pre code,
+.theme-parchment .code-block {
+  background-color: rgba(59, 47, 30, 0.06);
+  border: 1px solid var(--code-border);
+  font-family: "Georgia", "Iowan Old Style", "Palatino Linotype", serif;
+}
+
+.theme-parchment .hljs-keyword { color: #8b2f1e; }
+.theme-parchment .hljs-string { color: #5a6b2b; }
+.theme-parchment .hljs-comment { color: #9a8a68; font-style: italic; }
+.theme-parchment .hljs-function { color: #8b5a2b; }
+.theme-parchment .hljs-number { color: #a8703a; }
+
+.theme-parchment body,
+.theme-parchment input,
+.theme-parchment textarea,
+.theme-parchment button,
+.theme-parchment select,
+.theme-parchment .message-content,
+.theme-parchment h1,
+.theme-parchment h2,
+.theme-parchment h3,
+.theme-parchment h4,
+.theme-parchment h5,
+.theme-parchment h6,
+.theme-parchment p,
+.theme-parchment label,
+.theme-parchment span,
+.theme-parchment option,
+.theme-parchment .tab-button,
+.theme-parchment .radio-text,
+.theme-parchment .settings-group,
+.theme-parchment .setting-item,
+.theme-parchment .personality-header {
+  font-family: "Georgia", "Iowan Old Style", "Palatino Linotype", serif !important;
+  letter-spacing: 0.01em;
+}
+
+.theme-eink {
+  --bg-primary: #f7f7f5;
+  --bg-secondary: #ececea;
+  --text-primary: #161616;
+  --text-secondary: #4d4d4d;
+  --accent-color: #2b2b2b;
+  --accent-hover: #000000;
+  --border-color: #b9b9b6;
+  --user-bg: #e2e2df;
+  --assistant-bg: #f0f0ee;
+  --error-bg: #dedede;
+  --error-text: #111111;
+  --body-bg-color-1: #f7f7f5;
+  --body-bg-color-2: #e8e8e6;
+  --button-text-color: #161616;
+  --code-bg: #ededeb;
+  --code-border: #b9b9b6;
+  --code-inline-bg: #e4e4e1;
+  --bg-hover: rgba(22, 22, 22, 0.06);
+}
+
+/* E-Ink renders like e-paper: flat, grayscale, high contrast, no glow. */
+.theme-eink *,
+.theme-eink *::before,
+.theme-eink *::after {
+  text-shadow: none !important;
+  box-shadow: none !important;
+}
+
+.theme-eink .message .message-content {
+  border: 1px solid var(--border-color);
+}
+
+.theme-eink .message.user .message-content {
+  border-color: var(--accent-color);
+}
+
+.theme-eink button,
+.theme-eink #settings-panel,
+.theme-eink input,
+.theme-eink textarea,
+.theme-eink select,
+.theme-eink .settings-group,
+.theme-eink .setting-item {
+  border-radius: 2px;
+}
+
+.theme-eink #user-input {
+  background-color: #ffffff;
+  border: 1px solid var(--border-color);
+  color: var(--text-primary);
+  caret-color: var(--accent-color);
+}
+
+.theme-eink #user-input::placeholder {
+  color: rgba(77, 77, 77, 0.65);
+}
+
+.theme-eink .settings-group {
+  border: 1px solid var(--border-color);
+  background-color: #ffffff;
+}
+
+.theme-eink .settings-group h3 {
+  color: var(--text-primary) !important;
+  letter-spacing: 0.04em;
+}
+
+.theme-eink .tab-button.active {
+  background: transparent !important;
+  color: var(--accent-color) !important;
+  border-bottom: 2px solid var(--accent-color) !important;
+}
+
+.theme-eink #wordmark-logo circle {
+  fill: transparent;
+  stroke: var(--accent-color);
+}
+
+.theme-eink #wordmark-logo path {
+  stroke: var(--text-primary);
+}
+
+.theme-eink pre,
+.theme-eink pre code,
+.theme-eink .code-block {
+  background-color: var(--code-bg);
+  border: 1px solid var(--code-border);
+}
+
+/* grayscale syntax highlighting (weight/contrast instead of hue) */
+.theme-eink .hljs-keyword { color: #000000; font-weight: 600; }
+.theme-eink .hljs-string { color: #3a3a3a; }
+.theme-eink .hljs-comment { color: #7a7a7a; font-style: italic; }
+.theme-eink .hljs-function { color: #161616; font-weight: 600; }
+.theme-eink .hljs-number { color: #2b2b2b; }
+
+.theme-eink body,
+.theme-eink input,
+.theme-eink textarea,
+.theme-eink button,
+.theme-eink select,
+.theme-eink .message-content,
+.theme-eink h1,
+.theme-eink h2,
+.theme-eink h3,
+.theme-eink h4,
+.theme-eink h5,
+.theme-eink h6,
+.theme-eink p,
+.theme-eink label,
+.theme-eink span,
+.theme-eink option,
+.theme-eink .tab-button,
+.theme-eink .radio-text,
+.theme-eink .settings-group,
+.theme-eink .setting-item,
+.theme-eink .personality-header {
+  font-family: "Charter", "Iowan Old Style", "Georgia", serif !important;
+}
+
+.theme-synthwave {
+  --bg-primary: #1a0b2e;
+  --bg-secondary: #241139;
+  --text-primary: #f6e7ff;
+  --text-secondary: #c6a3ff;
+  --accent-color: #ff2e97;
+  --accent-hover: #ff6ec7;
+  --border-color: #6a2c9c;
+  --user-bg: #2d1b4e;
+  --assistant-bg: #1f1235;
+  --error-bg: #4a1228;
+  --error-text: #ff6b9d;
+  --body-bg-color-1: #0d0420;
+  --body-bg-color-2: #2a0f4a;
+  --button-text-color: #f6e7ff;
+  --code-bg: rgba(13, 4, 32, 0.9);
+  --code-border: #6a2c9c;
+  --code-inline-bg: rgba(255, 46, 151, 0.14);
+  --bg-hover: rgba(255, 46, 151, 0.12);
+}
+
+/* 80s sunset: a neon perspective grid receding to a glowing horizon. */
+.theme-synthwave #chat-container::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  pointer-events: none;
+  background-image:
+    linear-gradient(rgba(0, 234, 255, 0.08) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 46, 151, 0.07) 1px, transparent 1px),
+    radial-gradient(ellipse at 50% 120%, rgba(255, 46, 151, 0.18), transparent 60%);
+  background-size: 44px 44px, 44px 44px, 100% 100%;
+  z-index: 10;
+}
+
+.theme-synthwave #header-title {
+  color: var(--accent-color);
+  text-shadow: 0 0 6px rgba(255, 46, 151, 0.7), 0 0 14px rgba(255, 46, 151, 0.4);
+  letter-spacing: 0.14em;
+}
+
+.theme-synthwave .message .message-content {
+  border: 1px solid var(--border-color);
+  box-shadow: 0 0 10px rgba(106, 44, 156, 0.4);
+}
+
+.theme-synthwave .message.user .message-content {
+  border-color: var(--accent-color);
+  box-shadow: 0 0 10px rgba(255, 46, 151, 0.35);
+}
+
+.theme-synthwave #user-input {
+  background-color: rgba(13, 4, 32, 0.7);
+  border: 1px solid var(--border-color);
+  color: var(--text-primary);
+  caret-color: var(--accent-color);
+}
+
+.theme-synthwave #user-input::placeholder {
+  color: rgba(198, 163, 255, 0.55);
+}
+
+.theme-synthwave .settings-group {
+  border: 1px solid var(--border-color);
+  background-color: rgba(13, 4, 32, 0.5);
+}
+
+.theme-synthwave .settings-group h3 {
+  color: #00eaff !important;
+  text-shadow: 0 0 6px rgba(0, 234, 255, 0.55);
+  letter-spacing: 0.08em;
+}
+
+.theme-synthwave .tab-button.active {
+  background: transparent !important;
+  color: var(--accent-color) !important;
+  border-bottom: 2px solid var(--accent-color) !important;
+}
+
+.theme-synthwave #wordmark-logo circle {
+  fill: transparent;
+  stroke: #00eaff;
+}
+
+.theme-synthwave #wordmark-logo path {
+  stroke: var(--accent-color);
+}
+
+.theme-synthwave pre,
+.theme-synthwave pre code,
+.theme-synthwave .code-block {
+  background-color: rgba(13, 4, 32, 0.9);
+  border: 1px solid var(--code-border);
+}
+
+.theme-synthwave .hljs-keyword { color: #ff2e97; }
+.theme-synthwave .hljs-string { color: #5cffd0; }
+.theme-synthwave .hljs-comment { color: #8a6cc0; font-style: italic; }
+.theme-synthwave .hljs-function { color: #00eaff; }
+.theme-synthwave .hljs-number { color: #ffd166; }
+
+.theme-solarized {
+  --bg-primary: #002b36;
+  --bg-secondary: #073642;
+  --text-primary: #93a1a1;
+  --text-secondary: #839496;
+  --accent-color: #268bd2;
+  --accent-hover: #2aa198;
+  --border-color: #586e75;
+  --user-bg: #073642;
+  --assistant-bg: #00252e;
+  --error-bg: #3a1416;
+  --error-text: #dc322f;
+  --body-bg-color-1: #002b36;
+  --body-bg-color-2: #073642;
+  --button-text-color: #93a1a1;
+  --code-bg: #073642;
+  --code-border: #586e75;
+  --code-inline-bg: rgba(38, 139, 210, 0.14);
+  --bg-hover: rgba(38, 139, 210, 0.12);
+}
+
+.theme-solarized .message .message-content {
+  border: 1px solid var(--border-color);
+}
+
+.theme-solarized .message.user .message-content {
+  border-color: var(--accent-color);
+}
+
+.theme-solarized #user-input {
+  background-color: #002b36;
+  border: 1px solid var(--border-color);
+  color: var(--text-primary);
+  caret-color: var(--accent-color);
+}
+
+.theme-solarized #user-input::placeholder {
+  color: rgba(131, 148, 150, 0.6);
+}
+
+.theme-solarized .settings-group {
+  border: 1px solid var(--border-color);
+  background-color: #073642;
+}
+
+.theme-solarized .settings-group h3 {
+  color: var(--accent-color) !important;
+}
+
+.theme-solarized .tab-button.active {
+  background: transparent !important;
+  color: var(--accent-color) !important;
+  border-bottom: 2px solid var(--accent-color) !important;
+}
+
+.theme-solarized #wordmark-logo circle {
+  fill: transparent;
+  stroke: var(--accent-color);
+}
+
+.theme-solarized #wordmark-logo path {
+  stroke: #2aa198;
+}
+
+.theme-solarized pre,
+.theme-solarized pre code,
+.theme-solarized .code-block {
+  background-color: #073642;
+  border: 1px solid var(--code-border);
+}
+
+/* Solarized syntax palette */
+.theme-solarized .hljs-keyword { color: #859900; }
+.theme-solarized .hljs-string { color: #2aa198; }
+.theme-solarized .hljs-comment { color: #586e75; font-style: italic; }
+.theme-solarized .hljs-function { color: #268bd2; }
+.theme-solarized .hljs-number { color: #d33682; }
+
+.theme-nord {
+  --bg-primary: #2e3440;
+  --bg-secondary: #3b4252;
+  --text-primary: #eceff4;
+  --text-secondary: #d8dee9;
+  --accent-color: #88c0d0;
+  --accent-hover: #8fbcbb;
+  --border-color: #434c5e;
+  --user-bg: #3b4252;
+  --assistant-bg: #343b48;
+  --error-bg: #4c3a3f;
+  --error-text: #bf616a;
+  --body-bg-color-1: #2e3440;
+  --body-bg-color-2: #3b4252;
+  --button-text-color: #eceff4;
+  --code-bg: #292e39;
+  --code-border: #434c5e;
+  --code-inline-bg: rgba(136, 192, 208, 0.14);
+  --bg-hover: rgba(136, 192, 208, 0.12);
+}
+
+.theme-nord .message .message-content {
+  border: 1px solid var(--border-color);
+}
+
+.theme-nord .message.user .message-content {
+  border-color: var(--accent-color);
+}
+
+.theme-nord #user-input {
+  background-color: #292e39;
+  border: 1px solid var(--border-color);
+  color: var(--text-primary);
+  caret-color: var(--accent-color);
+}
+
+.theme-nord #user-input::placeholder {
+  color: rgba(216, 222, 233, 0.55);
+}
+
+.theme-nord .settings-group {
+  border: 1px solid var(--border-color);
+  background-color: #353c4a;
+}
+
+.theme-nord .settings-group h3 {
+  color: var(--accent-color) !important;
+}
+
+.theme-nord .tab-button.active {
+  background: transparent !important;
+  color: var(--accent-color) !important;
+  border-bottom: 2px solid var(--accent-color) !important;
+}
+
+.theme-nord #wordmark-logo circle {
+  fill: transparent;
+  stroke: var(--accent-color);
+}
+
+.theme-nord #wordmark-logo path {
+  stroke: #81a1c1;
+}
+
+.theme-nord pre,
+.theme-nord pre code,
+.theme-nord .code-block {
+  background-color: #292e39;
+  border: 1px solid var(--code-border);
+}
+
+/* Nord aurora/frost syntax palette */
+.theme-nord .hljs-keyword { color: #81a1c1; }
+.theme-nord .hljs-string { color: #a3be8c; }
+.theme-nord .hljs-comment { color: #616e88; font-style: italic; }
+.theme-nord .hljs-function { color: #88c0d0; }
+.theme-nord .hljs-number { color: #b48ead; }
+
+.theme-dracula {
+  --bg-primary: #282a36;
+  --bg-secondary: #21222c;
+  --text-primary: #f8f8f2;
+  --text-secondary: #bcc2cd;
+  --accent-color: #bd93f9;
+  --accent-hover: #ff79c6;
+  --border-color: #44475a;
+  --user-bg: #343746;
+  --assistant-bg: #21222c;
+  --error-bg: #4a2230;
+  --error-text: #ff5555;
+  --body-bg-color-1: #282a36;
+  --body-bg-color-2: #21222c;
+  --button-text-color: #f8f8f2;
+  --code-bg: #21222c;
+  --code-border: #44475a;
+  --code-inline-bg: rgba(189, 147, 249, 0.14);
+  --bg-hover: rgba(189, 147, 249, 0.12);
+}
+
+.theme-dracula .message .message-content {
+  border: 1px solid var(--border-color);
+}
+
+.theme-dracula .message.user .message-content {
+  border-color: var(--accent-color);
+}
+
+.theme-dracula #user-input {
+  background-color: #21222c;
+  border: 1px solid var(--border-color);
+  color: var(--text-primary);
+  caret-color: var(--accent-color);
+}
+
+.theme-dracula #user-input::placeholder {
+  color: rgba(188, 194, 205, 0.55);
+}
+
+.theme-dracula .settings-group {
+  border: 1px solid var(--border-color);
+  background-color: #2a2c3a;
+}
+
+.theme-dracula .settings-group h3 {
+  color: var(--accent-color) !important;
+}
+
+.theme-dracula .tab-button.active {
+  background: transparent !important;
+  color: var(--accent-hover) !important;
+  border-bottom: 2px solid var(--accent-color) !important;
+}
+
+.theme-dracula #wordmark-logo circle {
+  fill: transparent;
+  stroke: var(--accent-color);
+}
+
+.theme-dracula #wordmark-logo path {
+  stroke: #ff79c6;
+}
+
+.theme-dracula pre,
+.theme-dracula pre code,
+.theme-dracula .code-block {
+  background-color: #21222c;
+  border: 1px solid var(--code-border);
+}
+
+/* Dracula syntax palette */
+.theme-dracula .hljs-keyword { color: #ff79c6; }
+.theme-dracula .hljs-string { color: #f1fa8c; }
+.theme-dracula .hljs-comment { color: #6272a4; font-style: italic; }
+.theme-dracula .hljs-function { color: #50fa7b; }
+.theme-dracula .hljs-number { color: #bd93f9; }

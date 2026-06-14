@@ -14,6 +14,10 @@ import { STORAGE_KEYS, toolApiKeyStorageKey } from "../utils/storage.ts";
 /** localStorage key prefix under which per-service API keys are stored. */
 export const API_KEYS_STORAGE_PREFIX = STORAGE_KEYS.apiKeyPrefix;
 
+/** Default base URLs (with `/v1`) for the local-inference providers. */
+export const DEFAULT_LMSTUDIO_URL = "http://localhost:1234/v1";
+export const DEFAULT_OLLAMA_URL = "http://localhost:11434/v1";
+
 /**
  * Copies each service's saved key from localStorage into
  * `config.services[key].apiKey`, ignoring blank or whitespace-only values.
@@ -96,10 +100,10 @@ export function getLmStudioServerUrl() {
       return config.services.lmstudio.baseUrl;
     }
 
-    return "http://localhost:1234/v1";
+    return DEFAULT_LMSTUDIO_URL;
   } catch (error) {
     console.error("Error getting LM Studio server URL:", error);
-    return "http://localhost:1234/v1";
+    return DEFAULT_LMSTUDIO_URL;
   }
 }
 
@@ -122,9 +126,9 @@ export function getOllamaServerUrl() {
       return config.services.ollama.baseUrl;
     }
 
-    return "http://localhost:11434/v1";
+    return DEFAULT_OLLAMA_URL;
   } catch (error) {
     console.error("Error getting Ollama server URL:", error);
-    return "http://localhost:11434/v1";
+    return DEFAULT_OLLAMA_URL;
   }
 }

@@ -15,6 +15,7 @@ import { state } from "../init/state.ts";
 import { API_KEYS_STORAGE_PREFIX, loadApiKeysIntoConfig } from "./apiKeyStorage.ts";
 import { STORAGE_KEYS } from "../utils/storage.ts";
 import { isLocalService } from "./providers.ts";
+import { normalizeServerBaseUrl } from "../utils/utils.ts";
 
 const LMSTUDIO_SERVER_URL_KEY = STORAGE_KEYS.lmStudioServerUrl;
 const OLLAMA_SERVER_URL_KEY = STORAGE_KEYS.ollamaServerUrl;
@@ -158,21 +159,41 @@ function initApiKeys(retryCount: number = 0) {
 };
 
 /**
+ * Renders a transient inline status note: removes any prior note of the same
+ * class, inserts a new one after `anchorSelector`, and auto-dismisses it.
+ *
+ * @param statusClass - CSS class identifying this note family (e.g. `lmstudio-status`).
+ * @param anchorSelector - Selector for the element the note is inserted after.
+ * @param message - The status text.
+ * @param type - Visual variant appended to the class (`success` or `error`).
+ */
+function showInlineStatus(statusClass: string, anchorSelector: string, message: string, type: string = "success") {
+  const existing = document.querySelector(`.${statusClass}`) as HTMLElement | null;
+  if (existing) {
+    existing.remove();
+  }
+
+  const statusElement = document.createElement("div");
+  statusElement.className = `${statusClass} ${type}`;
+  statusElement.textContent = message;
+
+  const anchor = document.querySelector(anchorSelector) as HTMLElement | null;
+  if (anchor) {
+    anchor.insertAdjacentElement("afterend", statusElement);
+    setTimeout(() => {
+      statusElement.remove();
+    }, 5000);
+  }
+}
+
+/**
  * Persists the LM Studio base URL, normalizing it, mirroring it onto the config
  * (with a `/v1` suffix), refreshing the model list, and showing a status note.
  */
 function saveLmStudioServerUrl() {
   try {
     if (lmStudioServerUrlInput && lmStudioServerUrlInput.value) {
-      let serverUrl = lmStudioServerUrlInput.value.trim();
-
-      if (serverUrl.endsWith("/")) {
-        serverUrl = serverUrl.slice(0, -1);
-      }
-
-      if (serverUrl.endsWith("/v1")) {
-        serverUrl = serverUrl.slice(0, -3);
-      }
+      const serverUrl = normalizeServerBaseUrl(lmStudioServerUrlInput.value);
 
       localStorage.setItem(LMSTUDIO_SERVER_URL_KEY, serverUrl);
 
@@ -186,66 +207,17 @@ function saveLmStudioServerUrl() {
         }
       }
 
-      const existingStatus = document.querySelector(".lmstudio-status") as HTMLElement | null;
-      if (existingStatus) {
-        existingStatus.remove();
-      }
-
-      const statusElement = document.createElement("div");
-      statusElement.className = "lmstudio-status success";
-      statusElement.textContent = "LM Studio Base URL saved successfully!";
-
-      const lmstudioActionButtons = document.querySelector(".lmstudio-action-buttons") as HTMLElement | null;
-      if (lmstudioActionButtons) {
-        lmstudioActionButtons.insertAdjacentElement("afterend", statusElement);
-
-        setTimeout(() => {
-          statusElement.remove();
-        }, 5000);
-      }
+      showInlineStatus("lmstudio-status", ".lmstudio-action-buttons", "LM Studio Base URL saved successfully!", "success");
 
       if (state.verboseLogging) {
         console.info("LM Studio Base URL saved to localStorage:", serverUrl);
       }
     } else {
-      const existingStatus = document.querySelector(".lmstudio-status") as HTMLElement | null;
-      if (existingStatus) {
-        existingStatus.remove();
-      }
-
-      const statusElement = document.createElement("div");
-      statusElement.className = "lmstudio-status error";
-      statusElement.textContent = "Please enter a valid LM Studio Base URL";
-
-      const lmstudioActionButtons = document.querySelector(".lmstudio-action-buttons") as HTMLElement | null;
-      if (lmstudioActionButtons) {
-        lmstudioActionButtons.insertAdjacentElement("afterend", statusElement);
-
-        setTimeout(() => {
-          statusElement.remove();
-        }, 5000);
-      }
+      showInlineStatus("lmstudio-status", ".lmstudio-action-buttons", "Please enter a valid LM Studio Base URL", "error");
     }
   } catch (error) {
     console.error("Error saving LM Studio Base URL:", error);
-
-    const existingStatus = document.querySelector(".lmstudio-status") as HTMLElement | null;
-    if (existingStatus) {
-      existingStatus.remove();
-    }
-
-    const statusElement = document.createElement("div");
-    statusElement.className = "lmstudio-status error";
-    statusElement.textContent = "Error saving LM Studio Base URL";
-
-    const lmstudioActionButtons = document.querySelector(".lmstudio-action-buttons") as HTMLElement | null;
-    if (lmstudioActionButtons) {
-      lmstudioActionButtons.insertAdjacentElement("afterend", statusElement);
-
-      setTimeout(() => {
-        statusElement.remove();
-      }, 5000);
-    }
+    showInlineStatus("lmstudio-status", ".lmstudio-action-buttons", "Error saving LM Studio Base URL", "error");
   }
 };
 
@@ -256,15 +228,7 @@ function saveLmStudioServerUrl() {
 function saveOllamaServerUrl() {
   try {
     if (ollamaServerUrlInput && ollamaServerUrlInput.value) {
-      let serverUrl = ollamaServerUrlInput.value.trim();
-
-      if (serverUrl.endsWith("/")) {
-        serverUrl = serverUrl.slice(0, -1);
-      }
-
-      if (serverUrl.endsWith("/v1")) {
-        serverUrl = serverUrl.slice(0, -3);
-      }
+      const serverUrl = normalizeServerBaseUrl(ollamaServerUrlInput.value);
 
       localStorage.setItem(OLLAMA_SERVER_URL_KEY, serverUrl);
 
@@ -278,66 +242,17 @@ function saveOllamaServerUrl() {
         }
       }
 
-      const existingStatus = document.querySelector(".ollama-status") as HTMLElement | null;
-      if (existingStatus) {
-        existingStatus.remove();
-      }
-
-      const statusElement = document.createElement("div");
-      statusElement.className = "ollama-status success";
-      statusElement.textContent = "Ollama Base URL saved successfully!";
-
-      const ollamaActionButtons = document.querySelector(".ollama-action-buttons") as HTMLElement | null;
-      if (ollamaActionButtons) {
-        ollamaActionButtons.insertAdjacentElement("afterend", statusElement);
-
-        setTimeout(() => {
-          statusElement.remove();
-        }, 5000);
-      }
+      showInlineStatus("ollama-status", ".ollama-action-buttons", "Ollama Base URL saved successfully!", "success");
 
       if (state.verboseLogging) {
         console.info("Ollama Base URL saved to localStorage:", serverUrl);
       }
     } else {
-      const existingStatus = document.querySelector(".ollama-status") as HTMLElement | null;
-      if (existingStatus) {
-        existingStatus.remove();
-      }
-
-      const statusElement = document.createElement("div");
-      statusElement.className = "ollama-status error";
-      statusElement.textContent = "Please enter a valid Ollama Base URL";
-
-      const ollamaActionButtons = document.querySelector(".ollama-action-buttons") as HTMLElement | null;
-      if (ollamaActionButtons) {
-        ollamaActionButtons.insertAdjacentElement("afterend", statusElement);
-
-        setTimeout(() => {
-          statusElement.remove();
-        }, 5000);
-      }
+      showInlineStatus("ollama-status", ".ollama-action-buttons", "Please enter a valid Ollama Base URL", "error");
     }
   } catch (error) {
     console.error("Error saving Ollama Base URL:", error);
-
-    const existingStatus = document.querySelector(".ollama-status") as HTMLElement | null;
-    if (existingStatus) {
-      existingStatus.remove();
-    }
-
-    const statusElement = document.createElement("div");
-    statusElement.className = "ollama-status error";
-    statusElement.textContent = "Error saving Ollama Base URL";
-
-    const ollamaActionButtons = document.querySelector(".ollama-action-buttons") as HTMLElement | null;
-    if (ollamaActionButtons) {
-      ollamaActionButtons.insertAdjacentElement("afterend", statusElement);
-
-      setTimeout(() => {
-        statusElement.remove();
-      }, 5000);
-    }
+    showInlineStatus("ollama-status", ".ollama-action-buttons", "Error saving Ollama Base URL", "error");
   }
 };
 
@@ -509,23 +424,7 @@ function ensureApiKeysLoaded() {
  * @param type - Status tone, `"success"` or `"error"`.
  */
 function showApiKeyStatus(message: string, type: string = "success") {
-  const existingStatus = document.querySelector(".api-keys-status") as HTMLElement | null;
-  if (existingStatus) {
-    existingStatus.remove();
-  }
-
-  const statusElement = document.createElement("div");
-  statusElement.className = `api-keys-status ${type}`;
-  statusElement.textContent = message;
-
-  const apiKeysActionButtons = document.querySelector(".api-keys-action-buttons") as HTMLElement | null;
-  if (apiKeysActionButtons) {
-    apiKeysActionButtons.insertAdjacentElement("afterend", statusElement);
-
-    setTimeout(() => {
-      statusElement.remove();
-    }, 5000);
-  }
+  showInlineStatus("api-keys-status", ".api-keys-action-buttons", message, type);
 };
 
 export {

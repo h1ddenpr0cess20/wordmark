@@ -8,6 +8,7 @@
 
 import { showError, showInfo } from "../utils/notifications.ts";
 import { escapeHtml } from "../utils/sanitize.ts";
+import { isRecord } from "../utils/utils.ts";
 import {
   listVectorStores,
   deleteVectorStore,
@@ -100,15 +101,18 @@ export async function refreshVectorStoreList(applyCooldown = true) {
       return;
     }
 
-    const listHtml = stores.map((store: any, index: number) => {
-      const isActive = Array.isArray(activeIds) ? activeIds.includes(store.id) : (store.id === getActiveVectorStoreId());
-      const meta = metadata[store.id] || {};
-      const createdDate = new Date(store.created_at * 1000).toLocaleDateString();
-      const fileCount = store.file_counts?.total || 0;
+    const listHtml = stores.map((store: unknown, index: number) => {
+      const rec = isRecord(store) ? store : {};
+      const storeId = typeof rec.id === "string" ? rec.id : "";
+      const safeStoreId = escapeHtml(storeId);
+      const isActive = Array.isArray(activeIds) ? activeIds.includes(storeId) : (storeId === getActiveVectorStoreId());
+      const meta = metadata[storeId] || {};
+      const createdDate = new Date(Number(rec.created_at) * 1000).toLocaleDateString();
+      const fileCount = (isRecord(rec.file_counts) && typeof rec.file_counts.total === "number") ? rec.file_counts.total : 0;
       const friendlyName = escapeHtml(buildFriendlyVectorStoreName(store, meta, index));
 
       return `
-        <div class="vector-store-item ${isActive ? "active" : ""}" data-store-id="${store.id}">
+        <div class="vector-store-item ${isActive ? "active" : ""}" data-store-id="${safeStoreId}">
           <div class="vector-store-header">
             <div class="vector-store-name">
               ${isActive ? "<span class=\"active-badge\">Active</span>" : ""}
@@ -117,16 +121,16 @@ export async function refreshVectorStoreList(applyCooldown = true) {
             <div class="vector-store-actions">
             <div class="tool-toggle-control" title="Enable/disable this store for File Search">
               <div class="toggle-container">
-                <input type="checkbox" id="enable-${store.id}" class="store-enable-toggle" data-store-id="${store.id}" ${isActive ? "checked" : ""}>
-                <label for="enable-${store.id}" class="toggle-switch"></label>
+                <input type="checkbox" id="enable-${safeStoreId}" class="store-enable-toggle" data-store-id="${safeStoreId}" ${isActive ? "checked" : ""}>
+                <label for="enable-${safeStoreId}" class="toggle-switch"></label>
               </div>
             </div>
-            <button class="tool-action-button btn-view" data-store-id="${store.id}" title="View details">View</button>
-            <button class="btn-small btn-delete" data-store-id="${store.id}" title="Delete this vector store">Delete</button>
+            <button class="tool-action-button btn-view" data-store-id="${safeStoreId}" title="View details">View</button>
+            <button class="btn-small btn-delete" data-store-id="${safeStoreId}" title="Delete this vector store">Delete</button>
           </div>
           </div>
           <div class="vector-store-meta">
-            <span class="meta-item"><strong>ID:</strong> ${store.id}</span>
+            <span class="meta-item"><strong>ID:</strong> ${safeStoreId}</span>
             <span class="meta-item"><strong>Files:</strong> ${fileCount}</span>
             <span class="meta-item"><strong>Created:</strong> ${createdDate}</span>
             ${meta.lastUsed ? `<span class="meta-item"><strong>Last Used:</strong> ${new Date(meta.lastUsed).toLocaleString()}</span>` : ""}
@@ -237,7 +241,10 @@ async function viewVectorStoreDetails(storeId: string | null) {
     const files = filesResponse.data || [];
 
     const fileList = files.length > 0
-      ? files.map((f: any) => `<li>${f.id} (${f.status})</li>`).join("")
+      ? files.map((f: unknown) => {
+        const r = isRecord(f) ? f : {};
+        return `<li>${String(r.id ?? "")} (${String(r.status ?? "")})</li>`;
+      }).join("")
       : "<li>No files in this vector store</li>";
 
     const detailsHtml = `
@@ -311,11 +318,11 @@ function toTitleCase(str: string) {
   return str.replace(/\w\S*/g, (word) => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase());
 }
 
-function deriveFriendlyVectorStoreName(store: any) {
-  if (!store) {
+function deriveFriendlyVectorStoreName(store: unknown) {
+  if (!isRecord(store)) {
     return "Document Set";
   }
-  const originalName = String(store.name || "").trim();
+  const originalName = (typeof store.name === "string" ? store.name : "").trim();
   if (originalName) {
     const chatMatch = originalName.match(/^Chat-(\d{10,})$/i);
     if (chatMatch) {
@@ -331,21 +338,21 @@ function deriveFriendlyVectorStoreName(store: any) {
     return originalName;
   }
   if (store.created_at) {
-    return `Document Set ${new Date(store.created_at * 1000).toLocaleDateString()}`;
+    return `Document Set ${new Date(Number(store.created_at) * 1000).toLocaleDateString()}`;
   }
-  if (store.id) {
+  if (typeof store.id === "string") {
     return `Document Set ${store.id.slice(-6).toUpperCase()}`;
   }
   return "Document Set";
 }
 
-function buildFriendlyVectorStoreName(store: any, meta: any, index: number) {
-  if (meta && typeof meta.friendlyName === "string" && meta.friendlyName.trim()) {
+function buildFriendlyVectorStoreName(store: unknown, meta: unknown, index: number) {
+  if (isRecord(meta) && typeof meta.friendlyName === "string" && meta.friendlyName.trim()) {
     return meta.friendlyName.trim();
   }
-  if (meta && typeof meta.name === "string" && meta.name.trim()) {
+  if (isRecord(meta) && typeof meta.name === "string" && meta.name.trim()) {
     return deriveFriendlyVectorStoreName({
-      ...store,
+      ...(isRecord(store) ? store : {}),
       name: meta.name,
     });
   }
@@ -353,7 +360,7 @@ function buildFriendlyVectorStoreName(store: any, meta: any, index: number) {
   if (derived && derived.trim() && derived !== "Document Set") {
     return derived;
   }
-  if (store && store.id) {
+  if (isRecord(store) && typeof store.id === "string") {
     return `Document Set ${index + 1} (${store.id.slice(-6).toUpperCase()})`;
   }
   return `Document Set ${index + 1}`;

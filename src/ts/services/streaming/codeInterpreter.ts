@@ -9,9 +9,10 @@ import {
   getBaseUrl,
 } from "../api/clientConfig.ts";
 import type { ResponseObject } from "../../../types/api.ts";
+import { isRecord, pickString } from "../../utils/utils.ts";
 
-const FILE_METADATA_CACHE = new Map<string, any>();
-const FILE_METADATA_PROMISES = new Map<string, Promise<any>>();
+const FILE_METADATA_CACHE = new Map<string, unknown>();
+const FILE_METADATA_PROMISES = new Map<string, Promise<unknown>>();
 
 /** A file produced by a Code Interpreter call. */
 export interface CodeAttachment {
@@ -72,8 +73,8 @@ function inferSubtype(type: unknown, mimeType: unknown) {
   return "file";
 }
 
-function extractFileId(candidate: any) {
-  if (!candidate || typeof candidate !== "object") {
+function extractFileId(candidate: unknown): string | null {
+  if (!isRecord(candidate)) {
     return null;
   }
   const possibleKeys = [
@@ -97,21 +98,18 @@ function extractFileId(candidate: any) {
   return null;
 }
 
-function buildAttachmentFromObject(candidate: any, callId: string | null): CodeAttachment | null {
+function buildAttachmentFromObject(candidate: unknown, callId: string | null): CodeAttachment | null {
   const fileId = extractFileId(candidate);
-  if (!fileId) {
+  if (!fileId || !isRecord(candidate)) {
     return null;
   }
-  const mimeType = candidate.mime_type || candidate.content_type || candidate.media_type || null;
-  let filename = candidate.filename || candidate.name || candidate.path || null;
-  if (!filename && candidate.display_name) {
-    filename = candidate.display_name;
-  }
+  const mimeType = pickString(candidate, ["mime_type", "content_type", "media_type"]);
+  const filename = pickString(candidate, ["filename", "name", "path", "display_name"]);
   const bytes = typeof candidate.bytes === "number"
     ? candidate.bytes
     : (typeof candidate.size === "number" ? candidate.size : null);
 
-  const containerId = candidate.container_id || null;
+  const containerId = pickString(candidate, ["container_id"]);
 
   return {
     kind: "attachment",
@@ -119,7 +117,7 @@ function buildAttachmentFromObject(candidate: any, callId: string | null): CodeA
     callId: callId || null,
     fileId,
     containerId,
-    filename: filename || null,
+    filename,
     mimeType,
     bytes,
     index: null,
@@ -128,7 +126,7 @@ function buildAttachmentFromObject(candidate: any, callId: string | null): CodeA
   };
 }
 
-function gatherOutputsFromValue(value: any, context: GatherContext) {
+function gatherOutputsFromValue(value: unknown, context: GatherContext) {
   const {
     callId,
     pushAttachment,
@@ -169,30 +167,32 @@ function gatherOutputsFromValue(value: any, context: GatherContext) {
     visitedObjects.add(value);
   }
 
-  const type = typeof value.type === "string" ? value.type.toLowerCase() : "";
-  if (type && (type.includes("log") || type === "stderr")) {
-    const raw = value.logs ?? value.text ?? value.content ?? "";
-    const text = Array.isArray(raw) ? raw.join("\n") : (raw ? String(raw) : "");
-    if (text && text.trim()) {
-      pushLog({
-        kind: "logs",
-        callId: callId || null,
-        text: text.trim(),
-      });
+  if (isRecord(value)) {
+    const type = typeof value.type === "string" ? value.type.toLowerCase() : "";
+    if (type && (type.includes("log") || type === "stderr")) {
+      const raw = value.logs ?? value.text ?? value.content ?? "";
+      const text = Array.isArray(raw) ? raw.join("\n") : (raw ? String(raw) : "");
+      if (text && text.trim()) {
+        pushLog({
+          kind: "logs",
+          callId: callId || null,
+          text: text.trim(),
+        });
+      }
+    }
+
+    const attachment = buildAttachmentFromObject(value, callId);
+    if (attachment) {
+      pushAttachment(attachment);
     }
   }
 
-  const attachment = buildAttachmentFromObject(value, callId);
-  if (attachment) {
-    pushAttachment(attachment);
-  }
-
-  const keys = Object.keys(value);
-  for (const key of keys) {
+  const indexable = value as Record<string, unknown>;
+  for (const key of Object.keys(value)) {
     if (key === "logs") {
       continue;
     }
-    gatherOutputsFromValue(value[key], context);
+    gatherOutputsFromValue(indexable[key], context);
   }
 }
 
@@ -263,13 +263,14 @@ export function extractCodeInterpreterOutputs(responsePayload: ResponseObject | 
     visitedObjects,
   };
 
-  const inspectItem = (item: any, callIdHint?: string | null) => {
-    if (!item || typeof item !== "object") {
+  const inspectItem = (item: unknown, callIdHint?: string | null) => {
+    if (!isRecord(item)) {
       return;
     }
-    const callId = callIdHint || item.tool_call_id || item.call_id || item.id || null;
-    const toolName = item.tool_name || item.name || (item.function && item.function.name) || "";
-    const type = item.type || "";
+    const callId = callIdHint || pickString(item, ["tool_call_id", "call_id", "id"]);
+    const fn = isRecord(item.function) ? item.function : null;
+    const toolName = pickString(item, ["tool_name", "name"]) || (fn ? pickString(fn, ["name"]) : null) || "";
+    const type = item.type;
     const isRelevant =
       isCodeInterpreterName(toolName) ||
       (typeof type === "string" && type.toLowerCase().includes("code_interpreter")) ||
@@ -282,14 +283,15 @@ export function extractCodeInterpreterOutputs(responsePayload: ResponseObject | 
   };
 
   const rootOutputs = Array.isArray(responsePayload?.output) ? responsePayload.output : [];
-  rootOutputs.forEach((item: any) => {
+  rootOutputs.forEach((item: unknown) => {
     inspectItem(item);
-    if (item && Array.isArray(item.content)) {
-      item.content.forEach((contentItem: any) => {
-        if (contentItem && Array.isArray(contentItem.annotations)) {
-          contentItem.annotations.forEach((annotation: any) => {
-            if (annotation && annotation.type === "container_file_citation") {
-              const fileAttachment = buildAttachmentFromObject(annotation, item.id);
+    if (isRecord(item) && Array.isArray(item.content)) {
+      const itemId = typeof item.id === "string" ? item.id : null;
+      item.content.forEach((contentItem: unknown) => {
+        if (isRecord(contentItem) && Array.isArray(contentItem.annotations)) {
+          contentItem.annotations.forEach((annotation: unknown) => {
+            if (isRecord(annotation) && annotation.type === "container_file_citation") {
+              const fileAttachment = buildAttachmentFromObject(annotation, itemId);
               if (fileAttachment) {
                 pushAttachment(fileAttachment);
               }
@@ -301,17 +303,17 @@ export function extractCodeInterpreterOutputs(responsePayload: ResponseObject | 
   });
 
   const toolCalls = Array.isArray(responsePayload?.tool_calls) ? responsePayload.tool_calls : [];
-  toolCalls.forEach((call: any) => inspectItem(call));
+  toolCalls.forEach((call: unknown) => inspectItem(call));
 
-  const ciCalls: any[] = [];
+  const ciCalls: unknown[] = [];
   if (Array.isArray(responsePayload?.code_interpreter_calls)) {
     ciCalls.push(...responsePayload.code_interpreter_calls);
   }
   if (responsePayload?.code_interpreter_call) {
     ciCalls.push(responsePayload.code_interpreter_call);
   }
-  ciCalls.forEach((call: any) => {
-    const callId = call && (call.id || call.tool_call_id || call.call_id || null);
+  ciCalls.forEach((call: unknown) => {
+    const callId = isRecord(call) ? pickString(call, ["id", "tool_call_id", "call_id"]) : null;
     context.callId = callId || null;
     gatherOutputsFromValue(call, context);
   });
@@ -467,12 +469,12 @@ async function hydrateAttachment(attachment: CodeAttachment | null) {
 
   try {
     const metadata = await fetchFileMetadata(attachment.fileId);
-    if (metadata && typeof metadata === "object") {
+    if (isRecord(metadata)) {
       if (!attachment.filename) {
-        attachment.filename = metadata.filename || metadata.name || null;
+        attachment.filename = pickString(metadata, ["filename", "name"]);
       }
       if (!attachment.mimeType) {
-        attachment.mimeType = metadata.mime_type || metadata.content_type || null;
+        attachment.mimeType = pickString(metadata, ["mime_type", "content_type"]);
       }
       if (attachment.bytes == null && typeof metadata.bytes === "number") {
         attachment.bytes = metadata.bytes;
