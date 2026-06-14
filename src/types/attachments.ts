@@ -2,6 +2,9 @@
  * Shared types for in-progress (pending) file/image attachments awaiting send.
  */
 
+/** A `File` that may carry a custom relative-path tag set during directory traversal. */
+export type FileWithRelativePath = File & { _relativePath?: string };
+
 /** A file belonging to an uploaded directory group. */
 export interface DirectoryFile {
   file: File;
