@@ -458,3 +458,124 @@
   font-family: "Georgia", "Iowan Old Style", "Palatino Linotype", serif !important;
   letter-spacing: 0.01em;
 }
+
+.theme-eink {
+  --bg-primary: #f7f7f5;
+  --bg-secondary: #ececea;
+  --text-primary: #161616;
+  --text-secondary: #4d4d4d;
+  --accent-color: #2b2b2b;
+  --accent-hover: #000000;
+  --border-color: #b9b9b6;
+  --user-bg: #e2e2df;
+  --assistant-bg: #f0f0ee;
+  --error-bg: #dedede;
+  --error-text: #111111;
+  --body-bg-color-1: #f7f7f5;
+  --body-bg-color-2: #e8e8e6;
+  --button-text-color: #161616;
+  --code-bg: #ededeb;
+  --code-border: #b9b9b6;
+  --code-inline-bg: #e4e4e1;
+  --bg-hover: rgba(22, 22, 22, 0.06);
+}
+
+/* E-Ink renders like e-paper: flat, grayscale, high contrast, no glow. */
+.theme-eink *,
+.theme-eink *::before,
+.theme-eink *::after {
+  text-shadow: none !important;
+  box-shadow: none !important;
+}
+
+.theme-eink .message .message-content {
+  border: 1px solid var(--border-color);
+}
+
+.theme-eink .message.user .message-content {
+  border-color: var(--accent-color);
+}
+
+.theme-eink button,
+.theme-eink #settings-panel,
+.theme-eink input,
+.theme-eink textarea,
+.theme-eink select,
+.theme-eink .settings-group,
+.theme-eink .setting-item {
+  border-radius: 2px;
+}
+
+.theme-eink #user-input {
+  background-color: #ffffff;
+  border: 1px solid var(--border-color);
+  color: var(--text-primary);
+  caret-color: var(--accent-color);
+}
+
+.theme-eink #user-input::placeholder {
+  color: rgba(77, 77, 77, 0.65);
+}
+
+.theme-eink .settings-group {
+  border: 1px solid var(--border-color);
+  background-color: #ffffff;
+}
+
+.theme-eink .settings-group h3 {
+  color: var(--text-primary) !important;
+  letter-spacing: 0.04em;
+}
+
+.theme-eink .tab-button.active {
+  background: transparent !important;
+  color: var(--accent-color) !important;
+  border-bottom: 2px solid var(--accent-color) !important;
+}
+
+.theme-eink #wordmark-logo circle {
+  fill: transparent;
+  stroke: var(--accent-color);
+}
+
+.theme-eink #wordmark-logo path {
+  stroke: var(--text-primary);
+}
+
+.theme-eink pre,
+.theme-eink pre code,
+.theme-eink .code-block {
+  background-color: var(--code-bg);
+  border: 1px solid var(--code-border);
+}
+
+/* grayscale syntax highlighting (weight/contrast instead of hue) */
+.theme-eink .hljs-keyword { color: #000000; font-weight: 600; }
+.theme-eink .hljs-string { color: #3a3a3a; }
+.theme-eink .hljs-comment { color: #7a7a7a; font-style: italic; }
+.theme-eink .hljs-function { color: #161616; font-weight: 600; }
+.theme-eink .hljs-number { color: #2b2b2b; }
+
+.theme-eink body,
+.theme-eink input,
+.theme-eink textarea,
+.theme-eink button,
+.theme-eink select,
+.theme-eink .message-content,
+.theme-eink h1,
+.theme-eink h2,
+.theme-eink h3,
+.theme-eink h4,
+.theme-eink h5,
+.theme-eink h6,
+.theme-eink p,
+.theme-eink label,
+.theme-eink span,
+.theme-eink option,
+.theme-eink .tab-button,
+.theme-eink .radio-text,
+.theme-eink .settings-group,
+.theme-eink .setting-item,
+.theme-eink .personality-header {
+  font-family: "Charter", "Iowan Old Style", "Georgia", serif !important;
+}
