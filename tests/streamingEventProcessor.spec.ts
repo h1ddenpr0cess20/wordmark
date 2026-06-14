@@ -135,3 +135,19 @@ test('processor captures final payload, attaches images, and finalizes reasoning
   assert.equal(attached!.attached, true);
   assert.equal(runtime.state.attachCalls.length, 1);
 });
+
+test('processEvent ignores non-object SSE payloads without throwing', () => {
+  const runtime = createRuntimeStub();
+  const processor = createStreamingEventProcessor(runtime as unknown as StreamingRuntimeArg);
+
+  // null/primitive/garbage payloads must not throw (regression: payload.type on null)
+  assert.doesNotThrow(() => processor.processEvent('response.output_text.delta', ['null']));
+  assert.doesNotThrow(() => processor.processEvent('response.output_text.delta', ['42']));
+  assert.doesNotThrow(() => processor.processEvent('response.output_text.delta', ['not json at all']));
+
+  // a valid event after the bad ones still works
+  processor.processEvent('response.output_text.delta', [
+    JSON.stringify({ delta: { text: 'ok' } }),
+  ]);
+  assert.equal(runtime.state.output, 'ok');
+});

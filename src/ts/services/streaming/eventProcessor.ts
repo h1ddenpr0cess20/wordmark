@@ -227,6 +227,9 @@ export function createStreamingEventProcessor(runtime: StreamingRuntime) {
       console.error("Failed to parse SSE payload:", err, dataStr);
       return;
     }
+    if (!payload || typeof payload !== "object") {
+      return;
+    }
 
     const effectiveType = eventType || payload.type || "";
     const isImageGenerationEvent = effectiveType && (
