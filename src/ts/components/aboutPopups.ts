@@ -56,6 +56,12 @@ const ABOUT_FALLBACKS = {
   `,
 };
 
+/**
+ * Seeds a popup container with its built-in fallback markup once (idempotent via
+ * a `data-fallbackApplied` flag), so it shows content even before bundled HTML loads.
+ *
+ * @returns The container element, or `null` if it is not in the DOM.
+ */
 function applyFallbackContent(containerId: string) {
   const container = document.getElementById(containerId);
   if (!container) {
@@ -69,6 +75,11 @@ function applyFallbackContent(containerId: string) {
   return container;
 }
 
+/**
+ * Loads the bundled page markup registered for `url` into the given container,
+ * extracting just the main content section. Falls back to the seeded content
+ * (and logs when verbose) if the markup is missing or unparseable.
+ */
 async function loadContentIntoContainer(url: string, containerId: string) {
   const container = applyFallbackContent(containerId);
   if (!container) {
@@ -104,6 +115,7 @@ async function loadContentIntoContainer(url: string, containerId: string) {
   }
 }
 
+/** Opens the privacy popup, hiding the about pane and loading its content. */
 async function showPrivacyPopup() {
   const aboutContent = document.querySelector<HTMLElement>("#content-about .about-content");
   const privacyPopup = document.getElementById("privacy-popup");
@@ -119,6 +131,7 @@ async function showPrivacyPopup() {
   }
 }
 
+/** Closes the privacy popup and restores the about pane after the transition. */
 function hidePrivacyPopup() {
   const aboutContent = document.querySelector<HTMLElement>("#content-about .about-content");
   const privacyPopup = document.getElementById("privacy-popup");
@@ -132,6 +145,7 @@ function hidePrivacyPopup() {
   }
 }
 
+/** Opens the contact popup, hiding the about pane and loading its content. */
 async function showContactPopup() {
   const aboutContent = document.querySelector<HTMLElement>("#content-about .about-content");
   const contactPopup = document.getElementById("contact-popup");
@@ -147,6 +161,7 @@ async function showContactPopup() {
   }
 }
 
+/** Closes the contact popup and restores the about pane after the transition. */
 function hideContactPopup() {
   const aboutContent = document.querySelector<HTMLElement>("#content-about .about-content");
   const contactPopup = document.getElementById("contact-popup");
@@ -160,6 +175,7 @@ function hideContactPopup() {
   }
 }
 
+/** Opens the terms popup, hiding the about pane and loading its content. */
 async function showTermsPopup() {
   const aboutContent = document.querySelector<HTMLElement>("#content-about .about-content");
   const termsPopup = document.getElementById("terms-popup");
@@ -175,6 +191,7 @@ async function showTermsPopup() {
   }
 }
 
+/** Closes the terms popup and restores the about pane after the transition. */
 function hideTermsPopup() {
   const aboutContent = document.querySelector<HTMLElement>("#content-about .about-content");
   const termsPopup = document.getElementById("terms-popup");
@@ -188,6 +205,7 @@ function hideTermsPopup() {
   }
 }
 
+/** Opens the help popup, hiding the about pane and loading its content. */
 async function showHelpPopup() {
   const aboutContent = document.querySelector<HTMLElement>("#content-about .about-content");
   const helpPopup = document.getElementById("help-popup");
@@ -203,6 +221,7 @@ async function showHelpPopup() {
   }
 }
 
+/** Closes the help popup and restores the about pane after the transition. */
 function hideHelpPopup() {
   const aboutContent = document.querySelector<HTMLElement>("#content-about .about-content");
   const helpPopup = document.getElementById("help-popup");
