@@ -683,3 +683,81 @@
 .theme-synthwave .hljs-comment { color: #8a6cc0; font-style: italic; }
 .theme-synthwave .hljs-function { color: #00eaff; }
 .theme-synthwave .hljs-number { color: #ffd166; }
+
+.theme-solarized {
+  --bg-primary: #002b36;
+  --bg-secondary: #073642;
+  --text-primary: #93a1a1;
+  --text-secondary: #839496;
+  --accent-color: #268bd2;
+  --accent-hover: #2aa198;
+  --border-color: #586e75;
+  --user-bg: #073642;
+  --assistant-bg: #00252e;
+  --error-bg: #3a1416;
+  --error-text: #dc322f;
+  --body-bg-color-1: #002b36;
+  --body-bg-color-2: #073642;
+  --button-text-color: #93a1a1;
+  --code-bg: #073642;
+  --code-border: #586e75;
+  --code-inline-bg: rgba(38, 139, 210, 0.14);
+  --bg-hover: rgba(38, 139, 210, 0.12);
+}
+
+.theme-solarized .message .message-content {
+  border: 1px solid var(--border-color);
+}
+
+.theme-solarized .message.user .message-content {
+  border-color: var(--accent-color);
+}
+
+.theme-solarized #user-input {
+  background-color: #002b36;
+  border: 1px solid var(--border-color);
+  color: var(--text-primary);
+  caret-color: var(--accent-color);
+}
+
+.theme-solarized #user-input::placeholder {
+  color: rgba(131, 148, 150, 0.6);
+}
+
+.theme-solarized .settings-group {
+  border: 1px solid var(--border-color);
+  background-color: #073642;
+}
+
+.theme-solarized .settings-group h3 {
+  color: var(--accent-color) !important;
+}
+
+.theme-solarized .tab-button.active {
+  background: transparent !important;
+  color: var(--accent-color) !important;
+  border-bottom: 2px solid var(--accent-color) !important;
+}
+
+.theme-solarized #wordmark-logo circle {
+  fill: transparent;
+  stroke: var(--accent-color);
+}
+
+.theme-solarized #wordmark-logo path {
+  stroke: #2aa198;
+}
+
+.theme-solarized pre,
+.theme-solarized pre code,
+.theme-solarized .code-block {
+  background-color: #073642;
+  border: 1px solid var(--code-border);
+}
+
+/* Solarized syntax palette */
+.theme-solarized .hljs-keyword { color: #859900; }
+.theme-solarized .hljs-string { color: #2aa198; }
+.theme-solarized .hljs-comment { color: #586e75; font-style: italic; }
+.theme-solarized .hljs-function { color: #268bd2; }
+.theme-solarized .hljs-number { color: #d33682; }
