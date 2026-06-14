@@ -150,6 +150,9 @@ export function toggleThinking(id: string, event?: Event) {
   }
 }
 
+/** Matches inline base64 image data URIs that should be stripped from stored history. */
+const INLINE_BASE64_IMAGE_PATTERN = /data:image\/[^;]+;base64,[^\s]+/g;
+
 /**
  * Replaces inline base64 image data in a stored user message with filename
  * placeholders, caching the stripped data URLs for later display.
@@ -204,12 +207,12 @@ export function stripBase64FromHistory(messageId: string, placeholders: string[]
   );
 
   if (existingPlaceholders.length === placeholders.length) {
-    entry.content = textPart.replace(/data:image\/[^;]+;base64,[^\s]+/g, "").trim();
+    entry.content = textPart.replace(INLINE_BASE64_IMAGE_PATTERN, "").trim();
     sanitizeAttachments();
     return;
   }
 
-  textPart = textPart.replace(/data:image\/[^;]+;base64,[^\s]+/g, "").trim();
+  textPart = textPart.replace(INLINE_BASE64_IMAGE_PATTERN, "").trim();
   const placeholderText = placeholders.join("\n");
   entry.content = placeholderText + (textPart ? `\n\n${textPart}` : "");
   sanitizeAttachments();
