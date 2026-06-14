@@ -7,13 +7,9 @@
 
 import { state } from "../init/state.ts";
 import { icon } from "../utils/icons.ts";
-import {
-  initImageDb,
-  deleteImageFromDb,
-  getImageDb,
-  IMAGE_STORE_NAME,
-} from "../utils/imageStorage.ts";
-import { detectMediaType, getMediaDisplayUrl, downloadMediaSource } from "../services/mediaTools.ts";
+import { deleteImageFromDb } from "../utils/imageStorage.ts";
+import { detectMediaType, downloadMediaSource } from "../services/mediaTools.ts";
+import { getAllImagesFromDb } from "./galleryData.ts";
 import { createImageSlideshow } from "./ui/imageInteractions.ts";
 import type { GeneratedImage } from "../../types/common.ts";
 import { updatePanelOpenState } from "../init/eventListeners/settingsPanel.ts";
@@ -319,43 +315,6 @@ const loadGalleryImages = async function() {
  *
  * @returns A promise resolving to an array of media objects.
  */
-const getAllImagesFromDb = function(): Promise<GeneratedImage[]> {
-  return new Promise((resolve, reject) => {
-    if (!getImageDb()) {
-      initImageDb()
-        .then(() => getAllImagesFromDb())
-        .then(resolve)
-        .catch(reject);
-      return;
-    }
-    const images: GeneratedImage[] = [];
-    const storeName = IMAGE_STORE_NAME || "images";
-    const transaction = getImageDb()!.transaction([storeName], "readonly");
-    const store = transaction.objectStore(storeName);
-
-    const request = store.openCursor();
-
-    request.onerror = (event) => {
-      reject((event.target as IDBRequest).error);
-    };
-
-    request.onsuccess = (event) => {
-      const cursor = (event.target as IDBRequest).result;
-      if (cursor) {
-        const value = cursor.value;
-        images.push({
-          ...value,
-          data: getMediaDisplayUrl(value.data, value.filename) || value.data,
-          mediaType: detectMediaType(value),
-        });
-        cursor.continue();
-      } else {
-        resolve(images);
-      }
-    };
-  });
-};
-
 /**
  * Deletes a media item from IndexedDB and removes it from the gallery.
  *
