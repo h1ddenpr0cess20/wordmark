@@ -78,6 +78,10 @@ export async function openMeteoForecast(args: unknown = {}) {
     return { error: `forecast request failed: ${error instanceof Error ? error.message : ""}` };
   }
 
+  if (!forecast || typeof forecast !== "object") {
+    return { error: "forecast response was empty or invalid" };
+  }
+
   return {
     city,
     coords: { lat, lon },
