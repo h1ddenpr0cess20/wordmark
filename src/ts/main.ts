@@ -37,7 +37,7 @@ import "./components/aboutPopups.ts";
 
 import "./services/memory.ts";
 import "./services/apiKeys.ts";
-import "./services/mediaTools.ts";
+import "./services/grokImageTool.ts";
 import "./services/history.ts";
 
 import "./init/dom.ts";
