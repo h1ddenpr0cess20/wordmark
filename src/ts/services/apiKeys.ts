@@ -186,39 +186,66 @@ function showInlineStatus(statusClass: string, anchorSelector: string, message: 
   }
 }
 
+/** Identifies a local provider whose base URL is user-configurable. */
+interface LocalServerUrlConfig {
+  input: HTMLInputElement | null;
+  storageKey: string;
+  serviceKey: "lmstudio" | "ollama";
+  statusClass: string;
+  anchorSelector: string;
+  label: string;
+}
+
+/**
+ * Persists a local provider's base URL: normalizes the input, mirrors it onto
+ * the config (with a `/v1` suffix), refreshes the model list, and shows a status
+ * note. Shared by the LM Studio and Ollama savers.
+ */
+function saveLocalServerUrl({ input, storageKey, serviceKey, statusClass, anchorSelector, label }: LocalServerUrlConfig) {
+  try {
+    if (input && input.value) {
+      const serverUrl = normalizeServerBaseUrl(input.value);
+
+      localStorage.setItem(storageKey, serverUrl);
+
+      const service = config && config.services && config.services[serviceKey];
+      if (service) {
+        service.baseUrl = `${serverUrl}/v1`;
+
+        if (typeof service.fetchAndUpdateModels === "function") {
+          service.fetchAndUpdateModels().catch(error => {
+            console.error(`Error fetching ${label} models after URL update:`, error);
+          });
+        }
+      }
+
+      showInlineStatus(statusClass, anchorSelector, `${label} Base URL saved successfully!`, "success");
+
+      if (state.verboseLogging) {
+        console.info(`${label} Base URL saved to localStorage:`, serverUrl);
+      }
+    } else {
+      showInlineStatus(statusClass, anchorSelector, `Please enter a valid ${label} Base URL`, "error");
+    }
+  } catch (error) {
+    console.error(`Error saving ${label} Base URL:`, error);
+    showInlineStatus(statusClass, anchorSelector, `Error saving ${label} Base URL`, "error");
+  }
+}
+
 /**
  * Persists the LM Studio base URL, normalizing it, mirroring it onto the config
  * (with a `/v1` suffix), refreshing the model list, and showing a status note.
  */
 function saveLmStudioServerUrl() {
-  try {
-    if (lmStudioServerUrlInput && lmStudioServerUrlInput.value) {
-      const serverUrl = normalizeServerBaseUrl(lmStudioServerUrlInput.value);
-
-      localStorage.setItem(LMSTUDIO_SERVER_URL_KEY, serverUrl);
-
-      if (config && config.services && config.services.lmstudio) {
-        config.services.lmstudio.baseUrl = `${serverUrl}/v1`;
-
-        if (typeof config.services.lmstudio.fetchAndUpdateModels === "function") {
-          config.services.lmstudio.fetchAndUpdateModels().catch(error => {
-            console.error("Error fetching LM Studio models after URL update:", error);
-          });
-        }
-      }
-
-      showInlineStatus("lmstudio-status", ".lmstudio-action-buttons", "LM Studio Base URL saved successfully!", "success");
-
-      if (state.verboseLogging) {
-        console.info("LM Studio Base URL saved to localStorage:", serverUrl);
-      }
-    } else {
-      showInlineStatus("lmstudio-status", ".lmstudio-action-buttons", "Please enter a valid LM Studio Base URL", "error");
-    }
-  } catch (error) {
-    console.error("Error saving LM Studio Base URL:", error);
-    showInlineStatus("lmstudio-status", ".lmstudio-action-buttons", "Error saving LM Studio Base URL", "error");
-  }
+  saveLocalServerUrl({
+    input: lmStudioServerUrlInput,
+    storageKey: LMSTUDIO_SERVER_URL_KEY,
+    serviceKey: "lmstudio",
+    statusClass: "lmstudio-status",
+    anchorSelector: ".lmstudio-action-buttons",
+    label: "LM Studio",
+  });
 };
 
 /**
@@ -226,34 +253,14 @@ function saveLmStudioServerUrl() {
  * (with a `/v1` suffix), refreshing the model list, and showing a status note.
  */
 function saveOllamaServerUrl() {
-  try {
-    if (ollamaServerUrlInput && ollamaServerUrlInput.value) {
-      const serverUrl = normalizeServerBaseUrl(ollamaServerUrlInput.value);
-
-      localStorage.setItem(OLLAMA_SERVER_URL_KEY, serverUrl);
-
-      if (config && config.services && config.services.ollama) {
-        config.services.ollama.baseUrl = `${serverUrl}/v1`;
-
-        if (typeof config.services.ollama.fetchAndUpdateModels === "function") {
-          config.services.ollama.fetchAndUpdateModels().catch(error => {
-            console.error("Error fetching Ollama models after URL update:", error);
-          });
-        }
-      }
-
-      showInlineStatus("ollama-status", ".ollama-action-buttons", "Ollama Base URL saved successfully!", "success");
-
-      if (state.verboseLogging) {
-        console.info("Ollama Base URL saved to localStorage:", serverUrl);
-      }
-    } else {
-      showInlineStatus("ollama-status", ".ollama-action-buttons", "Please enter a valid Ollama Base URL", "error");
-    }
-  } catch (error) {
-    console.error("Error saving Ollama Base URL:", error);
-    showInlineStatus("ollama-status", ".ollama-action-buttons", "Error saving Ollama Base URL", "error");
-  }
+  saveLocalServerUrl({
+    input: ollamaServerUrlInput,
+    storageKey: OLLAMA_SERVER_URL_KEY,
+    serviceKey: "ollama",
+    statusClass: "ollama-status",
+    anchorSelector: ".ollama-action-buttons",
+    label: "Ollama",
+  });
 };
 
 /**
