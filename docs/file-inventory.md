@@ -39,7 +39,8 @@ Purpose: quick orientation to the current project layout, key entry points, and 
     - `api/`: Modular request handling for the Responses API
       - `requestClient.ts`: Network layer for streaming/non-streaming requests; orchestrates tool execution loops
       - `clientConfig.ts`: Service configuration helpers (active model, API key, base URL, reasoning support)
-      - `messageUtils.ts`: Message serialization for Responses API (multimodal content, function calls, system prompts)
+      - `messageUtils.ts`: Message serialization for Responses API (multimodal content, function calls)
+      - `instructions.ts`: System/developer prompt assembly (prompt mode, personality, location, timestamp, tools, memories)
       - `tokenBudget.ts`: Token estimation (~4 chars/token) and history-window trimming to a per-request budget
       - `responseNormalization.ts`: Folds non-streaming provider response shapes into normalized output/reasoning strings
       - `toolManager.ts`: Facade — request-time tool filtering + UI catalog view; re-exports the `tools/` sub-modules
@@ -52,6 +53,7 @@ Purpose: quick orientation to the current project layout, key entry points, and 
       - `codeInterpreter.ts`: Extracts code interpreter outputs (logs, files, charts) from response payloads
       - `codeInterpreterRender.ts`: Renders extracted code interpreter outputs into the message DOM (metadata hydration, downloads)
       - `imageGeneration.ts`: Processes image_generation_call outputs, manages gallery integration
+      - `imageDataUrl.ts`: Pure image data-URL helpers (base64 detection, MIME parse/normalize, coercion)
       - `messageLifecycle.ts`: Message finalization, content extraction, history management
       - `thinkingUtils.ts`: Separates thinking tags from main content for cleaner display
     - `history/`: Save/load conversations to IndexedDB and render conversation list

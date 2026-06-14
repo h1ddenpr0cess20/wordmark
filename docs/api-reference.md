@@ -197,20 +197,21 @@ Extracts function/tool calls from Responses API output.
 
 **Returns:** Array - Function call objects with name, arguments, callId
 
-### buildInstructions()
+### Instructions
 
-Constructs system instructions from personality settings.
+**Module:** `src/ts/services/api/instructions.ts`
+
+#### buildInstructions()
+
+Constructs system instructions from the active prompt-mode settings (no prompt / custom / personality / default).
 
 **Returns:** string - System instructions text
 
-### buildDeveloperMessage(model)
+#### buildDeveloperMessage()
 
-Builds developer/system message with context (personality, location, timestamp).
+Builds the developer/system message: the active instructions augmented with location context, a timestamp, tool descriptions, and stored memories.
 
-**Parameters:**
-- `model` (string) - Model identifier
-
-**Returns:** string - Developer message content
+**Returns:** string - Developer message content (empty string when there are no instructions)
 
 ---
 
