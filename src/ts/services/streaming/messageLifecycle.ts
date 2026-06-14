@@ -13,9 +13,9 @@ import {
 } from "./imageGeneration.ts";
 import {
   extractCodeInterpreterOutputs,
-  renderCodeInterpreterOutputs,
   type CodeInterpreterOutputs,
 } from "./codeInterpreter.ts";
+import { renderCodeInterpreterOutputs } from "./codeInterpreterRender.ts";
 import {
   processMainContentMarkdown,
   separateThinkingSegments,
