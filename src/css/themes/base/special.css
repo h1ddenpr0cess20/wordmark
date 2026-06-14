@@ -761,3 +761,81 @@
 .theme-solarized .hljs-comment { color: #586e75; font-style: italic; }
 .theme-solarized .hljs-function { color: #268bd2; }
 .theme-solarized .hljs-number { color: #d33682; }
+
+.theme-nord {
+  --bg-primary: #2e3440;
+  --bg-secondary: #3b4252;
+  --text-primary: #eceff4;
+  --text-secondary: #d8dee9;
+  --accent-color: #88c0d0;
+  --accent-hover: #8fbcbb;
+  --border-color: #434c5e;
+  --user-bg: #3b4252;
+  --assistant-bg: #343b48;
+  --error-bg: #4c3a3f;
+  --error-text: #bf616a;
+  --body-bg-color-1: #2e3440;
+  --body-bg-color-2: #3b4252;
+  --button-text-color: #eceff4;
+  --code-bg: #292e39;
+  --code-border: #434c5e;
+  --code-inline-bg: rgba(136, 192, 208, 0.14);
+  --bg-hover: rgba(136, 192, 208, 0.12);
+}
+
+.theme-nord .message .message-content {
+  border: 1px solid var(--border-color);
+}
+
+.theme-nord .message.user .message-content {
+  border-color: var(--accent-color);
+}
+
+.theme-nord #user-input {
+  background-color: #292e39;
+  border: 1px solid var(--border-color);
+  color: var(--text-primary);
+  caret-color: var(--accent-color);
+}
+
+.theme-nord #user-input::placeholder {
+  color: rgba(216, 222, 233, 0.55);
+}
+
+.theme-nord .settings-group {
+  border: 1px solid var(--border-color);
+  background-color: #353c4a;
+}
+
+.theme-nord .settings-group h3 {
+  color: var(--accent-color) !important;
+}
+
+.theme-nord .tab-button.active {
+  background: transparent !important;
+  color: var(--accent-color) !important;
+  border-bottom: 2px solid var(--accent-color) !important;
+}
+
+.theme-nord #wordmark-logo circle {
+  fill: transparent;
+  stroke: var(--accent-color);
+}
+
+.theme-nord #wordmark-logo path {
+  stroke: #81a1c1;
+}
+
+.theme-nord pre,
+.theme-nord pre code,
+.theme-nord .code-block {
+  background-color: #292e39;
+  border: 1px solid var(--code-border);
+}
+
+/* Nord aurora/frost syntax palette */
+.theme-nord .hljs-keyword { color: #81a1c1; }
+.theme-nord .hljs-string { color: #a3be8c; }
+.theme-nord .hljs-comment { color: #616e88; font-style: italic; }
+.theme-nord .hljs-function { color: #88c0d0; }
+.theme-nord .hljs-number { color: #b48ead; }
