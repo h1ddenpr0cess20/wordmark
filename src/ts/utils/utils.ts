@@ -64,6 +64,21 @@ export function pickString(record: Record<string, unknown>, keys: string[]): str
 }
 
 /**
+ * Formats a byte count as a short human-readable size (B, KB, or MB).
+ *
+ * @remarks
+ * KB/MB are rendered to one decimal place; sizes are not promoted past MB.
+ *
+ * @param bytes - The size in bytes.
+ * @returns A label such as `512 B`, `1.5 KB`, or `3.0 MB`.
+ */
+export function formatFileSize(bytes: number): string {
+  if (bytes < 1024) return bytes + " B";
+  if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + " KB";
+  return (bytes / (1024 * 1024)).toFixed(1) + " MB";
+}
+
+/**
  * Toggles a reasoning container's collapsed state and remembers the preference.
  *
  * @param id - The id of the thinking container to toggle.

@@ -5,7 +5,7 @@
 import { elements, state } from "../init/state.ts";
 import { showError, showInfo } from "../utils/notifications.ts";
 
-import { sanitizeInput, stripBase64FromHistory } from "../utils/utils.ts";
+import { sanitizeInput, stripBase64FromHistory, formatFileSize } from "../utils/utils.ts";
 import { saveImageToDb } from "../utils/imageStorage.ts";
 import { scrollInputIntoView } from "../utils/mobileHandling.ts";
 import { finalizeStreamedResponse, removeLoadingIndicator } from "../services/streaming/messageLifecycle.ts";
@@ -83,11 +83,6 @@ export async function sendMessage() {
   let documentsHtml = "";
   const documents = state.pendingDocuments || [];
   const documentsToUpload = [...documents];
-  const formatFileSize = (bytes: number) => {
-    if (bytes < 1024) return bytes + " B";
-    if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + " KB";
-    return (bytes / (1024 * 1024)).toFixed(1) + " MB";
-  };
 
   documents.forEach(doc => {
     const icon = doc.isDirectory ? "📁" : "📄";

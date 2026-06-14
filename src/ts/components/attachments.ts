@@ -7,6 +7,7 @@ import { showInfo } from "../utils/notifications.ts";
 import { filterSupportedFiles } from "../services/vectorStore.ts";
 import type { DirectoryFile } from "../../types/attachments.ts";
 import { escapeHtml } from "../utils/sanitize.ts";
+import { formatFileSize } from "../utils/utils.ts";
 
 state.pendingUploads = [];
 state.pendingDocuments = [];
@@ -560,12 +561,6 @@ function showPendingUploadPreviews() {
       preview.appendChild(container);
     }
   });
-}
-
-function formatFileSize(bytes: number) {
-  if (bytes < 1024) return bytes + " B";
-  if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + " KB";
-  return (bytes / (1024 * 1024)).toFixed(1) + " MB";
 }
 
 /**

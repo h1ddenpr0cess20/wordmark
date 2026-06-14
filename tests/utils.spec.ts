@@ -11,8 +11,21 @@ globalThis.document = globalThis.document || ({
   querySelectorAll: () => [],
 } as unknown as Document);
 
-const { debounce, sanitizeInput, stripBase64FromHistory, toggleThinking } =
+const { debounce, sanitizeInput, stripBase64FromHistory, toggleThinking, formatFileSize } =
   await import("../src/ts/utils/utils.ts");
+
+test("formatFileSize renders B/KB/MB with one-decimal precision", () => {
+  assert.equal(formatFileSize(0), "0 B");
+  assert.equal(formatFileSize(512), "512 B");
+  assert.equal(formatFileSize(1023), "1023 B");
+  assert.equal(formatFileSize(1024), "1.0 KB");
+  assert.equal(formatFileSize(1536), "1.5 KB");
+  assert.equal(formatFileSize(1024 * 1024 - 1), "1024.0 KB");
+  assert.equal(formatFileSize(1024 * 1024), "1.0 MB");
+  assert.equal(formatFileSize(5 * 1024 * 1024), "5.0 MB");
+  // sizes are not promoted past MB
+  assert.equal(formatFileSize(1024 * 1024 * 1024), "1024.0 MB");
+});
 const { state } = await import("../src/ts/init/state.ts");
 
 test("sanitizeInput escapes angle brackets", () => {
