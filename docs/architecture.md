@@ -34,9 +34,9 @@ Modules
   - `api/`: split helpers for configuration (`clientConfig.ts`), message prep (`messageUtils.ts`), request execution (`requestClient.ts`), non-streaming response normalization (`responseNormalization.ts`), and the tool system (`toolManager.ts` facade + `tools/catalog.ts`, `tools/preferences.ts`, `tools/mcp.ts`, `staticTools.ts`)
   - `streaming.ts`: orchestrates SSE consumption; wires the runtime/event processor and finalises messages
   - `streaming/runtime.ts`: maintains incremental output, reasoning buffers, DOM updates, and image attachment staging
-  - `streaming/eventProcessor.ts`: parses SSE event types for reasoning, tool status, image generation, and error handling (provider-agnostic — one unified event vocabulary)
+  - `streaming/eventProcessor.ts`: parses SSE event types for reasoning, tool status, image generation, and error handling (provider-agnostic — one unified event vocabulary); pure payload parsing/formatting lives in `streaming/eventParsing.ts`
   - `streaming/messageLifecycle.ts`: reconciles loading UI with stored history once streaming completes
-  - `streaming/codeInterpreter.ts`, `streaming/imageGeneration.ts`, `streaming/thinkingUtils.ts`: specialised helpers for tool output, gallery linking, and markdown sanitisation
+  - `streaming/codeInterpreter.ts` (+ `codeInterpreterRender.ts`), `streaming/imageGeneration.ts`, `streaming/thinkingUtils.ts`: specialised helpers for tool-output extraction/rendering, gallery linking, and markdown sanitisation
   - `history/`: chat history + URL state; loads/saves to IndexedDB; history panel helpers
   - `export.ts`: export chat to text with optional reasoning
   - `tts/`: voice list, autoplay, per-message audio resources, and IndexedDB for audio

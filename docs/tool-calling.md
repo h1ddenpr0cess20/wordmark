@@ -32,7 +32,7 @@ Built-in Tools
 
 - `open_meteo_forecast` (type: `function`) — Public weather forecasts via Open-Meteo (no key required). Handler in `src/ts/services/weather.ts`.
 - `web_search` (type: `builtin`) — Provider-managed web search (OpenAI, xAI). For xAI, also includes `x_search` for Twitter/X search.
-- `code_interpreter` (type: `builtin`) — Python code execution in provider sandbox (OpenAI, xAI). Outputs handled by `src/ts/services/streaming/codeInterpreter.ts`.
+- `code_interpreter` (type: `builtin`) — Python code execution in provider sandbox (OpenAI, xAI). Outputs extracted by `src/ts/services/streaming/codeInterpreter.ts` and rendered by `codeInterpreterRender.ts`.
 - `image_generation` (type: `builtin`) — OpenAI image generation. Outputs processed by `src/ts/services/streaming/imageGeneration.ts`.
 - `file_search` (type: `builtin`) — Vector store search across uploaded documents (OpenAI only). Rendered in reasoning timeline. xAI uses direct `input_file` references instead.
 - MCP connectors (type: `mcp`) — User-supplied servers registered in Settings → Tools. Availability depends on the external MCP server responding to ping checks.

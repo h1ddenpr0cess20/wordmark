@@ -47,7 +47,8 @@ Purpose: quick orientation to the current project layout, key entry points, and 
       - `staticTools.ts`: The `STATIC_TOOLS` built-in/function tool definitions (pure data)
     - `streaming.ts`: SSE parser for Responses API; coordinates with streaming/* modules
     - `streaming/`: Specialized streaming response handlers
-      - `codeInterpreter.ts`: Extracts and renders code interpreter outputs (logs, files, charts)
+      - `codeInterpreter.ts`: Extracts code interpreter outputs (logs, files, charts) from response payloads
+      - `codeInterpreterRender.ts`: Renders extracted code interpreter outputs into the message DOM (metadata hydration, downloads)
       - `imageGeneration.ts`: Processes image_generation_call outputs, manages gallery integration
       - `messageLifecycle.ts`: Message finalization, content extraction, history management
       - `thinkingUtils.ts`: Separates thinking tags from main content for cleaner display
