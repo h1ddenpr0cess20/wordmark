@@ -7,6 +7,7 @@ import { registerGeneratedMedia } from "../mediaTools.ts";
 import { imagePlaceholder, mediaPlaceholder } from "../../utils/placeholders.ts";
 import type { ResponseObject } from "../../../types/api.ts";
 import { isRecord, pickString } from "../../utils/utils.ts";
+import { extractMimeFromDataUrl, normaliseMimeType, coerceImageDataUrl } from "./imageDataUrl.ts";
 
 /** Response output type identifying an image-generation call. */
 export const IMAGE_GENERATION_CALL_TYPE = "image_generation_call";
@@ -89,60 +90,11 @@ export function ensureImagesHaveMessageIds() {
   return updatedCount;
 }
 
-function isProbablyBase64(value: unknown) {
-  if (typeof value !== "string") {
-    return false;
-  }
-  const sanitized = value.replace(/\s+/g, "");
-  if (sanitized.length < 120) {
-    return false;
-  }
-  if (sanitized.length % 4 !== 0) {
-    return false;
-  }
-  return /^[A-Za-z0-9+/=]+$/.test(sanitized);
-}
-
 /** Logs an `[image-debug]` message to the console when verbose logging is on. */
 export function imageDebugLog(...args: unknown[]) {
   if (typeof window !== "undefined" && state.verboseLogging) {
     console.info("[image-debug]", ...args);
   }
-}
-
-function extractMimeFromDataUrl(dataUrl: unknown) {
-  if (typeof dataUrl !== "string") {
-    return null;
-  }
-  const match = /^data:([^;]+);/i.exec(dataUrl);
-  return match ? match[1].toLowerCase() : null;
-}
-
-function normaliseMimeType(mimeType: unknown) {
-  if (typeof mimeType === "string" && mimeType.trim()) {
-    return mimeType.trim().toLowerCase();
-  }
-  return "image/png";
-}
-
-function coerceImageDataUrl(rawValue: unknown, mimeTypeHint: unknown) {
-  if (typeof rawValue !== "string") {
-    return null;
-  }
-  const trimmed = rawValue.trim();
-  if (!trimmed) {
-    return null;
-  }
-  if (/^data:image\//i.test(trimmed) || /^https?:\/\//i.test(trimmed)) {
-    return trimmed;
-  }
-  const cleaned = trimmed.replace(/\s+/g, "");
-  if (!isProbablyBase64(cleaned)) {
-    return null;
-  }
-  const mimeType = normaliseMimeType(mimeTypeHint);
-  const base64 = cleaned.replace(/^base64,?/i, "");
-  return `data:${mimeType};base64,${base64}`;
 }
 
 /**
