@@ -17,9 +17,41 @@ const {
   findTool,
   findToolIndex,
   getUserMcpToolCount,
+  cloneDefinition,
+  loadUserMCPServers,
 } = await import("../src/ts/services/api/tools/catalog.js");
 
 const cast = <T>(v: unknown): T => v as T;
+
+test("cloneDefinition returns an independent deep copy", () => {
+  const original = cast<Parameters<typeof cloneDefinition>[0]>({
+    type: "mcp",
+    server_label: "lab",
+    nested: { allow: ["a"] },
+  });
+  const copy = cloneDefinition(original);
+  assert.deepEqual(copy, original);
+  assert.notEqual(copy, original);
+  // mutating the copy must not touch the original
+  (copy as Record<string, unknown>).server_label = "changed";
+  (cast<{ nested: { allow: string[] } }>(copy)).nested.allow.push("b");
+  assert.equal((original as Record<string, unknown>).server_label, "lab");
+  assert.deepEqual((cast<{ nested: { allow: string[] } }>(original)).nested.allow, ["a"]);
+});
+
+test("loadUserMCPServers returns [] for missing, malformed, or non-array storage", () => {
+  delete store["mcp_servers"];
+  assert.deepEqual(loadUserMCPServers(), []);
+
+  store["mcp_servers"] = "{not json";
+  assert.deepEqual(loadUserMCPServers(), []);
+
+  store["mcp_servers"] = JSON.stringify({ not: "an array" });
+  assert.deepEqual(loadUserMCPServers(), []);
+
+  store["mcp_servers"] = JSON.stringify([{ server_label: "a" }]);
+  assert.deepEqual(loadUserMCPServers(), [{ server_label: "a" }]);
+});
 
 test("buildMcpToolEntry returns null without a label or url", () => {
   assert.equal(buildMcpToolEntry(cast(null)), null);
