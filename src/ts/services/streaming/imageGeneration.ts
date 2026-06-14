@@ -5,7 +5,7 @@
 import { state } from "../../init/state.ts";
 import { registerGeneratedMedia } from "../mediaTools.ts";
 import type { ResponseObject } from "../../../types/api.ts";
-import { isRecord } from "../../utils/utils.ts";
+import { isRecord, pickString } from "../../utils/utils.ts";
 
 /** Response output type identifying an image-generation call. */
 export const IMAGE_GENERATION_CALL_TYPE = "image_generation_call";
@@ -150,7 +150,7 @@ function coerceImageDataUrl(rawValue: unknown, mimeTypeHint: unknown) {
  * cyclic structures.
  */
 export function collectImageCandidates(
-  value: any,
+  value: unknown,
   accumulator: ImageCandidate[],
   defaultMime: string | undefined,
   seen: Set<string>,
@@ -189,7 +189,7 @@ export function collectImageCandidates(
   };
 
   if (Array.isArray(value)) {
-    value.forEach(item => collectImageCandidates(item, accumulator, defaultMime, seen, visited));
+    value.forEach((item: unknown) => collectImageCandidates(item, accumulator, defaultMime, seen, visited));
     return;
   }
 
@@ -198,8 +198,8 @@ export function collectImageCandidates(
     return;
   }
 
-  if (typeof value === "object") {
-    const candidateMime = value.mime_type || value.media_type || value.content_type || defaultMime;
+  if (isRecord(value)) {
+    const candidateMime = pickString(value, ["mime_type", "media_type", "content_type"]) ?? defaultMime;
     const candidateKeys = [
       "b64_json",
       "base64",
@@ -348,7 +348,7 @@ export function processImageGenerationOutputs(responsePayload: ResponseObject | 
   const outputs = Array.isArray(responsePayload.output) ? responsePayload.output : [];
   imageDebugLog("Scanning response payload for image calls.", {
     outputLength: outputs.length,
-    rawOutputKeys: outputs.map((item: any) => item && item.type),
+    rawOutputKeys: outputs.map((item) => item && item.type),
   });
 
   if (!Array.isArray(state.currentGeneratedImageHtml)) {
@@ -360,7 +360,7 @@ export function processImageGenerationOutputs(responsePayload: ResponseObject | 
 
   const globalSeen = new Set();
 
-  const imageGenerationOutputs = outputs.filter((entry: any) => {
+  const imageGenerationOutputs = outputs.filter((entry) => {
     if (!entry || typeof entry !== "object") {
       return false;
     }
@@ -374,34 +374,36 @@ export function processImageGenerationOutputs(responsePayload: ResponseObject | 
   imageDebugLog("Filtered to image generation outputs only.", {
     totalOutputs: outputs.length,
     imageGenerationOutputs: imageGenerationOutputs.length,
-    types: imageGenerationOutputs.map((item: any) => item.type),
+    types: imageGenerationOutputs.map((item) => item.type),
   });
 
   const candidateEntries = imageGenerationOutputs.length ? imageGenerationOutputs : [];
 
-  candidateEntries.forEach((entry: any, idx: number) => {
-    if (!entry || typeof entry !== "object") {
+  candidateEntries.forEach((entry, idx: number) => {
+    if (!isRecord(entry)) {
       return;
     }
     const entrySeen = new Set<string>();
     const localVisited = typeof WeakSet !== "undefined" ? new WeakSet() : null;
     const collected: ImageCandidate[] = [];
+    const entryType = typeof entry.type === "string" ? entry.type : null;
+    const entryMime = pickString(entry, ["mime_type", "media_type"]) ?? undefined;
 
     imageDebugLog("Inspecting response output entry", {
       index: idx,
-      type: entry.type || null,
-      keys: Object.keys(entry || {}),
+      type: entryType,
+      keys: Object.keys(entry),
     });
 
-    collectImageCandidates(entry, collected, entry.mime_type || entry.media_type, entrySeen, localVisited);
-    collectImageCandidates(entry.result, collected, entry.mime_type || entry.media_type, entrySeen, localVisited);
-    collectImageCandidates(entry.output, collected, entry.mime_type || entry.media_type, entrySeen, localVisited);
-    collectImageCandidates(entry.images, collected, entry.mime_type || entry.media_type, entrySeen, localVisited);
+    collectImageCandidates(entry, collected, entryMime, entrySeen, localVisited);
+    collectImageCandidates(entry.result, collected, entryMime, entrySeen, localVisited);
+    collectImageCandidates(entry.output, collected, entryMime, entrySeen, localVisited);
+    collectImageCandidates(entry.images, collected, entryMime, entrySeen, localVisited);
 
     imageDebugLog("Collected image candidates from entry", {
       index: idx,
       candidateCount: collected.length,
-      entryType: entry.type,
+      entryType,
     });
 
     imageDebugLog("Collected image candidates", {
@@ -421,7 +423,9 @@ export function processImageGenerationOutputs(responsePayload: ResponseObject | 
     const prompt = extractPromptFromImageCall(entry) || extractPromptFromImageCall(responsePayload);
     const mode = detectImageCallMode(entry) || detectImageCallMode(responsePayload);
     const sourceLabel = determineSourceLabel(entry, mode);
-    const callId = entry.id || responsePayload.id || undefined;
+    const callId = (typeof entry.id === "string" ? entry.id : null)
+      || (typeof responsePayload.id === "string" ? responsePayload.id : null)
+      || undefined;
 
     collected.forEach((image, index) => {
       if (globalSeen.has(image.dataUrl)) {

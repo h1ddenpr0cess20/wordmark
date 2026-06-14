@@ -46,6 +46,24 @@ export function isRecord(value: unknown): value is Record<string, unknown> {
 }
 
 /**
+ * Returns the first own property among `keys` whose value is a non-empty
+ * string.
+ *
+ * @param record - Source object.
+ * @param keys - Candidate keys in priority order.
+ * @returns The matching string, or null when none qualify.
+ */
+export function pickString(record: Record<string, unknown>, keys: string[]): string | null {
+  for (const key of keys) {
+    const value = record[key];
+    if (typeof value === "string" && value) {
+      return value;
+    }
+  }
+  return null;
+}
+
+/**
  * Toggles a reasoning container's collapsed state and remembers the preference.
  *
  * @param id - The id of the thinking container to toggle.

@@ -9,7 +9,7 @@ import {
   getBaseUrl,
 } from "../api/clientConfig.ts";
 import type { ResponseObject } from "../../../types/api.ts";
-import { isRecord } from "../../utils/utils.ts";
+import { isRecord, pickString } from "../../utils/utils.ts";
 
 const FILE_METADATA_CACHE = new Map<string, any>();
 const FILE_METADATA_PROMISES = new Map<string, Promise<any>>();
@@ -71,24 +71,6 @@ function inferSubtype(type: unknown, mimeType: unknown) {
     return "image";
   }
   return "file";
-}
-
-/**
- * Returns the first own property among `keys` whose value is a non-empty
- * string.
- *
- * @param record - Source object.
- * @param keys - Candidate keys in priority order.
- * @returns The matching string, or null when none qualify.
- */
-function pickString(record: Record<string, unknown>, keys: string[]): string | null {
-  for (const key of keys) {
-    const value = record[key];
-    if (typeof value === "string" && value) {
-      return value;
-    }
-  }
-  return null;
 }
 
 function extractFileId(candidate: unknown): string | null {
