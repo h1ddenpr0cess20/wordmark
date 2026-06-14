@@ -68,6 +68,53 @@ test('estimateMessageTokens handles array, object, and empty content', () => {
   assert.equal(estimateMessageTokens('nope'), 0);
 });
 
+test('serializeMessagesForRequest returns [] for non-array input and drops invalid entries', () => {
+  assert.deepEqual(serializeMessagesForRequest(undefined), []);
+  assert.deepEqual(serializeMessagesForRequest('nope'), []);
+  const result = serializeMessagesForRequest([null, 'x', { role: 'assistant', content: 'ok' }]);
+  assert.equal(result.length, 1);
+  assert.equal(result[0].content, 'ok');
+});
+
+test('serializeMessagesForRequest preserves envelope fields and passes assistant string content through', () => {
+  const result = serializeMessagesForRequest([
+    { role: 'assistant', type: 'message', name: 'bot', content: 'plain reply' },
+  ]);
+  assert.deepEqual(result[0], { role: 'assistant', type: 'message', name: 'bot', content: 'plain reply' });
+});
+
+test('serializeMessagesForRequest passes through tool-call fields', () => {
+  const result = serializeMessagesForRequest([
+    {
+      type: 'function_call',
+      arguments: '{"a":1}',
+      call_id: 'c1',
+      output: 'done',
+      tool_call_id: 't1',
+    },
+  ]);
+  assert.deepEqual(result[0], {
+    type: 'function_call',
+    arguments: '{"a":1}',
+    call_id: 'c1',
+    output: 'done',
+    tool_call_id: 't1',
+  });
+});
+
+test('serializeMessagesForRequest normalizes array string parts and copies object parts', () => {
+  const objectPart = { type: 'output_text', text: 'kept' };
+  const result = serializeMessagesForRequest([
+    { role: 'assistant', content: ['loose string', objectPart] },
+  ]);
+  assert.deepEqual(result[0].content, [
+    { type: 'output_text', text: 'loose string' },
+    { type: 'output_text', text: 'kept' },
+  ]);
+  // object parts are shallow-copied, not aliased
+  assert.notEqual(result[0].content[1], objectPart);
+});
+
 test('serializeMessagesForRequest includes input_image parts for inline attachments', () => {
   state.imageDataCache = new Map();
   state.generatedImages = [];
