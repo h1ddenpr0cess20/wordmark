@@ -3,6 +3,7 @@ import { getMemoriesForPrompt } from "../../utils/memoryStorage.ts";
 import { getLocationForPrompt } from "../location.ts";
 import { getMediaToolInstructions } from "../mediaTools.ts";
 import { getToolsDescription } from "../../components/tools.ts";
+import { createImagePlaceholderRegex } from "../../utils/placeholders.ts";
 import { DEFAULT_PERSONALITY, DEFAULT_SYSTEM_PROMPT, PERSONALITY_PROMPT_TEMPLATE, config } from "../../../config/config.ts";
 import type {
   Attachment,
@@ -15,12 +16,6 @@ import type {
 /**
  * Message preparation helpers for the Responses API.
  */
-
-const IMAGE_PLACEHOLDER_PATTERN = "\\[\\[IMAGE:\\s*([^\\]]+)\\]\\]";
-
-function createPlaceholderRegex() {
-  return new RegExp(IMAGE_PLACEHOLDER_PATTERN, "g");
-}
 
 function getTextPartType(role: string = "") {
   if (role === "assistant") {
@@ -120,7 +115,7 @@ function buildUserContentFromString(message: Message): string | ContentPart[] {
   const rawContent = typeof message.content === "string" ? message.content : "";
   const attachments = Array.isArray(message.attachments) ? message.attachments : [];
   const hasAttachments = attachments.length > 0;
-  const placeholderTestRegex = createPlaceholderRegex();
+  const placeholderTestRegex = createImagePlaceholderRegex();
   const hasPlaceholders = placeholderTestRegex.test(rawContent);
 
   if (!hasAttachments && !hasPlaceholders) {
@@ -131,7 +126,7 @@ function buildUserContentFromString(message: Message): string | ContentPart[] {
   const usedFilenames = new Set<string>();
   let lastIndex = 0;
 
-  const replaceRegex = createPlaceholderRegex();
+  const replaceRegex = createImagePlaceholderRegex();
   rawContent.replace(replaceRegex, (match: string, filename: string, offset: number) => {
     const preceding = rawContent.slice(lastIndex, offset);
     appendTextPart(parts, message.role, preceding);
