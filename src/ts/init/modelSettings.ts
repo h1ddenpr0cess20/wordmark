@@ -30,10 +30,12 @@ const HISTORY_TOKEN_BUDGET_STORAGE_KEY = STORAGE_KEYS.historyTokenBudget;
  */
 export const DEFAULT_HISTORY_TOKEN_BUDGET = 8000;
 
+/** Returns `value` if it is a valid reasoning effort, else {@link DEFAULT_REASONING_EFFORT}. */
 function normalizeReasoningEffort(value: string) {
   return VALID_REASONING_EFFORTS.includes(value) ? value : DEFAULT_REASONING_EFFORT;
 }
 
+/** Reads the persisted reasoning effort from localStorage, falling back to the default. */
 function loadReasoningEffortFromStorage() {
   try {
     const stored = localStorage.getItem(REASONING_EFFORT_STORAGE_KEY);
@@ -48,6 +50,7 @@ function loadReasoningEffortFromStorage() {
   return DEFAULT_REASONING_EFFORT;
 }
 
+/** Persists the reasoning-effort preference to localStorage (best-effort). */
 function persistReasoningEffort(value: string) {
   try {
     localStorage.setItem(REASONING_EFFORT_STORAGE_KEY, value);
@@ -58,6 +61,7 @@ function persistReasoningEffort(value: string) {
   }
 }
 
+/** Reports whether a model supports reasoning effort (GPT-4/4.1 variants do not). */
 function modelSupportsReasoning(modelName: string) {
   if (!modelName) {
     return true;
@@ -97,10 +101,12 @@ export function updateReasoningAvailability() {
   }
 }
 
+/** Returns `value` if it is a valid verbosity level, else {@link DEFAULT_VERBOSITY}. */
 function normalizeVerbosity(value: string) {
   return VALID_VERBOSITY_LEVELS.includes(value) ? value : DEFAULT_VERBOSITY;
 }
 
+/** Reads the persisted verbosity level from localStorage, falling back to the default. */
 function loadVerbosityFromStorage() {
   try {
     const stored = localStorage.getItem(VERBOSITY_STORAGE_KEY);
@@ -115,6 +121,7 @@ function loadVerbosityFromStorage() {
   return DEFAULT_VERBOSITY;
 }
 
+/** Persists the verbosity preference to localStorage (best-effort). */
 function persistVerbosity(value: string) {
   try {
     localStorage.setItem(VERBOSITY_STORAGE_KEY, value);
@@ -140,6 +147,7 @@ function normalizeHistoryTokenBudget(value: string | number | undefined) {
   return parsed;
 }
 
+/** Reads the persisted history token budget from localStorage, falling back to the default. */
 function loadHistoryTokenBudgetFromStorage() {
   try {
     const stored = localStorage.getItem(HISTORY_TOKEN_BUDGET_STORAGE_KEY);
@@ -154,6 +162,7 @@ function loadHistoryTokenBudgetFromStorage() {
   return DEFAULT_HISTORY_TOKEN_BUDGET;
 }
 
+/** Persists the history token budget to localStorage (best-effort). */
 function persistHistoryTokenBudget(value: number) {
   try {
     localStorage.setItem(HISTORY_TOKEN_BUDGET_STORAGE_KEY, String(value));
