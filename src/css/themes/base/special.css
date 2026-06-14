@@ -839,3 +839,81 @@
 .theme-nord .hljs-comment { color: #616e88; font-style: italic; }
 .theme-nord .hljs-function { color: #88c0d0; }
 .theme-nord .hljs-number { color: #b48ead; }
+
+.theme-dracula {
+  --bg-primary: #282a36;
+  --bg-secondary: #21222c;
+  --text-primary: #f8f8f2;
+  --text-secondary: #bcc2cd;
+  --accent-color: #bd93f9;
+  --accent-hover: #ff79c6;
+  --border-color: #44475a;
+  --user-bg: #343746;
+  --assistant-bg: #21222c;
+  --error-bg: #4a2230;
+  --error-text: #ff5555;
+  --body-bg-color-1: #282a36;
+  --body-bg-color-2: #21222c;
+  --button-text-color: #f8f8f2;
+  --code-bg: #21222c;
+  --code-border: #44475a;
+  --code-inline-bg: rgba(189, 147, 249, 0.14);
+  --bg-hover: rgba(189, 147, 249, 0.12);
+}
+
+.theme-dracula .message .message-content {
+  border: 1px solid var(--border-color);
+}
+
+.theme-dracula .message.user .message-content {
+  border-color: var(--accent-color);
+}
+
+.theme-dracula #user-input {
+  background-color: #21222c;
+  border: 1px solid var(--border-color);
+  color: var(--text-primary);
+  caret-color: var(--accent-color);
+}
+
+.theme-dracula #user-input::placeholder {
+  color: rgba(188, 194, 205, 0.55);
+}
+
+.theme-dracula .settings-group {
+  border: 1px solid var(--border-color);
+  background-color: #2a2c3a;
+}
+
+.theme-dracula .settings-group h3 {
+  color: var(--accent-color) !important;
+}
+
+.theme-dracula .tab-button.active {
+  background: transparent !important;
+  color: var(--accent-hover) !important;
+  border-bottom: 2px solid var(--accent-color) !important;
+}
+
+.theme-dracula #wordmark-logo circle {
+  fill: transparent;
+  stroke: var(--accent-color);
+}
+
+.theme-dracula #wordmark-logo path {
+  stroke: #ff79c6;
+}
+
+.theme-dracula pre,
+.theme-dracula pre code,
+.theme-dracula .code-block {
+  background-color: #21222c;
+  border: 1px solid var(--code-border);
+}
+
+/* Dracula syntax palette */
+.theme-dracula .hljs-keyword { color: #ff79c6; }
+.theme-dracula .hljs-string { color: #f1fa8c; }
+.theme-dracula .hljs-comment { color: #6272a4; font-style: italic; }
+.theme-dracula .hljs-function { color: #50fa7b; }
+.theme-dracula .hljs-number { color: #bd93f9; }
