@@ -11,8 +11,8 @@ import {
 import type { ResponseObject } from "../../../types/api.ts";
 import { isRecord, pickString } from "../../utils/utils.ts";
 
-const FILE_METADATA_CACHE = new Map<string, any>();
-const FILE_METADATA_PROMISES = new Map<string, Promise<any>>();
+const FILE_METADATA_CACHE = new Map<string, unknown>();
+const FILE_METADATA_PROMISES = new Map<string, Promise<unknown>>();
 
 /** A file produced by a Code Interpreter call. */
 export interface CodeAttachment {
@@ -469,12 +469,12 @@ async function hydrateAttachment(attachment: CodeAttachment | null) {
 
   try {
     const metadata = await fetchFileMetadata(attachment.fileId);
-    if (metadata && typeof metadata === "object") {
+    if (isRecord(metadata)) {
       if (!attachment.filename) {
-        attachment.filename = metadata.filename || metadata.name || null;
+        attachment.filename = pickString(metadata, ["filename", "name"]);
       }
       if (!attachment.mimeType) {
-        attachment.mimeType = metadata.mime_type || metadata.content_type || null;
+        attachment.mimeType = pickString(metadata, ["mime_type", "content_type"]);
       }
       if (attachment.bytes == null && typeof metadata.bytes === "number") {
         attachment.bytes = metadata.bytes;
