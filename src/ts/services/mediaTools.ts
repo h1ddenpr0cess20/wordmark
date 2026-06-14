@@ -42,6 +42,7 @@ export function isVideoMimeType(mimeType: string = ""): boolean {
   return /^video\//i.test(mimeType);
 }
 
+/** Guesses a MIME type from a filename's extension, defaulting to `image/png`. */
 function inferMimeTypeFromFilename(filename: string = ""): string {
   const lowered = String(filename || "").toLowerCase();
   if (lowered.endsWith(".mp4")) return "video/mp4";
@@ -80,6 +81,7 @@ export function detectMediaType(
   return "image";
 }
 
+/** Builds a unique filename from a prefix and MIME type, picking the matching extension. */
 function makeFilename(prefix: string, mimeType: string): string {
   const mediaType = isVideoMimeType(mimeType) ? "video" : "image";
   const extension = (() => {
@@ -110,6 +112,7 @@ export function buildMediaRecordHtml(record: GeneratedImage): string {
   return `<img src="${src}" alt="${safeAlt}" class="generated-image-thumbnail" data-media-type="image" data-filename="${safeFilename}" data-prompt="${safePrompt}" data-timestamp="${safeTimestamp}" />`;
 }
 
+/** Returns an object URL for a blob, the string as-is for strings, or `""` otherwise. */
 function createObjectUrl(value: unknown): string {
   if (value instanceof Blob) {
     return URL.createObjectURL(value);
@@ -120,6 +123,11 @@ function createObjectUrl(value: unknown): string {
   return "";
 }
 
+/**
+ * Fetches `url` and returns the response body as a {@link Blob}.
+ *
+ * @throws If the response status is not ok.
+ */
 async function fetchBlob(url: string, options: RequestInit = {}): Promise<Blob> {
   const response = await fetch(url, options);
   if (!response.ok) {
@@ -129,6 +137,7 @@ async function fetchBlob(url: string, options: RequestInit = {}): Promise<Blob> 
   return response.blob();
 }
 
+/** Decodes a base64 `data:` URI into a {@link Blob}, preserving its MIME type. */
 function decodeDataUri(reference: string): Blob {
   const [header, encoded] = String(reference).split(",", 2);
   const mimeMatch = /^data:([^;]+)/i.exec(header || "");
@@ -141,6 +150,12 @@ function decodeDataUri(reference: string): Blob {
   return new Blob([bytes], { type: mimeType });
 }
 
+/**
+ * Resolves a display URL for a stored media record by filename, using the
+ * in-memory cache first and loading from IndexedDB on a miss.
+ *
+ * @returns The display URL, or `null` if it cannot be resolved.
+ */
 async function resolveStoredReference(record: { filename?: string } | null | undefined): Promise<string | null> {
   if (!record || !record.filename) {
     return null;
@@ -164,6 +179,12 @@ async function resolveStoredReference(record: { filename?: string } | null | und
   }
 }
 
+/**
+ * Scans the conversation history newest-first for the most recent image
+ * attachment, returning its data URL, remote URL, or resolved stored reference.
+ *
+ * @returns A usable image reference, or `null` if none is found.
+ */
 async function findLatestConversationImage() {
   const history = Array.isArray(state.conversationHistory) ? [...state.conversationHistory].reverse() : [];
   for (const message of history) {
@@ -190,6 +211,12 @@ async function findLatestConversationImage() {
   return null;
 }
 
+/**
+ * Scans generated media newest-first for the most recent item matching `kind`
+ * (`"image"` or `"video"`).
+ *
+ * @returns A usable media reference, or `null` if none is found.
+ */
 async function findLatestGeneratedMedia(kind: string): Promise<string | null> {
   const media = Array.isArray(state.generatedImages) ? [...state.generatedImages].reverse() : [];
   for (const item of media) {
@@ -230,6 +257,10 @@ export async function resolveLatestMediaReference(kind: string): Promise<string 
   return null;
 }
 
+/**
+ * Parses an image API response into {@link ParsedImage} entries, accepting both
+ * base64 (`b64_json`) and URL-based items and skipping anything unusable.
+ */
 function parseImageResponse(payload: unknown): ParsedImage[] {
   const data = isRecord(payload) ? payload.data : undefined;
   const candidates = Array.isArray(data) ? data : [];
@@ -424,6 +455,11 @@ export function registerGeneratedMedia({
   return record;
 }
 
+/**
+ * Returns the configured, trailing-slash-trimmed base URL for `provider`.
+ *
+ * @throws If no base URL is configured for the provider.
+ */
 function getProviderBaseUrl(provider: string): string {
   const baseUrl = config?.services?.[provider]?.baseUrl || "";
   if (!baseUrl) {
@@ -432,6 +468,11 @@ function getProviderBaseUrl(provider: string): string {
   return baseUrl.replace(/\/+$/, "");
 }
 
+/**
+ * Returns the API key for `provider`, preferring stored keys over config.
+ *
+ * @throws With a user-facing message if no key is configured.
+ */
 function getProviderApiKey(provider: string): string {
   const apiKey = getApiKey?.(provider) || config?.services?.[provider]?.apiKey || "";
   const trimmed = typeof apiKey === "string" ? apiKey.trim() : "";
@@ -442,6 +483,7 @@ function getProviderApiKey(provider: string): string {
   return trimmed;
 }
 
+/** Builds JSON request headers for `provider`, including its bearer authorization. */
 function buildHeaders(provider: string): Record<string, string> {
   const headers: Record<string, string> = { "Content-Type": "application/json" };
   const apiKey = getProviderApiKey(provider);
@@ -451,6 +493,11 @@ function buildHeaders(provider: string): Record<string, string> {
   return headers;
 }
 
+/**
+ * Parses a response body as JSON.
+ *
+ * @throws With the status and body text when the response is not ok.
+ */
 async function responseToJson(response: Response): Promise<unknown> {
   if (!response.ok) {
     const text = await response.text().catch(() => "");
@@ -459,11 +506,17 @@ async function responseToJson(response: Response): Promise<unknown> {
   return response.json();
 }
 
+/** Fetches `url` and returns the parsed JSON body (throwing on a non-ok status). */
 async function fetchJson(url: string, options: RequestInit = {}): Promise<unknown> {
   const response = await fetch(url, options);
   return responseToJson(response);
 }
 
+/**
+ * Extracts and trims the `prompt` field from raw tool arguments.
+ *
+ * @throws If the prompt is missing or empty.
+ */
 function normalizePrompt(args: unknown) {
   const raw = isRecord(args) ? args.prompt : undefined;
   const prompt = String(raw ?? "").trim();
@@ -481,6 +534,17 @@ interface GrokImageResult {
   filenames: (string | undefined)[];
 }
 
+/**
+ * Calls the xAI Grok Imagine image API to generate or edit images, registers
+ * each returned image in application state, and summarizes the result.
+ *
+ * @param args - Raw tool arguments (prompt, aspect_ratio, resolution, n, and
+ *   for edits image_url/image_urls).
+ * @param mode - `"generate"` for new images or `"edit"` to modify a source
+ *   image; edits fall back to the latest available image when none is given.
+ * @throws If the prompt is missing, no source image is available for an edit,
+ *   or the API returns no images.
+ */
 async function generateGrokImage(args: unknown, mode: string): Promise<GrokImageResult> {
   const a = isRecord(args) ? args : {};
   const prompt = normalizePrompt(args);
