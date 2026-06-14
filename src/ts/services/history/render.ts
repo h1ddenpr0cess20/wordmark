@@ -7,7 +7,6 @@
  */
 
 import { elements, state } from "../../init/state.ts";
-import { detectMediaType, getMediaDisplayUrl } from "../mediaTools.ts";
 import { updateMessageContent } from "../streaming/messageLifecycle.ts";
 import { updatePromptVisibility } from "../../components/ui/settingsControls.ts";
 import { highlightAndAddCopyButtons, addMessageCopyButton, generateMessageId } from "../../components/messages.ts";
@@ -18,63 +17,14 @@ import { updateHeaderInfo, updateModelSelector } from "../../components/settings
 import { config } from "../../../config/config.ts";
 import { escapeHtml } from "../../utils/sanitize.ts";
 import { createImagePlaceholderRegex } from "../../utils/placeholders.ts";
-import type { ConversationRecord, GeneratedImage } from "../../../types/common.ts";
+import {
+  createMissingMediaPlaceholder,
+  findMediaRecord,
+  resolveMediaSource,
+  createMediaElement,
+} from "./renderMedia.ts";
+import type { ConversationRecord } from "../../../types/common.ts";
 import type { Message } from "../../../types/api.ts";
-
-function createMissingMediaPlaceholder(filename: string, mediaType = "image") {
-  const label = mediaType === "video" ? "Video" : "Image";
-  return `<div class='image-placeholder' style='padding:40px;background:#f1f1f1;border-radius:8px;margin:8px 0;text-align:center;font-style:italic;color:#666;'>${label} could not be loaded: ${escapeHtml(filename)}</div>`;
-}
-
-function findMediaRecord(convo: ConversationRecord, filename: string) {
-  return (convo.images || []).find((imageRef) => imageRef.filename === filename) || null;
-}
-
-function resolveMediaSource(mediaRecord: GeneratedImage | null, filename: string, imageCache: Map<string, string | Blob>): string {
-  if (!mediaRecord) {
-    return "";
-  }
-
-  if (typeof mediaRecord.url === "string" && mediaRecord.url.trim()) {
-    return mediaRecord.url;
-  }
-
-  if (mediaRecord.isStoredInDb && imageCache?.has(filename)) {
-    return getMediaDisplayUrl(imageCache.get(filename), filename);
-  }
-
-  return "";
-}
-
-function createMediaElement(mediaRecord: GeneratedImage, src: string, messageId = "") {
-  const mediaType = detectMediaType(mediaRecord);
-
-  if (mediaType === "video") {
-    const videoEl = document.createElement("video");
-    videoEl.src = src;
-    videoEl.className = "generated-video-thumbnail";
-    videoEl.controls = true;
-    videoEl.playsInline = true;
-    videoEl.preload = "metadata";
-    videoEl.dataset.mediaType = "video";
-    videoEl.dataset.filename = mediaRecord.filename || "";
-    videoEl.dataset.messageId = messageId;
-    videoEl.dataset.prompt = mediaRecord.prompt || "";
-    videoEl.dataset.timestamp = String(mediaRecord.timestamp || "");
-    return videoEl;
-  }
-
-  const imgEl = document.createElement("img");
-  imgEl.src = src;
-  imgEl.alt = mediaRecord.prompt || "Generated Image";
-  imgEl.className = "generated-image-thumbnail";
-  imgEl.dataset.mediaType = "image";
-  imgEl.dataset.filename = mediaRecord.filename || "";
-  imgEl.dataset.messageId = messageId;
-  imgEl.dataset.prompt = mediaRecord.prompt || "";
-  imgEl.dataset.timestamp = String(mediaRecord.timestamp || "");
-  return imgEl;
-}
 
 export function extractTextContent(content: Message["content"]): string {
   if (typeof content === "string") {
