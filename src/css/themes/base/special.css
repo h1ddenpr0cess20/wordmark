@@ -342,3 +342,119 @@
   font-family: "Courier New", monospace !important;
   letter-spacing: 0.04em;
 }
+
+.theme-parchment {
+  --bg-primary: #f4ecd8;
+  --bg-secondary: #ece0c4;
+  --text-primary: #3b2f1e;
+  --text-secondary: #6b5a3e;
+  --accent-color: #8b5a2b;
+  --accent-hover: #a8703a;
+  --border-color: #c9b68c;
+  --user-bg: #e7dabb;
+  --assistant-bg: #f0e7d0;
+  --error-bg: #f0d6cc;
+  --error-text: #8b2f1e;
+  --body-bg-color-1: #efe5cf;
+  --body-bg-color-2: #e1d2ad;
+  --button-text-color: #3b2f1e;
+  --code-bg: rgba(59, 47, 30, 0.06);
+  --code-border: #c9b68c;
+  --code-inline-bg: rgba(139, 90, 43, 0.12);
+  --bg-hover: rgba(139, 90, 43, 0.1);
+}
+
+.theme-parchment #chat-container::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  pointer-events: none;
+  /* faint paper grain plus a warm vignette so the page reads as aged stock */
+  background-image:
+    radial-gradient(circle at 20% 15%, rgba(139, 90, 43, 0.05) 0, transparent 55%),
+    radial-gradient(circle at 80% 85%, rgba(139, 90, 43, 0.05) 0, transparent 55%),
+    repeating-linear-gradient(0deg, rgba(59, 47, 30, 0.025) 0, rgba(59, 47, 30, 0.025) 1px, transparent 1px, transparent 4px);
+  z-index: 10;
+}
+
+.theme-parchment .message .message-content {
+  border: 1px solid var(--border-color);
+  box-shadow: 0 1px 2px rgba(59, 47, 30, 0.12);
+}
+
+.theme-parchment .message.user .message-content {
+  border-color: var(--accent-color);
+}
+
+.theme-parchment #user-input {
+  background-color: rgba(255, 252, 244, 0.75);
+  border: 1px solid var(--border-color);
+  color: var(--text-primary);
+  caret-color: var(--accent-color);
+}
+
+.theme-parchment #user-input::placeholder {
+  color: rgba(107, 90, 62, 0.6);
+}
+
+.theme-parchment .settings-group {
+  border: 1px solid var(--border-color);
+  background-color: rgba(255, 252, 244, 0.55);
+}
+
+.theme-parchment .settings-group h3 {
+  color: var(--accent-color) !important;
+  letter-spacing: 0.06em;
+}
+
+.theme-parchment #header-title {
+  letter-spacing: 0.1em;
+}
+
+.theme-parchment .tab-button.active {
+  background: transparent !important;
+  color: var(--accent-color) !important;
+  border-bottom: 2px solid var(--accent-color) !important;
+}
+
+.theme-parchment pre,
+.theme-parchment pre code,
+.theme-parchment .code-block {
+  background-color: rgba(59, 47, 30, 0.06);
+  border: 1px solid var(--code-border);
+  font-family: "Georgia", "Iowan Old Style", "Palatino Linotype", serif;
+}
+
+.theme-parchment .hljs-keyword { color: #8b2f1e; }
+.theme-parchment .hljs-string { color: #5a6b2b; }
+.theme-parchment .hljs-comment { color: #9a8a68; font-style: italic; }
+.theme-parchment .hljs-function { color: #8b5a2b; }
+.theme-parchment .hljs-number { color: #a8703a; }
+
+.theme-parchment body,
+.theme-parchment input,
+.theme-parchment textarea,
+.theme-parchment button,
+.theme-parchment select,
+.theme-parchment .message-content,
+.theme-parchment h1,
+.theme-parchment h2,
+.theme-parchment h3,
+.theme-parchment h4,
+.theme-parchment h5,
+.theme-parchment h6,
+.theme-parchment p,
+.theme-parchment label,
+.theme-parchment span,
+.theme-parchment option,
+.theme-parchment .tab-button,
+.theme-parchment .radio-text,
+.theme-parchment .settings-group,
+.theme-parchment .setting-item,
+.theme-parchment .personality-header {
+  font-family: "Georgia", "Iowan Old Style", "Palatino Linotype", serif !important;
+  letter-spacing: 0.01em;
+}
