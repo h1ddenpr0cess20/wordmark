@@ -144,7 +144,7 @@ function buildAttachmentFromObject(candidate: unknown, callId: string | null): C
   };
 }
 
-function gatherOutputsFromValue(value: any, context: GatherContext) {
+function gatherOutputsFromValue(value: unknown, context: GatherContext) {
   const {
     callId,
     pushAttachment,
@@ -185,30 +185,32 @@ function gatherOutputsFromValue(value: any, context: GatherContext) {
     visitedObjects.add(value);
   }
 
-  const type = typeof value.type === "string" ? value.type.toLowerCase() : "";
-  if (type && (type.includes("log") || type === "stderr")) {
-    const raw = value.logs ?? value.text ?? value.content ?? "";
-    const text = Array.isArray(raw) ? raw.join("\n") : (raw ? String(raw) : "");
-    if (text && text.trim()) {
-      pushLog({
-        kind: "logs",
-        callId: callId || null,
-        text: text.trim(),
-      });
+  if (isRecord(value)) {
+    const type = typeof value.type === "string" ? value.type.toLowerCase() : "";
+    if (type && (type.includes("log") || type === "stderr")) {
+      const raw = value.logs ?? value.text ?? value.content ?? "";
+      const text = Array.isArray(raw) ? raw.join("\n") : (raw ? String(raw) : "");
+      if (text && text.trim()) {
+        pushLog({
+          kind: "logs",
+          callId: callId || null,
+          text: text.trim(),
+        });
+      }
+    }
+
+    const attachment = buildAttachmentFromObject(value, callId);
+    if (attachment) {
+      pushAttachment(attachment);
     }
   }
 
-  const attachment = buildAttachmentFromObject(value, callId);
-  if (attachment) {
-    pushAttachment(attachment);
-  }
-
-  const keys = Object.keys(value);
-  for (const key of keys) {
+  const indexable = value as Record<string, unknown>;
+  for (const key of Object.keys(value)) {
     if (key === "logs") {
       continue;
     }
-    gatherOutputsFromValue(value[key], context);
+    gatherOutputsFromValue(indexable[key], context);
   }
 }
 
@@ -279,13 +281,14 @@ export function extractCodeInterpreterOutputs(responsePayload: ResponseObject | 
     visitedObjects,
   };
 
-  const inspectItem = (item: any, callIdHint?: string | null) => {
-    if (!item || typeof item !== "object") {
+  const inspectItem = (item: unknown, callIdHint?: string | null) => {
+    if (!isRecord(item)) {
       return;
     }
-    const callId = callIdHint || item.tool_call_id || item.call_id || item.id || null;
-    const toolName = item.tool_name || item.name || (item.function && item.function.name) || "";
-    const type = item.type || "";
+    const callId = callIdHint || pickString(item, ["tool_call_id", "call_id", "id"]);
+    const fn = isRecord(item.function) ? item.function : null;
+    const toolName = pickString(item, ["tool_name", "name"]) || (fn ? pickString(fn, ["name"]) : null) || "";
+    const type = item.type;
     const isRelevant =
       isCodeInterpreterName(toolName) ||
       (typeof type === "string" && type.toLowerCase().includes("code_interpreter")) ||
@@ -298,14 +301,15 @@ export function extractCodeInterpreterOutputs(responsePayload: ResponseObject | 
   };
 
   const rootOutputs = Array.isArray(responsePayload?.output) ? responsePayload.output : [];
-  rootOutputs.forEach((item: any) => {
+  rootOutputs.forEach((item: unknown) => {
     inspectItem(item);
-    if (item && Array.isArray(item.content)) {
-      item.content.forEach((contentItem: any) => {
-        if (contentItem && Array.isArray(contentItem.annotations)) {
-          contentItem.annotations.forEach((annotation: any) => {
-            if (annotation && annotation.type === "container_file_citation") {
-              const fileAttachment = buildAttachmentFromObject(annotation, item.id);
+    if (isRecord(item) && Array.isArray(item.content)) {
+      const itemId = typeof item.id === "string" ? item.id : null;
+      item.content.forEach((contentItem: unknown) => {
+        if (isRecord(contentItem) && Array.isArray(contentItem.annotations)) {
+          contentItem.annotations.forEach((annotation: unknown) => {
+            if (isRecord(annotation) && annotation.type === "container_file_citation") {
+              const fileAttachment = buildAttachmentFromObject(annotation, itemId);
               if (fileAttachment) {
                 pushAttachment(fileAttachment);
               }
@@ -317,17 +321,17 @@ export function extractCodeInterpreterOutputs(responsePayload: ResponseObject | 
   });
 
   const toolCalls = Array.isArray(responsePayload?.tool_calls) ? responsePayload.tool_calls : [];
-  toolCalls.forEach((call: any) => inspectItem(call));
+  toolCalls.forEach((call: unknown) => inspectItem(call));
 
-  const ciCalls: any[] = [];
+  const ciCalls: unknown[] = [];
   if (Array.isArray(responsePayload?.code_interpreter_calls)) {
     ciCalls.push(...responsePayload.code_interpreter_calls);
   }
   if (responsePayload?.code_interpreter_call) {
     ciCalls.push(responsePayload.code_interpreter_call);
   }
-  ciCalls.forEach((call: any) => {
-    const callId = call && (call.id || call.tool_call_id || call.call_id || null);
+  ciCalls.forEach((call: unknown) => {
+    const callId = isRecord(call) ? pickString(call, ["id", "tool_call_id", "call_id"]) : null;
     context.callId = callId || null;
     gatherOutputsFromValue(call, context);
   });
