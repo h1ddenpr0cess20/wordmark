@@ -64,14 +64,14 @@ test('estimateMessageTokens handles array, object, and empty content', () => {
   // missing content -> empty text -> 0 tokens, +4 overhead
   assert.equal(estimateMessageTokens({ role: 'user' }), 4);
   // non-object inputs are zero-cost
-  assert.equal(estimateMessageTokens(null), 0);
-  assert.equal(estimateMessageTokens('nope'), 0);
+  assert.equal(estimateMessageTokens(null as never), 0);
+  assert.equal(estimateMessageTokens('nope' as never), 0);
 });
 
 test('serializeMessagesForRequest returns [] for non-array input and drops invalid entries', () => {
   assert.deepEqual(serializeMessagesForRequest(undefined), []);
-  assert.deepEqual(serializeMessagesForRequest('nope'), []);
-  const result = serializeMessagesForRequest([null, 'x', { role: 'assistant', content: 'ok' }]);
+  assert.deepEqual(serializeMessagesForRequest('nope' as never), []);
+  const result = serializeMessagesForRequest([null, 'x', { role: 'assistant', content: 'ok' }] as never);
   assert.equal(result.length, 1);
   assert.equal(result[0].content, 'ok');
 });
@@ -106,7 +106,7 @@ test('serializeMessagesForRequest normalizes array string parts and copies objec
   const objectPart = { type: 'output_text', text: 'kept' };
   const result = serializeMessagesForRequest([
     { role: 'assistant', content: ['loose string', objectPart] },
-  ]);
+  ] as never);
   assert.deepEqual(result[0].content, [
     { type: 'output_text', text: 'loose string' },
     { type: 'output_text', text: 'kept' },

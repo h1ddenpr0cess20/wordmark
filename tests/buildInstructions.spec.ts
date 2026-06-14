@@ -6,7 +6,7 @@ globalThis.window = globalThis.window || ({} as Window & typeof globalThis);
 const { elements, state } = await import("../src/ts/init/state.js");
 const { buildInstructions } = await import("../src/ts/services/api/messageUtils.js");
 
-const el = elements as Record<string, unknown>;
+const el = elements as unknown as Record<string, unknown>;
 
 function setRadios(opts: { none?: boolean; custom?: boolean; personality?: boolean }) {
   el.noPromptRadio = { checked: Boolean(opts.none) };

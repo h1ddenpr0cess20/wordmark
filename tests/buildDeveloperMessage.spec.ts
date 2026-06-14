@@ -14,7 +14,7 @@ globalThis.localStorage = {
 const { elements } = await import("../src/ts/init/state.js");
 const { buildDeveloperMessage } = await import("../src/ts/services/api/messageUtils.js");
 
-const el = elements as Record<string, unknown>;
+const el = elements as unknown as Record<string, unknown>;
 
 test("buildDeveloperMessage returns empty string when there are no instructions", () => {
   el.noPromptRadio = { checked: true };
