@@ -5,6 +5,7 @@
 import { state } from "../../init/state.ts";
 import { registerGeneratedMedia } from "../mediaTools.ts";
 import type { ResponseObject } from "../../../types/api.ts";
+import { isRecord } from "../../utils/utils.ts";
 
 /** Response output type identifying an image-generation call. */
 export const IMAGE_GENERATION_CALL_TYPE = "image_generation_call";
@@ -241,8 +242,8 @@ export function collectImageCandidates(
   }
 }
 
-function extractPromptFromImageCall(call: any) {
-  if (!call || typeof call !== "object") {
+function extractPromptFromImageCall(call: unknown) {
+  if (!isRecord(call)) {
     return "";
   }
   if (typeof call.revised_prompt === "string" && call.revised_prompt.trim()) {
@@ -251,7 +252,7 @@ function extractPromptFromImageCall(call: any) {
   if (typeof call.prompt === "string" && call.prompt.trim()) {
     return call.prompt.trim();
   }
-  let argumentsSource = call.arguments;
+  let argumentsSource: unknown = call.arguments;
   if (typeof argumentsSource === "string") {
     try {
       argumentsSource = JSON.parse(argumentsSource);
@@ -259,7 +260,7 @@ function extractPromptFromImageCall(call: any) {
       argumentsSource = null;
     }
   }
-  if (argumentsSource && typeof argumentsSource === "object") {
+  if (isRecord(argumentsSource)) {
     if (typeof argumentsSource.prompt === "string" && argumentsSource.prompt.trim()) {
       return argumentsSource.prompt.trim();
     }
@@ -270,24 +271,28 @@ function extractPromptFromImageCall(call: any) {
       return argumentsSource.description.trim();
     }
   }
-  if (call.metadata && typeof call.metadata === "object") {
+  if (isRecord(call.metadata)) {
+    const metadata = call.metadata;
     const keys = ["prompt", "description", "request"];
     for (const key of keys) {
-      if (typeof call.metadata[key] === "string" && call.metadata[key].trim()) {
-        return call.metadata[key].trim();
+      const value = metadata[key];
+      if (typeof value === "string" && value.trim()) {
+        return value.trim();
       }
     }
   }
   return "";
 }
 
-function detectImageCallMode(call: any) {
-  const candidates = [
-    call?.mode,
-    call?.metadata?.mode,
+function detectImageCallMode(call: unknown) {
+  const record = isRecord(call) ? call : undefined;
+  const metadata = record && isRecord(record.metadata) ? record.metadata : undefined;
+  const candidates: unknown[] = [
+    record?.mode,
+    metadata?.mode,
   ];
-  const args = call?.arguments;
-  if (args && typeof args === "object") {
+  const args = record?.arguments;
+  if (isRecord(args)) {
     if (typeof args.mode === "string") {
       candidates.push(args.mode);
     }
@@ -297,8 +302,8 @@ function detectImageCallMode(call: any) {
   }
   if (typeof args === "string") {
     try {
-      const parsed = JSON.parse(args);
-      if (parsed && typeof parsed === "object" && typeof parsed.mode === "string") {
+      const parsed: unknown = JSON.parse(args);
+      if (isRecord(parsed) && typeof parsed.mode === "string") {
         candidates.push(parsed.mode);
       }
     } catch {
@@ -306,10 +311,10 @@ function detectImageCallMode(call: any) {
     }
   }
   const found = candidates.find(value => typeof value === "string" && value.trim());
-  return found ? found.trim().toLowerCase() : "";
+  return typeof found === "string" ? found.trim().toLowerCase() : "";
 }
 
-function determineSourceLabel(node: any, mode: string) {
+function determineSourceLabel(node: unknown, mode: string) {
   if (mode) {
     if (mode.includes("edit")) {
       return "image_edit";
@@ -318,7 +323,7 @@ function determineSourceLabel(node: any, mode: string) {
       return "image_variation";
     }
   }
-  if (node && typeof node.type === "string") {
+  if (isRecord(node) && typeof node.type === "string") {
     const lowered = node.type.toLowerCase();
     if (lowered.includes("edit")) {
       return "image_edit";
