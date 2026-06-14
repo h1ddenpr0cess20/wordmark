@@ -21,6 +21,12 @@ import type { CodeAttachment, CodeInterpreterOutputs } from "./codeInterpreter.t
 const FILE_METADATA_CACHE = new Map<string, unknown>();
 const FILE_METADATA_PROMISES = new Map<string, Promise<unknown>>();
 
+/**
+ * Returns the `.code-interpreter-outputs` section inside the content wrapper,
+ * creating it (with its heading) on first use.
+ *
+ * @returns The section element, or `null` if no wrapper was given.
+ */
 function ensureSection(contentWrapper: HTMLElement | null) {
   if (!contentWrapper) {
     return null;
@@ -38,6 +44,7 @@ function ensureSection(contentWrapper: HTMLElement | null) {
   return section;
 }
 
+/** Picks a display filename for an attachment: its name, else file id, else a positional default. */
 function fallbackFilename(attachment: CodeAttachment, index: number | null) {
   if (attachment && attachment.filename) {
     return attachment.filename;
@@ -48,6 +55,7 @@ function fallbackFilename(attachment: CodeAttachment, index: number | null) {
   return `code-output-${typeof index === "number" ? index + 1 : 1}`;
 }
 
+/** Formats a byte count as a human-readable size (B/KB/MB/GB/TB), or `null` if not a valid number. */
 function formatBytes(bytes: unknown) {
   if (typeof bytes !== "number" || !Number.isFinite(bytes) || bytes < 0) {
     return null;
@@ -65,6 +73,7 @@ function formatBytes(bytes: unknown) {
   return `${value.toFixed(value >= 10 ? 0 : 1)} ${units[unitIndex]}`;
 }
 
+/** Builds the metadata line for an attachment (MIME type, size, and file id joined by bullets). */
 function describeAttachment(attachment: CodeAttachment) {
   const parts: string[] = [];
   if (attachment.mimeType) {
@@ -80,6 +89,7 @@ function describeAttachment(attachment: CodeAttachment) {
   return parts.join(" • ");
 }
 
+/** Extracts a filename from a `Content-Disposition` header, or `null` if none is present. */
 function parseContentDispositionFilename(header: string | null) {
   if (typeof header !== "string") {
     return null;
@@ -91,6 +101,7 @@ function parseContentDispositionFilename(header: string | null) {
   return null;
 }
 
+/** Returns a file extension (incl. leading dot) for a known MIME type, or `""` if unrecognized. */
 function guessExtension(mimeType: unknown) {
   if (typeof mimeType !== "string") {
     return "";
@@ -109,6 +120,12 @@ function guessExtension(mimeType: unknown) {
   return "";
 }
 
+/**
+ * Fetches and caches a provider file's metadata by id, de-duplicating concurrent
+ * requests via an in-flight promise map.
+ *
+ * @throws If the metadata request fails.
+ */
 async function fetchFileMetadata(fileId: string) {
   if (FILE_METADATA_CACHE.has(fileId)) {
     return FILE_METADATA_CACHE.get(fileId);
@@ -184,6 +201,12 @@ async function hydrateAttachment(attachment: CodeAttachment | null) {
   return attachment;
 }
 
+/**
+ * Builds the DOM row for a single attachment (name, metadata, download button).
+ *
+ * @returns The row element plus its child elements and an `update()` that
+ *   re-renders the row from the attachment's current state.
+ */
 function buildFileRow(attachment: CodeAttachment) {
   const row = document.createElement("div");
   row.className = "code-interpreter-file";
@@ -238,6 +261,12 @@ function buildFileRow(attachment: CodeAttachment) {
   };
 }
 
+/**
+ * Downloads an attachment's content from the provider (container or file
+ * endpoint) and triggers a browser save, inferring a filename and extension.
+ *
+ * @throws If the attachment lacks a file id or the download request fails.
+ */
 async function downloadFileContent(attachment: CodeAttachment | null) {
   if (!attachment || !attachment.fileId) {
     throw new Error("Missing file identifier for download.");
