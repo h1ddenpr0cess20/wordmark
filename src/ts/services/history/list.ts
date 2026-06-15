@@ -11,10 +11,8 @@ import {
   getAllConversationsFromDb,
   deleteConversationFromDb,
 } from "../../utils/conversationStorage.ts";
-import { DEFAULT_PERSONALITY } from "../../../config/config.ts";
 import { startNewConversation, loadConversation, renameConversation } from "./persistence.ts";
-import { escapeHtml } from "../../utils/sanitize.ts";
-import { truncate } from "../../utils/utils.ts";
+import { buildHistoryRowHtml } from "./historyRow.ts";
 
 /**
  * Renders the saved-conversation list into the history panel, wiring each
@@ -242,79 +240,7 @@ export function renderChatHistoryList() {
           row.classList.add("current-conversation");
         }
 
-        let title = "";
-        const userMsg = (convo.messages || []).find((m) => m.role === "user");
-        if (userMsg) {
-          let text = "";
-          if (typeof userMsg.content === "string") {
-            text = userMsg.content;
-          } else if (Array.isArray(userMsg.content)) {
-            const part = userMsg.content.find(p => p.type === "input_text" || p.type === "text");
-            text = part ? (part.text || (typeof part.content === "string" ? part.content : "") || "") : "";
-          }
-          title = truncate(text, 50);
-        } else {
-          title = "(No user message)";
-        }
-
-        const date = new Date(convo.updated || 0);
-        const now = new Date();
-        const yesterday = new Date();
-        yesterday.setDate(now.getDate() - 1);
-
-        let formatted;
-        if (date.toDateString() === now.toDateString()) {
-          formatted = date.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
-        } else if (date.toDateString() === yesterday.toDateString()) {
-          formatted = "Yesterday";
-        } else {
-          formatted = date.toLocaleDateString([], { month: "short", day: "numeric" });
-        }
-
-        let promptInfo = "";
-        let promptClass = "none";
-        if (convo.systemPrompt) {
-          if (convo.systemPrompt.type === "personality") {
-            promptInfo = convo.systemPrompt.content || DEFAULT_PERSONALITY || "Default";
-            promptClass = "personality";
-          } else if (convo.systemPrompt.type === "custom") {
-            const content = convo.systemPrompt.content || "";
-            promptInfo = truncate(content, 30);
-            promptClass = "custom";
-          } else {
-            promptInfo = "None";
-            promptClass = "none";
-          }
-        }
-
-        const modelInfo = convo.model || "Unknown";
-        const serviceInfo = convo.service || "Unknown";
-        const messageCount = (convo.messages || []).length;
-        const imageCount = (convo.images || []).length;
-
-        row.innerHTML = `
-          <td class="col-title">
-            <div class="history-title">${escapeHtml(title)}</div>
-          </td>
-          <td class="col-prompt">
-            <span class="prompt-type ${promptClass}">${escapeHtml(promptInfo)}</span>
-          </td>
-          <td class="col-model">
-            <div class="model-info">
-              <div class="model-name">${escapeHtml(modelInfo)}</div>
-              <div class="service-name">${escapeHtml(serviceInfo)}</div>
-            </div>
-          </td>
-          <td class="col-stats">
-            <div class="stats-info">
-              <span class="message-count">${messageCount} msg</span>
-              ${imageCount > 0 ? `<span class="image-count">${imageCount} media</span>` : ""}
-            </div>
-          </td>
-          <td class="col-date">
-            <span class="date-info">${formatted}</span>
-          </td>
-        `;
+        row.innerHTML = buildHistoryRowHtml(convo);
 
         row.onclick = (e) => {
           const isMultiSelect = multiSelectCheckbox.checked;
