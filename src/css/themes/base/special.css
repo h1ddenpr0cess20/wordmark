@@ -917,3 +917,38 @@
 .theme-dracula .hljs-comment { color: #6272a4; font-style: italic; }
 .theme-dracula .hljs-function { color: #50fa7b; }
 .theme-dracula .hljs-number { color: #bd93f9; }
+
+.theme-tidepool {
+  --bg-primary: #06181c;
+  --bg-secondary: #0c2a30;
+  --text-primary: #d7f5ef;
+  --text-secondary: #7fb8b0;
+  --accent-color: #2fd6c3;
+  --accent-hover: #5fe8d8;
+  --border-color: #164048;
+  --user-bg: #103840;
+  --assistant-bg: #0a2228;
+  --error-bg: #3a1518;
+  --error-text: #ff6b7a;
+  --body-bg-color-1: #06181c;
+  --body-bg-color-2: #0a2630;
+  --button-text-color: #06181c;
+}
+
+.theme-tidepool #wordmark-logo path {
+  stroke: var(--accent-color);
+}
+
+.theme-tidepool pre,
+.theme-tidepool pre code,
+.theme-tidepool .code-block {
+  background-color: #0a2228;
+  border: 1px solid var(--border-color);
+}
+
+/* Tidepool syntax palette */
+.theme-tidepool .hljs-keyword { color: #2fd6c3; }
+.theme-tidepool .hljs-string { color: #9ce0a8; }
+.theme-tidepool .hljs-comment { color: #5a8983; font-style: italic; }
+.theme-tidepool .hljs-function { color: #7fd6ff; }
+.theme-tidepool .hljs-number { color: #f2c66d; }
