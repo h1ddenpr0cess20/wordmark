@@ -2,93 +2,19 @@ import { icon } from "../utils/icons.ts";
 import { showNotification } from "../utils/notifications.ts";
 import { responsesClient } from "./api.ts";
 import { refreshToolSettingsUI } from "../components/tools.ts";
-import { STORAGE_KEYS, writeJSON } from "../utils/storage.ts";
+import { getMCPServers, addMCPServer, removeMCPServer } from "./mcpServerStore.ts";
 /**
- * Management of URL-based Model Context Protocol (MCP) servers.
+ * UI and client wiring for URL-based Model Context Protocol (MCP) servers.
  *
  * @remarks
- * Persists user-configured MCP servers to localStorage, renders the settings
- * list, and registers/unregisters them with the {@link responsesClient} so
- * changes take effect without reloading.
+ * Renders the settings list of user-configured MCP servers (persisted by
+ * {@link ./mcpServerStore.ts}) and registers/unregisters them with the
+ * {@link responsesClient} so changes take effect without reloading. The storage
+ * CRUD helpers are re-exported here so importers keep a single entry point.
  */
 
-const MCP_SERVERS_STORAGE_KEY = STORAGE_KEYS.mcpServers;
-
-/** A configured URL-based MCP server, as persisted in localStorage. */
-interface McpServer {
-  server_label: string;
-  server_url: string;
-  displayName: string;
-  require_approval?: string;
-  description?: string;
-}
-
-/** Returns all configured MCP servers, or `[]` on read/parse failure. */
-export function getMCPServers(): McpServer[] {
-  try {
-    const stored = localStorage.getItem(MCP_SERVERS_STORAGE_KEY);
-    return stored ? JSON.parse(stored) : [];
-  } catch (error) {
-    console.error("Error loading MCP servers:", error);
-    return [];
-  }
-}
-
-/**
- * Persists the full list of MCP servers to localStorage.
- *
- * @param servers - The servers to store.
- */
-function saveMCPServers(servers: McpServer[]) {
-  try {
-    writeJSON(MCP_SERVERS_STORAGE_KEY, servers);
-  } catch (error) {
-    console.error("Error saving MCP servers:", error);
-    throw error;
-  }
-}
-
-/**
- * Adds a new MCP server.
- *
- * @param server - The server configuration to add.
- * @returns `true` on success.
- * @throws If a server with the same `server_label` already exists.
- */
-export function addMCPServer(server: McpServer) {
-  try {
-    const servers = getMCPServers();
-
-    if (servers.some((s) => s.server_label === server.server_label)) {
-      throw new Error(`Server with label "${server.server_label}" already exists`);
-    }
-
-    servers.push(server);
-    saveMCPServers(servers);
-    return true;
-  } catch (error) {
-    console.error("Error adding MCP server:", error);
-    throw error;
-  }
-}
-
-/**
- * Removes the MCP server with the given label.
- *
- * @param serverLabel - Label of the server to remove.
- * @returns `true` on success.
- */
-export function removeMCPServer(serverLabel: string) {
-  try {
-    const servers = getMCPServers();
-    const filtered = servers.filter((s) => s.server_label !== serverLabel);
-    saveMCPServers(filtered);
-    return true;
-  } catch (error) {
-    console.error("Error removing MCP server:", error);
-    throw error;
-  }
-}
+export { getMCPServers, addMCPServer, removeMCPServer };
+export type { McpServer } from "./mcpServerStore.ts";
 
 /** Renders the configured MCP servers into the settings list. */
 function renderMCPServersList() {
