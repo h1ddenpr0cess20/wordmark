@@ -14,6 +14,7 @@ import { ttsAudioResources } from "./resources.ts";
 import { generateSpeech } from "./api.ts";
 import { stopTtsAudio, handleTtsAudioEnded } from "./playback.ts";
 import { playNextMessageInQueue } from "./queue.ts";
+import { removeExistingTtsControls, attachTtsControls } from "./controlsDom.ts";
 /**
  * Generates TTS for a finished message. When autoplay is on, synthesizes audio,
  * attaches playback controls, and enqueues it; otherwise attaches on-demand
@@ -92,14 +93,7 @@ export function addPlaceholderTtsControls(messageId: string, text: string) {
     return;
   }
 
-  const existingControls = messageElement.querySelector(".tts-controls");
-  if (existingControls) {
-    try {
-      existingControls.remove();
-    } catch (error) {
-      console.error("Error removing existing TTS controls:", error);
-    }
-  }
+  removeExistingTtsControls(messageElement);
 
   const controlsContainer = document.createElement("div");
   controlsContainer.className = "tts-controls";
@@ -159,12 +153,7 @@ export function addPlaceholderTtsControls(messageId: string, text: string) {
   controlsContainer.appendChild(playButton);
   controlsContainer.appendChild(statusText);
 
-  const contentElement = messageElement.querySelector(".message-content");
-  if (contentElement) {
-    contentElement.appendChild(controlsContainer);
-  } else {
-    messageElement.appendChild(controlsContainer);
-  }
+  attachTtsControls(messageElement, controlsContainer);
 };
 
 /**
@@ -177,14 +166,7 @@ export function addTtsControlsToMessage(audioData: ArrayBuffer, messageId: strin
     return;
   }
 
-  const existingControls = messageElement.querySelector(".tts-controls");
-  if (existingControls) {
-    try {
-      existingControls.remove();
-    } catch (error) {
-      console.error("Error removing existing TTS controls:", error);
-    }
-  }
+  removeExistingTtsControls(messageElement);
 
   const audioBlob = new Blob([audioData], { type: "audio/wav" });
   const audioUrl = URL.createObjectURL(audioBlob);
@@ -456,11 +438,6 @@ export function addTtsControlsToMessage(audioData: ArrayBuffer, messageId: strin
   controlsContainer.appendChild(downloadButton);
   controlsContainer.appendChild(statusText);
 
-  const contentElement = messageElement.querySelector(".message-content");
-  if (contentElement) {
-    contentElement.appendChild(controlsContainer);
-  } else {
-    messageElement.appendChild(controlsContainer);
-  }
+  attachTtsControls(messageElement, controlsContainer);
 };
 
