@@ -5,6 +5,7 @@
 import { elements } from "../init/state.ts";
 import { uiHooks } from "../init/uiHooks.ts";
 import { STORAGE_KEYS } from "../utils/storage.ts";
+import { showInlineStatus } from "../utils/inlineStatus.ts";
 import { DEFAULT_PERSONALITY, config } from "../../config/config.ts";
 import { getMemoryConfig, setMemoryEnabled } from "../utils/memoryStorage.ts";
 import { locationState, requestLocation, disableLocation } from "../services/location.ts";
@@ -32,23 +33,12 @@ export function updateModelsDropdown(fetchError?: boolean) {
   updateModelSelector();
 
   if (fetchError) {
-    const existingStatus = document.querySelector(".service-status");
-    if (existingStatus) {
-      existingStatus.remove();
-    }
-
-    const statusElement = document.createElement("div");
-    statusElement.className = "service-status error";
-    statusElement.textContent = `Failed to fetch ${serviceLabel} models. Check server connection.`;
-
-    const statusAnchor = document.querySelector(".model-selector-container") || document.querySelector(".lmstudio-action-buttons");
-    if (statusAnchor) {
-      statusAnchor.insertAdjacentElement("afterend", statusElement);
-
-      setTimeout(() => {
-        statusElement.remove();
-      }, 5000);
-    }
+    showInlineStatus(
+      "service-status",
+      [".model-selector-container", ".lmstudio-action-buttons"],
+      `Failed to fetch ${serviceLabel} models. Check server connection.`,
+      "error",
+    );
   }
 }
 

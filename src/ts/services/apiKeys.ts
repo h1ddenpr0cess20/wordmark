@@ -16,6 +16,7 @@ import { API_KEYS_STORAGE_PREFIX, loadApiKeysIntoConfig } from "./apiKeyStorage.
 import { STORAGE_KEYS } from "../utils/storage.ts";
 import { isLocalService } from "./providers.ts";
 import { normalizeServerBaseUrl } from "../utils/utils.ts";
+import { showInlineStatus } from "../utils/inlineStatus.ts";
 
 const LMSTUDIO_SERVER_URL_KEY = STORAGE_KEYS.lmStudioServerUrl;
 const OLLAMA_SERVER_URL_KEY = STORAGE_KEYS.ollamaServerUrl;
@@ -157,34 +158,6 @@ function initApiKeys(retryCount: number = 0) {
 
   loadApiKeys();
 };
-
-/**
- * Renders a transient inline status note: removes any prior note of the same
- * class, inserts a new one after `anchorSelector`, and auto-dismisses it.
- *
- * @param statusClass - CSS class identifying this note family (e.g. `lmstudio-status`).
- * @param anchorSelector - Selector for the element the note is inserted after.
- * @param message - The status text.
- * @param type - Visual variant appended to the class (`success` or `error`).
- */
-function showInlineStatus(statusClass: string, anchorSelector: string, message: string, type: string = "success") {
-  const existing = document.querySelector(`.${statusClass}`) as HTMLElement | null;
-  if (existing) {
-    existing.remove();
-  }
-
-  const statusElement = document.createElement("div");
-  statusElement.className = `${statusClass} ${type}`;
-  statusElement.textContent = message;
-
-  const anchor = document.querySelector(anchorSelector) as HTMLElement | null;
-  if (anchor) {
-    anchor.insertAdjacentElement("afterend", statusElement);
-    setTimeout(() => {
-      statusElement.remove();
-    }, 5000);
-  }
-}
 
 /** Identifies a local provider whose base URL is user-configurable. */
 interface LocalServerUrlConfig {

@@ -8,6 +8,7 @@
 
 import { elements } from "../state.ts";
 import { icon } from "../../utils/icons.ts";
+import { showInlineStatus } from "../../utils/inlineStatus.ts";
 import { isMobileDevice, focusUserInputSafely } from "../../utils/mobileHandling.ts";
 import { exportChat, handleExportFormatChange } from "../../services/export.ts";
 import { updateBrowserHistory } from "../../services/history/state.ts";
@@ -179,39 +180,23 @@ export function setupButtonEventListeners(
           const models = serviceConfig.models || [];
           const hasError = models.length === 0 || models.some((m: unknown) => typeof m === "string" && (m.startsWith("Error:") || m.startsWith("No models")));
 
-          const existingStatus = document.querySelector(".service-status");
-          if (existingStatus) {
-            existingStatus.remove();
-          }
-
-          const statusElement = document.createElement("div");
-          statusElement.className = hasError ? "service-status error" : "service-status success";
-          statusElement.textContent = hasError
-            ? `Failed to refresh ${serviceLabel} models`
-            : `${serviceLabel} models updated successfully!`;
-
-          const statusAnchor = document.querySelector(".model-selector-container") || document.querySelector(".lmstudio-action-buttons");
-          if (statusAnchor) {
-            statusAnchor.insertAdjacentElement("afterend", statusElement);
-            setTimeout(() => statusElement.remove(), 5000);
-          }
+          showInlineStatus(
+            "service-status",
+            [".model-selector-container", ".lmstudio-action-buttons"],
+            hasError
+              ? `Failed to refresh ${serviceLabel} models`
+              : `${serviceLabel} models updated successfully!`,
+            hasError ? "error" : "success",
+          );
         } catch (error) {
           console.error(`Error refreshing ${serviceLabel} models:`, error);
 
-          const existingStatus = document.querySelector(".service-status");
-          if (existingStatus) {
-            existingStatus.remove();
-          }
-
-          const statusElement = document.createElement("div");
-          statusElement.className = "service-status error";
-          statusElement.textContent = `Failed to refresh ${serviceLabel} models`;
-
-          const statusAnchor = document.querySelector(".model-selector-container") || document.querySelector(".lmstudio-action-buttons");
-          if (statusAnchor) {
-            statusAnchor.insertAdjacentElement("afterend", statusElement);
-            setTimeout(() => statusElement.remove(), 5000);
-          }
+          showInlineStatus(
+            "service-status",
+            [".model-selector-container", ".lmstudio-action-buttons"],
+            `Failed to refresh ${serviceLabel} models`,
+            "error",
+          );
         } finally {
           refreshModelsButton.disabled = false;
           refreshModelsButton.innerHTML = icon("refresh-cw", { width: 16, height: 16 });
