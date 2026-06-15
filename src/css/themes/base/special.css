@@ -953,6 +953,12 @@
 .theme-tidepool .hljs-function { color: #7fd6ff; }
 .theme-tidepool .hljs-number { color: #f2c66d; }
 
+/* button-text-color is the dark on-accent text; on transparent surfaces use the accent instead */
+.theme-tidepool .tab-button.active,
+.theme-tidepool .reset-button {
+  color: var(--accent-color);
+}
+
 .theme-ember {
   --bg-primary: #15100d;
   --bg-secondary: #211814;
@@ -987,3 +993,9 @@
 .theme-ember .hljs-comment { color: #8a6a55; font-style: italic; }
 .theme-ember .hljs-function { color: #ffb37a; }
 .theme-ember .hljs-number { color: #ff8c69; }
+
+/* button-text-color is the dark on-accent text; on transparent surfaces use the accent instead */
+.theme-ember .tab-button.active,
+.theme-ember .reset-button {
+  color: var(--accent-color);
+}
