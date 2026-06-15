@@ -47,11 +47,16 @@ export function updatePanelOpenState() {
   }
 }
 
+/** Snapshots the current personality/custom-prompt field values into `panelState`. */
 function storeOriginalValues(panelState: PanelState) {
   panelState.originalPersonalityValue = elements.personalityInput ? elements.personalityInput.value : "";
   panelState.originalCustomPromptValue = elements.systemPromptCustom ? elements.systemPromptCustom.value : "";
 }
 
+/**
+ * Restores the prompt fields from `panelState` for the currently selected prompt
+ * mode, used when the panel is dismissed without saving.
+ */
 function restoreOriginalValues(panelState: PanelState) {
   if (elements.personalityPromptRadio && elements.personalityPromptRadio.checked && elements.personalityInput) {
     elements.personalityInput.value = panelState.originalPersonalityValue;
@@ -65,6 +70,10 @@ function restoreOriginalValues(panelState: PanelState) {
   }
 }
 
+/**
+ * Opens the settings panel: marks it active/visible and hides the header
+ * settings/history/gallery buttons while it is open.
+ */
 function showSettingsPanel() {
   if (!elements.settingsPanel || !elements.settingsButton) {
     return;
@@ -84,6 +93,11 @@ function showSettingsPanel() {
   updatePanelOpenState();
 }
 
+/**
+ * Closes the settings panel and restores the header buttons.
+ *
+ * @param focusButton - When `true`, returns focus to the settings button.
+ */
 function hideSettingsPanel({ focusButton = false } = {}) {
   if (!elements.settingsPanel || !elements.settingsButton) {
     return;
@@ -106,6 +120,14 @@ function hideSettingsPanel({ focusButton = false } = {}) {
   updatePanelOpenState();
 }
 
+/**
+ * Wires the header quick-access elements (logo, title, model info) so clicking
+ * one opens the settings panel on its associated tab. Registers both a direct
+ * listener and a capture-phase document listener, marking handled events in
+ * {@link handledEvents} so the outside-click handler ignores them.
+ *
+ * @param openSettingsAndSwitch - Callback that opens the panel and switches tabs.
+ */
 function setupQuickAccessTargets(openSettingsAndSwitch: (tabId: string) => void) {
   const targets = [
     { selector: "#wordmark-logo", tabId: "tab-about" },
@@ -138,6 +160,12 @@ function setupQuickAccessTargets(openSettingsAndSwitch: (tabId: string) => void)
   }, true);
 }
 
+/**
+ * Registers the document click handler that dismisses the settings, gallery, and
+ * history panels on an outside click — restoring unsaved prompt values when the
+ * settings panel closes, and skipping clicks already handled elsewhere (e.g.
+ * quick-access targets or copy-address buttons).
+ */
 function setupOutsideClickHandler() {
   document.addEventListener("click", (event) => {
     if (state.verboseLogging && (event.target as Element | null)?.closest(".copy-address")) {
