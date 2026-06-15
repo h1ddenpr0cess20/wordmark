@@ -26,6 +26,17 @@ import {
 import type { ConversationRecord } from "../../../types/common.ts";
 import type { Message } from "../../../types/api.ts";
 
+/**
+ * Pulls the plain-text body out of a message's `content`.
+ *
+ * @remarks
+ * Handles the three shapes `content` can take: a bare string is returned as-is;
+ * a parts array yields the first `input_text`/`text` part's text (falling back
+ * to its `content` when that is itself a string); anything else yields `""`.
+ *
+ * @param content - The message content to read, in any of its stored shapes.
+ * @returns The extracted text, or an empty string when none is present.
+ */
 export function extractTextContent(content: Message["content"]): string {
   if (typeof content === "string") {
     return content;
