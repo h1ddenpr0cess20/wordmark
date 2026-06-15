@@ -12,6 +12,7 @@ import { elements, state } from "../init/state.ts";
 import { STORAGE_KEYS } from "../utils/storage.ts";
 import type { Message } from "../../types/api.ts";
 import { EXPORT_FORMATS, normaliseExportFormat, type ExportMessage } from "./exportFormats.ts";
+import { triggerAnchorDownload } from "../utils/download.ts";
 
 /**
  * Splits message text into displayable content and reasoning segments.
@@ -165,11 +166,6 @@ export function exportChat() {
 
   const blob = new Blob([exportContent], { type: formatConfig.mime });
   const url = URL.createObjectURL(blob);
-  const anchor = document.createElement("a");
-  anchor.href = url;
-  anchor.download = `chat-export-${new Date().toISOString().slice(0, 10)}.${formatConfig.extension}`;
-  document.body.appendChild(anchor);
-  anchor.click();
-  document.body.removeChild(anchor);
+  triggerAnchorDownload(url, `chat-export-${new Date().toISOString().slice(0, 10)}.${formatConfig.extension}`);
   URL.revokeObjectURL(url);
 }

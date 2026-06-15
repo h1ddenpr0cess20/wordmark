@@ -9,6 +9,7 @@
 import { elements, state } from "../../init/state.ts";
 import { showError } from "../../utils/notifications.ts";
 import { exportAudioForDownload } from "../../utils/audioStorage.ts";
+import { triggerAnchorDownload } from "../../utils/download.ts";
 import { ttsConfig, ttsRuntime, ttsSvgIcons, ttsMessageQueue } from "./config.ts";
 import { ttsAudioResources } from "./resources.ts";
 import { generateSpeech } from "./api.ts";
@@ -390,12 +391,7 @@ export function addTtsControlsToMessage(audioData: ArrayBuffer, messageId: strin
         statusText.textContent = "Downloaded";
 
       } else {
-        const a = document.createElement("a");
-        a.href = audioUrl;
-        a.download = filename;
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
+        triggerAnchorDownload(audioUrl, filename);
         statusText.textContent = "Downloaded";
       }
 

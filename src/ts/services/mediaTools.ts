@@ -17,6 +17,7 @@ import {
   buildMediaRecordHtml,
   inferMimeTypeFromFilename,
 } from "./mediaType.ts";
+import { triggerAnchorDownload } from "../utils/download.ts";
 import type { GeneratedImage } from "../../types/common.ts";
 
 export { detectMediaType, makeFilename, isVideoMimeType, buildMediaRecordHtml };
@@ -253,13 +254,7 @@ export async function downloadMediaSource(source: Blob | string, filename?: stri
     throw new Error("No downloadable media source was provided.");
   }
   const objectUrl = URL.createObjectURL(blob);
-  const anchor = document.createElement("a");
-  anchor.href = objectUrl;
-  anchor.download = filename || makeFilename("media", blob.type || inferMimeTypeFromFilename(filename));
-  anchor.style.display = "none";
-  document.body.appendChild(anchor);
-  anchor.click();
-  document.body.removeChild(anchor);
+  triggerAnchorDownload(objectUrl, filename || makeFilename("media", blob.type || inferMimeTypeFromFilename(filename)));
   window.setTimeout(() => {
     URL.revokeObjectURL(objectUrl);
   }, 1000);

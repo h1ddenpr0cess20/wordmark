@@ -8,6 +8,7 @@
  */
 
 import { openDatabase } from "./idb.ts";
+import { triggerAnchorDownload } from "./download.ts";
 
 const AUDIO_DB_NAME = "wordmark-audio";
 const AUDIO_DB_VERSION = 1;
@@ -227,16 +228,11 @@ export function exportAudioForDownload(audioData: ArrayBuffer, filename: string)
   try {
     const blob = new Blob([audioData], { type: "audio/wav" });
 
-    const downloadLink = document.createElement("a");
-    downloadLink.href = URL.createObjectURL(blob);
-    downloadLink.download = filename || "tts-audio.wav";
-
-    document.body.appendChild(downloadLink);
-    downloadLink.click();
-    document.body.removeChild(downloadLink);
+    const objectUrl = URL.createObjectURL(blob);
+    triggerAnchorDownload(objectUrl, filename || "tts-audio.wav");
 
     setTimeout(() => {
-      URL.revokeObjectURL(downloadLink.href);
+      URL.revokeObjectURL(objectUrl);
     }, 100);
 
     return true;

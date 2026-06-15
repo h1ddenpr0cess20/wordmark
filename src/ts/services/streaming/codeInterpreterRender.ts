@@ -16,6 +16,7 @@ import {
   getBaseUrl,
 } from "../api/clientConfig.ts";
 import { isRecord, pickString } from "../../utils/utils.ts";
+import { triggerAnchorDownload } from "../../utils/download.ts";
 import {
   fallbackFilename,
   describeAttachment,
@@ -232,12 +233,7 @@ async function downloadFileContent(attachment: CodeAttachment | null) {
     }
   }
   const blobUrl = URL.createObjectURL(blob);
-  const anchor = document.createElement("a");
-  anchor.href = blobUrl;
-  anchor.download = filename;
-  document.body.appendChild(anchor);
-  anchor.click();
-  document.body.removeChild(anchor);
+  triggerAnchorDownload(blobUrl, filename);
   setTimeout(() => {
     URL.revokeObjectURL(blobUrl);
   }, 2000);
