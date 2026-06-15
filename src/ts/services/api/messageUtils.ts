@@ -295,6 +295,11 @@ export function collectFunctionCalls(responseOutput: ResponseOutputItem[] = []):
     return {};
   };
 
+  const extractNameAndArgs = (source: ToolCallLike) => ({
+    fnName: source.name || source.tool_name || (source.function && source.function.name),
+    rawArgs: source.arguments ?? (source.function && source.function.arguments),
+  });
+
   const buildToolCallInput = (
     name: string,
     argsJson: string,
@@ -349,8 +354,7 @@ export function collectFunctionCalls(responseOutput: ResponseOutputItem[] = []):
     };
 
     if (item.type === "tool_call" || item.type === "function_call") {
-      const fnName = item.name || item.tool_name || (item.function && item.function.name);
-      const rawArgs = item.arguments ?? (item.function && item.function.arguments);
+      const { fnName, rawArgs } = extractNameAndArgs(item);
       const callId = item.id || item.call_id;
       processCall(fnName, rawArgs, callId, item);
       return;
@@ -360,8 +364,7 @@ export function collectFunctionCalls(responseOutput: ResponseOutputItem[] = []):
       if (Array.isArray(item.tool_calls)) {
         item.tool_calls.forEach(tc => {
           if (!tc) return;
-          const fnName = tc.name || tc.tool_name || (tc.function && tc.function.name);
-          const rawArgs = tc.arguments ?? (tc.function && tc.function.arguments);
+          const { fnName, rawArgs } = extractNameAndArgs(tc);
           const callId = tc.id || tc.call_id;
           processCall(fnName, rawArgs, callId, tc);
         });
@@ -371,8 +374,7 @@ export function collectFunctionCalls(responseOutput: ResponseOutputItem[] = []):
           if (!part || (part.type !== "function_call" && part.type !== "tool_call")) {
             return;
           }
-          const fnName = part.name || part.tool_name || (part.function && part.function.name);
-          const rawArgs = part.arguments ?? (part.function && part.function.arguments);
+          const { fnName, rawArgs } = extractNameAndArgs(part);
           const callId = part.id || part.call_id || item.call_id || item.id;
           processCall(fnName, rawArgs, callId, part);
         });
