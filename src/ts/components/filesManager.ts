@@ -9,6 +9,7 @@ import { showError, showInfo } from "../utils/notifications.ts";
 import { listAssistantFiles, deleteFile as deleteAssistantFile, deleteAllAssistantFiles } from "../services/files.ts";
 import { uploadFile as uploadAssistantFile } from "../services/vectorStore.ts";
 import { escapeHtml } from "../utils/sanitize.ts";
+import { buildAssistantFileItemHtml } from "./assistantFileRow.ts";
 
 /**
  * Initializes the Assistants file manager.
@@ -54,27 +55,7 @@ export async function refreshAssistantFileList() {
       return;
     }
 
-    const listHtml = files.map((file: { id?: string; filename?: string; name?: string; created_at?: number }) => {
-      const createdDate = file.created_at ? new Date(file.created_at * 1000).toLocaleDateString() : "Unknown";
-      const name = escapeHtml(file.filename || file.name || "(no name)");
-      const id = escapeHtml(file.id || "");
-      return `
-        <div class="assistant-file-item" data-file-id="${id}">
-          <div class="assistant-file-row">
-            <div class="assistant-file-info">
-              <strong>${name}</strong>
-              <div class="assistant-file-meta">
-                <span class="meta-item"><strong>ID:</strong> ${id}</span>
-                <span class="meta-item"><strong>Created:</strong> ${createdDate}</span>
-              </div>
-            </div>
-            <div class="assistant-file-actions">
-              <button class="btn-small btn-delete-file" data-file-id="${id}" title="Delete this file">Delete</button>
-            </div>
-          </div>
-        </div>
-      `;
-    }).join("");
+    const listHtml = files.map(buildAssistantFileItemHtml).join("");
 
     listContainer.innerHTML = listHtml;
 
