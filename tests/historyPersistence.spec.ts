@@ -8,8 +8,8 @@ import {
   initConversationDb,
   saveConversationToDb,
   getAllConversationsFromDb,
-} from "../src/ts/utils/conversationStorage.ts";
-import { saveImageToDb } from "../src/ts/utils/imageStorage.ts";
+} from "../src/ts/utils/storage/conversationStorage.ts";
+import { saveImageToDb } from "../src/ts/utils/storage/imageStorage.ts";
 import { state, elements } from "../src/ts/init/state.ts";
 
 type FakeReq = {

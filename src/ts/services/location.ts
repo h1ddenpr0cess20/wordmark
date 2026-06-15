@@ -8,7 +8,7 @@
  */
 
 import { state } from "../init/state.ts";
-import { STORAGE_KEYS, writeJSON } from "../utils/storage.ts";
+import { STORAGE_KEYS, writeJSON } from "../utils/storage/storage.ts";
 
 /**
  * Structural position type covering both a real `GeolocationPosition` and the

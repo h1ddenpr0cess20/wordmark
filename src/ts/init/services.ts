@@ -9,7 +9,7 @@
 
 import { elements, state } from "./state.ts";
 import { updateParameterControls } from "../components/ui/settingsControls.ts";
-import { STORAGE_KEYS } from "../utils/storage.ts";
+import { STORAGE_KEYS } from "../utils/storage/storage.ts";
 import { updateHeaderInfo, updateModelSelector, updateFeatureStatus, populateServiceSelector } from "../components/settings.ts";
 import { updateMasterToolCallingStatus, refreshToolSettingsUI } from "../components/tools.ts";
 import { DEFAULT_PERSONALITY, DEFAULT_SHORT_RESPONSE_GUIDELINE, DEFAULT_SYSTEM_PROMPT, config } from "../../config/config.ts";

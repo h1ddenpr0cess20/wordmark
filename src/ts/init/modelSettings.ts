@@ -4,7 +4,7 @@
 
 import { state, elements } from "./state.ts";
 import { config } from "../../config/config.ts";
-import { STORAGE_KEYS } from "../utils/storage.ts";
+import { STORAGE_KEYS } from "../utils/storage/storage.ts";
 import { serviceSupportsReasoning } from "../services/providers.ts";
 
 const REASONING_EFFORT_STORAGE_KEY = STORAGE_KEYS.reasoningEffort;

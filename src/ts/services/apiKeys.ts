@@ -13,7 +13,7 @@ import { refreshToolSettingsUI } from "../components/tools.ts";
 import { config } from "../../config/config.ts";
 import { state } from "../init/state.ts";
 import { API_KEYS_STORAGE_PREFIX, loadApiKeysIntoConfig } from "./apiKeyStorage.ts";
-import { STORAGE_KEYS } from "../utils/storage.ts";
+import { STORAGE_KEYS } from "../utils/storage/storage.ts";
 import { isLocalService } from "./providers.ts";
 import { normalizeServerBaseUrl } from "../utils/utils.ts";
 import { showInlineStatus } from "../utils/inlineStatus.ts";

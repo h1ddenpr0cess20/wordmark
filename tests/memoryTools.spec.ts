@@ -12,7 +12,7 @@ globalThis.localStorage = {
 globalThis.CustomEvent = class { constructor(public type: string, public init?: unknown) {} } as never;
 globalThis.window = { dispatchEvent() { return true; } } as unknown as Window & typeof globalThis;
 
-const memStore = await import("../src/ts/utils/memoryStorage.js");
+const memStore = await import("../src/ts/utils/storage/memoryStorage.js");
 await import("../src/ts/services/memory.js"); // registers the handlers
 const { toolImplementations } = await import("../src/ts/services/toolImplementations.js");
 

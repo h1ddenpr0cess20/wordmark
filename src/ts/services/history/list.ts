@@ -10,7 +10,7 @@ import { elements, state } from "../../init/state.ts";
 import {
   getAllConversationsFromDb,
   deleteConversationFromDb,
-} from "../../utils/conversationStorage.ts";
+} from "../../utils/storage/conversationStorage.ts";
 import { startNewConversation, loadConversation, renameConversation } from "./persistence.ts";
 import { buildHistoryRowHtml } from "./historyRow.ts";
 

@@ -7,7 +7,7 @@
  * {@link ./gallery.ts} so the storage read is independent of rendering.
  */
 
-import { initImageDb, getImageDb, IMAGE_STORE_NAME } from "../utils/imageStorage.ts";
+import { initImageDb, getImageDb, IMAGE_STORE_NAME } from "../utils/storage/imageStorage.ts";
 import { detectMediaType, getMediaDisplayUrl } from "../services/mediaTools.ts";
 import type { GeneratedImage } from "../../types/common.ts";
 

@@ -10,7 +10,7 @@
  * userMcpToolCount" invariant lives in exactly one place.
  */
 
-import { STORAGE_KEYS } from "../../../utils/storage.ts";
+import { STORAGE_KEYS } from "../../../utils/storage/storage.ts";
 import { STATIC_TOOLS } from "../staticTools.ts";
 import type { McpServerConfig, ToolDefinition, ToolEntry } from "../../../../types/tools.ts";
 

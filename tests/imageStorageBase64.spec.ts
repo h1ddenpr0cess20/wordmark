@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 
-const { base64ToBlob } = await import('../src/ts/utils/imageStorage.js');
+const { base64ToBlob } = await import('../src/ts/utils/storage/imageStorage.js');
 
 test('base64ToBlob decodes bytes and sets the MIME type', async () => {
   // "hi" -> base64 "aGk="

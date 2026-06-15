@@ -8,7 +8,7 @@
  */
 import { state } from "../ts/init/state.ts";
 import { uiHooks } from "../ts/init/uiHooks.ts";
-import { apiKeyStorageKey } from "../ts/utils/storage.ts";
+import { apiKeyStorageKey } from "../ts/utils/storage/storage.ts";
 import type { Config, ModelListItem } from "../types/config.ts";
 
 /**

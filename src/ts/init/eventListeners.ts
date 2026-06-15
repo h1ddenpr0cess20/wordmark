@@ -8,7 +8,7 @@
 
 import { elements, state } from "./state.ts";
 import { showError } from "../utils/notifications.ts";
-import { STORAGE_KEYS } from "../utils/storage.ts";
+import { STORAGE_KEYS } from "../utils/storage/storage.ts";
 import { getDataSettingsEnabled, setDataSettingsEnabled, updateFeatureStatus } from "../components/settings.ts";
 import { loadVectorStoreModule, lazyModulesLoaded } from "../utils/lazyLoader.ts";
 import { initializeConversationInput } from "./eventListeners/conversationInput.ts";

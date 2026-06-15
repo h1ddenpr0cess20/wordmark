@@ -9,7 +9,7 @@
  */
 
 import { state } from "../init/state.ts";
-import { STORAGE_KEYS, writeJSON } from "../utils/storage.ts";
+import { STORAGE_KEYS, writeJSON } from "../utils/storage/storage.ts";
 
 /**
  * Per-store metadata persisted in localStorage. Extra caller-supplied fields

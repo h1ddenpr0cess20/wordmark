@@ -10,7 +10,7 @@
  */
 
 import { elements, state } from "../../init/state.ts";
-import { getMemoriesForPrompt } from "../../utils/memoryStorage.ts";
+import { getMemoriesForPrompt } from "../../utils/storage/memoryStorage.ts";
 import { getLocationForPrompt } from "../location.ts";
 import { getMediaToolInstructions } from "../mediaTools.ts";
 import { getToolsDescription } from "../../components/tools.ts";

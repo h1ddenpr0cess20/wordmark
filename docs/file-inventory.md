@@ -72,8 +72,7 @@ Purpose: quick orientation to the current project layout, key entry points, and 
     - `weather.ts`: Built-in Open-Meteo forecast tool handler
     - `mcpServers.ts` / `mcpServerStore.ts`: MCP server settings UI + client wiring, and the localStorage CRUD store
   - `utils/`
-    - `memoryStorage.ts`: Local storage for memory (enable/limit/list) and prompt formatting.
-    - `storage.ts`: Typed localStorage facade + central `STORAGE_KEYS` registry.
+    - `storage/`: All persistence helpers — `storage.ts` (typed localStorage facade + central `STORAGE_KEYS` registry), `memoryStorage.ts` (memory enable/limit/list + prompt formatting), `idb.ts` (IndexedDB open helper), and the IndexedDB-backed `conversationStorage.ts`/`imageStorage.ts`/`audioStorage.ts`.
     - `logger.ts`, `tooltips.ts`, `menuSystem.ts`, `notifications.ts`: Misc helpers (logger exposes `logVerbose`; notification styling lives in `css/components/ui/notifications.css`).
     - `inlineStatus.ts`, `thinking.ts`, `historyImages.ts`, `placeholders.ts`, `clipboard.ts`, `download.ts`: Small shared helpers split out of `utils.ts`/settings UI (transient status toasts, reasoning-container toggle, history image stripping, placeholder regexes, clipboard copy-with-fallback, anchor-based file download).
   - Vendor libraries (`dompurify`, `marked`, `highlight.js`) are npm dependencies imported directly by the modules that use them and bundled by Vite — there is no `src/ts/lib/` directory.

@@ -8,7 +8,7 @@
  */
 
 import hljs from "highlight.js";
-import { STORAGE_KEYS } from "../utils/storage.ts";
+import { STORAGE_KEYS } from "../utils/storage/storage.ts";
 import { parseThemeClassNames, getThemeDisplayName } from "./themeNames.ts";
 import darkThemeCss from "../../css/themes/base/dark.css?raw";
 import lightThemeCss from "../../css/themes/base/light.css?raw";

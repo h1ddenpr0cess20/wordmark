@@ -10,7 +10,7 @@
  * state.verboseLogging) so they can be toggled at runtime from anywhere.
  */
 import { state } from "../init/state.ts";
-import { STORAGE_KEYS } from "./storage.ts";
+import { STORAGE_KEYS } from "./storage/storage.ts";
 
 type ConsoleMethod = "log" | "info" | "warn" | "error";
 

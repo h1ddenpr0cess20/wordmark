@@ -4,10 +4,10 @@
 
 import { elements } from "../init/state.ts";
 import { uiHooks } from "../init/uiHooks.ts";
-import { STORAGE_KEYS } from "../utils/storage.ts";
+import { STORAGE_KEYS } from "../utils/storage/storage.ts";
 import { showInlineStatus } from "../utils/inlineStatus.ts";
 import { DEFAULT_PERSONALITY, config } from "../../config/config.ts";
-import { getMemoryConfig, setMemoryEnabled } from "../utils/memoryStorage.ts";
+import { getMemoryConfig, setMemoryEnabled } from "../utils/storage/memoryStorage.ts";
 import { locationState, requestLocation, disableLocation } from "../services/location.ts";
 import { ttsConfig } from "../services/tts.ts";
 import { updateReasoningAvailability } from "../init/modelSettings.ts";

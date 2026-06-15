@@ -7,7 +7,7 @@
  */
 
 import { elements, state } from "../../init/state.ts";
-import { saveConversationToDb } from "../../utils/conversationStorage.ts";
+import { saveConversationToDb } from "../../utils/storage/conversationStorage.ts";
 import { appendMessage } from "../../components/ui/chatMessages.ts";
 import { updateHeaderInfo } from "../../components/settings.ts";
 import { config } from "../../../config/config.ts";

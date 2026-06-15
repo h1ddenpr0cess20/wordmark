@@ -6,7 +6,7 @@
  */
 
 import { state } from "../init/state.ts";
-import { deleteImageFromDb } from "../utils/imageStorage.ts";
+import { deleteImageFromDb } from "../utils/storage/imageStorage.ts";
 import { downloadMediaSource } from "../services/mediaTools.ts";
 import { getAllImagesFromDb } from "./galleryData.ts";
 import { createGalleryItem } from "./galleryItem.ts";

@@ -9,7 +9,7 @@
  * `tools/mcp.ts`.
  */
 
-import { getMemoryConfig } from "../../utils/memoryStorage.ts";
+import { getMemoryConfig } from "../../utils/storage/memoryStorage.ts";
 import { getActiveServiceKey, getActiveModel } from "./clientConfig.ts";
 import { weatherToolHandler } from "../weather.ts";
 import { memoryToolDefinition, forgetToolDefinition } from "../memory.ts";

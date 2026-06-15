@@ -54,7 +54,7 @@ function installDom(elems: Record<string, FakeEl>) {
   } as unknown as Document;
 }
 
-const storage = await import("../src/ts/utils/memoryStorage.ts");
+const storage = await import("../src/ts/utils/storage/memoryStorage.ts");
 const { initMemorySettings } = await import("../src/ts/components/memory.ts");
 
 test("initMemorySettings attaches listeners and toggling updates enabled", () => {

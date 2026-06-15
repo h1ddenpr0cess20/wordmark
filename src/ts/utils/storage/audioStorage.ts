@@ -8,7 +8,7 @@
  */
 
 import { openDatabase } from "./idb.ts";
-import { triggerAnchorDownload } from "./download.ts";
+import { triggerAnchorDownload } from "../download.ts";
 
 const AUDIO_DB_NAME = "wordmark-audio";
 const AUDIO_DB_VERSION = 1;

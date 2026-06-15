@@ -6,7 +6,7 @@
  * the underlying memory store, keeping the memory tool's availability in sync.
  */
 
-import { getMemoryConfig, setMemoryEnabled, setMemoryLimit, getMemories, addMemory, clearAllMemories, removeMemoryAt } from "../utils/memoryStorage.ts";
+import { getMemoryConfig, setMemoryEnabled, setMemoryLimit, getMemories, addMemory, clearAllMemories, removeMemoryAt } from "../utils/storage/memoryStorage.ts";
 import { updateFeatureStatus } from "./settings.ts";
 import { updateToolDefinitions } from "./tools.ts";
 import { createMemoryRow } from "./memoryRow.ts";

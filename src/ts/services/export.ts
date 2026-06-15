@@ -9,7 +9,7 @@
  */
 
 import { elements, state } from "../init/state.ts";
-import { STORAGE_KEYS } from "../utils/storage.ts";
+import { STORAGE_KEYS } from "../utils/storage/storage.ts";
 import type { Message } from "../../types/api.ts";
 import { EXPORT_FORMATS, normaliseExportFormat, type ExportMessage } from "./exportFormats.ts";
 import { triggerAnchorDownload } from "../utils/download.ts";

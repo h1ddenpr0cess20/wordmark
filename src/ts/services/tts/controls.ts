@@ -8,7 +8,7 @@
 
 import { elements, state } from "../../init/state.ts";
 import { showError } from "../../utils/notifications.ts";
-import { exportAudioForDownload } from "../../utils/audioStorage.ts";
+import { exportAudioForDownload } from "../../utils/storage/audioStorage.ts";
 import { triggerAnchorDownload } from "../../utils/download.ts";
 import { ttsConfig, ttsRuntime, ttsSvgIcons, ttsMessageQueue } from "./config.ts";
 import { ttsAudioResources } from "./resources.ts";

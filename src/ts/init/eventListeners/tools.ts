@@ -8,7 +8,7 @@
 
 import { elements } from "../state.ts";
 import { showInfo } from "../../utils/notifications.ts";
-import { STORAGE_KEYS } from "../../utils/storage.ts";
+import { STORAGE_KEYS } from "../../utils/storage/storage.ts";
 import { loadToolScripts } from "../../utils/toolLoader.ts";
 import { updateFeatureStatus } from "../../components/settings.ts";
 import { updateMasterToolCallingStatus } from "../../components/tools.ts";

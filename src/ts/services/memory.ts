@@ -6,7 +6,7 @@
  * persist and remove brief user memories via {@link toolImplementations}.
  */
 
-import { getMemories, addMemory, removeMemoryAt, getMemoryConfig } from "../utils/memoryStorage.ts";
+import { getMemories, addMemory, removeMemoryAt, getMemoryConfig } from "../utils/storage/memoryStorage.ts";
 import { toolImplementations } from "./toolImplementations.ts";
 
 /** Tool definition for `remember`: stores a brief memory. */

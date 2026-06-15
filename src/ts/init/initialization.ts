@@ -7,7 +7,7 @@
 
 import { elements, state } from "./state.ts";
 import { focusUserInputSafely } from "../utils/mobileHandling.ts";
-import { STORAGE_KEYS } from "../utils/storage.ts";
+import { STORAGE_KEYS } from "../utils/storage/storage.ts";
 import { initializeLocationService } from "../services/location.ts";
 import { initMCPServers } from "../services/mcpServers.ts";
 import { ensureApiKeysLoaded } from "../services/apiKeys.ts";

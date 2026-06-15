@@ -6,7 +6,7 @@
  * persisting playable audio to IndexedDB and revoking URLs on cleanup.
  */
 
-import { saveAudioToDb } from "../../utils/audioStorage.ts";
+import { saveAudioToDb } from "../../utils/storage/audioStorage.ts";
 import { ttsConfig, ttsRuntime } from "./config.ts";
 import { stopTtsAudio } from "./playback.ts";
 import { state } from "../../init/state.ts";

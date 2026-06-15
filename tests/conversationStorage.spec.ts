@@ -106,7 +106,7 @@ const {
   getAllConversationsFromDb,
   renameConversationInDb,
   deleteConversationFromDb,
-} = await import('../src/ts/utils/conversationStorage.js');
+} = await import('../src/ts/utils/storage/conversationStorage.js');
 
 test('conversation storage: init, save, load, getAll, rename, delete', async () => {
   await initConversationDb();

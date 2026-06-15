@@ -9,7 +9,7 @@
  */
 
 import { state } from "../init/state.ts";
-import { loadImageFromDb, saveImageToDb } from "../utils/imageStorage.ts";
+import { loadImageFromDb, saveImageToDb } from "../utils/storage/imageStorage.ts";
 import {
   detectMediaType,
   makeFilename,

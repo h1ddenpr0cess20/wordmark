@@ -6,7 +6,7 @@
  * catalog-aware enable/disable operations.
  */
 
-import { STORAGE_KEYS, readJSON, writeJSON } from "../../../utils/storage.ts";
+import { STORAGE_KEYS, readJSON, writeJSON } from "../../../utils/storage/storage.ts";
 import { TOOL_CATALOG } from "./catalog.ts";
 
 const TOOL_STORAGE_KEY = STORAGE_KEYS.toolPreferences;

@@ -9,7 +9,7 @@
  * and metadata.
  */
 
-import { saveImageToDb } from "../../utils/imageStorage.ts";
+import { saveImageToDb } from "../../utils/storage/imageStorage.ts";
 import { detectMediaType } from "../mediaTools.ts";
 import type { Message } from "../../../types/api.ts";
 import type { GeneratedImage } from "../../../types/common.ts";

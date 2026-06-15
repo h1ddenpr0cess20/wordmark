@@ -85,7 +85,7 @@ const {
   saveImageToDb,
   getImageBlobForUpload,
   getImageDataForUpload,
-} = await import("../src/ts/utils/imageStorage.ts");
+} = await import("../src/ts/utils/storage/imageStorage.ts");
 
 await initImageDb();
 

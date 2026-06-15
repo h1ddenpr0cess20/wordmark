@@ -8,7 +8,7 @@
 
 import { state } from "../../init/state.ts";
 import { icon } from "../../utils/icons.ts";
-import { deleteImageFromDb } from "../../utils/imageStorage.ts";
+import { deleteImageFromDb } from "../../utils/storage/imageStorage.ts";
 import { isMobileDevice } from "../../utils/mobileHandling.ts";
 import { escapeHtml } from "../../utils/sanitize.ts";
 import { detectMediaType, downloadMediaSource } from "../../services/mediaTools.ts";

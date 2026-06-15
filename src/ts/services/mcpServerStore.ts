@@ -8,7 +8,7 @@
  * these so existing importers keep a single entry point.
  */
 
-import { STORAGE_KEYS, writeJSON } from "../utils/storage.ts";
+import { STORAGE_KEYS, writeJSON } from "../utils/storage/storage.ts";
 
 const MCP_SERVERS_STORAGE_KEY = STORAGE_KEYS.mcpServers;
 

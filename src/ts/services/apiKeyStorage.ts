@@ -9,7 +9,7 @@
  */
 
 import { config } from "../../config/config.ts";
-import { STORAGE_KEYS, toolApiKeyStorageKey } from "../utils/storage.ts";
+import { STORAGE_KEYS, toolApiKeyStorageKey } from "../utils/storage/storage.ts";
 
 /** localStorage key prefix under which per-service API keys are stored. */
 export const API_KEYS_STORAGE_PREFIX = STORAGE_KEYS.apiKeyPrefix;

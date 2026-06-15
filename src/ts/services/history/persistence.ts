@@ -11,10 +11,10 @@ import {
   saveConversationToDb,
   loadConversationFromDb,
   renameConversationInDb,
-} from "../../utils/conversationStorage.ts";
+} from "../../utils/storage/conversationStorage.ts";
 import { config } from "../../../config/config.ts";
 import { logVerbose } from "../../utils/logger.ts";
-import { loadImageFromDb } from "../../utils/imageStorage.ts";
+import { loadImageFromDb } from "../../utils/storage/imageStorage.ts";
 import { ensureImagesHaveMessageIds } from "../streaming/imageGeneration.ts";
 import { renderChatHistoryList } from "./list.ts";
 import { renderConversationMessages } from "./render.ts";
