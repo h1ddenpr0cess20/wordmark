@@ -9,6 +9,7 @@
 import { getMemoryConfig, setMemoryEnabled, setMemoryLimit, getMemories, addMemory, clearAllMemories, removeMemoryAt } from "../utils/memoryStorage.ts";
 import { updateFeatureStatus } from "./settings.ts";
 import { updateToolDefinitions } from "./tools.ts";
+import { createMemoryRow } from "./memoryRow.ts";
 
 /** Initializes the memory settings panel and binds its controls. */
 export function initMemorySettings() {
@@ -107,26 +108,14 @@ export function initMemorySettings() {
     }
     listContainer.innerHTML = "";
     mems.forEach((m, idx) => {
-      const row = document.createElement("div");
-      row.className = "memory-row";
-      const text = document.createElement("span");
-      text.className = "memory-text";
-      text.textContent = m;
-      const del = document.createElement("button");
-      del.type = "button";
-      del.className = "tool-action-button";
-      del.setAttribute("aria-label", `Delete memory ${idx + 1}`);
-      del.textContent = "Delete";
-      del.addEventListener("click", (e) => {
-        if (e && typeof e.stopPropagation === "function") e.stopPropagation();
-        if (e && typeof e.preventDefault === "function") e.preventDefault();
-        if (removeMemoryAt) {
-          removeMemoryAt(idx);
-          renderList();
-        }
+      const row = createMemoryRow(m, idx, {
+        onDelete: (index) => {
+          if (removeMemoryAt) {
+            removeMemoryAt(index);
+            renderList();
+          }
+        },
       });
-      row.appendChild(text);
-      row.appendChild(del);
       listContainer.appendChild(row);
     });
   }
