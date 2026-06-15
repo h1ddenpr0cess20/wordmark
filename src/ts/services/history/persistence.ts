@@ -13,6 +13,7 @@ import {
   renameConversationInDb,
 } from "../../utils/conversationStorage.ts";
 import { config } from "../../../config/config.ts";
+import { logVerbose } from "../../utils/logger.ts";
 import { loadImageFromDb } from "../../utils/imageStorage.ts";
 import { ensureImagesHaveMessageIds } from "../streaming/imageGeneration.ts";
 import { renderChatHistoryList } from "./list.ts";
@@ -73,9 +74,7 @@ function preloadImages(convo: ConversationRecord) {
         .then((imageRecord) => {
           if (imageRecord?.data) {
             imageCache.set(filename, imageRecord.data);
-            if (state.verboseLogging) {
-              console.info(`Loaded image from IndexedDB: ${filename}`);
-            }
+            logVerbose(`Loaded image from IndexedDB: ${filename}`);
           }
         })
         .catch((err) => {
@@ -117,8 +116,8 @@ export function saveCurrentConversation(meta: { name?: string; created?: string 
   }
 
   const updatedCount = ensureImagesHaveMessageIds();
-  if (state.verboseLogging && updatedCount > 0) {
-    console.info(`Associated ${updatedCount} images with messages before saving`);
+  if (updatedCount > 0) {
+    logVerbose(`Associated ${updatedCount} images with messages before saving`);
   }
 
   const now = new Date();
@@ -151,8 +150,8 @@ export function saveCurrentConversation(meta: { name?: string; created?: string 
 
   Promise.all(savePromises)
     .then((results) => {
-      if (state.verboseLogging && results.length > 0) {
-        console.info(`Saved ${results.filter(Boolean).length} images to IndexedDB`);
+      if (results.length > 0) {
+        logVerbose(`Saved ${results.filter(Boolean).length} images to IndexedDB`);
       }
     })
     .catch((err) => {
@@ -161,9 +160,7 @@ export function saveCurrentConversation(meta: { name?: string; created?: string 
 
   saveConversationToDb?.(conversation)
     .then((id) => {
-      if (state.verboseLogging) {
-        console.info("Saved conversation to IndexedDB:", id);
-      }
+      logVerbose("Saved conversation to IndexedDB:", id);
     })
     .catch((err) => {
       console.error("Failed to save conversation to IndexedDB:", err);
@@ -203,9 +200,7 @@ export function startNewConversation(name: string | null = null) {
     elements.chatBox.innerHTML = "";
   }
 
-  if (state.verboseLogging) {
-    console.info("Started new conversation");
-  }
+  logVerbose("Started new conversation");
 };
 
 /**
