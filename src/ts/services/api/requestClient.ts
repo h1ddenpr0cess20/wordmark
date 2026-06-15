@@ -30,7 +30,7 @@ import {
   supportsClientSideTools,
   TOOL_HANDLERS,
 } from "./toolManager.ts";
-import { getActiveVectorStoreIds } from "../vectorStore.ts";
+import { applyVectorStoreIds } from "./vectorStoreTools.ts";
 import { toolImplementations } from "../toolImplementations.ts";
 import { handleStreamedResponse } from "../streaming.ts";
 import { executeToolCalls, type ActionableCall } from "./toolCallExecution.ts";
@@ -164,34 +164,7 @@ export async function runTurn({
   let enabledTools = getEnabledToolDefinitions(serviceKey, resolvedModel);
   const clientSideToolsSupported = supportsClientSideTools(serviceKey, resolvedModel);
 
-  if (enabledTools) {
-    const idsSet = new Set<string>();
-    try {
-      const activeIds = getActiveVectorStoreIds ? getActiveVectorStoreIds() : [];
-      if (Array.isArray(activeIds)) {
-        activeIds.forEach(id => { if (id) idsSet.add(id); });
-      }
-    } catch {
-      /* non-fatal */
-    }
-    if (vectorStoreId) {
-      idsSet.add(vectorStoreId);
-    }
-    const vectorStoreIds = Array.from(idsSet);
-    if (vectorStoreIds.length > 0) {
-      enabledTools = enabledTools.map(tool => {
-        if (tool && tool.type === "file_search") {
-          return {
-            ...tool,
-            vector_store_ids: vectorStoreIds,
-          };
-        }
-        return tool;
-      });
-    } else {
-      enabledTools = enabledTools.filter(tool => tool.type !== "file_search");
-    }
-  }
+  enabledTools = applyVectorStoreIds(enabledTools, vectorStoreId);
   let aggregateText = "";
   let aggregateReasoning = "";
 
