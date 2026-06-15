@@ -45,6 +45,36 @@ export const locationState: {
 };
 
 /**
+ * Records a successfully resolved location: updates {@link locationState},
+ * persists the enabled flag and last-known position, and builds the success
+ * result payload. Shared by the geocoded and coordinate-only fallback paths.
+ */
+function commitLocation(position: GeoPositionLike, locationString: string): LocationResult {
+  locationState.locationString = locationString;
+  locationState.enabled = true;
+
+  localStorage.setItem(STORAGE_KEYS.locationEnabled, "true");
+  writeJSON(STORAGE_KEYS.lastKnownLocation, {
+    coords: {
+      latitude: position.coords.latitude,
+      longitude: position.coords.longitude,
+    },
+    timestamp: position.timestamp,
+    locationString,
+  });
+
+  return {
+    success: true,
+    position,
+    locationString,
+    coordinates: {
+      lat: position.coords.latitude,
+      lng: position.coords.longitude,
+    },
+  };
+}
+
+/**
  * Requests geolocation permission and resolves the current position.
  *
  * @returns A success payload with coordinates and a formatted string, or an
@@ -67,56 +97,16 @@ export async function requestLocation(): Promise<LocationResult> {
 
         try {
           const locationString = await formatLocationString(position);
-          locationState.locationString = locationString;
-          locationState.enabled = true;
-
-          localStorage.setItem(STORAGE_KEYS.locationEnabled, "true");
-          writeJSON(STORAGE_KEYS.lastKnownLocation, {
-            coords: {
-              latitude: position.coords.latitude,
-              longitude: position.coords.longitude,
-            },
-            timestamp: position.timestamp,
-            locationString: locationString,
-          });
+          const result = commitLocation(position, locationString);
 
           if (state.verboseLogging) {
             console.info("Location obtained:", locationString);
           }
 
-          resolve({
-            success: true,
-            position,
-            locationString,
-            coordinates: {
-              lat: position.coords.latitude,
-              lng: position.coords.longitude,
-            },
-          });
+          resolve(result);
         } catch {
           const basicLocation = `Location: ${position.coords.latitude.toFixed(4)}, ${position.coords.longitude.toFixed(4)}`;
-          locationState.locationString = basicLocation;
-          locationState.enabled = true;
-
-          localStorage.setItem(STORAGE_KEYS.locationEnabled, "true");
-          writeJSON(STORAGE_KEYS.lastKnownLocation, {
-            coords: {
-              latitude: position.coords.latitude,
-              longitude: position.coords.longitude,
-            },
-            timestamp: position.timestamp,
-            locationString: basicLocation,
-          });
-
-          resolve({
-            success: true,
-            position,
-            locationString: basicLocation,
-            coordinates: {
-              lat: position.coords.latitude,
-              lng: position.coords.longitude,
-            },
-          });
+          resolve(commitLocation(position, basicLocation));
         }
       },
       (error) => {
