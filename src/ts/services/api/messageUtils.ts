@@ -1,3 +1,12 @@
+/**
+ * Message preparation helpers for the Responses API.
+ *
+ * @remarks
+ * Converts stored conversation messages into the Responses API input shape —
+ * expanding `[[IMAGE: ...]]` placeholders and attachments into multimodal
+ * content parts — and extracts tool/function calls back out of a response.
+ */
+
 import { state } from "../../init/state.ts";
 import { createImagePlaceholderRegex } from "../../utils/placeholders.ts";
 import type {
@@ -8,10 +17,8 @@ import type {
   ResponseOutputItem,
   ToolCallLike,
 } from "../../../types/api.ts";
-/**
- * Message preparation helpers for the Responses API.
- */
 
+/** Maps a message role to the Responses API text content-part type. */
 function getTextPartType(role: string = "") {
   if (role === "assistant") {
     return "output_text";
@@ -22,10 +29,15 @@ function getTextPartType(role: string = "") {
   return "input_text";
 }
 
+/** Maps a message role to the Responses API image content-part type. */
 function getImagePartType(role: string = "") {
   return role === "assistant" ? "output_image" : "input_image";
 }
 
+/**
+ * Appends a trimmed text content part for `segment` to `parts`, using the
+ * role-appropriate text type. No-ops when the segment is empty or whitespace.
+ */
 function appendTextPart(parts: ContentPart[], role: string | undefined, segment: unknown) {
   if (segment === undefined || segment === null) {
     return;
@@ -40,6 +52,12 @@ function appendTextPart(parts: ContentPart[], role: string | undefined, segment:
   });
 }
 
+/**
+ * Resolves a usable image URL/data-URL for `filename`, checking the message's
+ * attachments first, then the runtime image cache and generated-image gallery.
+ *
+ * @returns The resolved URL, or `null` when no image data is available.
+ */
 function resolveImageUrl(filename: string | undefined, attachments: Attachment[] = []): string | null {
   if (!filename) {
     return null;
@@ -87,6 +105,11 @@ function resolveImageUrl(filename: string | undefined, attachments: Attachment[]
   return typeof candidate === "string" && candidate ? candidate : null;
 }
 
+/**
+ * Builds an image content part for `filename`, resolving its data via
+ * {@link resolveImageUrl}. Returns `null` (and warns when verbose logging is on)
+ * if no image data can be found.
+ */
 function createImagePart(filename: string, role: string | undefined, attachments?: Attachment[]): ContentPart | null {
   const imageUrl = resolveImageUrl(filename, attachments);
   if (!imageUrl) {
@@ -106,6 +129,14 @@ function createImagePart(filename: string, role: string | undefined, attachments
   };
 }
 
+/**
+ * Builds a user message's request content from its string body, splicing
+ * `[[IMAGE: ...]]` placeholders and any unreferenced attachments into image
+ * content parts interleaved with the surrounding text.
+ *
+ * @returns The original string when no images apply, otherwise the content-part
+ * array; falls back to the raw string if no image part could be produced.
+ */
 function buildUserContentFromString(message: Message): string | ContentPart[] {
   const rawContent = typeof message.content === "string" ? message.content : "";
   const attachments = Array.isArray(message.attachments) ? message.attachments : [];
