@@ -97,3 +97,9 @@
     transform: rotate(360deg);
   }
 }
+
+/* Shared 360° spin used by the send-button stopping spinner and rotating SVGs. */
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
