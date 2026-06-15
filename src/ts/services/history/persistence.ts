@@ -93,6 +93,15 @@ function preloadImages(convo: ConversationRecord) {
   });
 }
 
+/**
+ * Returns `messages` with developer-role entries (and nullish items) removed,
+ * or an empty array when the input is not an array. Developer messages are
+ * internal scaffolding that is never persisted or replayed.
+ */
+function withoutDeveloperMessages<T extends { role?: string }>(messages: T[] | null | undefined): T[] {
+  return Array.isArray(messages) ? messages.filter(msg => msg && msg.role !== "developer") : [];
+}
+
 /** Clears the in-memory conversation state (history, images, ids, prompt, thinking). */
 function resetConversationState() {
   state.conversationHistory = [];
@@ -121,9 +130,7 @@ export function saveCurrentConversation(meta: { name?: string; created?: string 
   }
 
   const now = new Date();
-  const baseHistory = Array.isArray(state.conversationHistory)
-    ? state.conversationHistory.filter(msg => msg && msg.role !== "developer")
-    : [];
+  const baseHistory = withoutDeveloperMessages(state.conversationHistory);
 
   const { promptType, promptContent } = normalizePromptState();
   const savePromises: Promise<unknown>[] = [];
@@ -237,9 +244,7 @@ export function loadConversation(id: string) {
  * @param imageCache - Preloaded `filename -> data` map from {@link preloadImages}.
  */
 function loadConversationIntoUI(convo: ConversationRecord, imageCache: Map<string, string | Blob>) {
-  const filteredMessages = Array.isArray(convo.messages)
-    ? convo.messages.filter((msg) => msg && msg.role !== "developer")
-    : [];
+  const filteredMessages = withoutDeveloperMessages(convo.messages);
 
   state.conversationHistory = filteredMessages;
   state.generatedImages = Array.isArray(convo.images) ? convo.images : [];
