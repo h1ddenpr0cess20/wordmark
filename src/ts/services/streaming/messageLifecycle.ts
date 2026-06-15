@@ -28,6 +28,64 @@ import { isRecord } from "../../utils/utils.ts";
 import { extractOutputText, extractReasoningText } from "./finalizeExtract.ts";
 
 /**
+ * Renders (or updates in place) the collapsible "Reasoning" panel inside a
+ * message's content wrapper.
+ *
+ * @remarks
+ * Honors the user's persisted expand/collapse choice for this `thinkingId`
+ * (from {@link state.userThinkingState}); absent a stored choice it falls back
+ * to the existing container's current state, or collapsed for a new panel.
+ * Shared by {@link finalizeStreamedResponse} (which reuses any existing panel)
+ * and {@link updateMessageContent} (which rebuilds it each streaming tick).
+ *
+ * @param contentWrapper - The `.message-content` element to render into.
+ * @param thinkingId - The reasoning container's element id.
+ * @param thinkingContent - Raw reasoning markdown to render.
+ * @param existingContainer - A pre-existing reasoning container to reuse, or `null` to create one.
+ * @param scrollWhenExpanded - When `true`, scrolls the content to the bottom if the panel is expanded.
+ */
+function renderThinkingPanel(
+  contentWrapper: HTMLElement,
+  thinkingId: string,
+  thinkingContent: string,
+  existingContainer: HTMLElement | null,
+  scrollWhenExpanded: boolean,
+) {
+  const persistedExpanded = (state.userThinkingState && state.userThinkingState[thinkingId] === true);
+  const hasPersisted = Boolean(state.userThinkingState && Object.prototype.hasOwnProperty.call(state.userThinkingState, thinkingId));
+  const priorWasCollapsed = existingContainer ? existingContainer.classList.contains("collapsed") : true;
+  const shouldCollapse = hasPersisted ? !persistedExpanded : priorWasCollapsed;
+
+  let container: HTMLElement | null = existingContainer;
+  if (!container) {
+    const containerHTML =
+      `<div id="${thinkingId}" class="thinking-container">
+         <div class="thinking-title">Reasoning</div>
+         <div class="thinking-content"></div>
+       </div>`;
+    contentWrapper.insertAdjacentHTML("beforeend", containerHTML);
+    container = document.getElementById(thinkingId);
+  }
+
+  if (!container) {
+    return;
+  }
+
+  const contentDiv = container.querySelector<HTMLElement>(".thinking-content");
+  if (contentDiv) {
+    contentDiv.innerHTML = processMainContentMarkdown(thinkingContent);
+    if (scrollWhenExpanded && !shouldCollapse) {
+      contentDiv.scrollTop = contentDiv.scrollHeight;
+    }
+  }
+  if (shouldCollapse) {
+    container.classList.add("collapsed");
+  } else {
+    container.classList.remove("collapsed");
+  }
+}
+
+/**
  * Finalizes a streamed assistant message: renders content/reasoning, processes
  * any generated images and code-interpreter outputs, triggers TTS, and persists
  * the conversation.
@@ -179,33 +237,7 @@ export function finalizeStreamedResponse(loadingMessage: HTMLElement | null, con
   }
 
   if (hasThinking) {
-    let finalThinkingContainer: HTMLElement | null = existingThinkingContainer;
-    const persistedExpanded = (state.userThinkingState && state.userThinkingState[thinkingId] === true);
-    const hasPersisted = Boolean(state.userThinkingState && Object.prototype.hasOwnProperty.call(state.userThinkingState, thinkingId));
-    const priorWasCollapsed = finalThinkingContainer ? finalThinkingContainer.classList.contains("collapsed") : true;
-    const shouldCollapse = hasPersisted ? !persistedExpanded : priorWasCollapsed;
-
-    if (!finalThinkingContainer) {
-      const containerHTML =
-        `<div id="${thinkingId}" class="thinking-container">
-           <div class="thinking-title">Reasoning</div>
-           <div class="thinking-content"></div>
-         </div>`;
-      contentWrapper.insertAdjacentHTML("beforeend", containerHTML);
-      finalThinkingContainer = document.getElementById(thinkingId);
-    }
-
-    if (finalThinkingContainer) {
-      const contentDiv = finalThinkingContainer.querySelector<HTMLElement>(".thinking-content");
-      if (contentDiv) {
-        contentDiv.innerHTML = processMainContentMarkdown(thinkingContent);
-      }
-      if (shouldCollapse) {
-        finalThinkingContainer.classList.add("collapsed");
-      } else {
-        finalThinkingContainer.classList.remove("collapsed");
-      }
-    }
+    renderThinkingPanel(contentWrapper, thinkingId, thinkingContent, existingThinkingContainer, false);
   }
 
   const finalMainContentContainer: HTMLElement = existingMainContentContainer ?? document.createElement("div");
@@ -296,31 +328,7 @@ export function updateMessageContent(loadingMessage: HTMLElement | null, assista
   }
 
   if (hasThinking) {
-    const containerHTML =
-      `<div id="${thinkingId}" class="thinking-container">
-         <div class="thinking-title">Reasoning</div>
-         <div class="thinking-content"></div>
-       </div>`;
-    contentWrapper.insertAdjacentHTML("beforeend", containerHTML);
-    const thinkingContainer = document.getElementById(thinkingId);
-    if (thinkingContainer) {
-      const persistedExpanded = (state.userThinkingState && state.userThinkingState[thinkingId] === true);
-      const hasPersisted = Boolean(state.userThinkingState && Object.prototype.hasOwnProperty.call(state.userThinkingState, thinkingId));
-      const shouldCollapse = hasPersisted ? !persistedExpanded : true;
-
-      const contentDiv = thinkingContainer.querySelector<HTMLElement>(".thinking-content");
-      if (contentDiv) {
-        contentDiv.innerHTML = processMainContentMarkdown(thinkingContent);
-        if (!shouldCollapse) {
-          contentDiv.scrollTop = contentDiv.scrollHeight;
-        }
-      }
-      if (shouldCollapse) {
-        thinkingContainer.classList.add("collapsed");
-      } else {
-        thinkingContainer.classList.remove("collapsed");
-      }
-    }
+    renderThinkingPanel(contentWrapper, thinkingId, thinkingContent, null, true);
   }
 
   const mainContentContainer = document.createElement("div");
