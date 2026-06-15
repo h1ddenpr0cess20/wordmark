@@ -5,8 +5,7 @@
 import { elements, state } from "../init/state.ts";
 import { showError, showInfo } from "../utils/notifications.ts";
 
-import { sanitizeInput, stripBase64FromHistory, formatFileSize } from "../utils/utils.ts";
-import { imagePlaceholder } from "../utils/placeholders.ts";
+import { sanitizeInput, stripBase64FromHistory } from "../utils/utils.ts";
 import { saveImageToDb } from "../utils/imageStorage.ts";
 import { scrollInputIntoView } from "../utils/mobileHandling.ts";
 import { finalizeStreamedResponse, removeLoadingIndicator } from "../services/streaming/messageLifecycle.ts";
@@ -17,7 +16,7 @@ import { uploadFile, uploadAndAttachFiles, saveVectorStoreMetadata } from "../se
 import { generateMessageId, addMessageCopyButton } from "./messages.ts";
 import { appendMessage } from "./ui/chatMessages.ts";
 import { getVerbosity, getReasoningEffort, getHistoryTokenBudget } from "../init/modelSettings.ts";
-import type { Attachment } from "../../types/api.ts";
+import { buildOutgoingAttachments } from "./outgoingAttachments.ts";
 
 /**
  * Sends a message to the API and handles the response
@@ -52,85 +51,11 @@ export async function sendMessage() {
   sendButton.addEventListener("click", stopGeneration);
 
   const uploads = state.pendingUploads || [];
-  let uploadHtml = "";
-  const placeholders: string[] = [];
-  const attachmentsForHistory: Attachment[] = [];
-
-  uploads.forEach(up => {
-    const ext = up.file && up.file.name.includes(".") ? up.file.name.split(".").pop() : "png";
-    const filename = `upload-${Date.now()}-${Math.random().toString(36).substring(2,8)}.${ext}`;
-    up.filename = filename;
-    up.timestamp = new Date().toISOString();
-    uploadHtml += `<img src="${up.dataUrl}" alt="Uploaded Image" class="generated-image-thumbnail" data-filename="${filename}" data-timestamp="${up.timestamp}" />`;
-    placeholders.push(imagePlaceholder(filename));
-    const mimeType = (up.file && up.file.type) || (typeof up.dataUrl === "string" && up.dataUrl.startsWith("data:")
-      ? up.dataUrl.split(";")[0].replace("data:", "")
-      : "image/png");
-    attachmentsForHistory.push({
-      type: "image",
-      filename,
-      mimeType,
-      mediaType: "image",
-      dataUrl: up.dataUrl,
-      source: "upload",
-      uploaded: true,
-      timestamp: up.timestamp,
-    });
-    if (state.imageDataCache && typeof state.imageDataCache.set === "function" && filename && up.dataUrl) {
-      state.imageDataCache.set(filename, up.dataUrl);
-    }
-  });
-
-  let documentsHtml = "";
   const documents = state.pendingDocuments || [];
   const documentsToUpload = [...documents];
 
-  documents.forEach(doc => {
-    const icon = doc.isDirectory ? "📁" : "📄";
-
-    if (doc.isDirectory) {
-      const directoryFiles = doc.files || [];
-      const totalSize = directoryFiles.reduce((sum, f) => sum + f.size, 0);
-      const directoryMarkup = [
-        "<div class=\"attached-document\">",
-        `<span class="doc-icon">${icon}</span>`,
-        `<span class="doc-name">${doc.directoryName}</span>`,
-        `<span class="doc-size">${directoryFiles.length} file${directoryFiles.length !== 1 ? "s" : ""} (${formatFileSize(totalSize)})</span>`,
-        "</div>",
-      ].join("\n");
-      documentsHtml += directoryMarkup;
-      directoryFiles.forEach(file => {
-        attachmentsForHistory.push({
-          type: "document",
-          filename: file.name,
-          mimeType: file.type,
-          size: file.size,
-          source: "upload",
-          uploaded: true,
-          timestamp: new Date().toISOString(),
-          directory: doc.directoryName,
-        });
-      });
-    } else {
-      const fileMarkup = [
-        "<div class=\"attached-document\">",
-        `<span class="doc-icon">${icon}</span>`,
-        `<span class="doc-name">${doc.name}</span>`,
-        `<span class="doc-size">${formatFileSize(doc.size || 0)}</span>`,
-        "</div>",
-      ].join("\n");
-      documentsHtml += fileMarkup;
-      attachmentsForHistory.push({
-        type: "document",
-        filename: doc.name,
-        mimeType: doc.type,
-        size: doc.size,
-        source: "upload",
-        uploaded: true,
-        timestamp: new Date().toISOString(),
-      });
-    }
-  });
+  const { uploadHtml, documentsHtml, placeholders, attachmentsForHistory } =
+    buildOutgoingAttachments(uploads, documents);
 
   let userHtml = sanitizeInput(message);
   if (documentsHtml) {
