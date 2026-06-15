@@ -1,3 +1,15 @@
+/**
+ * Streaming Responses API entry point.
+ *
+ * @remarks
+ * Drives a streamed turn: a {@link createStreamingRuntime} reads the SSE body
+ * while a {@link createStreamingEventProcessor} incrementally renders content,
+ * reasoning, tool calls, and images into the loading message. The lower-level
+ * runtime and event-processing live under `./streaming/`; this module is the
+ * thin orchestrator. {@link ensureImagesHaveMessageIds} is re-exported for a
+ * single import point.
+ */
+
 import { elements, state } from "../init/state.ts";
 import { ensureImagesHaveMessageIds } from "./streaming/imageGeneration.ts";
 import { createStreamingRuntime } from "./streaming/runtime.ts";

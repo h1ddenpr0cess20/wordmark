@@ -1,8 +1,3 @@
-import { icon } from "../utils/icons.ts";
-import { showNotification } from "../utils/notifications.ts";
-import { responsesClient } from "./api.ts";
-import { refreshToolSettingsUI } from "../components/tools.ts";
-import { getMCPServers, addMCPServer, removeMCPServer } from "./mcpServerStore.ts";
 /**
  * UI and client wiring for URL-based Model Context Protocol (MCP) servers.
  *
@@ -12,6 +7,12 @@ import { getMCPServers, addMCPServer, removeMCPServer } from "./mcpServerStore.t
  * {@link responsesClient} so changes take effect without reloading. The storage
  * CRUD helpers are re-exported here so importers keep a single entry point.
  */
+
+import { icon } from "../utils/icons.ts";
+import { showNotification } from "../utils/notifications.ts";
+import { responsesClient } from "./api.ts";
+import { refreshToolSettingsUI } from "../components/tools.ts";
+import { getMCPServers, addMCPServer, removeMCPServer } from "./mcpServerStore.ts";
 
 export { getMCPServers, addMCPServer, removeMCPServer };
 export type { McpServer } from "./mcpServerStore.ts";

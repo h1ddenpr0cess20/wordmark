@@ -1,7 +1,3 @@
-import { elements, state } from "../init/state.ts";
-import { STORAGE_KEYS } from "../utils/storage.ts";
-import type { Message } from "../../types/api.ts";
-import { EXPORT_FORMATS, normaliseExportFormat, type ExportMessage } from "./exportFormats.ts";
 /**
  * Chat export.
  *
@@ -11,6 +7,11 @@ import { EXPORT_FORMATS, normaliseExportFormat, type ExportMessage } from "./exp
  * persisting the chosen format as a preference and triggering a browser
  * download.
  */
+
+import { elements, state } from "../init/state.ts";
+import { STORAGE_KEYS } from "../utils/storage.ts";
+import type { Message } from "../../types/api.ts";
+import { EXPORT_FORMATS, normaliseExportFormat, type ExportMessage } from "./exportFormats.ts";
 
 /**
  * Splits message text into displayable content and reasoning segments.
