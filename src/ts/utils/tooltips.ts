@@ -69,48 +69,6 @@ function initTooltipSystem() {
 }
 
 /**
- * Resolves the closest tooltip-bearing ancestor for a delegated event, or null
- * when the event target is not an element or has no `[data-tooltip]`/`[title]`
- * ancestor. Shared by the pointer and focus handlers.
- */
-function resolveTooltipElement(event: Event): HTMLElement | null {
-  const target = event.target as HTMLElement | null;
-  if (!target || target.nodeType !== Node.ELEMENT_NODE || typeof target.closest !== "function") {
-    return null;
-  }
-  return target.closest<HTMLElement>("[data-tooltip], [title]");
-}
-
-/**
- * Returns the element's tooltip text, migrating a native `title` to
- * `data-tooltip` (and recording it for later restoration) when no
- * `data-tooltip` is present yet. Returns null when there is nothing to show.
- */
-function resolveTooltipText(element: HTMLElement): string | null {
-  let text = element.getAttribute("data-tooltip");
-  if (!text && element.hasAttribute("title")) {
-    const nativeTitle = element.getAttribute("title");
-    if (nativeTitle) {
-      element.dataset.tooltipRestoreTitle = nativeTitle;
-      element.setAttribute("data-tooltip", nativeTitle);
-      element.removeAttribute("title");
-      text = nativeTitle;
-    }
-  }
-  return text || null;
-}
-
-/** Restores a native `title` that was temporarily migrated to `data-tooltip`. */
-function restoreMigratedTitle(element: HTMLElement) {
-  if (element.dataset && element.dataset.tooltipRestoreTitle) {
-    const original = element.dataset.tooltipRestoreTitle;
-    element.removeAttribute("data-tooltip");
-    element.setAttribute("title", original);
-    delete element.dataset.tooltipRestoreTitle;
-  }
-}
-
-/**
  * Schedules a tooltip to appear after {@link TOOLTIP_DELAY} when the pointer
  * enters an element carrying `data-tooltip` or `title`.
  *
@@ -134,12 +92,21 @@ function handleTooltipMouseEnter(event: Event) {
     }
   }
 
-  const element = resolveTooltipElement(event);
+  const element = target.closest<HTMLElement>("[data-tooltip], [title]");
   if (!element) {
     return;
   }
 
-  const tooltipText = resolveTooltipText(element);
+  let tooltipText = element.getAttribute("data-tooltip");
+  if (!tooltipText && element.hasAttribute("title")) {
+    const nativeTitle = element.getAttribute("title");
+    if (nativeTitle) {
+      element.dataset.tooltipRestoreTitle = nativeTitle;
+      element.setAttribute("data-tooltip", nativeTitle);
+      element.removeAttribute("title");
+      tooltipText = nativeTitle;
+    }
+  }
   if (!tooltipText) return;
 
   if (tooltipTimeout) {
@@ -156,7 +123,12 @@ function handleTooltipMouseEnter(event: Event) {
  * `title` attribute that was temporarily migrated on enter.
  */
 function handleTooltipMouseLeave(event: Event) {
-  const element = resolveTooltipElement(event);
+  const target = event.target as HTMLElement | null;
+  if (!target || target.nodeType !== Node.ELEMENT_NODE || typeof target.closest !== "function") {
+    return;
+  }
+
+  const element = target.closest<HTMLElement>("[data-tooltip], [title]");
   if (!element) {
     return;
   }
@@ -168,24 +140,46 @@ function handleTooltipMouseLeave(event: Event) {
 
   hideTooltip();
 
-  restoreMigratedTitle(element);
+  if (element.dataset && element.dataset.tooltipRestoreTitle) {
+    const original = element.dataset.tooltipRestoreTitle;
+    element.removeAttribute("data-tooltip");
+    element.setAttribute("title", original);
+    delete element.dataset.tooltipRestoreTitle;
+  }
 }
 
 /** Shows a tooltip on keyboard focus, migrating `title` to `data-tooltip` if needed. */
 function handleTooltipFocusIn(event: Event) {
-  const element = resolveTooltipElement(event);
+  const target = event.target as HTMLElement | null;
+  if (!target || target.nodeType !== Node.ELEMENT_NODE || typeof target.closest !== "function") return;
+  const element = target.closest<HTMLElement>("[data-tooltip], [title]");
   if (!element) return;
-  const text = resolveTooltipText(element);
+  if (!element.getAttribute("data-tooltip") && element.hasAttribute("title")) {
+    const t = element.getAttribute("title");
+    if (t) {
+      element.dataset.tooltipRestoreTitle = t;
+      element.setAttribute("data-tooltip", t);
+      element.removeAttribute("title");
+    }
+  }
+  const text = element.getAttribute("data-tooltip");
   if (!text) return;
   showTooltip(element, text);
 }
 
 /** Hides the tooltip on blur and restores the original `title` if it was migrated. */
 function handleTooltipFocusOut(event: Event) {
-  const element = resolveTooltipElement(event);
+  const target = event.target as HTMLElement | null;
+  if (!target || target.nodeType !== Node.ELEMENT_NODE || typeof target.closest !== "function") return;
+  const element = target.closest<HTMLElement>("[data-tooltip], [title]");
   if (!element) return;
   hideTooltip();
-  restoreMigratedTitle(element);
+  if (element.dataset && element.dataset.tooltipRestoreTitle) {
+    const original = element.dataset.tooltipRestoreTitle;
+    element.removeAttribute("data-tooltip");
+    element.setAttribute("title", original);
+    delete element.dataset.tooltipRestoreTitle;
+  }
 }
 
 /**
