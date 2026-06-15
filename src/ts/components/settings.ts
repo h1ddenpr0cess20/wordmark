@@ -16,6 +16,29 @@ import { openSettingsAndSwitch } from "../init/eventListeners/settingsPanel.ts";
 /** Form controls that share a `disabled` property, toggled when enabling/disabling tab UI. */
 type FormControl = HTMLInputElement | HTMLButtonElement | HTMLSelectElement | HTMLTextAreaElement;
 
+/** Service display labels used in model-fetch status messages, falling back to the raw key. */
+const MODEL_STATUS_SERVICE_LABELS: Record<string, string> = {
+  lmstudio: "LM Studio",
+  ollama: "Ollama",
+  openai: "OpenAI",
+  xai: "xAI",
+};
+
+/**
+ * Maps a service key to the label shown in model-fetch status notes.
+ *
+ * @remarks
+ * Scoped to the model-status feature on purpose — provider display labels are
+ * deliberately not centralized globally (see the note in `services/providers.ts`),
+ * because other call sites use divergent conventions.
+ *
+ * @param serviceKey - The active service key (e.g. `"openai"`).
+ * @returns The display label, or the raw key when unmapped.
+ */
+export function serviceStatusLabel(serviceKey: string): string {
+  return MODEL_STATUS_SERVICE_LABELS[serviceKey] || serviceKey;
+}
+
 /**
  * Updates the local models dropdown when models are refreshed.
  *
@@ -27,8 +50,7 @@ type FormControl = HTMLInputElement | HTMLButtonElement | HTMLSelectElement | HT
  */
 export function updateModelsDropdown(fetchError?: boolean) {
   const serviceKey = elements.serviceSelector ? elements.serviceSelector.value : "";
-  const serviceLabelMap: Record<string, string> = { lmstudio: "LM Studio", ollama: "Ollama", openai: "OpenAI", xai: "xAI" };
-  const serviceLabel = serviceLabelMap[serviceKey] || serviceKey;
+  const serviceLabel = serviceStatusLabel(serviceKey);
 
   updateModelSelector();
 

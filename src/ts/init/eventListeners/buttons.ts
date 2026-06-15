@@ -14,7 +14,7 @@ import { exportChat, handleExportFormatChange } from "../../services/export.ts";
 import { updateBrowserHistory } from "../../services/history/state.ts";
 import { startNewConversation } from "../../services/history/persistence.ts";
 import { updatePromptVisibility } from "../../components/ui/settingsControls.ts";
-import { updateHeaderInfo, updateModelSelector } from "../../components/settings.ts";
+import { updateHeaderInfo, updateModelSelector, serviceStatusLabel } from "../../components/settings.ts";
 import { setReasoningEffort, DEFAULT_REASONING_EFFORT } from "../modelSettings.ts";
 import { DEFAULT_PERSONALITY, config } from "../../../config/config.ts";
 
@@ -168,8 +168,7 @@ export function setupButtonEventListeners(
       const serviceKey = config?.defaultService;
       const serviceConfig = serviceKey ? config?.services?.[serviceKey] : null;
       if (serviceConfig && typeof serviceConfig.fetchAndUpdateModels === "function") {
-        const serviceLabelMap: Record<string, string> = { lmstudio: "LM Studio", ollama: "Ollama", openai: "OpenAI", xai: "xAI" };
-        const serviceLabel = serviceLabelMap[serviceKey] || serviceKey;
+        const serviceLabel = serviceStatusLabel(serviceKey);
         refreshModelsButton.disabled = true;
         refreshModelsButton.innerHTML = icon("refresh-cw", { width: 16, height: 16, className: "rotating-svg" });
 
