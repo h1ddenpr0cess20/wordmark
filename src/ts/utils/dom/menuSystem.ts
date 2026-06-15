@@ -4,18 +4,18 @@
  * are no runtime fetches — the markup is bundled directly into the JS.
  */
 
-import panelsHtml from "../../html/panels.html?raw";
-import personalityHtml from "../../html/panels/settings/personality.html?raw";
-import modelHtml from "../../html/panels/settings/model.html?raw";
-import toolsHtml from "../../html/panels/settings/tools.html?raw";
-import dataHtml from "../../html/panels/settings/data.html?raw";
-import memoryHtml from "../../html/panels/settings/memory.html?raw";
-import ttsHtml from "../../html/panels/settings/tts.html?raw";
-import themeHtml from "../../html/panels/settings/theme.html?raw";
-import apiKeysHtml from "../../html/panels/settings/apiKeys.html?raw";
-import locationHtml from "../../html/panels/settings/location.html?raw";
-import { initTheme } from "../components/theme.ts";
-import aboutHtml from "../../html/panels/settings/about.html?raw";
+import panelsHtml from "../../../html/panels.html?raw";
+import personalityHtml from "../../../html/panels/settings/personality.html?raw";
+import modelHtml from "../../../html/panels/settings/model.html?raw";
+import toolsHtml from "../../../html/panels/settings/tools.html?raw";
+import dataHtml from "../../../html/panels/settings/data.html?raw";
+import memoryHtml from "../../../html/panels/settings/memory.html?raw";
+import ttsHtml from "../../../html/panels/settings/tts.html?raw";
+import themeHtml from "../../../html/panels/settings/theme.html?raw";
+import apiKeysHtml from "../../../html/panels/settings/apiKeys.html?raw";
+import locationHtml from "../../../html/panels/settings/location.html?raw";
+import { initTheme } from "../../components/theme.ts";
+import aboutHtml from "../../../html/panels/settings/about.html?raw";
 
 /** Maps each panel's source path to its build-time bundled markup. */
 const PANEL_HTML = {

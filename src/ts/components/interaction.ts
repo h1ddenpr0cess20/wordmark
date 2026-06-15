@@ -7,7 +7,7 @@ import { showError, showInfo } from "../utils/notifications.ts";
 
 import { sanitizeInput, stripBase64FromHistory } from "../utils/utils.ts";
 import { saveImageToDb } from "../utils/storage/imageStorage.ts";
-import { scrollInputIntoView } from "../utils/mobileHandling.ts";
+import { scrollInputIntoView } from "../utils/dom/mobileHandling.ts";
 import { finalizeStreamedResponse, removeLoadingIndicator } from "../services/streaming/messageLifecycle.ts";
 import { updateBrowserHistory } from "../services/history/state.ts";
 import { saveCurrentConversation } from "../services/history/persistence.ts";

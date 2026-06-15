@@ -6,7 +6,7 @@
  */
 
 import { elements, state } from "./state.ts";
-import { focusUserInputSafely } from "../utils/mobileHandling.ts";
+import { focusUserInputSafely } from "../utils/dom/mobileHandling.ts";
 import { STORAGE_KEYS } from "../utils/storage/storage.ts";
 import { initializeLocationService } from "../services/location.ts";
 import { initMCPServers } from "../services/mcpServers.ts";

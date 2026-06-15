@@ -16,7 +16,7 @@ import {
   getBaseUrl,
 } from "../api/clientConfig.ts";
 import { isRecord, pickString } from "../../utils/utils.ts";
-import { triggerAnchorDownload } from "../../utils/download.ts";
+import { triggerAnchorDownload } from "../../utils/dom/download.ts";
 import {
   fallbackFilename,
   describeAttachment,

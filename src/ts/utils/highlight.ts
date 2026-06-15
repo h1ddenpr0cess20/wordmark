@@ -9,7 +9,7 @@
 
 import { state } from "../init/state.ts";
 import { icon } from "./icons.ts";
-import { copyTextToClipboard } from "./clipboard.ts";
+import { copyTextToClipboard } from "./dom/clipboard.ts";
 import hljs from "highlight.js";
 
 state.hljsLoaded = true;

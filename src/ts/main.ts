@@ -20,9 +20,9 @@ import "./utils/utils.ts";
 import "./utils/highlight.ts";
 import "./utils/storage/imageStorage.ts";
 import "./utils/storage/conversationStorage.ts";
-import "./utils/mobileHandling.ts";
+import "./utils/dom/mobileHandling.ts";
 import "./utils/notifications.ts";
-import { initializeMenus } from "./utils/menuSystem.ts";
+import { initializeMenus } from "./utils/dom/menuSystem.ts";
 
 import "./components/messages.ts";
 import "./components/settings.ts";

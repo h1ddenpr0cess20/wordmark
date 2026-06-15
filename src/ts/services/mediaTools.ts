@@ -17,7 +17,7 @@ import {
   buildMediaRecordHtml,
   inferMimeTypeFromFilename,
 } from "./mediaType.ts";
-import { triggerAnchorDownload } from "../utils/download.ts";
+import { triggerAnchorDownload } from "../utils/dom/download.ts";
 import type { GeneratedImage } from "../../types/common.ts";
 
 export { detectMediaType, makeFilename, isVideoMimeType, buildMediaRecordHtml };

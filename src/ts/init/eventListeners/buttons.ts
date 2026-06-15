@@ -9,7 +9,7 @@
 import { elements } from "../state.ts";
 import { icon } from "../../utils/icons.ts";
 import { showInlineStatus } from "../../utils/inlineStatus.ts";
-import { isMobileDevice, focusUserInputSafely } from "../../utils/mobileHandling.ts";
+import { isMobileDevice, focusUserInputSafely } from "../../utils/dom/mobileHandling.ts";
 import { exportChat, handleExportFormatChange } from "../../services/export.ts";
 import { updateBrowserHistory } from "../../services/history/state.ts";
 import { startNewConversation } from "../../services/history/persistence.ts";

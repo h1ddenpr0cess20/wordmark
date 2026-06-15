@@ -9,7 +9,7 @@
 import { elements, state } from "../../init/state.ts";
 import { icon } from "../../utils/icons.ts";
 import { marked } from "marked";
-import { fastScroll } from "../../utils/mobileHandling.ts";
+import { fastScroll } from "../../utils/dom/mobileHandling.ts";
 import { renderWordmarkLogo } from "../logo.ts";
 import { generateMessageId, highlightAndAddCopyButtons } from "../messages.ts";
 import { setupImageInteractions } from "./imageInteractions.ts";

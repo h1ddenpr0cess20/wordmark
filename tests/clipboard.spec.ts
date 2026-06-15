@@ -4,7 +4,7 @@ import assert from "node:assert/strict";
 // copyTextToClipboard touches navigator + document, so we install minimal stubs
 // per test and restore them afterward.
 
-import { copyTextToClipboard } from "../src/ts/utils/clipboard.js";
+import { copyTextToClipboard } from "../src/ts/utils/dom/clipboard.js";
 
 const g = globalThis as unknown as {
   navigator?: unknown;
