@@ -38,6 +38,7 @@ Purpose: quick orientation to the current project layout, key entry points, and 
     - `providers.ts`: Provider capability registry — pure predicates centralizing per-provider quirks.
     - `api/`: Modular request handling for the Responses API
       - `requestClient.ts`: Network layer for streaming/non-streaming requests; orchestrates tool execution loops
+      - `requestTransport.ts`: HTTP transport primitives — header building and streaming/non-streaming `fetch` execution
       - `clientConfig.ts`: Service configuration helpers (active model, API key, base URL, reasoning support)
       - `messageUtils.ts`: Message serialization for Responses API (multimodal content, function calls)
       - `instructions.ts`: System/developer prompt assembly (prompt mode, personality, location, timestamp, tools, memories)
@@ -53,11 +54,16 @@ Purpose: quick orientation to the current project layout, key entry points, and 
       - `codeInterpreter.ts`: Extracts code interpreter outputs (logs, files, charts) from response payloads
       - `codeInterpreterRender.ts`: Renders extracted code interpreter outputs into the message DOM (metadata hydration, downloads)
       - `imageGeneration.ts`: Processes image_generation_call outputs, manages gallery integration
+      - `imageCallParsing.ts`: Pure parsers for an image-generation call node (prompt, mode, source label)
       - `imageDataUrl.ts`: Pure image data-URL helpers (base64 detection, MIME parse/normalize, coercion)
+      - `eventParsing.ts`: Pure SSE event-parsing helpers (delta/reasoning extraction, tool-arg formatting, buffering)
+      - `finalizeExtract.ts`: Pure output/reasoning text extraction from finalized (non-streamed) response payloads
       - `messageLifecycle.ts`: Message finalization, content extraction, history management
       - `thinkingUtils.ts`: Separates thinking tags from main content for cleaner display
     - `history/`: Save/load conversations to IndexedDB and render conversation list
-    - `export.ts`: Export chats/images in multiple formats; gallery population and download
+    - `mediaTools.ts` / `mediaType.ts`: Media display/storage/registration; pure media-type detection, MIME inference, and thumbnail markup
+    - `grokImageTool.ts`: xAI Grok Imagine generate/edit image tool (request building, provider HTTP plumbing, tool registration)
+    - `export.ts` / `exportFormats.ts`: Export chats in multiple formats — download controller + the format serializer registry (txt/md/html/json/csv)
     - `apiKeys.ts` / `apiKeyStorage.ts`: In‑app key UI and storage/retrieval via localStorage
     - `memory.ts`: Memory management functions and tool exposure
     - `weather.ts`: Built-in Open-Meteo forecast tool handler
