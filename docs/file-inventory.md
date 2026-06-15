@@ -74,7 +74,8 @@ Purpose: quick orientation to the current project layout, key entry points, and 
   - `utils/`
     - `memoryStorage.ts`: Local storage for memory (enable/limit/list) and prompt formatting.
     - `storage.ts`: Typed localStorage facade + central `STORAGE_KEYS` registry.
-    - `logger.ts`, `tooltips.ts`, `menuSystem.ts`, `notifications.ts`: Misc helpers.
+    - `logger.ts`, `tooltips.ts`, `menuSystem.ts`, `notifications.ts`: Misc helpers (logger exposes `logVerbose`; notification styling lives in `css/components/ui/notifications.css`).
+    - `inlineStatus.ts`, `thinking.ts`, `historyImages.ts`, `placeholders.ts`: Small shared helpers split out of `utils.ts`/settings UI (transient status toasts, reasoning-container toggle, history image stripping, placeholder regexes).
   - Vendor libraries (`dompurify`, `marked`, `highlight.js`) are npm dependencies imported directly by the modules that use them and bundled by Vite — there is no `src/ts/lib/` directory.
 
 - `css/`
