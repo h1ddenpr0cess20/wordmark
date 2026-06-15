@@ -158,23 +158,24 @@ export function renderConversationMessages(convo: ConversationRecord, imageCache
       imagesContainer.className = "generated-images";
       const imgHtmlArray: string[] = [];
 
+      const appendMissingMedia = (filename: string) => {
+        const placeholder = document.createElement("div");
+        placeholder.className = "image-placeholder";
+        placeholder.textContent = `Media could not be loaded: ${filename}`;
+        imagesContainer.appendChild(placeholder);
+      };
+
       imageFilenames.forEach((filename) => {
         const img = findMediaRecord(convo, filename);
         if (!img) {
-          const placeholder = document.createElement("div");
-          placeholder.className = "image-placeholder";
-          placeholder.textContent = `Media could not be loaded: ${filename}`;
-          imagesContainer.appendChild(placeholder);
+          appendMissingMedia(filename);
           return;
         }
 
         const src = resolveMediaSource(img, filename, imageCache);
 
         if (!src) {
-          const placeholder = document.createElement("div");
-          placeholder.className = "image-placeholder";
-          placeholder.textContent = `Media could not be loaded: ${filename}`;
-          imagesContainer.appendChild(placeholder);
+          appendMissingMedia(filename);
           return;
         }
 
@@ -235,6 +236,16 @@ export function renderConversationMessages(convo: ConversationRecord, imageCache
     updatePromptVisibility();
   }
 
+  const applySelectedModel = () => {
+    if (convo.model && elements.modelSelector) {
+      const modelOption = Array.from(elements.modelSelector.options || []).find(option => option.value === convo.model);
+      if (modelOption) {
+        elements.modelSelector.value = convo.model;
+        updateHeaderInfo?.();
+      }
+    }
+  };
+
   if (convo.service && elements.serviceSelector && config) {
     const serviceOption = Array.from(elements.serviceSelector.options || []).find(
       option => option.value === convo.service,
@@ -244,6 +255,11 @@ export function renderConversationMessages(convo: ConversationRecord, imageCache
       config.defaultService = convo.service;
       elements.serviceSelector.value = convo.service;
 
+      const refreshModelsThenApply = () => {
+        updateModelSelector?.();
+        applySelectedModel();
+      };
+
       const serviceConfig = config.services?.[convo.service];
       if (serviceConfig && typeof serviceConfig.fetchAndUpdateModels === "function") {
         const serviceLabel = convo.service === "lmstudio"
@@ -252,47 +268,18 @@ export function renderConversationMessages(convo: ConversationRecord, imageCache
             ? "Ollama"
             : convo.service;
         serviceConfig.fetchAndUpdateModels()
-          .then(() => {
-            updateModelSelector?.();
-            if (convo.model && elements.modelSelector) {
-              const modelOption = Array.from(elements.modelSelector.options || []).find(opt => opt.value === convo.model);
-              if (modelOption) {
-                elements.modelSelector.value = convo.model;
-                updateHeaderInfo?.();
-              }
-            }
-          })
+          .then(refreshModelsThenApply)
           .catch((err) => {
             console.error(`Failed to refresh ${serviceLabel} models:`, err);
-            updateModelSelector?.();
-            if (convo.model && elements.modelSelector) {
-              const modelOption = Array.from(elements.modelSelector.options || []).find(opt => opt.value === convo.model);
-              if (modelOption) {
-                elements.modelSelector.value = convo.model;
-                updateHeaderInfo?.();
-              }
-            }
+            refreshModelsThenApply();
           });
       } else {
-        updateModelSelector?.();
-        if (convo.model && elements.modelSelector) {
-          const modelOption = Array.from(elements.modelSelector.options || []).find(opt => opt.value === convo.model);
-          if (modelOption) {
-            elements.modelSelector.value = convo.model;
-            updateHeaderInfo?.();
-          }
-        }
+        refreshModelsThenApply();
       }
     }
   }
 
-  if (convo.model && elements.modelSelector) {
-    const modelOption = Array.from(elements.modelSelector.options || []).find(option => option.value === convo.model);
-    if (modelOption) {
-      elements.modelSelector.value = convo.model;
-      updateHeaderInfo?.();
-    }
-  }
+  applySelectedModel();
 
   updateHeaderInfo?.();
 
