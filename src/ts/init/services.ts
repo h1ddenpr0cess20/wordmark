@@ -1,5 +1,10 @@
 /**
  * Service and model initialization.
+ *
+ * @remarks
+ * Run during the startup sequence (see `initialization.ts`) to seed the service
+ * selector, pick a default provider, fetch its models, and prime the
+ * prompt/tool/verbose settings from config and `localStorage`.
  */
 
 import { elements, state } from "./state.ts";
@@ -108,7 +113,14 @@ export async function selectDefaultService() {
 }
 
 /**
- * Initialize models for services that fetch dynamically
+ * Fetches the model list for the current default service when that service
+ * supports dynamic fetching, then refreshes the model selector.
+ *
+ * @remarks
+ * No-ops for services without a `fetchAndUpdateModels` function. The selector is
+ * only re-rendered if the default service is still the one that was fetched, so
+ * a service switch mid-fetch does not clobber the newer selection; on failure
+ * the selector is refreshed to surface the error state.
  */
 export function initializeServiceModels() {
   const serviceKey = config?.defaultService;
@@ -132,7 +144,11 @@ export function initializeServiceModels() {
 }
 
 /**
- * Initialize conversation name based on current settings
+ * Sets the initial conversation name from the active system-prompt mode.
+ *
+ * @remarks
+ * Derives the name from whichever prompt radio is selected (personality, custom,
+ * or none), falling back to the default personality when none is checked.
  */
 export function initializeConversationName() {
   if (elements.personalityPromptRadio && elements.personalityPromptRadio.checked && elements.personalityInput) {
@@ -147,7 +163,11 @@ export function initializeConversationName() {
 }
 
 /**
- * Initialize default values from configuration
+ * Seeds the system-prompt and personality inputs with their configured defaults.
+ *
+ * @remarks
+ * Marks the personality input as explicitly set so later logic treats the
+ * default as an intentional value rather than an empty field.
  */
 export function initializeDefaultValues() {
   if (elements.systemPromptCustom) {
@@ -167,7 +187,14 @@ export function initializeDefaultValues() {
 }
 
 /**
- * Initialize tool calling toggle state
+ * Resolves and applies the tool-calling enabled state, syncing the toggle and
+ * dependent status UI.
+ *
+ * @remarks
+ * Resolution order: a stored `localStorage` preference wins, then the config
+ * default, then `true`. The resolved value is written back to `config` and
+ * reflected in the toggle, the master tool-calling status, and the tool
+ * settings UI.
  */
 export function initializeToolCalling() {
   let enabled = true;
@@ -195,7 +222,13 @@ export function initializeToolCalling() {
 }
 
 /**
- * Initialize Verbose Mode toggle
+ * Resolves the verbose-mode toggle from storage and adjusts the short-response
+ * guideline accordingly.
+ *
+ * @remarks
+ * No-ops when the toggle element is absent. When verbose mode is on the
+ * short-response guideline is cleared so replies are not nudged shorter;
+ * otherwise it is restored to the configured default.
  */
 export function initializeVerboseMode() {
   if (!elements.verboseModeToggle) return;
