@@ -69,6 +69,19 @@ export function renderChatHistoryList() {
       const deleteButton = toolbarDiv.querySelector(".history-delete-btn") as HTMLButtonElement;
       const deleteCountSpan = toolbarDiv.querySelector(".delete-count") as HTMLElement;
 
+      const deselectAllRows = () => {
+        document.querySelectorAll(".history-row").forEach((row) => row.classList.remove("selected"));
+      };
+
+      const selectAllRows = () => {
+        document.querySelectorAll(".history-row").forEach((row) => row.classList.add("selected"));
+      };
+
+      const closeHistoryPanel = () => {
+        elements.historyPanel?.setAttribute("aria-hidden", "true");
+        elements.historyButton?.setAttribute("aria-expanded", "false");
+      };
+
       const updateButtonStates = () => {
         const selectedRows = document.querySelectorAll<HTMLElement>(".history-row.selected");
         const isMultiSelect = multiSelectCheckbox.checked;
@@ -92,16 +105,13 @@ export function renderChatHistoryList() {
 
       newButton.onclick = () => {
         startNewConversation();
-        elements.historyPanel?.setAttribute("aria-hidden", "true");
-        elements.historyButton?.setAttribute("aria-expanded", "false");
+        closeHistoryPanel();
       };
 
       multiSelectCheckbox.onchange = () => {
         const isMultiSelect = multiSelectCheckbox.checked;
 
-        document.querySelectorAll(".history-row").forEach((row) => {
-          row.classList.remove("selected");
-        });
+        deselectAllRows();
 
         const table = document.querySelector(".history-table");
         if (table) {
@@ -112,16 +122,12 @@ export function renderChatHistoryList() {
       };
 
       selectAllButton.onclick = () => {
-        document.querySelectorAll(".history-row").forEach((row) => {
-          row.classList.add("selected");
-        });
+        selectAllRows();
         updateButtonStates();
       };
 
       clearSelectionButton.onclick = () => {
-        document.querySelectorAll(".history-row").forEach((row) => {
-          row.classList.remove("selected");
-        });
+        deselectAllRows();
         updateButtonStates();
       };
 
@@ -131,8 +137,7 @@ export function renderChatHistoryList() {
           const conversationId = selectedRow.dataset.conversationId;
           if (conversationId) {
             loadConversation(conversationId)?.then(() => {
-              elements.historyPanel?.setAttribute("aria-hidden", "true");
-              elements.historyButton?.setAttribute("aria-expanded", "false");
+              closeHistoryPanel();
             });
           }
         }
@@ -266,7 +271,7 @@ export function renderChatHistoryList() {
               row.classList.toggle("selected");
             }
           } else {
-            document.querySelectorAll(".history-row").forEach((r) => r.classList.remove("selected"));
+            deselectAllRows();
             row.classList.add("selected");
           }
 
