@@ -47,12 +47,15 @@ Purpose: quick orientation to the current project layout, key entry points, and 
       - `toolManager.ts`: Facade — request-time tool filtering + UI catalog view; re-exports the `tools/` sub-modules
       - `tools/catalog.ts`: The mutable tool registry (`TOOL_CATALOG`/`TOOL_DEFINITIONS`) + typed mutators
       - `tools/preferences.ts`: Per-tool enable/disable map + localStorage persistence
-      - `tools/mcp.ts`: MCP register/unregister + availability ping/cache
+      - `tools/mcp.ts`: MCP register/unregister + availability status cache
+      - `tools/mcpProbe.ts`: MCP server reachability probing (fetch/timeout, local-network detection)
       - `staticTools.ts`: The `STATIC_TOOLS` built-in/function tool definitions (pure data)
     - `streaming.ts`: SSE parser for Responses API; coordinates with streaming/* modules
     - `streaming/`: Specialized streaming response handlers
       - `codeInterpreter.ts`: Extracts code interpreter outputs (logs, files, charts) from response payloads
+      - `codeInterpreterParse.ts`: Pure code-interpreter parsers (file-id detection, subtype inference, attachment building)
       - `codeInterpreterRender.ts`: Renders extracted code interpreter outputs into the message DOM (metadata hydration, downloads)
+      - `codeAttachmentMeta.ts`: Pure attachment naming/metadata helpers (filename, size, MIME-to-extension, header parsing)
       - `imageGeneration.ts`: Processes image_generation_call outputs, manages gallery integration
       - `imageCallParsing.ts`: Pure parsers for an image-generation call node (prompt, mode, source label)
       - `imageDataUrl.ts`: Pure image data-URL helpers (base64 detection, MIME parse/normalize, coercion)
@@ -67,7 +70,7 @@ Purpose: quick orientation to the current project layout, key entry points, and 
     - `apiKeys.ts` / `apiKeyStorage.ts`: In‑app key UI and storage/retrieval via localStorage
     - `memory.ts`: Memory management functions and tool exposure
     - `weather.ts`: Built-in Open-Meteo forecast tool handler
-    - `mcpServers.ts`: MCP server configuration UI and persistence
+    - `mcpServers.ts` / `mcpServerStore.ts`: MCP server settings UI + client wiring, and the localStorage CRUD store
   - `utils/`
     - `memoryStorage.ts`: Local storage for memory (enable/limit/list) and prompt formatting.
     - `storage.ts`: Typed localStorage facade + central `STORAGE_KEYS` registry.

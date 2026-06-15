@@ -12,7 +12,8 @@ The former 600-line `toolManager.ts` god-object is split by responsibility; `too
 
 - `tools/catalog.ts` — the mutable tool registry. Owns `TOOL_CATALOG` (rich entries) and `TOOL_DEFINITIONS` (provider-facing definitions, kept in lockstep order), the `userMcpToolCount` boundary, and the typed splice mutators. It also loads persisted MCP servers and seeds the static tools at module load.
 - `tools/preferences.ts` — per-tool enable/disable map, persisted to `localStorage` (`wordmark_tool_preferences`); `isToolEnabled` / `setToolEnabled` / `setAllToolsEnabled`.
-- `tools/mcp.ts` — MCP server `registerMcpServer` / `unregisterMcpServer` plus availability ping + status cache (`refreshMcpAvailability`).
+- `tools/mcp.ts` — MCP server `registerMcpServer` / `unregisterMcpServer` plus the availability status cache and refresh (`refreshMcpAvailability`).
+- `tools/mcpProbe.ts` — the network reachability probing behind that cache (`pingMcpServer`, fetch/timeout, local-network detection); `tools/mcp.ts` re-exports `isLocalNetworkUrl`.
 - `staticTools.ts` — the pure `STATIC_TOOLS` data (the built-in/function tool definitions).
 - `toolManager.ts` — request-time tool filtering (`getEnabledToolDefinitions`), the UI catalog view (`getToolCatalog`), and re-exports of the above.
 
