@@ -35,6 +35,20 @@ function elementMediaType(element: HTMLElement): "video" | "image" {
   return element?.tagName?.toLowerCase() === "video" ? "video" : "image";
 }
 
+/**
+ * Builds a slideshow top-bar icon button (download/close/delete) with the shared
+ * `slideshow-icon-btn` styling. The `title` doubles as the `aria-label`.
+ */
+function createSlideshowIconButton(id: string, title: string, iconName: string): HTMLButtonElement {
+  const button = document.createElement("button");
+  button.className = "slideshow-icon-btn";
+  button.id = id;
+  button.title = title;
+  button.setAttribute("aria-label", title);
+  button.innerHTML = icon(iconName, { width: 24, height: 24 });
+  return button;
+}
+
 /** Builds the `<video>` or `<img>` element shown in the slideshow viewer for an item. */
 function buildViewerMediaElement(item: ViewerItem) {
   const mediaType = item.mediaType;
@@ -239,27 +253,12 @@ export function createImageSlideshow(images: any[], startIndex: number, isGaller
   const controlsBar = document.createElement("div");
   controlsBar.className = "gallery-slideshow-top-controls";
 
-  const downloadBtn = document.createElement("button");
-  downloadBtn.className = "slideshow-icon-btn";
-  downloadBtn.id = "slideshow-download";
-  downloadBtn.title = "Download this media";
-  downloadBtn.setAttribute("aria-label", "Download this media");
-  downloadBtn.innerHTML = icon("download", { width: 24, height: 24 });
+  const downloadBtn = createSlideshowIconButton("slideshow-download", "Download this media", "download");
 
-  const closeBtn = document.createElement("button");
-  closeBtn.className = "slideshow-icon-btn";
-  closeBtn.id = "slideshow-close";
-  closeBtn.title = "Close media viewer";
-  closeBtn.setAttribute("aria-label", "Close media viewer");
-  closeBtn.innerHTML = icon("x", { width: 24, height: 24 });
+  const closeBtn = createSlideshowIconButton("slideshow-close", "Close media viewer", "x");
 
   if (isGalleryMode) {
-    const deleteBtn = document.createElement("button");
-    deleteBtn.className = "slideshow-icon-btn";
-    deleteBtn.id = "slideshow-delete";
-    deleteBtn.title = "Delete this media permanently";
-    deleteBtn.setAttribute("aria-label", "Delete this media permanently");
-    deleteBtn.innerHTML = icon("trash", { width: 24, height: 24 });
+    const deleteBtn = createSlideshowIconButton("slideshow-delete", "Delete this media permanently", "trash");
     controlsBar.appendChild(deleteBtn);
 
     deleteBtn.addEventListener("click", () => {
