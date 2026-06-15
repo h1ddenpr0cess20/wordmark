@@ -1048,3 +1048,72 @@
 .theme-aurora .hljs-comment { color: #5a6f99; font-style: italic; }
 .theme-aurora .hljs-function { color: #8c82ff; }
 .theme-aurora .hljs-number { color: #ff6b9d; }
+
+.theme-frost {
+  --bg-primary: #0e1422;
+  --bg-secondary: rgba(255, 255, 255, 0.06);
+  --text-primary: #eef4ff;
+  --text-secondary: #aab8d4;
+  --accent-color: #7fdfff;
+  --accent-hover: #adecff;
+  --border-color: rgba(255, 255, 255, 0.18);
+  --user-bg: rgba(127, 223, 255, 0.12);
+  --assistant-bg: rgba(255, 255, 255, 0.05);
+  --error-bg: rgba(255, 90, 120, 0.15);
+  --error-text: #ff8fa3;
+  --body-bg-color-1: #0e1422;
+  --body-bg-color-2: #1d2c4a;
+  --button-text-color: #0e1422;
+}
+
+/* Luminous gradient base so the frosted panes have something to blur through */
+.theme-frost #chat-container {
+  background:
+    radial-gradient(120% 80% at 15% 0%, rgba(127, 223, 255, 0.10), transparent 60%),
+    radial-gradient(120% 80% at 85% 100%, rgba(160, 130, 255, 0.10), transparent 60%),
+    linear-gradient(160deg, #0e1422, #1d2c4a);
+}
+
+/* Frosted glass surfaces */
+.theme-frost .message-content,
+.theme-frost #settings-panel,
+.theme-frost .settings-group,
+.theme-frost #user-input,
+.theme-frost #history-panel,
+.theme-frost #gallery-panel {
+  background-color: var(--bg-secondary);
+  -webkit-backdrop-filter: blur(14px) saturate(140%);
+  backdrop-filter: blur(14px) saturate(140%);
+  border: 1px solid var(--border-color);
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.25);
+}
+
+.theme-frost .message.user .message-content {
+  background-color: var(--user-bg);
+}
+
+/* button-text-color is the dark on-accent text; on transparent surfaces use the accent instead */
+.theme-frost .tab-button.active,
+.theme-frost .reset-button {
+  color: var(--accent-color);
+}
+
+.theme-frost #wordmark-logo path {
+  stroke: var(--accent-color);
+}
+
+.theme-frost pre,
+.theme-frost pre code,
+.theme-frost .code-block {
+  background-color: rgba(10, 16, 30, 0.55);
+  -webkit-backdrop-filter: blur(6px);
+  backdrop-filter: blur(6px);
+  border: 1px solid var(--border-color);
+}
+
+/* Frost syntax palette (icy cyan/mint/violet) */
+.theme-frost .hljs-keyword { color: #7fdfff; }
+.theme-frost .hljs-string { color: #9fe8c8; }
+.theme-frost .hljs-comment { color: #6b7a99; font-style: italic; }
+.theme-frost .hljs-function { color: #b8a9ff; }
+.theme-frost .hljs-number { color: #ffb3c8; }
