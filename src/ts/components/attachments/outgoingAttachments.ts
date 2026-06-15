@@ -9,11 +9,11 @@
  * behavior it replaced.
  */
 
-import { state } from "../init/state.ts";
-import { imagePlaceholder } from "../utils/placeholders.ts";
-import { formatFileSize } from "../utils/utils.ts";
-import type { Attachment } from "../../types/api.ts";
-import type { PendingDocument, PendingUpload } from "../../types/attachments.ts";
+import { state } from "../../init/state.ts";
+import { imagePlaceholder } from "../../utils/placeholders.ts";
+import { formatFileSize } from "../../utils/utils.ts";
+import type { Attachment } from "../../../types/api.ts";
+import type { PendingDocument, PendingUpload } from "../../../types/attachments.ts";
 
 /** The assembled pieces needed to render and record an outgoing message's attachments. */
 export interface OutgoingAttachments {

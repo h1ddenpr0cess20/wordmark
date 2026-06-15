@@ -28,8 +28,7 @@ Purpose: quick orientation to the current project layout, key entry points, and 
     - `messages.ts`: Render and stream assistant/user messages; attachment previews.
     - `settings.ts`: Settings panel logic (API keys, service/model, tools, memory).
     - `theme.ts`: Theme switching and persistence.
-    - `attachments.ts`: Image/file upload ingestion (menu, drag-drop, paste, validation).
-    - `attachmentPreviews.ts`: Renders pending image/document/directory previews and per-item removal.
+    - `attachments/`: Upload ingestion grouped together — `attachments.ts` (menu/drag-drop/paste/validation entry), `attachmentDragDrop.ts`, `attachmentPreviews.ts` (pending previews + removal), `outgoingAttachments.ts` (builds the outgoing message attachment payload).
     - `tools.ts`: Tool configuration UI hooked to the Responses client (`services/api.ts`).
     - `memory.ts`: Memory tab UI (enable, limit, add/remove/clear).
     - `aboutPopups.ts`, `logo.ts`, `ui/`: Ancillary UI + shared UI helpers (settings tabs, image interactions).

@@ -16,7 +16,7 @@ import { uploadFile, uploadAndAttachFiles, saveVectorStoreMetadata } from "../se
 import { generateMessageId, addMessageCopyButton } from "./messages.ts";
 import { appendMessage } from "./ui/chatMessages.ts";
 import { getVerbosity, getReasoningEffort, getHistoryTokenBudget } from "../init/modelSettings.ts";
-import { buildOutgoingAttachments } from "./outgoingAttachments.ts";
+import { buildOutgoingAttachments } from "./attachments/outgoingAttachments.ts";
 import type { PendingDocument } from "../../types/attachments.ts";
 
 /** Outcome of {@link uploadPendingDocuments}: whether to proceed, plus the (possibly new) vector-store id. */

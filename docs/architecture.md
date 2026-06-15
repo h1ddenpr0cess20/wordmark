@@ -26,7 +26,7 @@ Modules
 - `components/`: UI behavior
   - `messages.ts`: render messages, code highlighting + copy buttons, reasoning toggle, image thumbnails in messages
   - `settings.ts`: header update, service/model dropdowns, settings panel layout helpers, and UI hooks that model-fetchers call
-  - `theme.ts`, `attachments.ts`, `logo.ts`, `aboutPopups.ts`, plus `ui/` helpers: general UI composition, themes, uploads, logo render, small popups
+  - `theme.ts`, `attachments/`, `logo.ts`, `aboutPopups.ts`, plus `ui/` helpers: general UI composition, themes, uploads, logo render, small popups
 
 - `services/`: API and feature services
   - `api.ts`: aggregates the Responses client helpers so UI modules can run turns and manage tools

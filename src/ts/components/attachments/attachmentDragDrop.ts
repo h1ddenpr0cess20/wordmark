@@ -9,7 +9,7 @@
  * dependency back on the upload component.
  */
 
-import type { FileWithRelativePath } from "../../types/attachments.ts";
+import type { FileWithRelativePath } from "../../../types/attachments.ts";
 
 /** Sink for files gathered from drag-drop or paste, matching `attachments.handleFiles`. */
 type HandleFiles = (files: File[], options?: { isDirectory?: boolean }) => Promise<void>;

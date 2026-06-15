@@ -9,9 +9,9 @@
  * {@link showPendingUploadPreviews} after mutating the pending state.
  */
 
-import { state } from "../init/state.ts";
-import { escapeHtml } from "../utils/sanitize.ts";
-import { formatFileSize } from "../utils/utils.ts";
+import { state } from "../../init/state.ts";
+import { escapeHtml } from "../../utils/sanitize.ts";
+import { formatFileSize } from "../../utils/utils.ts";
 
 /**
  * Re-renders the pending image/document/directory previews inside the input

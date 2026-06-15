@@ -29,7 +29,7 @@ import "./components/settings.ts";
 import "./components/ui.ts";
 import "./components/theme.ts";
 import "./components/interaction.ts";
-import "./components/attachments.ts";
+import "./components/attachments/attachments.ts";
 import "./components/tools.ts";
 import "./components/memory.ts";
 import "./components/logo.ts";

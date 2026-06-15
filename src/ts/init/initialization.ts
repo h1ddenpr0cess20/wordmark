@@ -19,7 +19,7 @@ import { initTabs, openApiKeysTabIfNeeded } from "../components/ui/settingsTabs.
 import { initMemorySettings } from "../components/memory.ts";
 import { updateHeaderInfo, updateModelSelector, updateFeatureStatus, initializePersonalityInput, applyDataSettingsState } from "../components/settings.ts";
 import { initToolsSettings } from "../components/tools.ts";
-import { initImageUploads } from "../components/attachments.ts";
+import { initImageUploads } from "../components/attachments/attachments.ts";
 import { initializeModelSettings } from "./modelSettings.ts";
 import { setupEventListeners } from "./eventListeners.ts";
 import { initializeDOMReferences } from "./dom.ts";

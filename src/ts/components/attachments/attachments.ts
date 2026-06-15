@@ -2,10 +2,10 @@
  * File upload and attachment handling for images and documents.
  */
 
-import { state } from "../init/state.ts";
-import { showInfo } from "../utils/notifications.ts";
-import { filterSupportedFiles } from "../services/vectorStore.ts";
-import type { DirectoryFile, FileWithRelativePath } from "../../types/attachments.ts";
+import { state } from "../../init/state.ts";
+import { showInfo } from "../../utils/notifications.ts";
+import { filterSupportedFiles } from "../../services/vectorStore.ts";
+import type { DirectoryFile, FileWithRelativePath } from "../../../types/attachments.ts";
 import { showPendingUploadPreviews } from "./attachmentPreviews.ts";
 import { setupDragAndDrop, setupPasteHandler } from "./attachmentDragDrop.ts";
 
