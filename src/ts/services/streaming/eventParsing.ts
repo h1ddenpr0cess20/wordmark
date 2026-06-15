@@ -23,6 +23,18 @@ export function bufferGet(map: Map<string, string>, key: string) {
   return map.get(key) || "";
 }
 
+/**
+ * Splits `text` on newlines and caps the result at `limit` lines, appending a
+ * "… (N more lines)" marker when the input is longer. Used to keep streamed
+ * shell/code-interpreter output previews compact in the reasoning panel.
+ */
+export function previewLines(text: string, limit: number): string[] {
+  const lines = text.split("\n");
+  return lines.length > limit
+    ? [...lines.slice(0, limit), `… (${lines.length - limit} more lines)`]
+    : lines;
+}
+
 /** Stringifies a value (if needed) and truncates it to `max` characters with an ellipsis. */
 export function safeTruncate(str: unknown, max = 800): string {
   let text: string;

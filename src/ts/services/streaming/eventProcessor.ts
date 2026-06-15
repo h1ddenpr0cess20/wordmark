@@ -11,6 +11,7 @@ import type { createStreamingRuntime } from "./runtime.ts";
 import {
   bufferAppend,
   bufferGet,
+  previewLines,
   safeTruncate,
   formatToolArgs,
   extractQueriesFromArgs,
@@ -93,6 +94,19 @@ export function createStreamingEventProcessor(runtime: StreamingRuntime) {
 
   const webSearch = makeSearchHandlers("web_search", "🌐", "searching web", webSearchQueue, webSearchById);
   const xSearch = makeSearchHandlers("x_search", "🐦", "searching X", xSearchQueue, xSearchById);
+
+  /**
+   * Emits a fenced (```) reasoning block containing a length-capped preview of
+   * `text`, optionally preceded by an indented `header` line. Centralizes the
+   * shell/code-interpreter output rendering that otherwise repeats per output
+   * kind.
+   */
+  function appendFencedPreview(text: string, limit: number, header?: string) {
+    if (header) runtime.appendReasoningLine(header);
+    runtime.appendReasoningLine("  ```");
+    previewLines(text, limit).forEach(line => runtime.appendReasoningLine(`  ${line}`));
+    runtime.appendReasoningLine("  ```");
+  }
 
   function ensureResponseSegment() {
     if (!expectNewResponse) return;
@@ -241,23 +255,10 @@ export function createStreamingEventProcessor(runtime: StreamingRuntime) {
           const stderr = typeof out.stderr === "string" ? out.stderr.trim() : "";
           const outcome = out.outcome || {};
           if (stdout) {
-            const lines = stdout.split("\n");
-            const preview = lines.length > 15
-              ? [...lines.slice(0, 15), `… (${lines.length - 15} more lines)`]
-              : lines;
-            runtime.appendReasoningLine("  ```");
-            preview.forEach((line: string) => runtime.appendReasoningLine(`  ${line}`));
-            runtime.appendReasoningLine("  ```");
+            appendFencedPreview(stdout, 15);
           }
           if (stderr) {
-            const lines = stderr.split("\n");
-            const preview = lines.length > 10
-              ? [...lines.slice(0, 10), `… (${lines.length - 10} more lines)`]
-              : lines;
-            runtime.appendReasoningLine("  ⚠️ stderr:");
-            runtime.appendReasoningLine("  ```");
-            preview.forEach((line: string) => runtime.appendReasoningLine(`  ${line}`));
-            runtime.appendReasoningLine("  ```");
+            appendFencedPreview(stderr, 10, "  ⚠️ stderr:");
           }
           if (outcome.type === "exit" && typeof outcome.exit_code === "number" && outcome.exit_code !== 0) {
             runtime.appendReasoningLine(`  ❌ _exit code: ${outcome.exit_code}_`);
@@ -273,14 +274,7 @@ export function createStreamingEventProcessor(runtime: StreamingRuntime) {
         const outputArr = Array.isArray(ciOutputs) ? ciOutputs : [];
         const topLogs = typeof ciRoot?.logs === "string" ? ciRoot.logs.trim() : "";
         if (topLogs) {
-          const lines = topLogs.split("\n");
-          const preview = lines.length > 20
-            ? [...lines.slice(0, 20), `… (${lines.length - 20} more lines)`]
-            : lines;
-          runtime.appendReasoningLine("  📄 output:");
-          runtime.appendReasoningLine("  ```");
-          preview.forEach((line: string) => runtime.appendReasoningLine(`  ${line}`));
-          runtime.appendReasoningLine("  ```");
+          appendFencedPreview(topLogs, 20, "  📄 output:");
         }
         for (const out of outputArr) {
           if (!out || typeof out !== "object") continue;
@@ -289,14 +283,7 @@ export function createStreamingEventProcessor(runtime: StreamingRuntime) {
             const raw = out.logs ?? out.text ?? out.content ?? "";
             const text = Array.isArray(raw) ? raw.join("\n") : (raw ? String(raw) : "");
             if (text && text.trim()) {
-              const lines = text.trim().split("\n");
-              const preview = lines.length > 20
-                ? [...lines.slice(0, 20), `… (${lines.length - 20} more lines)`]
-                : lines;
-              runtime.appendReasoningLine("  📄 output:");
-              runtime.appendReasoningLine("  ```");
-              preview.forEach((line: string) => runtime.appendReasoningLine(`  ${line}`));
-              runtime.appendReasoningLine("  ```");
+              appendFencedPreview(text.trim(), 20, "  📄 output:");
             }
           } else if (outType.includes("image") || outType.includes("file")) {
             const filename = out.filename || out.name || out.file_id || out.fileId || "";
