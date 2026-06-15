@@ -51,6 +51,11 @@ const TOOL_HANDLERS: Record<string, (...args: unknown[]) => unknown> = {
   },
 };
 
+/**
+ * Reports whether a service is enabled per config — via `config.isServiceEnabled`
+ * when available, else the service's `enabled` flag. Defaults to `true` when no
+ * services are configured.
+ */
 function isConfiguredServiceEnabled(serviceKey: string): boolean {
   const services = config?.services;
   if (!services) {
@@ -63,6 +68,7 @@ function isConfiguredServiceEnabled(serviceKey: string): boolean {
   return Boolean(service && service.enabled !== false);
 }
 
+/** Reports whether a model is an OpenAI Codex model (by name), which excludes some tools. */
 function isCodexModel(modelName: string | undefined): boolean {
   return typeof modelName === "string" && modelName.toLowerCase().includes("codex");
 }
@@ -249,6 +255,15 @@ export function getEnabledToolDefinitions(serviceKey: string = getActiveServiceK
   return defs;
 }
 
+/**
+ * Appends the memory/forget client-side tool definitions to `defs` when memory
+ * is enabled. Skips them for models that disallow client-side tools, and when
+ * server-managed tools are already active for the service (to avoid mixing).
+ *
+ * @param defs - The tool-definition list to append to (mutated in place).
+ * @param serviceKey - Target service; defaults to the active service.
+ * @param modelName - Target model; defaults to the active model.
+ */
 function appendMemoryTools(defs: ToolDefinition[], serviceKey: string = getActiveServiceKey(), modelName: string = getActiveModel()) {
   try {
     const cfg = getMemoryConfig();
