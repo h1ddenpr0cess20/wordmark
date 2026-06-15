@@ -16,7 +16,7 @@ import { memoryToolDefinition, forgetToolDefinition } from "../memory.ts";
 import { getApiKey } from "../apiKeyStorage.ts";
 import { isLocalService, usesServerManagedTools } from "../providers.ts";
 import { MCP_ASSUME_ONLINE, config } from "../../../config/config.ts";
-import { state } from "../../init/state.ts";
+import { logVerbose } from "../../utils/logger.ts";
 import { TOOL_CATALOG, TOOL_DEFINITIONS } from "./tools/catalog.ts";
 import { getToolPreference, isToolEnabled, setToolEnabled, setAllToolsEnabled } from "./tools/preferences.ts";
 import {
@@ -167,9 +167,7 @@ export function getEnabledToolDefinitions(serviceKey: string = getActiveServiceK
     }
 
     if (!clientSideToolsSupported && isClientSideToolType(tool.type)) {
-      if (state.verboseLogging) {
-        console.info(`Skipping client-side tool '${tool.displayName}' for xAI model '${modelName}'.`);
-      }
+      logVerbose(`Skipping client-side tool '${tool.displayName}' for xAI model '${modelName}'.`);
       return;
     }
 
@@ -177,9 +175,7 @@ export function getEnabledToolDefinitions(serviceKey: string = getActiveServiceK
       if (!isLocalService(serviceKey)) {
         const serverUrl = tool.definition?.server_url;
         if (serverUrl && isLocalNetworkUrl(serverUrl)) {
-          if (state.verboseLogging) {
-            console.info(`Skipping local MCP server ${tool.displayName} when using cloud service ${serviceKey}`);
-          }
+          logVerbose(`Skipping local MCP server ${tool.displayName} when using cloud service ${serviceKey}`);
           return;
         }
       }
@@ -206,18 +202,14 @@ export function getEnabledToolDefinitions(serviceKey: string = getActiveServiceK
     }
 
     if (tool.key === "builtin:image_generation" && serviceKey === "openai" && modelIsCodex) {
-      if (state.verboseLogging) {
-        console.info(`Skipping image generation tool for Codex model '${modelName}'.`);
-      }
+      logVerbose(`Skipping image generation tool for Codex model '${modelName}'.`);
       return;
     }
 
     if (tool.key === "builtin:code_interpreter") {
       const shellEnabled = getToolPreference("builtin:shell", false);
       if (shellEnabled && serviceKey === "openai") {
-        if (state.verboseLogging) {
-          console.info("Skipping code_interpreter because shell tool is enabled.");
-        }
+        logVerbose("Skipping code_interpreter because shell tool is enabled.");
         return;
       }
       if (usesServerManagedTools(serviceKey)) {
@@ -272,9 +264,7 @@ function appendMemoryTools(defs: ToolDefinition[], serviceKey: string = getActiv
     }
 
     if (!supportsClientSideTools(serviceKey, modelName)) {
-      if (state.verboseLogging) {
-        console.info(`Skipping memory tools for xAI model '${modelName}' because it disallows client-side tools.`);
-      }
+      logVerbose(`Skipping memory tools for xAI model '${modelName}' because it disallows client-side tools.`);
       return;
     }
 
@@ -286,9 +276,7 @@ function appendMemoryTools(defs: ToolDefinition[], serviceKey: string = getActiv
     });
 
     if (hasServerManagedTool && usesServerManagedTools(serviceKey)) {
-      if (state.verboseLogging) {
-        console.info(`Skipping memory tools because server-managed tools are active for service '${serviceKey}'.`);
-      }
+      logVerbose(`Skipping memory tools because server-managed tools are active for service '${serviceKey}'.`);
       return;
     }
     if (memoryToolDefinition) {
