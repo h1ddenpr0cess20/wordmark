@@ -1127,3 +1127,74 @@
 .theme-frost .hljs-comment { color: #6b7a99; font-style: italic; }
 .theme-frost .hljs-function { color: #b8a9ff; }
 .theme-frost .hljs-number { color: #ffb3c8; }
+
+/* Noir — 1940s film-noir: charcoal monochrome lit by a single warm amber
+   spotlight, with film grain, an edge vignette, a flickering projector logo,
+   and uppercase title-card headings. */
+.theme-noir {
+  --bg-primary: #0c0c0d;
+  --bg-secondary: #161617;
+  --text-primary: #dcd8cf;
+  --text-secondary: #8a8780;
+  --accent-color: #e0a94e;
+  --accent-hover: #f0c069;
+  --border-color: #2a2a2c;
+  --user-bg: #1a1a1c;
+  --assistant-bg: #121213;
+  --error-bg: #2e1414;
+  --error-text: #e08c8c;
+  --body-bg-color-1: #0c0c0d;
+  --body-bg-color-2: #161617;
+  --button-text-color: #0c0c0d;
+}
+
+/* Edge vignette over a subtle baked-in film grain over the base gradient. */
+.theme-noir #chat-container {
+  background:
+    radial-gradient(ellipse 110% 85% at 50% 28%, transparent 45%, rgba(0, 0, 0, 0.6) 100%),
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.045'/%3E%3C/svg%3E") repeat,
+    linear-gradient(180deg, #111112, #0c0c0d);
+}
+
+/* button-text-color is the dark on-accent text; on transparent surfaces use the accent instead */
+.theme-noir .tab-button.active,
+.theme-noir .reset-button {
+  color: var(--accent-color);
+}
+
+/* Uppercase, letter-spaced headings for a noir title-card feel */
+.theme-noir .message-content h1,
+.theme-noir .message-content h2,
+.theme-noir .message-content h3 {
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+/* Flickering projector spotlight on the wordmark logo */
+@keyframes noir-flicker {
+  0%, 90%, 100% { opacity: 1; }
+  92% { opacity: 0.82; }
+  94% { opacity: 1; }
+  96% { opacity: 0.9; }
+  98% { opacity: 1; }
+}
+
+.theme-noir #wordmark-logo path {
+  stroke: var(--accent-color);
+  filter: drop-shadow(0 0 5px rgba(224, 169, 78, 0.5));
+  animation: noir-flicker 5s steps(1, end) infinite;
+}
+
+.theme-noir pre,
+.theme-noir pre code,
+.theme-noir .code-block {
+  background-color: #141415;
+  border: 1px solid var(--border-color);
+}
+
+/* Noir syntax palette (amber/sepia monochrome) */
+.theme-noir .hljs-keyword { color: #e0a94e; }
+.theme-noir .hljs-string { color: #c9b886; }
+.theme-noir .hljs-comment { color: #6f6c64; font-style: italic; }
+.theme-noir .hljs-function { color: #d6c7a8; }
+.theme-noir .hljs-number { color: #c98a5e; }
