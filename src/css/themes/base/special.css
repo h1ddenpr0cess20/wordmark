@@ -1102,6 +1102,16 @@
   stroke: var(--accent-color);
 }
 
+/* Native dropdowns can't blur a translucent pane, so the option popup would be
+   white-on-white. Give selects/options an opaque frosted-dark surface instead. */
+.theme-frost .setting-item select,
+.theme-frost .model-selector-container select,
+.theme-frost .export-format-select,
+.theme-frost option {
+  background-color: #15203a;
+  color: var(--text-primary);
+}
+
 .theme-frost pre,
 .theme-frost pre code,
 .theme-frost .code-block {
