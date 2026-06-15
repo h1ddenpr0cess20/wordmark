@@ -999,3 +999,52 @@
 .theme-ember .reset-button {
   color: var(--accent-color);
 }
+
+.theme-aurora {
+  --bg-primary: #0a0e1a;
+  --bg-secondary: #121a2e;
+  --text-primary: #e6f0ff;
+  --text-secondary: #8fa3c8;
+  --accent-color: #4ffbb0;
+  --accent-hover: #7dffc8;
+  --border-color: #233152;
+  --user-bg: #16233f;
+  --assistant-bg: #0f1626;
+  --error-bg: #3a1530;
+  --error-text: #ff6b9d;
+  --body-bg-color-1: #0a0e1a;
+  --body-bg-color-2: #101a33;
+  --button-text-color: #0a0e1a;
+}
+
+/* button-text-color is the dark on-accent text; on transparent surfaces use the accent instead */
+.theme-aurora .tab-button.active,
+.theme-aurora .reset-button {
+  color: var(--accent-color);
+  text-shadow: 0 0 8px rgba(79, 251, 176, 0.45);
+}
+
+/* Pulsing aurora glow on the wordmark logo (green shifting to violet) */
+@keyframes aurora-pulse {
+  0%, 100% { filter: drop-shadow(0 0 2px rgba(79, 251, 176, 0.45)); }
+  50% { filter: drop-shadow(0 0 9px rgba(140, 130, 255, 0.7)); }
+}
+
+.theme-aurora #wordmark-logo path {
+  stroke: var(--accent-color);
+  animation: aurora-pulse 6s ease-in-out infinite;
+}
+
+.theme-aurora pre,
+.theme-aurora pre code,
+.theme-aurora .code-block {
+  background-color: #0f1626;
+  border: 1px solid var(--border-color);
+}
+
+/* Aurora syntax palette (polar greens, teals, violets) */
+.theme-aurora .hljs-keyword { color: #4ffbb0; }
+.theme-aurora .hljs-string { color: #5eead4; }
+.theme-aurora .hljs-comment { color: #5a6f99; font-style: italic; }
+.theme-aurora .hljs-function { color: #8c82ff; }
+.theme-aurora .hljs-number { color: #ff6b9d; }
