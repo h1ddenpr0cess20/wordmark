@@ -952,3 +952,38 @@
 .theme-tidepool .hljs-comment { color: #5a8983; font-style: italic; }
 .theme-tidepool .hljs-function { color: #7fd6ff; }
 .theme-tidepool .hljs-number { color: #f2c66d; }
+
+.theme-ember {
+  --bg-primary: #15100d;
+  --bg-secondary: #211814;
+  --text-primary: #f4e6da;
+  --text-secondary: #b08d78;
+  --accent-color: #ff6a2b;
+  --accent-hover: #ff9152;
+  --border-color: #3a2a20;
+  --user-bg: #2a1c14;
+  --assistant-bg: #1d1410;
+  --error-bg: #3a1410;
+  --error-text: #ff5a52;
+  --body-bg-color-1: #15100d;
+  --body-bg-color-2: #241712;
+  --button-text-color: #15100d;
+}
+
+.theme-ember #wordmark-logo path {
+  stroke: var(--accent-color);
+}
+
+.theme-ember pre,
+.theme-ember pre code,
+.theme-ember .code-block {
+  background-color: #1d1410;
+  border: 1px solid var(--border-color);
+}
+
+/* Ember syntax palette */
+.theme-ember .hljs-keyword { color: #ff6a2b; }
+.theme-ember .hljs-string { color: #e8b86d; }
+.theme-ember .hljs-comment { color: #8a6a55; font-style: italic; }
+.theme-ember .hljs-function { color: #ffb37a; }
+.theme-ember .hljs-number { color: #ff8c69; }
