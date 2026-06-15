@@ -25,6 +25,7 @@ import { setupEventListeners } from "./eventListeners.ts";
 import { initializeDOMReferences } from "./dom.ts";
 import { initializeAboutTab } from "./aboutTab.ts";
 import { initializeMarked } from "./marked.ts";
+import { logVerbose } from "../utils/logger.ts";
 import {
   initializeServicesAndModels,
   initializeConversationName,
@@ -42,14 +43,10 @@ import {
  */
 export async function initialize() {
   try {
-    if (state.verboseLogging) {
-      console.info("Initializing chatbot application...");
-    }
+    logVerbose("Initializing chatbot application...");
 
     initializeDOMReferences();
-    if (state.verboseLogging) {
-      console.info("DOM references initialized.");
-    }
+    logVerbose("DOM references initialized.");
 
     initImageUploads();
 
@@ -63,9 +60,7 @@ export async function initialize() {
     initializeDefaultValues();
 
     initializeMarked();
-    if (state.verboseLogging) {
-      console.info("Marked (markdown) initialized.");
-    }
+    logVerbose("Marked (markdown) initialized.");
 
     initializeAboutTab();
 
@@ -74,26 +69,18 @@ export async function initialize() {
     initializeConversationName();
 
     setupEventListeners();
-    if (state.verboseLogging) {
-      console.info("Event listeners set up.");
-    }
+    logVerbose("Event listeners set up.");
 
     initTabs();
-    if (state.verboseLogging) {
-      console.info("Settings panel tabs initialized.");
-    }
+    logVerbose("Settings panel tabs initialized.");
 
     initToolsSettings();
-    if (state.verboseLogging) {
-      console.info("Tools settings initialized.");
-    }
+    logVerbose("Tools settings initialized.");
 
     {
       try {
         initMemorySettings();
-        if (state.verboseLogging) {
-          console.info("Memory settings initialized.");
-        }
+        logVerbose("Memory settings initialized.");
         updateFeatureStatus();
 
       } catch (e) {
@@ -103,18 +90,14 @@ export async function initialize() {
 
     try {
       initMCPServers();
-      if (state.verboseLogging) {
-        console.info("MCP servers initialized.");
-      }
+      logVerbose("MCP servers initialized.");
     } catch (e) {
       console.error("MCP servers initialization failed:", e);
     }
 
     try {
       loadFromUrl();
-      if (state.verboseLogging) {
-        console.info("Loaded chat state from URL (if present).");
-      }
+      logVerbose("Loaded chat state from URL (if present).");
     } catch (e) {
       console.warn("Error loading from URL:", e);
     }
@@ -124,15 +107,11 @@ export async function initialize() {
     initializeTts();
 
     initializeMobileKeyboardHandling();
-    if (state.verboseLogging) {
-      console.info("Mobile keyboard handling initialized.");
-    }
+    logVerbose("Mobile keyboard handling initialized.");
     updateParameterControls();
 
     ensureApiKeysLoaded();
-    if (state.verboseLogging) {
-      console.info("API keys loaded from localStorage.");
-    }
+    logVerbose("API keys loaded from localStorage.");
 
     const runStandardModelInit = () => {
       initializeServiceModels();
@@ -149,9 +128,7 @@ export async function initialize() {
 
     updateModelSelector();
     updateHeaderInfo();
-    if (state.verboseLogging) {
-      console.info("UI controls and selectors initialized.");
-    }
+    logVerbose("UI controls and selectors initialized.");
 
     setupScrollTracking();
 
@@ -175,9 +152,7 @@ export async function initialize() {
       openApiKeysTabIfNeeded();
     }, 2000);
 
-    if (state.verboseLogging) {
-      console.info("Chatbot application initialization complete.");
-    }
+    logVerbose("Chatbot application initialization complete.");
 
     document.body.classList.add("loaded");
 

@@ -79,6 +79,25 @@ function makeWrapper(method: ConsoleMethod, gateVerbose: boolean) {
 }
 
 /**
+ * Logs an informational message only when verbose logging is enabled.
+ *
+ * @remarks
+ * Equivalent to the `if (state.verboseLogging) console.info(...)` guard that was
+ * hand-written at dozens of call sites. It routes through `console.info`, so the
+ * active {@link applyConsoleLogging} wrapping (timestamping, dedupe) still
+ * applies. Note this is distinct from relying on the wrapper's own gating, which
+ * only suppresses `info` in debug mode — this helper gates on `verboseLogging`
+ * in every mode, matching the original inline guards.
+ *
+ * @param args - Values forwarded to `console.info` when verbose logging is on.
+ */
+export function logVerbose(...args: unknown[]): void {
+  if (state.verboseLogging) {
+    console.info(...args);
+  }
+}
+
+/**
  * (Re)applies console behavior from the current logging flags: timestamped
  * wrappers in debug mode, originals otherwise, with log/info suppressed in
  * production unless explicitly enabled.
