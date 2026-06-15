@@ -130,16 +130,11 @@ const loadGalleryImages = async function() {
     const images = await getAllImagesFromDb();
 
     const currentTab = state.currentGalleryTab || "generated";
-    let visibleImages: GeneratedImage[];
+    const isUploaded = (img: GeneratedImage) => Boolean(img.filename && img.filename.startsWith("upload-"));
 
-    if (currentTab === "uploaded") {
-      visibleImages = images.filter(img => img.filename && img.filename.startsWith("upload-"));
-    } else {
-      visibleImages = images.filter(img => !img.filename || !img.filename.startsWith("upload-"));
-    }
-
-    const generatedImages = images.filter(img => !img.filename || !img.filename.startsWith("upload-"));
-    const uploadedImages = images.filter(img => img.filename && img.filename.startsWith("upload-"));
+    const uploadedImages = images.filter(isUploaded);
+    const generatedImages = images.filter(img => !isUploaded(img));
+    const visibleImages = currentTab === "uploaded" ? uploadedImages : generatedImages;
 
     const generatedCount = document.getElementById("generated-count");
     const uploadedCount = document.getElementById("uploaded-count");
@@ -207,11 +202,6 @@ const loadGalleryImages = async function() {
   }
 };
 
-/**
- * Gets all media records from IndexedDB.
- *
- * @returns A promise resolving to an array of media objects.
- */
 /**
  * Deletes a media item from IndexedDB and removes it from the gallery.
  *
