@@ -20,6 +20,11 @@ import { renderConversationMessages } from "./render.ts";
 import { processImageForStorage, markMessagesWithImages } from "./persistenceImages.ts";
 import type { ConversationRecord } from "../../../types/common.ts";
 
+/**
+ * Resolves the system-prompt type and content to persist with a conversation,
+ * preferring an already-loaded prompt and otherwise reading the selected
+ * personality/custom radio inputs. Defaults to `{ type: "none", content: "" }`.
+ */
 function normalizePromptState() {
   let promptType = "none";
   let promptContent = "";
@@ -50,6 +55,13 @@ function ensureLibrariesLoaded() {
   return Promise.resolve();
 }
 
+/**
+ * Loads a conversation's DB-stored images into an in-memory cache before
+ * rendering, so the transcript can resolve image placeholders synchronously.
+ *
+ * @param convo - The conversation whose `images` references are preloaded.
+ * @returns A promise for a `filename -> data` cache; failures yield an empty map.
+ */
 function preloadImages(convo: ConversationRecord) {
   const imageLoadPromises: Promise<void>[] = [];
   const imageCache = new Map<string, string | Blob>();
@@ -82,6 +94,7 @@ function preloadImages(convo: ConversationRecord) {
   });
 }
 
+/** Clears the in-memory conversation state (history, images, ids, prompt, thinking). */
 function resetConversationState() {
   state.conversationHistory = [];
   state.generatedImages = [];
@@ -221,6 +234,13 @@ export function loadConversation(id: string) {
     });
 };
 
+/**
+ * Replaces the in-memory state with a loaded conversation (dropping developer
+ * messages), clears the chat box, and renders the transcript with `imageCache`.
+ *
+ * @param convo - The loaded conversation record.
+ * @param imageCache - Preloaded `filename -> data` map from {@link preloadImages}.
+ */
 function loadConversationIntoUI(convo: ConversationRecord, imageCache: Map<string, string | Blob>) {
   const filteredMessages = Array.isArray(convo.messages)
     ? convo.messages.filter((msg) => msg && msg.role !== "developer")
