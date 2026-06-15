@@ -22,6 +22,11 @@ import {
   removeVectorStoreMetadata,
   MAX_ACTIVE_VECTOR_STORES,
 } from "../services/vectorStore.ts";
+import {
+  deriveFriendlyVectorStoreName,
+  buildFriendlyVectorStoreName,
+  formatBytes,
+} from "./vectorStoreFormatting.ts";
 
 const VECTOR_STORE_API_COOLDOWN_MS = 3000;
 let lastVectorStoreApiCall = 0;
@@ -308,72 +313,5 @@ async function deleteVectorStoreById(storeId: string | null) {
       showError(`Failed to delete vector store: ${error instanceof Error ? error.message : ""}`);
     }
   }
-}
-
-function normalizeVectorStoreLabel(str: unknown) {
-  return String(str || "").replace(/[_\-]+/g, " ").replace(/\s+/g, " ").trim();
-}
-
-function toTitleCase(str: string) {
-  return str.replace(/\w\S*/g, (word) => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase());
-}
-
-function deriveFriendlyVectorStoreName(store: unknown) {
-  if (!isRecord(store)) {
-    return "Document Set";
-  }
-  const originalName = (typeof store.name === "string" ? store.name : "").trim();
-  if (originalName) {
-    const chatMatch = originalName.match(/^Chat-(\d{10,})$/i);
-    if (chatMatch) {
-      const timestamp = Number(chatMatch[1]);
-      if (!Number.isNaN(timestamp)) {
-        return `Chat ${new Date(timestamp).toLocaleString()}`;
-      }
-    }
-    const normalized = normalizeVectorStoreLabel(originalName);
-    if (normalized) {
-      return toTitleCase(normalized);
-    }
-    return originalName;
-  }
-  if (store.created_at) {
-    return `Document Set ${new Date(Number(store.created_at) * 1000).toLocaleDateString()}`;
-  }
-  if (typeof store.id === "string") {
-    return `Document Set ${store.id.slice(-6).toUpperCase()}`;
-  }
-  return "Document Set";
-}
-
-function buildFriendlyVectorStoreName(store: unknown, meta: unknown, index: number) {
-  if (isRecord(meta) && typeof meta.friendlyName === "string" && meta.friendlyName.trim()) {
-    return meta.friendlyName.trim();
-  }
-  if (isRecord(meta) && typeof meta.name === "string" && meta.name.trim()) {
-    return deriveFriendlyVectorStoreName({
-      ...(isRecord(store) ? store : {}),
-      name: meta.name,
-    });
-  }
-  const derived = deriveFriendlyVectorStoreName(store);
-  if (derived && derived.trim() && derived !== "Document Set") {
-    return derived;
-  }
-  if (isRecord(store) && typeof store.id === "string") {
-    return `Document Set ${index + 1} (${store.id.slice(-6).toUpperCase()})`;
-  }
-  return `Document Set ${index + 1}`;
-}
-
-/**
- * Format bytes to human readable format
- */
-function formatBytes(bytes: number) {
-  if (bytes === 0) return "0 Bytes";
-  const k = 1024;
-  const sizes = ["Bytes", "KB", "MB", "GB"];
-  const i = Math.floor(Math.log(bytes) / Math.log(k));
-  return Math.round(bytes / Math.pow(k, i) * 100) / 100 + " " + sizes[i];
 }
 
