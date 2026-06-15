@@ -23,6 +23,10 @@ interface ViewerItem {
   uploaded: boolean;
 }
 
+/**
+ * Determines a media element's type from its `data-media-type` attribute,
+ * falling back to its tag name (`<video>` → `"video"`, otherwise `"image"`).
+ */
 function elementMediaType(element: HTMLElement): "video" | "image" {
   const explicit = element?.dataset?.mediaType;
   if (explicit === "video" || explicit === "image") {
@@ -31,6 +35,7 @@ function elementMediaType(element: HTMLElement): "video" | "image" {
   return element?.tagName?.toLowerCase() === "video" ? "video" : "image";
 }
 
+/** Builds the `<video>` or `<img>` element shown in the slideshow viewer for an item. */
 function buildViewerMediaElement(item: ViewerItem) {
   const mediaType = item.mediaType;
   if (mediaType === "video") {
@@ -50,6 +55,14 @@ function buildViewerMediaElement(item: ViewerItem) {
   return img;
 }
 
+/**
+ * Normalizes a slideshow source into a {@link ViewerItem}, reading from a stored
+ * gallery record (`isGalleryMode`) or from a clicked DOM media element's
+ * `src`/`dataset`. Uploads are flagged by the `upload-` filename prefix.
+ *
+ * @param source - A gallery image record or a DOM `<img>`/`<video>` element.
+ * @param isGalleryMode - Whether `source` is a stored gallery record.
+ */
 function normalizeViewerItem(source: any, isGalleryMode: boolean): ViewerItem {
   if (isGalleryMode) {
     const mediaType = detectMediaType(source);
@@ -401,6 +414,13 @@ export function createImageSlideshow(images: any[], startIndex: number, isGaller
   });
 }
 
+/**
+ * Collects every image/video across all chat messages in document order, so the
+ * slideshow can page through the whole conversation.
+ *
+ * @param clickedElement - The media element that was clicked.
+ * @returns The ordered media list and the clicked item's index (0 if not found).
+ */
 function gatherAllConversationMedia(clickedElement: Element) {
   const allMessages = Array.from(document.querySelectorAll(".message"));
   const allMedia: Element[] = [];
