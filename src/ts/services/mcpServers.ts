@@ -178,25 +178,18 @@ function handleAddServer() {
   const require_approval = approvalInput.value;
   const description = descriptionInput?.value.trim();
 
-  if (!displayName) {
-    if (showNotification) {
-      showNotification("Please enter a display name", "error");
+  const requiredFields: Array<[value: string, message: string]> = [
+    [displayName, "Please enter a display name"],
+    [server_label, "Please enter a server label"],
+    [server_url, "Please enter a server URL"],
+  ];
+  for (const [value, message] of requiredFields) {
+    if (!value) {
+      if (showNotification) {
+        showNotification(message, "error");
+      }
+      return;
     }
-    return;
-  }
-
-  if (!server_label) {
-    if (showNotification) {
-      showNotification("Please enter a server label", "error");
-    }
-    return;
-  }
-
-  if (!server_url) {
-    if (showNotification) {
-      showNotification("Please enter a server URL", "error");
-    }
-    return;
   }
 
   try {
