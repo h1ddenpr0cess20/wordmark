@@ -24,6 +24,17 @@ export interface StoredImage {
   [key: string]: unknown;
 }
 
+/** Decodes a base64 string into a `Blob` of the given MIME type. */
+export function base64ToBlob(base64Data: string, mimeType: string): Blob {
+  const byteCharacters = atob(base64Data);
+  const byteNumbers = new Array(byteCharacters.length);
+  for (let i = 0; i < byteCharacters.length; i++) {
+    byteNumbers[i] = byteCharacters.charCodeAt(i);
+  }
+  const byteArray = new Uint8Array(byteNumbers);
+  return new Blob([byteArray], { type: mimeType });
+}
+
 /**
  * Returns the open image database handle, or `null` before initialization.
  *
@@ -199,23 +210,11 @@ export async function getImageBlobForUpload(imageId: string): Promise<Blob> {
         const mimeMatch = imageRecord.data.match(/^data:([^;]+);/);
         const mimeType = mimeMatch ? mimeMatch[1] : "image/png";
 
-        const byteCharacters = atob(base64Data);
-        const byteNumbers = new Array(byteCharacters.length);
-        for (let i = 0; i < byteCharacters.length; i++) {
-          byteNumbers[i] = byteCharacters.charCodeAt(i);
-        }
-        const byteArray = new Uint8Array(byteNumbers);
-        return new Blob([byteArray], { type: mimeType });
+        return base64ToBlob(base64Data, mimeType);
       }
       else {
         try {
-          const byteCharacters = atob(imageRecord.data);
-          const byteNumbers = new Array(byteCharacters.length);
-          for (let i = 0; i < byteCharacters.length; i++) {
-            byteNumbers[i] = byteCharacters.charCodeAt(i);
-          }
-          const byteArray = new Uint8Array(byteNumbers);
-          return new Blob([byteArray], { type: "image/png" });
+          return base64ToBlob(imageRecord.data, "image/png");
         } catch (error) {
           throw new Error(`Failed to convert base64 to Blob: ${(error as Error).message}`);
         }
