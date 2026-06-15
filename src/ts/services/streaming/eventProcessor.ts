@@ -43,6 +43,57 @@ export function createStreamingEventProcessor(runtime: StreamingRuntime) {
   let responseStartOffset = 0;
   let expectNewResponse = false;
 
+  /**
+   * Builds the four lifecycle handlers (in_progress/searching/completed/failed)
+   * for a query-bearing search tool. The handlers share identical bookkeeping —
+   * pulling the pending query off `queue`, remembering it per item id in `byId`,
+   * and emitting reasoning lines — and differ only in the display label/emoji
+   * and the "searching…" verb shown while the call is in flight.
+   */
+  function makeSearchHandlers(
+    label: string,
+    emoji: string,
+    inProgressVerb: string,
+    queue: string[],
+    byId: Map<string, string>,
+  ) {
+    return {
+      inProgress(payload: any) {
+        const id = payload.item_id || "";
+        let q = "";
+        if (byId.has(id)) {
+          q = byId.get(id) || "";
+        } else if (queue.length > 0) {
+          q = queue.shift() || "";
+          if (id) byId.set(id, q);
+        }
+        runtime.appendReasoningLine(`**${emoji} ${label}${q ? ` "${safeTruncate(q, 60)}"` : ""}**:`);
+        runtime.appendReasoningLine(`  ⏳ _${inProgressVerb}…_`);
+      },
+      searching(payload: any) {
+        const id = payload.item_id || "";
+        const q = byId.get(id) || "";
+        runtime.updateLastReasoningLine(`  🔍 _searching${q ? ` "${safeTruncate(q, 60)}"` : ""}…_`);
+      },
+      completed(payload: any) {
+        const id = payload.item_id || "";
+        runtime.appendReasoningLine("  ✔️ _completed_");
+        runtime.appendReasoningLine("");
+        if (id) byId.delete(id);
+      },
+      failed(payload: any) {
+        const id = payload.item_id || "";
+        const error = payload?.error?.message || "failed";
+        runtime.appendReasoningLine(`  ❌ _failed: ${error}_`);
+        runtime.appendReasoningLine("");
+        if (id) byId.delete(id);
+      },
+    };
+  }
+
+  const webSearch = makeSearchHandlers("web_search", "🌐", "searching web", webSearchQueue, webSearchById);
+  const xSearch = makeSearchHandlers("x_search", "🐦", "searching X", xSearchQueue, xSearchById);
+
   function ensureResponseSegment() {
     if (!expectNewResponse) return;
     const current = runtime.getOutputText();
@@ -371,71 +422,35 @@ export function createStreamingEventProcessor(runtime: StreamingRuntime) {
       break;
     }
     case "response.web_search_call.in_progress": {
-      const id = payload.item_id || "";
-      let q = "";
-      if (webSearchById.has(id)) {
-        q = webSearchById.get(id) || "";
-      } else if (webSearchQueue.length > 0) {
-        q = webSearchQueue.shift() || "";
-        if (id) webSearchById.set(id, q);
-      }
-      runtime.appendReasoningLine(`**🌐 web_search${q ? ` "${safeTruncate(q, 60)}"` : ""}**:`);
-      runtime.appendReasoningLine("  ⏳ _searching web…_");
+      webSearch.inProgress(payload);
       break;
     }
     case "response.web_search_call.searching": {
-      const id = payload.item_id || "";
-      const q = webSearchById.get(id) || "";
-      runtime.updateLastReasoningLine(`  🔍 _searching${q ? ` "${safeTruncate(q, 60)}"` : ""}…_`);
+      webSearch.searching(payload);
       break;
     }
     case "response.web_search_call.completed": {
-      const id = payload.item_id || "";
-      runtime.appendReasoningLine("  ✔️ _completed_");
-      runtime.appendReasoningLine("");
-      if (id) webSearchById.delete(id);
+      webSearch.completed(payload);
       break;
     }
     case "response.web_search_call.failed": {
-      const id = payload.item_id || "";
-      const error = payload?.error?.message || "failed";
-      runtime.appendReasoningLine(`  ❌ _failed: ${error}_`);
-      runtime.appendReasoningLine("");
-      if (id) webSearchById.delete(id);
+      webSearch.failed(payload);
       break;
     }
     case "response.x_search_call.in_progress": {
-      const id = payload.item_id || "";
-      let q = "";
-      if (xSearchById.has(id)) {
-        q = xSearchById.get(id) || "";
-      } else if (xSearchQueue.length > 0) {
-        q = xSearchQueue.shift() || "";
-        if (id) xSearchById.set(id, q);
-      }
-      runtime.appendReasoningLine(`**🐦 x_search${q ? ` "${safeTruncate(q, 60)}"` : ""}**:`);
-      runtime.appendReasoningLine("  ⏳ _searching X…_");
+      xSearch.inProgress(payload);
       break;
     }
     case "response.x_search_call.searching": {
-      const id = payload.item_id || "";
-      const q = xSearchById.get(id) || "";
-      runtime.updateLastReasoningLine(`  🔍 _searching${q ? ` "${safeTruncate(q, 60)}"` : ""}…_`);
+      xSearch.searching(payload);
       break;
     }
     case "response.x_search_call.completed": {
-      const id = payload.item_id || "";
-      runtime.appendReasoningLine("  ✔️ _completed_");
-      runtime.appendReasoningLine("");
-      if (id) xSearchById.delete(id);
+      xSearch.completed(payload);
       break;
     }
     case "response.x_search_call.failed": {
-      const id = payload.item_id || "";
-      const error = payload?.error?.message || "failed";
-      runtime.appendReasoningLine(`  ❌ _failed: ${error}_`);
-      runtime.appendReasoningLine("");
-      if (id) xSearchById.delete(id);
+      xSearch.failed(payload);
       break;
     }
     case "response.code_interpreter_call.in_progress": {
