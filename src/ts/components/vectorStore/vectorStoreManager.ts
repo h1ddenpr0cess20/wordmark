@@ -6,9 +6,9 @@
  * tracking the active-store selection metadata.
  */
 
-import { showError, showInfo } from "../utils/notifications.ts";
-import { escapeHtml } from "../utils/sanitize.ts";
-import { isRecord } from "../utils/utils.ts";
+import { showError, showInfo } from "../../utils/notifications.ts";
+import { escapeHtml } from "../../utils/sanitize.ts";
+import { isRecord } from "../../utils/utils.ts";
 import {
   listVectorStores,
   deleteVectorStore,
@@ -21,7 +21,7 @@ import {
   getVectorStoreMetadata,
   removeVectorStoreMetadata,
   MAX_ACTIVE_VECTOR_STORES,
-} from "../services/vectorStore.ts";
+} from "../../services/vectorStore.ts";
 import {
   deriveFriendlyVectorStoreName,
   buildFriendlyVectorStoreName,

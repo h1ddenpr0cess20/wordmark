@@ -32,6 +32,7 @@ Purpose: quick orientation to the current project layout, key entry points, and 
     - `tools.ts`: Tool configuration UI hooked to the Responses client (`services/api.ts`).
     - `memory.ts`: Memory tab UI (enable, limit, add/remove/clear).
     - `gallery/`: Media gallery — `gallery.ts` (panel/tabs/bulk-delete), `galleryData.ts` (IndexedDB reads), `galleryItem.ts` (per-item card markup).
+    - `vectorStore/`: Vector-store UI — `vectorStoreManager.ts` (list/activate/inspect/delete) and `vectorStoreFormatting.ts` (name/byte formatting helpers).
     - `aboutPopups.ts`, `logo.ts`, `ui/`: Ancillary UI + shared UI helpers (settings tabs, image interactions).
   - `services/`
     - `api.ts`: Aggregates Responses helpers so UI modules can run turns and manage tools.

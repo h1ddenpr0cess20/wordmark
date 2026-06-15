@@ -7,7 +7,7 @@
  * vector store list/details UI.
  */
 
-import { isRecord } from "../utils/utils.ts";
+import { isRecord } from "../../utils/utils.ts";
 
 /** Collapses underscores/hyphens and runs of whitespace into single spaces. */
 function normalizeVectorStoreLabel(str: unknown) {

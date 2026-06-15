@@ -35,7 +35,7 @@ export function loadVectorStoreModule() {
   }
   initializeVectorStore();
 
-  return import("../components/vectorStoreManager.ts").then(({ initVectorStoreManager }) => {
+  return import("../components/vectorStore/vectorStoreManager.ts").then(({ initVectorStoreManager }) => {
     return initVectorStoreManager().then(() => {
       return import("../components/filesManager.ts").then(({ initFilesManager }) => {
         return initFilesManager().then(() => {
