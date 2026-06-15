@@ -9,9 +9,9 @@
  * dependency cycle with {@link ./gallery.ts}.
  */
 
-import { icon } from "../utils/icons.ts";
-import { detectMediaType } from "../services/mediaTools.ts";
-import type { GeneratedImage } from "../../types/common.ts";
+import { icon } from "../../utils/icons.ts";
+import { detectMediaType } from "../../services/mediaTools.ts";
+import type { GeneratedImage } from "../../../types/common.ts";
 
 /** Callbacks wiring a gallery item's buttons back to the gallery controller. */
 export interface GalleryItemHandlers {

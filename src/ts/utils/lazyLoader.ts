@@ -7,14 +7,14 @@ import { initializeVectorStore } from "../services/vectorStore.ts";
 /** Tracks which optional modules have been lazily loaded, keyed by module name. */
 export const lazyModulesLoaded: Record<string, boolean> = {};
 
-let galleryModule: typeof import("../components/gallery.ts") | null = null;
+let galleryModule: typeof import("../components/gallery/gallery.ts") | null = null;
 
 /** Dynamically imports the gallery module once, caching the resolved module. */
 export function loadGalleryModule() {
   if (galleryModule) {
     return Promise.resolve(galleryModule);
   }
-  return import("../components/gallery.ts").then((mod) => {
+  return import("../components/gallery/gallery.ts").then((mod) => {
     galleryModule = mod;
     lazyModulesLoaded.gallery = true;
     return mod;

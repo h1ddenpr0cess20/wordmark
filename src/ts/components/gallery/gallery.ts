@@ -5,14 +5,14 @@
  * Displays and manages generated or uploaded images and videos from IndexedDB.
  */
 
-import { state } from "../init/state.ts";
-import { deleteImageFromDb } from "../utils/storage/imageStorage.ts";
-import { downloadMediaSource } from "../services/mediaTools.ts";
+import { state } from "../../init/state.ts";
+import { deleteImageFromDb } from "../../utils/storage/imageStorage.ts";
+import { downloadMediaSource } from "../../services/mediaTools.ts";
 import { getAllImagesFromDb } from "./galleryData.ts";
 import { createGalleryItem } from "./galleryItem.ts";
-import { createImageSlideshow } from "./ui/imageInteractions.ts";
-import type { GeneratedImage } from "../../types/common.ts";
-import { updatePanelOpenState } from "../init/eventListeners/settingsPanel.ts";
+import { createImageSlideshow } from "../ui/imageInteractions.ts";
+import type { GeneratedImage } from "../../../types/common.ts";
+import { updatePanelOpenState } from "../../init/eventListeners/settingsPanel.ts";
 
 state.isSlideshowOpen = false;
 
