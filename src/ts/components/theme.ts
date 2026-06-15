@@ -9,6 +9,7 @@
 
 import hljs from "highlight.js";
 import { STORAGE_KEYS } from "../utils/storage.ts";
+import { parseThemeClassNames, getThemeDisplayName } from "./themeNames.ts";
 import darkThemeCss from "../../css/themes/base/dark.css?raw";
 import lightThemeCss from "../../css/themes/base/light.css?raw";
 import metalThemeCss from "../../css/themes/base/metal.css?raw";
@@ -46,38 +47,10 @@ function extractThemesFromCSS() {
   };
 
   for (const [category, cssContent] of Object.entries(themeSources)) {
-    const themeMatches = (cssContent || "").match(/^\.theme-[a-zA-Z0-9-]+(?=\s*\{)/gm);
-    if (themeMatches) {
-      categories[category] = themeMatches
-        .map(match => match.substring(1))
-        .filter((theme, index, arr) => arr.indexOf(theme) === index);
-    }
+    categories[category] = parseThemeClassNames(cssContent);
   }
 
   return categories;
-}
-
-const themeNameOverrides: Record<string, string> = {
-  "theme-usa": "USA",
-  "theme-uk": "United Kingdom",
-};
-
-/**
- * Converts a theme ID to its display name.
- *
- * @param themeId - The theme ID (e.g., `theme-dark-red`).
- * @returns The display name (e.g., `Dark Red`).
- */
-function getThemeDisplayName(themeId: string) {
-  if (themeNameOverrides[themeId]) {
-    return themeNameOverrides[themeId];
-  }
-
-  return themeId
-    .replace("theme-", "")
-    .split("-")
-    .map(word => word.charAt(0).toUpperCase() + word.slice(1))
-    .join(" ");
 }
 
 function getThemeClasses() {
