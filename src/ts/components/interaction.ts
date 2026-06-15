@@ -17,6 +17,129 @@ import { generateMessageId, addMessageCopyButton } from "./messages.ts";
 import { appendMessage } from "./ui/chatMessages.ts";
 import { getVerbosity, getReasoningEffort, getHistoryTokenBudget } from "../init/modelSettings.ts";
 import { buildOutgoingAttachments } from "./outgoingAttachments.ts";
+import type { PendingDocument } from "../../types/attachments.ts";
+
+/** Outcome of {@link uploadPendingDocuments}: whether to proceed, plus the (possibly new) vector-store id. */
+interface DocumentUploadResult {
+  /** `false` when an upload failed and the send should be aborted. */
+  ok: boolean;
+  vectorStoreId: string | null;
+}
+
+/**
+ * Uploads the pending document attachments for the active provider before a
+ * turn runs.
+ *
+ * @remarks
+ * For xAI, each file is uploaded and its id appended to the last user message
+ * as `input_file` content parts. For other providers, files are pushed into a
+ * (newly created) vector store for File Search — but only when the File Search
+ * tool is enabled; if it is disabled the upload is skipped and the turn still
+ * proceeds. Flattens directory entries into their constituent files.
+ *
+ * @returns `{ ok: false }` if an upload failed (the caller should abort the
+ * send); otherwise `{ ok: true, vectorStoreId }` with the id to use for the turn.
+ */
+async function uploadPendingDocuments(
+  documentsToUpload: PendingDocument[],
+  activeServiceKey: string,
+  vectorStoreId: string | null,
+): Promise<DocumentUploadResult> {
+  console.log("Has documents:", documentsToUpload.length);
+
+  const files: File[] = [];
+  documentsToUpload.forEach(doc => {
+    if (doc.isDirectory) {
+      (doc.files || []).forEach(f => files.push(f.file));
+    } else if (doc.file) {
+      files.push(doc.file);
+    }
+  });
+
+  if (activeServiceKey === "xai") {
+    try {
+      if (showInfo) {
+        showInfo("Uploading files...");
+      }
+
+      const fileIds = [];
+      for (const file of files) {
+        const uploaded = await uploadFile(file);
+        fileIds.push(uploaded.id);
+      }
+
+      const lastUserMsg = state.conversationHistory[state.conversationHistory.length - 1];
+      if (lastUserMsg && lastUserMsg.role === "user") {
+        const fileParts = fileIds.map(id => ({ type: "input_file", file_id: id }));
+        if (typeof lastUserMsg.content === "string") {
+          const textPart = { type: "input_text", text: lastUserMsg.content };
+          lastUserMsg.content = [textPart, ...fileParts];
+        } else if (Array.isArray(lastUserMsg.content)) {
+          lastUserMsg.content.push(...fileParts);
+        }
+      }
+
+      console.info("Files uploaded for xAI:", fileIds);
+      if (showInfo) {
+        showInfo(`${fileIds.length} file(s) uploaded`);
+      }
+    } catch (error) {
+      console.error("Failed to upload files:", error);
+      if (showError) {
+        showError(`Failed to upload files: ${error instanceof Error ? error.message : ""}`);
+      }
+      return { ok: false, vectorStoreId };
+    }
+  } else {
+    console.log("File search enabled:", responsesClient?.isToolEnabled("builtin:file_search"));
+
+    if (!responsesClient?.isToolEnabled("builtin:file_search")) {
+      console.warn("File Search tool is not enabled. Documents will not be uploaded.");
+      if (showInfo) {
+        showInfo("Enable File Search tool in settings to upload documents");
+      }
+    } else {
+      try {
+        console.info("Uploading documents to vector store...");
+
+        if (showInfo) {
+          showInfo("Creating vector store and uploading documents...");
+        }
+
+        console.log("Files to upload:", files.map(f => f.name));
+        const result = await uploadAndAttachFiles(files, `Chat-${Date.now()}`);
+        vectorStoreId = result.vectorStoreId;
+        state.activeVectorStore = vectorStoreId;
+
+        if (vectorStoreId) {
+          saveVectorStoreMetadata(vectorStoreId, {
+            name: `Chat-${Date.now()}`,
+            createdAt: Date.now(),
+            fileCount: files.length,
+          });
+        }
+
+        console.info("Documents uploaded to vector store:", vectorStoreId);
+
+        if (showInfo) {
+          const uploadedCount = files.length - (result.skipped || 0);
+          const message = result.skipped > 0
+            ? `Vector store created with ${uploadedCount} file(s). ${result.skipped} file(s) skipped.`
+            : `Vector store created with ${uploadedCount} file(s)`;
+          showInfo(message);
+        }
+      } catch (error) {
+        console.error("Failed to upload documents:", error);
+        if (showError) {
+          showError(`Failed to upload documents: ${error instanceof Error ? error.message : ""}`);
+        }
+        return { ok: false, vectorStoreId };
+      }
+    }
+  }
+
+  return { ok: true, vectorStoreId };
+}
 
 /**
  * Sends a message to the API and handles the response
@@ -134,102 +257,13 @@ export async function sendMessage() {
   let vectorStoreId = state.activeVectorStore || null;
   const activeServiceKey = elements.serviceSelector ? elements.serviceSelector.value : "openai";
   if (hasDocuments) {
-    console.log("Has documents:", documentsToUpload.length);
-
-    const files: File[] = [];
-    documentsToUpload.forEach(doc => {
-      if (doc.isDirectory) {
-        (doc.files || []).forEach(f => files.push(f.file));
-      } else if (doc.file) {
-        files.push(doc.file);
-      }
-    });
-
-    if (activeServiceKey === "xai") {
-      try {
-        if (showInfo) {
-          showInfo("Uploading files...");
-        }
-
-        const fileIds = [];
-        for (const file of files) {
-          const uploaded = await uploadFile(file);
-          fileIds.push(uploaded.id);
-        }
-
-        const lastUserMsg = state.conversationHistory[state.conversationHistory.length - 1];
-        if (lastUserMsg && lastUserMsg.role === "user") {
-          const fileParts = fileIds.map(id => ({ type: "input_file", file_id: id }));
-          if (typeof lastUserMsg.content === "string") {
-            const textPart = { type: "input_text", text: lastUserMsg.content };
-            lastUserMsg.content = [textPart, ...fileParts];
-          } else if (Array.isArray(lastUserMsg.content)) {
-            lastUserMsg.content.push(...fileParts);
-          }
-        }
-
-        console.info("Files uploaded for xAI:", fileIds);
-        if (showInfo) {
-          showInfo(`${fileIds.length} file(s) uploaded`);
-        }
-      } catch (error) {
-        console.error("Failed to upload files:", error);
-        if (showError) {
-          showError(`Failed to upload files: ${error instanceof Error ? error.message : ""}`);
-        }
-        removeLoadingIndicator(loadingId);
-        resetSendButton();
-        return;
-      }
-    } else {
-      console.log("File search enabled:", responsesClient?.isToolEnabled("builtin:file_search"));
-
-      if (!responsesClient?.isToolEnabled("builtin:file_search")) {
-        console.warn("File Search tool is not enabled. Documents will not be uploaded.");
-        if (showInfo) {
-          showInfo("Enable File Search tool in settings to upload documents");
-        }
-      } else {
-        try {
-          console.info("Uploading documents to vector store...");
-
-          if (showInfo) {
-            showInfo("Creating vector store and uploading documents...");
-          }
-
-          console.log("Files to upload:", files.map(f => f.name));
-          const result = await uploadAndAttachFiles(files, `Chat-${Date.now()}`);
-          vectorStoreId = result.vectorStoreId;
-          state.activeVectorStore = vectorStoreId;
-
-          if (vectorStoreId) {
-            saveVectorStoreMetadata(vectorStoreId, {
-              name: `Chat-${Date.now()}`,
-              createdAt: Date.now(),
-              fileCount: files.length,
-            });
-          }
-
-          console.info("Documents uploaded to vector store:", vectorStoreId);
-
-          if (showInfo) {
-            const uploadedCount = files.length - (result.skipped || 0);
-            const message = result.skipped > 0
-              ? `Vector store created with ${uploadedCount} file(s). ${result.skipped} file(s) skipped.`
-              : `Vector store created with ${uploadedCount} file(s)`;
-            showInfo(message);
-          }
-        } catch (error) {
-          console.error("Failed to upload documents:", error);
-          if (showError) {
-            showError(`Failed to upload documents: ${error instanceof Error ? error.message : ""}`);
-          }
-          removeLoadingIndicator(loadingId);
-          resetSendButton();
-          return;
-        }
-      }
+    const uploadResult = await uploadPendingDocuments(documentsToUpload, activeServiceKey, vectorStoreId);
+    if (!uploadResult.ok) {
+      removeLoadingIndicator(loadingId);
+      resetSendButton();
+      return;
     }
+    vectorStoreId = uploadResult.vectorStoreId;
   }
 
   try {
