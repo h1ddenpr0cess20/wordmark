@@ -19,6 +19,11 @@ export const DEFAULT_VERBOSITY = "medium";
 /** Default reasoning effort. */
 export const DEFAULT_REASONING_EFFORT = "low";
 
+/**
+ * Reports whether a service is configured and enabled — via
+ * `config.isServiceEnabled` when available, else the service's `enabled` flag.
+ * Returns `false` for a missing key or unconfigured services.
+ */
 function isConfiguredServiceEnabled(serviceKey: string | null | undefined): boolean {
   if (!serviceKey || !config || !config.services) {
     return false;
@@ -30,6 +35,10 @@ function isConfiguredServiceEnabled(serviceKey: string | null | undefined): bool
   return Boolean(service && service.enabled !== false);
 }
 
+/**
+ * Picks a fallback service when no valid selection/default exists: prefers
+ * `openai`, else the first enabled configured service, else `"openai"`.
+ */
 function getFallbackServiceKey(): string {
   if (isConfiguredServiceEnabled("openai")) {
     return "openai";

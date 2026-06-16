@@ -6,18 +6,17 @@ import { state } from "../../init/state.ts";
 import {
   DEFAULT_VERBOSITY,
   DEFAULT_REASONING_EFFORT,
-  ensureApiKey,
   getActiveModel,
   getActiveServiceKey,
-  getBaseUrl,
   supportsReasoningEffort,
 } from "./clientConfig.ts";
+import { executeStreamingRequest, executeNonStreamingRequest } from "./requestTransport.ts";
 import {
-  buildDeveloperMessage,
   collectFunctionCalls,
   serializeMessagesForRequest,
-  windowMessagesByTokenBudget,
 } from "./messageUtils.ts";
+import { buildDeveloperMessage } from "./instructions.ts";
+import { windowMessagesByTokenBudget } from "./tokenBudget.ts";
 import {
   serviceSupportsReasoning,
   supportsResponseIncludeFields,
@@ -31,22 +30,18 @@ import {
   supportsClientSideTools,
   TOOL_HANDLERS,
 } from "./toolManager.ts";
-import { getActiveVectorStoreIds } from "../vectorStore.ts";
+import { applyVectorStoreIds } from "./vectorStoreTools.ts";
 import { toolImplementations } from "../toolImplementations.ts";
 import { handleStreamedResponse } from "../streaming.ts";
+import { executeToolCalls, type ActionableCall } from "./toolCallExecution.ts";
 import type {
   BuildRequestOptions,
   CollectedFunctionCall,
   ResponseObject,
   RunTurnOptions,
   RunTurnResult,
-  ToolCallLike,
 } from "../../../types/api.ts";
 import type { ToolDefinition } from "../../../types/tools.ts";
-
-type ActionableCall = CollectedFunctionCall & {
-  handler: (...args: unknown[]) => unknown;
-};
 
 const DEFAULT_INCLUDE_FIELDS = [
   "code_interpreter_call.outputs",
@@ -119,60 +114,6 @@ export function buildRequestBody({
 }
 
 /** Builds request headers, adding a Bearer token when the active service has a key. */
-export function buildHeaders() {
-  const apiKey = ensureApiKey();
-  const headers: Record<string, string> = {
-    "Content-Type": "application/json",
-    "Accept": "text/event-stream",
-  };
-  if (apiKey) {
-    headers.Authorization = `Bearer ${apiKey}`;
-  }
-  return headers;
-}
-
-/**
- * POSTs a request to the Responses endpoint and returns the streaming response.
- *
- * @throws If the response status is not ok.
- */
-export async function executeStreamingRequest(body: unknown, abortController?: AbortController | null): Promise<Response> {
-  const endpoint = `${getBaseUrl()}/responses`;
-  const response = await fetch(endpoint, {
-    method: "POST",
-    headers: buildHeaders(),
-    body: JSON.stringify(body),
-    signal: abortController ? abortController.signal : undefined,
-  });
-  if (!response.ok) {
-    const text = await response.text().catch(() => "");
-    throw new Error(`Responses API error ${response.status}: ${text || response.statusText}`);
-  }
-  return response;
-}
-
-/**
- * POSTs a request to the Responses endpoint and returns the parsed JSON body.
- *
- * @throws If the response status is not ok.
- */
-export async function executeNonStreamingRequest(body: unknown, abortController?: AbortController | null): Promise<ResponseObject> {
-  const endpoint = `${getBaseUrl()}/responses`;
-  const headers = buildHeaders();
-  headers.Accept = "application/json";
-  const response = await fetch(endpoint, {
-    method: "POST",
-    headers,
-    body: JSON.stringify(body),
-    signal: abortController ? abortController.signal : undefined,
-  });
-  if (!response.ok) {
-    const text = await response.text().catch(() => "");
-    throw new Error(`Responses API error ${response.status}: ${text || response.statusText}`);
-  }
-  return response.json();
-}
-
 /**
  * Runs one conversation turn end to end: windows the history to the token
  * budget, prepends the developer/system message, resolves enabled tools and
@@ -223,34 +164,7 @@ export async function runTurn({
   let enabledTools = getEnabledToolDefinitions(serviceKey, resolvedModel);
   const clientSideToolsSupported = supportsClientSideTools(serviceKey, resolvedModel);
 
-  if (enabledTools) {
-    const idsSet = new Set<string>();
-    try {
-      const activeIds = getActiveVectorStoreIds ? getActiveVectorStoreIds() : [];
-      if (Array.isArray(activeIds)) {
-        activeIds.forEach(id => { if (id) idsSet.add(id); });
-      }
-    } catch {
-      /* non-fatal */
-    }
-    if (vectorStoreId) {
-      idsSet.add(vectorStoreId);
-    }
-    const vectorStoreIds = Array.from(idsSet);
-    if (vectorStoreIds.length > 0) {
-      enabledTools = enabledTools.map(tool => {
-        if (tool && tool.type === "file_search") {
-          return {
-            ...tool,
-            vector_store_ids: vectorStoreIds,
-          };
-        }
-        return tool;
-      });
-    } else {
-      enabledTools = enabledTools.filter(tool => tool.type !== "file_search");
-    }
-  }
+  enabledTools = applyVectorStoreIds(enabledTools, vectorStoreId);
   let aggregateText = "";
   let aggregateReasoning = "";
 
@@ -342,95 +256,6 @@ export async function runTurn({
       };
     }
 
-    const preferToolCallFor = (toolName: string): boolean =>
-      usesServerManagedTools(serviceKey) && (toolName === "web_search" || toolName === "x_search" || toolName === "code_interpreter");
-
-    actionableCalls.forEach((call: ActionableCall) => {
-      const resolvedCallId = call.callId || `call_${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 8)}`;
-      call.callId = resolvedCallId;
-      if (preferToolCallFor(call.name)) {
-        const toolCallPart = call.toolCallInput
-          ? JSON.parse(JSON.stringify(call.toolCallInput))
-          : null;
-        const ensureArguments = (part: ToolCallLike): ToolCallLike => {
-          if (!part.function || typeof part.function !== "object") {
-            part.function = {
-              name: call.name,
-              arguments: (typeof call.argsJson === "string" && call.argsJson.trim())
-                ? call.argsJson
-                : JSON.stringify(call.argsDict || {}),
-            };
-          } else {
-            part.function.name = part.function.name || call.name;
-            if (!part.function.arguments) {
-              part.function.arguments = (typeof call.argsJson === "string" && call.argsJson.trim())
-                ? call.argsJson
-                : JSON.stringify(call.argsDict || {});
-            }
-          }
-          return part;
-        };
-        const normalizedPart = ensureArguments(toolCallPart || {
-          type: "tool_call",
-          id: resolvedCallId,
-          function: {
-            name: call.name,
-            arguments: (typeof call.argsJson === "string" && call.argsJson.trim())
-              ? call.argsJson
-              : JSON.stringify(call.argsDict || {}),
-          },
-        });
-        if (!normalizedPart.id) {
-          normalizedPart.id = resolvedCallId;
-        }
-        workingMessages.push({
-          role: "assistant",
-          content: [normalizedPart],
-        });
-        return;
-      }
-
-      const serializedArgs = (typeof call.argsJson === "string" && call.argsJson.trim())
-        ? call.argsJson
-        : JSON.stringify(call.argsDict || {});
-      workingMessages.push({
-        type: "function_call",
-        name: call.name,
-        arguments: serializedArgs,
-        call_id: resolvedCallId,
-      });
-    });
-
-    for (const call of actionableCalls) {
-      let result: unknown;
-      try {
-        result = await call.handler(call.argsDict || {});
-      } catch (error) {
-        result = { error: (error instanceof Error && error.message) || "Function execution failed" };
-      }
-      const resolvedCallId = call.callId || `call_${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 8)}`;
-      const normalizedOutput = typeof result === "string" ? result : JSON.stringify(result);
-      if (preferToolCallFor(call.name)) {
-        const resultPayload: Record<string, unknown> = {
-          type: "tool_result",
-          tool_call_id: resolvedCallId,
-          output: normalizedOutput,
-        };
-        if (result && typeof result === "object" && Object.prototype.hasOwnProperty.call(result, "error")) {
-          resultPayload.is_error = true;
-        }
-        workingMessages.push({
-          role: "tool",
-          tool_call_id: resolvedCallId,
-          content: [resultPayload],
-        });
-      } else {
-        workingMessages.push({
-          type: "function_call_output",
-          call_id: resolvedCallId,
-          output: normalizedOutput,
-        });
-      }
-    }
+    await executeToolCalls(actionableCalls, workingMessages, serviceKey);
   }
 }

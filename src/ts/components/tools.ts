@@ -10,7 +10,7 @@
 
 import { elements } from "../init/state.ts";
 import { showInfo } from "../utils/notifications.ts";
-import { getMemoryConfig } from "../utils/memoryStorage.ts";
+import { getMemoryConfig } from "../utils/storage/memoryStorage.ts";
 import { updateFeatureStatus } from "./settings.ts";
 import { requestMcpServerRemoval } from "../services/mcpServers.ts";
 import { responsesClient } from "../services/api.ts";

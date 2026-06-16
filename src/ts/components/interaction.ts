@@ -5,10 +5,9 @@
 import { elements, state } from "../init/state.ts";
 import { showError, showInfo } from "../utils/notifications.ts";
 
-import { sanitizeInput, stripBase64FromHistory, formatFileSize } from "../utils/utils.ts";
-import { imagePlaceholder } from "../utils/placeholders.ts";
-import { saveImageToDb } from "../utils/imageStorage.ts";
-import { scrollInputIntoView } from "../utils/mobileHandling.ts";
+import { sanitizeInput, stripBase64FromHistory } from "../utils/utils.ts";
+import { saveImageToDb } from "../utils/storage/imageStorage.ts";
+import { scrollInputIntoView } from "../utils/dom/mobileHandling.ts";
 import { finalizeStreamedResponse, removeLoadingIndicator } from "../services/streaming/messageLifecycle.ts";
 import { updateBrowserHistory } from "../services/history/state.ts";
 import { saveCurrentConversation } from "../services/history/persistence.ts";
@@ -17,7 +16,130 @@ import { uploadFile, uploadAndAttachFiles, saveVectorStoreMetadata } from "../se
 import { generateMessageId, addMessageCopyButton } from "./messages.ts";
 import { appendMessage } from "./ui/chatMessages.ts";
 import { getVerbosity, getReasoningEffort, getHistoryTokenBudget } from "../init/modelSettings.ts";
-import type { Attachment } from "../../types/api.ts";
+import { buildOutgoingAttachments } from "./attachments/outgoingAttachments.ts";
+import type { PendingDocument } from "../../types/attachments.ts";
+
+/** Outcome of {@link uploadPendingDocuments}: whether to proceed, plus the (possibly new) vector-store id. */
+interface DocumentUploadResult {
+  /** `false` when an upload failed and the send should be aborted. */
+  ok: boolean;
+  vectorStoreId: string | null;
+}
+
+/**
+ * Uploads the pending document attachments for the active provider before a
+ * turn runs.
+ *
+ * @remarks
+ * For xAI, each file is uploaded and its id appended to the last user message
+ * as `input_file` content parts. For other providers, files are pushed into a
+ * (newly created) vector store for File Search — but only when the File Search
+ * tool is enabled; if it is disabled the upload is skipped and the turn still
+ * proceeds. Flattens directory entries into their constituent files.
+ *
+ * @returns `{ ok: false }` if an upload failed (the caller should abort the
+ * send); otherwise `{ ok: true, vectorStoreId }` with the id to use for the turn.
+ */
+async function uploadPendingDocuments(
+  documentsToUpload: PendingDocument[],
+  activeServiceKey: string,
+  vectorStoreId: string | null,
+): Promise<DocumentUploadResult> {
+  console.log("Has documents:", documentsToUpload.length);
+
+  const files: File[] = [];
+  documentsToUpload.forEach(doc => {
+    if (doc.isDirectory) {
+      (doc.files || []).forEach(f => files.push(f.file));
+    } else if (doc.file) {
+      files.push(doc.file);
+    }
+  });
+
+  if (activeServiceKey === "xai") {
+    try {
+      if (showInfo) {
+        showInfo("Uploading files...");
+      }
+
+      const fileIds = [];
+      for (const file of files) {
+        const uploaded = await uploadFile(file);
+        fileIds.push(uploaded.id);
+      }
+
+      const lastUserMsg = state.conversationHistory[state.conversationHistory.length - 1];
+      if (lastUserMsg && lastUserMsg.role === "user") {
+        const fileParts = fileIds.map(id => ({ type: "input_file", file_id: id }));
+        if (typeof lastUserMsg.content === "string") {
+          const textPart = { type: "input_text", text: lastUserMsg.content };
+          lastUserMsg.content = [textPart, ...fileParts];
+        } else if (Array.isArray(lastUserMsg.content)) {
+          lastUserMsg.content.push(...fileParts);
+        }
+      }
+
+      console.info("Files uploaded for xAI:", fileIds);
+      if (showInfo) {
+        showInfo(`${fileIds.length} file(s) uploaded`);
+      }
+    } catch (error) {
+      console.error("Failed to upload files:", error);
+      if (showError) {
+        showError(`Failed to upload files: ${error instanceof Error ? error.message : ""}`);
+      }
+      return { ok: false, vectorStoreId };
+    }
+  } else {
+    console.log("File search enabled:", responsesClient?.isToolEnabled("builtin:file_search"));
+
+    if (!responsesClient?.isToolEnabled("builtin:file_search")) {
+      console.warn("File Search tool is not enabled. Documents will not be uploaded.");
+      if (showInfo) {
+        showInfo("Enable File Search tool in settings to upload documents");
+      }
+    } else {
+      try {
+        console.info("Uploading documents to vector store...");
+
+        if (showInfo) {
+          showInfo("Creating vector store and uploading documents...");
+        }
+
+        console.log("Files to upload:", files.map(f => f.name));
+        const result = await uploadAndAttachFiles(files, `Chat-${Date.now()}`);
+        vectorStoreId = result.vectorStoreId;
+        state.activeVectorStore = vectorStoreId;
+
+        if (vectorStoreId) {
+          saveVectorStoreMetadata(vectorStoreId, {
+            name: `Chat-${Date.now()}`,
+            createdAt: Date.now(),
+            fileCount: files.length,
+          });
+        }
+
+        console.info("Documents uploaded to vector store:", vectorStoreId);
+
+        if (showInfo) {
+          const uploadedCount = files.length - (result.skipped || 0);
+          const message = result.skipped > 0
+            ? `Vector store created with ${uploadedCount} file(s). ${result.skipped} file(s) skipped.`
+            : `Vector store created with ${uploadedCount} file(s)`;
+          showInfo(message);
+        }
+      } catch (error) {
+        console.error("Failed to upload documents:", error);
+        if (showError) {
+          showError(`Failed to upload documents: ${error instanceof Error ? error.message : ""}`);
+        }
+        return { ok: false, vectorStoreId };
+      }
+    }
+  }
+
+  return { ok: true, vectorStoreId };
+}
 
 /**
  * Sends a message to the API and handles the response
@@ -52,85 +174,11 @@ export async function sendMessage() {
   sendButton.addEventListener("click", stopGeneration);
 
   const uploads = state.pendingUploads || [];
-  let uploadHtml = "";
-  const placeholders: string[] = [];
-  const attachmentsForHistory: Attachment[] = [];
-
-  uploads.forEach(up => {
-    const ext = up.file && up.file.name.includes(".") ? up.file.name.split(".").pop() : "png";
-    const filename = `upload-${Date.now()}-${Math.random().toString(36).substring(2,8)}.${ext}`;
-    up.filename = filename;
-    up.timestamp = new Date().toISOString();
-    uploadHtml += `<img src="${up.dataUrl}" alt="Uploaded Image" class="generated-image-thumbnail" data-filename="${filename}" data-timestamp="${up.timestamp}" />`;
-    placeholders.push(imagePlaceholder(filename));
-    const mimeType = (up.file && up.file.type) || (typeof up.dataUrl === "string" && up.dataUrl.startsWith("data:")
-      ? up.dataUrl.split(";")[0].replace("data:", "")
-      : "image/png");
-    attachmentsForHistory.push({
-      type: "image",
-      filename,
-      mimeType,
-      mediaType: "image",
-      dataUrl: up.dataUrl,
-      source: "upload",
-      uploaded: true,
-      timestamp: up.timestamp,
-    });
-    if (state.imageDataCache && typeof state.imageDataCache.set === "function" && filename && up.dataUrl) {
-      state.imageDataCache.set(filename, up.dataUrl);
-    }
-  });
-
-  let documentsHtml = "";
   const documents = state.pendingDocuments || [];
   const documentsToUpload = [...documents];
 
-  documents.forEach(doc => {
-    const icon = doc.isDirectory ? "📁" : "📄";
-
-    if (doc.isDirectory) {
-      const directoryFiles = doc.files || [];
-      const totalSize = directoryFiles.reduce((sum, f) => sum + f.size, 0);
-      const directoryMarkup = [
-        "<div class=\"attached-document\">",
-        `<span class="doc-icon">${icon}</span>`,
-        `<span class="doc-name">${doc.directoryName}</span>`,
-        `<span class="doc-size">${directoryFiles.length} file${directoryFiles.length !== 1 ? "s" : ""} (${formatFileSize(totalSize)})</span>`,
-        "</div>",
-      ].join("\n");
-      documentsHtml += directoryMarkup;
-      directoryFiles.forEach(file => {
-        attachmentsForHistory.push({
-          type: "document",
-          filename: file.name,
-          mimeType: file.type,
-          size: file.size,
-          source: "upload",
-          uploaded: true,
-          timestamp: new Date().toISOString(),
-          directory: doc.directoryName,
-        });
-      });
-    } else {
-      const fileMarkup = [
-        "<div class=\"attached-document\">",
-        `<span class="doc-icon">${icon}</span>`,
-        `<span class="doc-name">${doc.name}</span>`,
-        `<span class="doc-size">${formatFileSize(doc.size || 0)}</span>`,
-        "</div>",
-      ].join("\n");
-      documentsHtml += fileMarkup;
-      attachmentsForHistory.push({
-        type: "document",
-        filename: doc.name,
-        mimeType: doc.type,
-        size: doc.size,
-        source: "upload",
-        uploaded: true,
-        timestamp: new Date().toISOString(),
-      });
-    }
-  });
+  const { uploadHtml, documentsHtml, placeholders, attachmentsForHistory } =
+    buildOutgoingAttachments(uploads, documents);
 
   let userHtml = sanitizeInput(message);
   if (documentsHtml) {
@@ -209,102 +257,13 @@ export async function sendMessage() {
   let vectorStoreId = state.activeVectorStore || null;
   const activeServiceKey = elements.serviceSelector ? elements.serviceSelector.value : "openai";
   if (hasDocuments) {
-    console.log("Has documents:", documentsToUpload.length);
-
-    const files: File[] = [];
-    documentsToUpload.forEach(doc => {
-      if (doc.isDirectory) {
-        (doc.files || []).forEach(f => files.push(f.file));
-      } else if (doc.file) {
-        files.push(doc.file);
-      }
-    });
-
-    if (activeServiceKey === "xai") {
-      try {
-        if (showInfo) {
-          showInfo("Uploading files...");
-        }
-
-        const fileIds = [];
-        for (const file of files) {
-          const uploaded = await uploadFile(file);
-          fileIds.push(uploaded.id);
-        }
-
-        const lastUserMsg = state.conversationHistory[state.conversationHistory.length - 1];
-        if (lastUserMsg && lastUserMsg.role === "user") {
-          const fileParts = fileIds.map(id => ({ type: "input_file", file_id: id }));
-          if (typeof lastUserMsg.content === "string") {
-            const textPart = { type: "input_text", text: lastUserMsg.content };
-            lastUserMsg.content = [textPart, ...fileParts];
-          } else if (Array.isArray(lastUserMsg.content)) {
-            lastUserMsg.content.push(...fileParts);
-          }
-        }
-
-        console.info("Files uploaded for xAI:", fileIds);
-        if (showInfo) {
-          showInfo(`${fileIds.length} file(s) uploaded`);
-        }
-      } catch (error) {
-        console.error("Failed to upload files:", error);
-        if (showError) {
-          showError(`Failed to upload files: ${error instanceof Error ? error.message : ""}`);
-        }
-        removeLoadingIndicator(loadingId);
-        resetSendButton();
-        return;
-      }
-    } else {
-      console.log("File search enabled:", responsesClient?.isToolEnabled("builtin:file_search"));
-
-      if (!responsesClient?.isToolEnabled("builtin:file_search")) {
-        console.warn("File Search tool is not enabled. Documents will not be uploaded.");
-        if (showInfo) {
-          showInfo("Enable File Search tool in settings to upload documents");
-        }
-      } else {
-        try {
-          console.info("Uploading documents to vector store...");
-
-          if (showInfo) {
-            showInfo("Creating vector store and uploading documents...");
-          }
-
-          console.log("Files to upload:", files.map(f => f.name));
-          const result = await uploadAndAttachFiles(files, `Chat-${Date.now()}`);
-          vectorStoreId = result.vectorStoreId;
-          state.activeVectorStore = vectorStoreId;
-
-          if (vectorStoreId) {
-            saveVectorStoreMetadata(vectorStoreId, {
-              name: `Chat-${Date.now()}`,
-              createdAt: Date.now(),
-              fileCount: files.length,
-            });
-          }
-
-          console.info("Documents uploaded to vector store:", vectorStoreId);
-
-          if (showInfo) {
-            const uploadedCount = files.length - (result.skipped || 0);
-            const message = result.skipped > 0
-              ? `Vector store created with ${uploadedCount} file(s). ${result.skipped} file(s) skipped.`
-              : `Vector store created with ${uploadedCount} file(s)`;
-            showInfo(message);
-          }
-        } catch (error) {
-          console.error("Failed to upload documents:", error);
-          if (showError) {
-            showError(`Failed to upload documents: ${error instanceof Error ? error.message : ""}`);
-          }
-          removeLoadingIndicator(loadingId);
-          resetSendButton();
-          return;
-        }
-      }
+    const uploadResult = await uploadPendingDocuments(documentsToUpload, activeServiceKey, vectorStoreId);
+    if (!uploadResult.ok) {
+      removeLoadingIndicator(loadingId);
+      resetSendButton();
+      return;
     }
+    vectorStoreId = uploadResult.vectorStoreId;
   }
 
   try {

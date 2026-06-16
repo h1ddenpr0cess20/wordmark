@@ -8,7 +8,6 @@
  */
 
 import { MCP_ASSUME_ONLINE } from "../../../../config/config.ts";
-import { state } from "../../../init/state.ts";
 import {
   TOOL_CATALOG,
   buildMcpToolEntry,
@@ -21,15 +20,11 @@ import {
   replaceToolAt,
 } from "./catalog.ts";
 import { getToolPreference, removeToolPreference } from "./preferences.ts";
+import { pingMcpServer, isLocalNetworkUrl } from "./mcpProbe.ts";
 import type { McpServerConfig, ToolEntry } from "../../../../types/tools.ts";
 
-interface McpFetchResult {
-  status: "ok" | "bad-status" | "timeout" | "error";
-  code?: number;
-  error?: unknown;
-}
+export { isLocalNetworkUrl };
 
-const MCP_PING_TIMEOUT_MS = 4000;
 const MCP_REFRESH_INTERVAL_MS = 60000;
 const mcpStatusCache = new Map<string, { online: boolean | null; checkedAt: number }>();
 let lastMcpRefresh = 0;
@@ -165,122 +160,3 @@ export function refreshMcpAvailability(force = false): Promise<void> {
  * Reports whether a URL points at a local/private network host (localhost,
  * loopback, RFC 1918 ranges, or an `.local` mDNS name).
  */
-export function isLocalNetworkUrl(url: string): boolean {
-  try {
-    const parsed = new URL(url);
-    const hostname = parsed.hostname.toLowerCase();
-    if (hostname === "localhost" || hostname === "127.0.0.1" || hostname === "::1") {
-      return true;
-    }
-    if (hostname.match(/^192\.168\.\d+\.\d+$/)) return true;
-    if (hostname.match(/^10\.\d+\.\d+\.\d+$/)) return true;
-    if (hostname.match(/^172\.(1[6-9]|2[0-9]|3[01])\.\d+\.\d+$/)) return true;
-    if (hostname.endsWith(".local")) return true;
-    return false;
-  } catch {
-    return false;
-  }
-}
-
-async function pingMcpServer(url: string | undefined): Promise<boolean | null> {
-  const normalizedUrl = typeof url === "string" ? url : "";
-  if (!normalizedUrl) {
-    return false;
-  }
-  if (typeof window !== "undefined" && MCP_ASSUME_ONLINE === true) {
-    return true;
-  }
-  if (!isHostAllowed(normalizedUrl)) {
-    if (state.verboseLogging) {
-      console.info(`Skipping MCP availability check for ${normalizedUrl} due to CSP restrictions.`);
-    }
-    return null;
-  }
-  const corsAttempt = await attemptMcpFetch(normalizedUrl, "cors");
-  if (corsAttempt.status === "ok") {
-    return true;
-  }
-  if (corsAttempt.status === "bad-status") {
-    return false;
-  }
-  if (corsAttempt.status === "timeout") {
-    return false;
-  }
-
-  const noCorsAttempt = await attemptMcpFetch(normalizedUrl, "no-cors");
-  if (noCorsAttempt.status === "ok") {
-    return true;
-  }
-  if (noCorsAttempt.status === "bad-status") {
-    return false;
-  }
-  if (noCorsAttempt.status === "timeout") {
-    return false;
-  }
-  if (noCorsAttempt.status === "error") {
-    if (state.verboseLogging) {
-      console.warn(`MCP availability check failed (${normalizedUrl}) with network error:`, noCorsAttempt.error);
-    }
-    return false;
-  }
-  if (state.verboseLogging) {
-    console.warn(`MCP availability check failed for ${normalizedUrl}.`);
-  }
-  return false;
-}
-
-async function attemptMcpFetch(url: string, mode: RequestMode): Promise<McpFetchResult> {
-  const controller = new AbortController();
-  const timeoutId = setTimeout(() => controller.abort(), MCP_PING_TIMEOUT_MS);
-  try {
-    const response = await fetch(url, {
-      method: "GET",
-      mode,
-      cache: "no-store",
-      signal: controller.signal,
-    });
-    clearTimeout(timeoutId);
-    if (!response) {
-      return { status: "ok" };
-    }
-    if (response.type === "opaque") {
-      return { status: "ok" };
-    }
-    if (response.status < 500) {
-      return { status: "ok" };
-    }
-    return { status: "bad-status", code: response.status };
-  } catch (error) {
-    clearTimeout(timeoutId);
-    if (error instanceof Error && error.name === "AbortError") {
-      return { status: "timeout" };
-    }
-    if (state.verboseLogging) {
-      console.warn(`MCP availability check failed (${mode}) for ${url}:`, error);
-    }
-    return { status: "error", error };
-  }
-}
-
-function isHostAllowed(url: string): boolean {
-  try {
-    const parsed = new URL(url, window.location.origin);
-    const host = parsed.hostname;
-    if (!host) {
-      return false;
-    }
-    if (host === window.location.hostname) {
-      return true;
-    }
-    if (host === "localhost" || host === "127.0.0.1") {
-      return true;
-    }
-    if (host.endsWith(".localhost")) {
-      return true;
-    }
-    return true;
-  } catch (error) {
-    console.warn("Failed to parse MCP URL:", url, error);
-    return false;
-  }
-}

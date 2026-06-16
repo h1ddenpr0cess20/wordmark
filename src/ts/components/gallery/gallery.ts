@@ -5,18 +5,14 @@
  * Displays and manages generated or uploaded images and videos from IndexedDB.
  */
 
-import { state } from "../init/state.ts";
-import { icon } from "../utils/icons.ts";
-import {
-  initImageDb,
-  deleteImageFromDb,
-  getImageDb,
-  IMAGE_STORE_NAME,
-} from "../utils/imageStorage.ts";
-import { detectMediaType, getMediaDisplayUrl, downloadMediaSource } from "../services/mediaTools.ts";
-import { createImageSlideshow } from "./ui/imageInteractions.ts";
-import type { GeneratedImage } from "../../types/common.ts";
-import { updatePanelOpenState } from "../init/eventListeners/settingsPanel.ts";
+import { state } from "../../init/state.ts";
+import { deleteImageFromDb } from "../../utils/storage/imageStorage.ts";
+import { downloadMediaSource } from "../../services/mediaTools.ts";
+import { getAllImagesFromDb } from "./galleryData.ts";
+import { createGalleryItem } from "./galleryItem.ts";
+import { createImageSlideshow } from "../ui/imageInteractions.ts";
+import type { GeneratedImage } from "../../../types/common.ts";
+import { updatePanelOpenState } from "../../init/eventListeners/settingsPanel.ts";
 
 state.isSlideshowOpen = false;
 
@@ -134,16 +130,11 @@ const loadGalleryImages = async function() {
     const images = await getAllImagesFromDb();
 
     const currentTab = state.currentGalleryTab || "generated";
-    let visibleImages: GeneratedImage[];
+    const isUploaded = (img: GeneratedImage) => Boolean(img.filename && img.filename.startsWith("upload-"));
 
-    if (currentTab === "uploaded") {
-      visibleImages = images.filter(img => img.filename && img.filename.startsWith("upload-"));
-    } else {
-      visibleImages = images.filter(img => !img.filename || !img.filename.startsWith("upload-"));
-    }
-
-    const generatedImages = images.filter(img => !img.filename || !img.filename.startsWith("upload-"));
-    const uploadedImages = images.filter(img => img.filename && img.filename.startsWith("upload-"));
+    const uploadedImages = images.filter(isUploaded);
+    const generatedImages = images.filter(img => !isUploaded(img));
+    const visibleImages = currentTab === "uploaded" ? uploadedImages : generatedImages;
 
     const generatedCount = document.getElementById("generated-count");
     const uploadedCount = document.getElementById("uploaded-count");
@@ -188,115 +179,12 @@ const loadGalleryImages = async function() {
 
       for (let i = startIndex; i < endIndex; i++) {
         const image = visibleImages[i];
-        const mediaType = detectMediaType(image);
 
-        const galleryItem = document.createElement("div");
-        galleryItem.className = "gallery-item";
-        galleryItem.dataset.filename = image.filename;
-        galleryItem.dataset.index = String(i);
-        galleryItem.dataset.mediaType = mediaType;
-
-        const selectionBar = document.createElement("div");
-        selectionBar.className = "gallery-selection-bar";
-
-        const imageContainer = document.createElement("div");
-        imageContainer.className = "gallery-item-image-container";
-
-        if (mediaType === "video") {
-          const video = document.createElement("video");
-          video.src = image.data || "";
-          video.preload = "metadata";
-          video.muted = true;
-          video.playsInline = true;
-          video.title = image.prompt || "";
-          imageContainer.appendChild(video);
-
-          const badge = document.createElement("div");
-          badge.className = "gallery-video-badge";
-          badge.innerHTML = icon("play", { width: 18, height: 18 });
-          imageContainer.appendChild(badge);
-        } else {
-          const img = document.createElement("img");
-          img.loading = "lazy";
-          img.src = image.data || "";
-          img.alt = image.prompt || "Generated image";
-          img.title = image.prompt || "";
-          imageContainer.appendChild(img);
-        }
-
-        const selectContainer = document.createElement("label");
-        selectContainer.className = "gallery-select-container";
-        selectContainer.innerHTML = `
-                    <input type="checkbox" class="gallery-select-checkbox">
-                    <span>Select</span>
-                `;
-        selectionBar.appendChild(selectContainer);
-
-        const itemFooter = document.createElement("div");
-        itemFooter.className = "gallery-item-footer";
-
-        const actions = document.createElement("div");
-        actions.className = "gallery-actions";
-        actions.innerHTML = `
-                    <button class="gallery-download-btn" title="Download ${mediaType}">${icon("download", { width: 16, height: 16 })}</button>
-                    <button class="gallery-delete-btn" title="Delete ${mediaType}">${icon("trash", { width: 16, height: 16 })}</button>
-                `;
-
-        const deleteBtn = actions.querySelector<HTMLElement>(".gallery-delete-btn");
-        if (deleteBtn) {
-          deleteBtn.addEventListener("click", (e: Event) => {
-            e.stopPropagation();
-            if (image.filename && confirm(`Delete this ${mediaType}?`)) {
-              deleteImageAndUpdateGallery(image.filename);
-            }
-          });
-        }
-
-        const downloadBtn = actions.querySelector<HTMLElement>(".gallery-download-btn");
-        if (downloadBtn) {
-          downloadBtn.addEventListener("click", (e: Event) => {
-            e.stopPropagation();
-            downloadGalleryImage(image.data || "", image.filename);
-          });
-        }
-
-        const truncatedPrompt = document.createElement("div");
-        truncatedPrompt.className = "truncated-prompt";
-
-        const isUploaded = image.filename && image.filename.startsWith("upload-");
-
-        if (isUploaded) {
-          truncatedPrompt.textContent = mediaType === "video" ? "Uploaded Video" : "Uploaded Image";
-          truncatedPrompt.title = mediaType === "video" ? "User uploaded video" : "User uploaded image";
-          truncatedPrompt.classList.add("uploaded-label");
-        } else {
-          truncatedPrompt.title = image.prompt || "No prompt data";
-          truncatedPrompt.textContent = image.prompt ?
-            (image.prompt.length > 50 ? `${image.prompt.substring(0, 50)}...` : image.prompt) :
-            (mediaType === "video" ? "Generated video" : "No prompt");
-        }
-
-        itemFooter.appendChild(truncatedPrompt);
-        itemFooter.appendChild(actions);
-
-        const checkbox = selectContainer.querySelector<HTMLElement>(".gallery-select-checkbox");
-        if (checkbox) {
-          checkbox.addEventListener("click", (e: Event) => {
-            e.stopPropagation();
-          });
-
-          selectContainer.addEventListener("click", (e: Event) => {
-            e.stopPropagation();
-          });
-        }
-
-        galleryItem.addEventListener("click", () => {
-          startGallerySlideshow(i);
+        const galleryItem = createGalleryItem(image, i, {
+          onDelete: deleteImageAndUpdateGallery,
+          onDownload: downloadGalleryImage,
+          onOpen: startGallerySlideshow,
         });
-
-        galleryItem.appendChild(selectionBar);
-        galleryItem.appendChild(imageContainer);
-        galleryItem.appendChild(itemFooter);
 
         galleryGrid.appendChild(galleryItem);
       }
@@ -312,48 +200,6 @@ const loadGalleryImages = async function() {
     console.error("Error loading gallery images:", error);
     galleryGrid.innerHTML = "<div class=\"gallery-error\">Error loading media from storage</div>";
   }
-};
-
-/**
- * Gets all media records from IndexedDB.
- *
- * @returns A promise resolving to an array of media objects.
- */
-const getAllImagesFromDb = function(): Promise<GeneratedImage[]> {
-  return new Promise((resolve, reject) => {
-    if (!getImageDb()) {
-      initImageDb()
-        .then(() => getAllImagesFromDb())
-        .then(resolve)
-        .catch(reject);
-      return;
-    }
-    const images: GeneratedImage[] = [];
-    const storeName = IMAGE_STORE_NAME || "images";
-    const transaction = getImageDb()!.transaction([storeName], "readonly");
-    const store = transaction.objectStore(storeName);
-
-    const request = store.openCursor();
-
-    request.onerror = (event) => {
-      reject((event.target as IDBRequest).error);
-    };
-
-    request.onsuccess = (event) => {
-      const cursor = (event.target as IDBRequest).result;
-      if (cursor) {
-        const value = cursor.value;
-        images.push({
-          ...value,
-          data: getMediaDisplayUrl(value.data, value.filename) || value.data,
-          mediaType: detectMediaType(value),
-        });
-        cursor.continue();
-      } else {
-        resolve(images);
-      }
-    };
-  });
 };
 
 /**

@@ -7,7 +7,6 @@
  */
 
 import { elements, state } from "../../init/state.ts";
-import { detectMediaType, getMediaDisplayUrl } from "../mediaTools.ts";
 import { updateMessageContent } from "../streaming/messageLifecycle.ts";
 import { updatePromptVisibility } from "../../components/ui/settingsControls.ts";
 import { highlightAndAddCopyButtons, addMessageCopyButton, generateMessageId } from "../../components/messages.ts";
@@ -18,64 +17,26 @@ import { updateHeaderInfo, updateModelSelector } from "../../components/settings
 import { config } from "../../../config/config.ts";
 import { escapeHtml } from "../../utils/sanitize.ts";
 import { createImagePlaceholderRegex } from "../../utils/placeholders.ts";
-import type { ConversationRecord, GeneratedImage } from "../../../types/common.ts";
+import {
+  createMissingMediaPlaceholder,
+  findMediaRecord,
+  resolveMediaSource,
+  createMediaElement,
+} from "./renderMedia.ts";
+import type { ConversationRecord } from "../../../types/common.ts";
 import type { Message } from "../../../types/api.ts";
 
-function createMissingMediaPlaceholder(filename: string, mediaType = "image") {
-  const label = mediaType === "video" ? "Video" : "Image";
-  return `<div class='image-placeholder' style='padding:40px;background:#f1f1f1;border-radius:8px;margin:8px 0;text-align:center;font-style:italic;color:#666;'>${label} could not be loaded: ${escapeHtml(filename)}</div>`;
-}
-
-function findMediaRecord(convo: ConversationRecord, filename: string) {
-  return (convo.images || []).find((imageRef) => imageRef.filename === filename) || null;
-}
-
-function resolveMediaSource(mediaRecord: GeneratedImage | null, filename: string, imageCache: Map<string, string | Blob>): string {
-  if (!mediaRecord) {
-    return "";
-  }
-
-  if (typeof mediaRecord.url === "string" && mediaRecord.url.trim()) {
-    return mediaRecord.url;
-  }
-
-  if (mediaRecord.isStoredInDb && imageCache?.has(filename)) {
-    return getMediaDisplayUrl(imageCache.get(filename), filename);
-  }
-
-  return "";
-}
-
-function createMediaElement(mediaRecord: GeneratedImage, src: string, messageId = "") {
-  const mediaType = detectMediaType(mediaRecord);
-
-  if (mediaType === "video") {
-    const videoEl = document.createElement("video");
-    videoEl.src = src;
-    videoEl.className = "generated-video-thumbnail";
-    videoEl.controls = true;
-    videoEl.playsInline = true;
-    videoEl.preload = "metadata";
-    videoEl.dataset.mediaType = "video";
-    videoEl.dataset.filename = mediaRecord.filename || "";
-    videoEl.dataset.messageId = messageId;
-    videoEl.dataset.prompt = mediaRecord.prompt || "";
-    videoEl.dataset.timestamp = String(mediaRecord.timestamp || "");
-    return videoEl;
-  }
-
-  const imgEl = document.createElement("img");
-  imgEl.src = src;
-  imgEl.alt = mediaRecord.prompt || "Generated Image";
-  imgEl.className = "generated-image-thumbnail";
-  imgEl.dataset.mediaType = "image";
-  imgEl.dataset.filename = mediaRecord.filename || "";
-  imgEl.dataset.messageId = messageId;
-  imgEl.dataset.prompt = mediaRecord.prompt || "";
-  imgEl.dataset.timestamp = String(mediaRecord.timestamp || "");
-  return imgEl;
-}
-
+/**
+ * Pulls the plain-text body out of a message's `content`.
+ *
+ * @remarks
+ * Handles the three shapes `content` can take: a bare string is returned as-is;
+ * a parts array yields the first `input_text`/`text` part's text (falling back
+ * to its `content` when that is itself a string); anything else yields `""`.
+ *
+ * @param content - The message content to read, in any of its stored shapes.
+ * @returns The extracted text, or an empty string when none is present.
+ */
 export function extractTextContent(content: Message["content"]): string {
   if (typeof content === "string") {
     return content;
@@ -197,23 +158,24 @@ export function renderConversationMessages(convo: ConversationRecord, imageCache
       imagesContainer.className = "generated-images";
       const imgHtmlArray: string[] = [];
 
+      const appendMissingMedia = (filename: string) => {
+        const placeholder = document.createElement("div");
+        placeholder.className = "image-placeholder";
+        placeholder.textContent = `Media could not be loaded: ${filename}`;
+        imagesContainer.appendChild(placeholder);
+      };
+
       imageFilenames.forEach((filename) => {
         const img = findMediaRecord(convo, filename);
         if (!img) {
-          const placeholder = document.createElement("div");
-          placeholder.className = "image-placeholder";
-          placeholder.textContent = `Media could not be loaded: ${filename}`;
-          imagesContainer.appendChild(placeholder);
+          appendMissingMedia(filename);
           return;
         }
 
         const src = resolveMediaSource(img, filename, imageCache);
 
         if (!src) {
-          const placeholder = document.createElement("div");
-          placeholder.className = "image-placeholder";
-          placeholder.textContent = `Media could not be loaded: ${filename}`;
-          imagesContainer.appendChild(placeholder);
+          appendMissingMedia(filename);
           return;
         }
 
@@ -274,6 +236,16 @@ export function renderConversationMessages(convo: ConversationRecord, imageCache
     updatePromptVisibility();
   }
 
+  const applySelectedModel = () => {
+    if (convo.model && elements.modelSelector) {
+      const modelOption = Array.from(elements.modelSelector.options || []).find(option => option.value === convo.model);
+      if (modelOption) {
+        elements.modelSelector.value = convo.model;
+        updateHeaderInfo?.();
+      }
+    }
+  };
+
   if (convo.service && elements.serviceSelector && config) {
     const serviceOption = Array.from(elements.serviceSelector.options || []).find(
       option => option.value === convo.service,
@@ -283,6 +255,11 @@ export function renderConversationMessages(convo: ConversationRecord, imageCache
       config.defaultService = convo.service;
       elements.serviceSelector.value = convo.service;
 
+      const refreshModelsThenApply = () => {
+        updateModelSelector?.();
+        applySelectedModel();
+      };
+
       const serviceConfig = config.services?.[convo.service];
       if (serviceConfig && typeof serviceConfig.fetchAndUpdateModels === "function") {
         const serviceLabel = convo.service === "lmstudio"
@@ -291,47 +268,18 @@ export function renderConversationMessages(convo: ConversationRecord, imageCache
             ? "Ollama"
             : convo.service;
         serviceConfig.fetchAndUpdateModels()
-          .then(() => {
-            updateModelSelector?.();
-            if (convo.model && elements.modelSelector) {
-              const modelOption = Array.from(elements.modelSelector.options || []).find(opt => opt.value === convo.model);
-              if (modelOption) {
-                elements.modelSelector.value = convo.model;
-                updateHeaderInfo?.();
-              }
-            }
-          })
+          .then(refreshModelsThenApply)
           .catch((err) => {
             console.error(`Failed to refresh ${serviceLabel} models:`, err);
-            updateModelSelector?.();
-            if (convo.model && elements.modelSelector) {
-              const modelOption = Array.from(elements.modelSelector.options || []).find(opt => opt.value === convo.model);
-              if (modelOption) {
-                elements.modelSelector.value = convo.model;
-                updateHeaderInfo?.();
-              }
-            }
+            refreshModelsThenApply();
           });
       } else {
-        updateModelSelector?.();
-        if (convo.model && elements.modelSelector) {
-          const modelOption = Array.from(elements.modelSelector.options || []).find(opt => opt.value === convo.model);
-          if (modelOption) {
-            elements.modelSelector.value = convo.model;
-            updateHeaderInfo?.();
-          }
-        }
+        refreshModelsThenApply();
       }
     }
   }
 
-  if (convo.model && elements.modelSelector) {
-    const modelOption = Array.from(elements.modelSelector.options || []).find(option => option.value === convo.model);
-    if (modelOption) {
-      elements.modelSelector.value = convo.model;
-      updateHeaderInfo?.();
-    }
-  }
+  applySelectedModel();
 
   updateHeaderInfo?.();
 

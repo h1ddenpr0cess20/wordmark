@@ -1,15 +1,26 @@
 /**
- * Client-side media generation/display helpers for xAI Grok Imagine images.
+ * Client-side media display, storage, and registration helpers.
+ *
+ * @remarks
+ * Handles media-type detection, thumbnail markup, display-URL resolution,
+ * downloads, latest-media lookup, and registering generated/uploaded media in
+ * application state. The xAI Grok Imagine generate/edit tool that produces this
+ * media lives in {@link ./grokImageTool.ts}.
  */
 
 import { state } from "../init/state.ts";
-import { loadImageFromDb, saveImageToDb } from "../utils/imageStorage.ts";
-import { toolImplementations } from "./toolImplementations.ts";
-import { getApiKey } from "./apiKeyStorage.ts";
-import { config } from "../../config/config.ts";
-import { escapeHtml } from "../utils/sanitize.ts";
-import { isRecord } from "../utils/utils.ts";
+import { loadImageFromDb, saveImageToDb } from "../utils/storage/imageStorage.ts";
+import {
+  detectMediaType,
+  makeFilename,
+  isVideoMimeType,
+  buildMediaRecordHtml,
+  inferMimeTypeFromFilename,
+} from "./mediaType.ts";
+import { triggerAnchorDownload } from "../utils/dom/download.ts";
 import type { GeneratedImage } from "../../types/common.ts";
+
+export { detectMediaType, makeFilename, isVideoMimeType, buildMediaRecordHtml };
 
 interface RegisterMediaOptions {
   mediaType?: string;
@@ -24,92 +35,7 @@ interface RegisterMediaOptions {
   uploaded?: boolean;
 }
 
-interface ParsedImage {
-  mimeType: string;
-  url: string;
-}
-
-const XAI_IMAGE_MODEL = "grok-imagine-image";
-
-const XAI_IMAGE_ASPECT_RATIOS = [
-  "1:1", "16:9", "9:16", "4:3", "3:4",
-  "3:2", "2:3", "2:1", "1:2",
-  "19.5:9", "9:19.5", "20:9", "9:20", "auto",
-];
-
-/** Reports whether a MIME type is a video type. */
-export function isVideoMimeType(mimeType: string = ""): boolean {
-  return /^video\//i.test(mimeType);
-}
-
-function inferMimeTypeFromFilename(filename: string = ""): string {
-  const lowered = String(filename || "").toLowerCase();
-  if (lowered.endsWith(".mp4")) return "video/mp4";
-  if (lowered.endsWith(".mov")) return "video/quicktime";
-  if (lowered.endsWith(".webm")) return "video/webm";
-  if (lowered.endsWith(".m4v")) return "video/mp4";
-  if (lowered.endsWith(".jpg") || lowered.endsWith(".jpeg")) return "image/jpeg";
-  if (lowered.endsWith(".webp")) return "image/webp";
-  if (lowered.endsWith(".gif")) return "image/gif";
-  return "image/png";
-}
-
-/**
- * Classifies a media source as `"video"` or `"image"`, preferring an explicit
- * media type, then the MIME type (inferred from the filename if absent), then a
- * `data:video/` URL prefix.
- */
-export function detectMediaType(
-  source: { mediaType?: unknown; mimeType?: unknown; filename?: string; url?: unknown } = {},
-): "video" | "image" {
-  const explicitType = typeof source.mediaType === "string" ? source.mediaType.trim().toLowerCase() : "";
-  if (explicitType === "video" || explicitType === "image") {
-    return explicitType;
-  }
-
-  const mimeType = typeof source.mimeType === "string" ? source.mimeType : inferMimeTypeFromFilename(source.filename);
-  if (isVideoMimeType(mimeType)) {
-    return "video";
-  }
-
-  const url = typeof source.url === "string" ? source.url : "";
-  if (url.startsWith("data:video/")) {
-    return "video";
-  }
-
-  return "image";
-}
-
-function makeFilename(prefix: string, mimeType: string): string {
-  const mediaType = isVideoMimeType(mimeType) ? "video" : "image";
-  const extension = (() => {
-    if (mimeType === "image/jpeg") return "jpg";
-    if (mimeType === "image/webp") return "webp";
-    if (mimeType === "image/gif") return "gif";
-    if (mimeType === "video/webm") return "webm";
-    if (mimeType === "video/quicktime") return "mov";
-    return mediaType === "video" ? "mp4" : "png";
-  })();
-  const base = prefix || mediaType;
-  return `${base}-${Date.now()}-${Math.random().toString(36).slice(2, 10)}.${extension}`;
-}
-
-/** Builds a sanitized `<video>` or `<img>` thumbnail element for a media record. */
-export function buildMediaRecordHtml(record: GeneratedImage): string {
-  const mediaType = detectMediaType(record);
-  const safeFilename = escapeHtml(record.filename || "");
-  const safePrompt = escapeHtml(record.prompt || "");
-  const safeTimestamp = escapeHtml(record.timestamp || "");
-  const safeAlt = escapeHtml(record.prompt || (mediaType === "video" ? "Generated video" : "Generated image"));
-  const src = escapeHtml(record.url || "");
-
-  if (mediaType === "video") {
-    return `<video src="${src}" class="generated-video-thumbnail" data-media-type="video" data-filename="${safeFilename}" data-prompt="${safePrompt}" data-timestamp="${safeTimestamp}" controls playsinline preload="metadata"></video>`;
-  }
-
-  return `<img src="${src}" alt="${safeAlt}" class="generated-image-thumbnail" data-media-type="image" data-filename="${safeFilename}" data-prompt="${safePrompt}" data-timestamp="${safeTimestamp}" />`;
-}
-
+/** Returns an object URL for a blob, the string as-is for strings, or `""` otherwise. */
 function createObjectUrl(value: unknown): string {
   if (value instanceof Blob) {
     return URL.createObjectURL(value);
@@ -120,6 +46,11 @@ function createObjectUrl(value: unknown): string {
   return "";
 }
 
+/**
+ * Fetches `url` and returns the response body as a {@link Blob}.
+ *
+ * @throws If the response status is not ok.
+ */
 async function fetchBlob(url: string, options: RequestInit = {}): Promise<Blob> {
   const response = await fetch(url, options);
   if (!response.ok) {
@@ -129,6 +60,7 @@ async function fetchBlob(url: string, options: RequestInit = {}): Promise<Blob> 
   return response.blob();
 }
 
+/** Decodes a base64 `data:` URI into a {@link Blob}, preserving its MIME type. */
 function decodeDataUri(reference: string): Blob {
   const [header, encoded] = String(reference).split(",", 2);
   const mimeMatch = /^data:([^;]+)/i.exec(header || "");
@@ -141,6 +73,12 @@ function decodeDataUri(reference: string): Blob {
   return new Blob([bytes], { type: mimeType });
 }
 
+/**
+ * Resolves a display URL for a stored media record by filename, using the
+ * in-memory cache first and loading from IndexedDB on a miss.
+ *
+ * @returns The display URL, or `null` if it cannot be resolved.
+ */
 async function resolveStoredReference(record: { filename?: string } | null | undefined): Promise<string | null> {
   if (!record || !record.filename) {
     return null;
@@ -164,6 +102,12 @@ async function resolveStoredReference(record: { filename?: string } | null | und
   }
 }
 
+/**
+ * Scans the conversation history newest-first for the most recent image
+ * attachment, returning its data URL, remote URL, or resolved stored reference.
+ *
+ * @returns A usable image reference, or `null` if none is found.
+ */
 async function findLatestConversationImage() {
   const history = Array.isArray(state.conversationHistory) ? [...state.conversationHistory].reverse() : [];
   for (const message of history) {
@@ -190,6 +134,12 @@ async function findLatestConversationImage() {
   return null;
 }
 
+/**
+ * Scans generated media newest-first for the most recent item matching `kind`
+ * (`"image"` or `"video"`).
+ *
+ * @returns A usable media reference, or `null` if none is found.
+ */
 async function findLatestGeneratedMedia(kind: string): Promise<string | null> {
   const media = Array.isArray(state.generatedImages) ? [...state.generatedImages].reverse() : [];
   for (const item of media) {
@@ -228,32 +178,6 @@ export async function resolveLatestMediaReference(kind: string): Promise<string 
     return findLatestConversationImage();
   }
   return null;
-}
-
-function parseImageResponse(payload: unknown): ParsedImage[] {
-  const data = isRecord(payload) ? payload.data : undefined;
-  const candidates = Array.isArray(data) ? data : [];
-  return candidates
-    .map((item: unknown): ParsedImage | null => {
-      if (!isRecord(item)) {
-        return null;
-      }
-      if (typeof item.b64_json === "string" && item.b64_json.trim()) {
-        const mimeType = typeof item.mime_type === "string" ? item.mime_type : "image/png";
-        return {
-          mimeType,
-          url: `data:${mimeType};base64,${item.b64_json.trim()}`,
-        };
-      }
-      if (typeof item.url === "string" && item.url.trim()) {
-        return {
-          mimeType: typeof item.mime_type === "string" ? item.mime_type : "image/png",
-          url: item.url.trim(),
-        };
-      }
-      return null;
-    })
-    .filter((img: ParsedImage | null): img is ParsedImage => img !== null);
 }
 
 /**
@@ -330,13 +254,7 @@ export async function downloadMediaSource(source: Blob | string, filename?: stri
     throw new Error("No downloadable media source was provided.");
   }
   const objectUrl = URL.createObjectURL(blob);
-  const anchor = document.createElement("a");
-  anchor.href = objectUrl;
-  anchor.download = filename || makeFilename("media", blob.type || inferMimeTypeFromFilename(filename));
-  anchor.style.display = "none";
-  document.body.appendChild(anchor);
-  anchor.click();
-  document.body.removeChild(anchor);
+  triggerAnchorDownload(objectUrl, filename || makeFilename("media", blob.type || inferMimeTypeFromFilename(filename)));
   window.setTimeout(() => {
     URL.revokeObjectURL(objectUrl);
   }, 1000);
@@ -424,138 +342,3 @@ export function registerGeneratedMedia({
   return record;
 }
 
-function getProviderBaseUrl(provider: string): string {
-  const baseUrl = config?.services?.[provider]?.baseUrl || "";
-  if (!baseUrl) {
-    throw new Error(`Base URL is not configured for ${provider}.`);
-  }
-  return baseUrl.replace(/\/+$/, "");
-}
-
-function getProviderApiKey(provider: string): string {
-  const apiKey = getApiKey?.(provider) || config?.services?.[provider]?.apiKey || "";
-  const trimmed = typeof apiKey === "string" ? apiKey.trim() : "";
-  if (!trimmed) {
-    const providerLabel = provider === "xai" ? "xAI" : provider === "openai" ? "OpenAI" : provider;
-    throw new Error(`Add your ${providerLabel} API key in Settings → API Keys.`);
-  }
-  return trimmed;
-}
-
-function buildHeaders(provider: string): Record<string, string> {
-  const headers: Record<string, string> = { "Content-Type": "application/json" };
-  const apiKey = getProviderApiKey(provider);
-  if (apiKey) {
-    headers.Authorization = `Bearer ${apiKey}`;
-  }
-  return headers;
-}
-
-async function responseToJson(response: Response): Promise<unknown> {
-  if (!response.ok) {
-    const text = await response.text().catch(() => "");
-    throw new Error(`${response.status} ${response.statusText}${text ? `: ${text}` : ""}`);
-  }
-  return response.json();
-}
-
-async function fetchJson(url: string, options: RequestInit = {}): Promise<unknown> {
-  const response = await fetch(url, options);
-  return responseToJson(response);
-}
-
-function normalizePrompt(args: unknown) {
-  const raw = isRecord(args) ? args.prompt : undefined;
-  const prompt = String(raw ?? "").trim();
-  if (!prompt) {
-    throw new Error("A prompt is required.");
-  }
-  return prompt;
-}
-
-interface GrokImageResult {
-  ok: true;
-  backend: string;
-  mediaType: string;
-  count: number;
-  filenames: (string | undefined)[];
-}
-
-async function generateGrokImage(args: unknown, mode: string): Promise<GrokImageResult> {
-  const a = isRecord(args) ? args : {};
-  const prompt = normalizePrompt(args);
-  const provider = "xai";
-  const endpoint = mode === "edit" ? "/images/edits" : "/images/generations";
-  const n = Number(a.n);
-  const payload: Record<string, unknown> = {
-    model: XAI_IMAGE_MODEL,
-    prompt,
-    n: Number.isFinite(n) ? Math.max(1, Math.min(10, n)) : 1,
-    response_format: "b64_json",
-  };
-
-  if (typeof a.aspect_ratio === "string" && XAI_IMAGE_ASPECT_RATIOS.includes(a.aspect_ratio)) {
-    payload.aspect_ratio = a.aspect_ratio;
-  }
-  if (typeof a.resolution === "string" && ["1k", "2k"].includes(a.resolution)) {
-    payload.resolution = a.resolution;
-  }
-
-  if (mode === "edit") {
-    let imageUrls: string[] = Array.isArray(a.image_urls)
-      ? a.image_urls.filter((value: unknown): value is string => typeof value === "string" && Boolean(value.trim())).map((value) => value.trim())
-      : [];
-    if (!imageUrls.length && typeof a.image_url === "string" && a.image_url.trim()) {
-      imageUrls = [a.image_url.trim()];
-    }
-    if (!imageUrls.length) {
-      const latestImage = await resolveLatestMediaReference("image");
-      if (!latestImage) {
-        throw new Error("No source image is available for editing.");
-      }
-      imageUrls = [latestImage];
-    }
-    if (imageUrls.length === 1) {
-      payload.image = { type: "image_url", url: imageUrls[0] };
-    } else {
-      payload.images = imageUrls.slice(0, 3).map((url: string) => ({ type: "image_url", url }));
-    }
-  }
-
-  const response = await fetchJson(`${getProviderBaseUrl(provider)}${endpoint}`, {
-    method: "POST",
-    headers: buildHeaders(provider),
-    body: JSON.stringify(payload),
-  });
-
-  const images = parseImageResponse(response);
-  if (!images.length) {
-    throw new Error("The image API did not return any images.");
-  }
-
-  const records = images.map(image => registerGeneratedMedia({
-    mediaType: "image",
-    sourceData: image.url,
-    prompt,
-    tool: mode === "edit" ? "grok_edit_image" : "grok_generate_image",
-    filename: makeFilename(mode === "edit" ? "edited" : "generated", image.mimeType),
-    mimeType: image.mimeType,
-    model: XAI_IMAGE_MODEL,
-    callId: isRecord(response) && typeof response.id === "string" ? response.id : null,
-  }));
-
-  return {
-    ok: true,
-    backend: "grok",
-    mediaType: "image",
-    count: records.length,
-    filenames: records.map(record => record.filename),
-  };
-}
-
-toolImplementations.grok_generate_image = async function(args: unknown) {
-  return generateGrokImage(args ?? {}, "generate");
-};
-toolImplementations.grok_edit_image = async function(args: unknown) {
-  return generateGrokImage(args ?? {}, "edit");
-};

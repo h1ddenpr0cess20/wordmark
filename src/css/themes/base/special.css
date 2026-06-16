@@ -401,7 +401,6 @@
 }
 
 .theme-parchment .settings-group {
-  border: 1px solid var(--border-color);
   background-color: rgba(255, 252, 244, 0.55);
 }
 
@@ -427,12 +426,6 @@
   border: 1px solid var(--code-border);
   font-family: "Georgia", "Iowan Old Style", "Palatino Linotype", serif;
 }
-
-.theme-parchment .hljs-keyword { color: #8b2f1e; }
-.theme-parchment .hljs-string { color: #5a6b2b; }
-.theme-parchment .hljs-comment { color: #9a8a68; font-style: italic; }
-.theme-parchment .hljs-function { color: #8b5a2b; }
-.theme-parchment .hljs-number { color: #a8703a; }
 
 .theme-parchment body,
 .theme-parchment input,
@@ -518,7 +511,6 @@
 }
 
 .theme-eink .settings-group {
-  border: 1px solid var(--border-color);
   background-color: #ffffff;
 }
 
@@ -550,11 +542,6 @@
 }
 
 /* grayscale syntax highlighting (weight/contrast instead of hue) */
-.theme-eink .hljs-keyword { color: #000000; font-weight: 600; }
-.theme-eink .hljs-string { color: #3a3a3a; }
-.theme-eink .hljs-comment { color: #7a7a7a; font-style: italic; }
-.theme-eink .hljs-function { color: #161616; font-weight: 600; }
-.theme-eink .hljs-number { color: #2b2b2b; }
 
 .theme-eink body,
 .theme-eink input,
@@ -646,7 +633,6 @@
 }
 
 .theme-synthwave .settings-group {
-  border: 1px solid var(--border-color);
   background-color: rgba(13, 4, 32, 0.5);
 }
 
@@ -677,12 +663,6 @@
   background-color: rgba(13, 4, 32, 0.9);
   border: 1px solid var(--code-border);
 }
-
-.theme-synthwave .hljs-keyword { color: #ff2e97; }
-.theme-synthwave .hljs-string { color: #5cffd0; }
-.theme-synthwave .hljs-comment { color: #8a6cc0; font-style: italic; }
-.theme-synthwave .hljs-function { color: #00eaff; }
-.theme-synthwave .hljs-number { color: #ffd166; }
 
 .theme-solarized {
   --bg-primary: #002b36;
@@ -725,7 +705,6 @@
 }
 
 .theme-solarized .settings-group {
-  border: 1px solid var(--border-color);
   background-color: #073642;
 }
 
@@ -754,13 +733,6 @@
   background-color: #073642;
   border: 1px solid var(--code-border);
 }
-
-/* Solarized syntax palette */
-.theme-solarized .hljs-keyword { color: #859900; }
-.theme-solarized .hljs-string { color: #2aa198; }
-.theme-solarized .hljs-comment { color: #586e75; font-style: italic; }
-.theme-solarized .hljs-function { color: #268bd2; }
-.theme-solarized .hljs-number { color: #d33682; }
 
 .theme-nord {
   --bg-primary: #2e3440;
@@ -803,7 +775,6 @@
 }
 
 .theme-nord .settings-group {
-  border: 1px solid var(--border-color);
   background-color: #353c4a;
 }
 
@@ -832,13 +803,6 @@
   background-color: #292e39;
   border: 1px solid var(--code-border);
 }
-
-/* Nord aurora/frost syntax palette */
-.theme-nord .hljs-keyword { color: #81a1c1; }
-.theme-nord .hljs-string { color: #a3be8c; }
-.theme-nord .hljs-comment { color: #616e88; font-style: italic; }
-.theme-nord .hljs-function { color: #88c0d0; }
-.theme-nord .hljs-number { color: #b48ead; }
 
 .theme-dracula {
   --bg-primary: #282a36;
@@ -881,7 +845,6 @@
 }
 
 .theme-dracula .settings-group {
-  border: 1px solid var(--border-color);
   background-color: #2a2c3a;
 }
 
@@ -911,9 +874,703 @@
   border: 1px solid var(--code-border);
 }
 
-/* Dracula syntax palette */
-.theme-dracula .hljs-keyword { color: #ff79c6; }
-.theme-dracula .hljs-string { color: #f1fa8c; }
-.theme-dracula .hljs-comment { color: #6272a4; font-style: italic; }
-.theme-dracula .hljs-function { color: #50fa7b; }
-.theme-dracula .hljs-number { color: #bd93f9; }
+.theme-tidepool {
+  --bg-primary: #06181c;
+  --bg-secondary: #0c2a30;
+  --text-primary: #d7f5ef;
+  --text-secondary: #7fb8b0;
+  --accent-color: #2fd6c3;
+  --accent-hover: #5fe8d8;
+  --border-color: #164048;
+  --user-bg: #103840;
+  --assistant-bg: #0a2228;
+  --error-bg: #3a1518;
+  --error-text: #ff6b7a;
+  --body-bg-color-1: #06181c;
+  --body-bg-color-2: #0a2630;
+  --button-text-color: #06181c;
+}
+
+.theme-tidepool #wordmark-logo path {
+  stroke: var(--accent-color);
+}
+
+.theme-tidepool pre,
+.theme-tidepool pre code,
+.theme-tidepool .code-block {
+  background-color: #0a2228;
+  border: 1px solid var(--border-color);
+}
+
+/* button-text-color is the dark on-accent text; on transparent surfaces use the accent instead */
+.theme-tidepool .tab-button.active,
+.theme-tidepool .reset-button {
+  color: var(--accent-color);
+}
+
+.theme-ember {
+  --bg-primary: #15100d;
+  --bg-secondary: #211814;
+  --text-primary: #f4e6da;
+  --text-secondary: #b08d78;
+  --accent-color: #ff6a2b;
+  --accent-hover: #ff9152;
+  --border-color: #3a2a20;
+  --user-bg: #2a1c14;
+  --assistant-bg: #1d1410;
+  --error-bg: #3a1410;
+  --error-text: #ff5a52;
+  --body-bg-color-1: #15100d;
+  --body-bg-color-2: #241712;
+  --button-text-color: #15100d;
+}
+
+.theme-ember #wordmark-logo path {
+  stroke: var(--accent-color);
+}
+
+.theme-ember pre,
+.theme-ember pre code,
+.theme-ember .code-block {
+  background-color: #1d1410;
+  border: 1px solid var(--border-color);
+}
+
+/* button-text-color is the dark on-accent text; on transparent surfaces use the accent instead */
+.theme-ember .tab-button.active,
+.theme-ember .reset-button {
+  color: var(--accent-color);
+}
+
+.theme-aurora {
+  --bg-primary: #0a0e1a;
+  --bg-secondary: #121a2e;
+  --text-primary: #e6f0ff;
+  --text-secondary: #8fa3c8;
+  --accent-color: #4ffbb0;
+  --accent-hover: #7dffc8;
+  --border-color: #233152;
+  --user-bg: #16233f;
+  --assistant-bg: #0f1626;
+  --error-bg: #3a1530;
+  --error-text: #ff6b9d;
+  --body-bg-color-1: #0a0e1a;
+  --body-bg-color-2: #101a33;
+  --button-text-color: #0a0e1a;
+}
+
+/* Northern-lights: two broad aurora pools — green/teal from the upper left,
+   violet from the upper right — emanating from above the top edge and blending
+   teal across the crown, over a deep night sky. Paint-only (background only, no
+   layout/box properties) so it cannot affect chat sizing. */
+.theme-aurora #chat-container {
+  background-color: #0a0e1a;
+  background-image:
+    radial-gradient(90% 60% at 25% -10%, rgba(79, 251, 176, 0.20), transparent 60%),
+    radial-gradient(90% 55% at 80% -5%, rgba(140, 130, 255, 0.18), transparent 60%),
+    radial-gradient(70% 50% at 55% 0%, rgba(95, 234, 212, 0.12), transparent 65%),
+    linear-gradient(180deg, #0c1224, #0a0e1a 70%);
+  background-repeat: no-repeat;
+}
+
+/* button-text-color is the dark on-accent text; on transparent surfaces use the accent instead */
+.theme-aurora .tab-button.active,
+.theme-aurora .reset-button {
+  color: var(--accent-color);
+  text-shadow: 0 0 8px rgba(79, 251, 176, 0.45);
+}
+
+/* Pulsing aurora glow on the wordmark logo (green shifting to violet) */
+@keyframes aurora-pulse {
+  0%, 100% { filter: drop-shadow(0 0 2px rgba(79, 251, 176, 0.45)); }
+  50% { filter: drop-shadow(0 0 9px rgba(140, 130, 255, 0.7)); }
+}
+
+.theme-aurora #wordmark-logo path {
+  stroke: var(--accent-color);
+  animation: aurora-pulse 6s ease-in-out infinite;
+}
+
+.theme-aurora pre,
+.theme-aurora pre code,
+.theme-aurora .code-block {
+  background-color: #0f1626;
+  border: 1px solid var(--border-color);
+}
+
+/* Noir — 1940s film-noir: charcoal monochrome lit by a single warm amber
+   spotlight, with film grain, an edge vignette, a flickering projector logo,
+   and uppercase title-card headings. */
+.theme-noir {
+  --bg-primary: #0c0c0d;
+  --bg-secondary: #161617;
+  --text-primary: #dcd8cf;
+  --text-secondary: #8a8780;
+  --accent-color: #e0a94e;
+  --accent-hover: #f0c069;
+  --border-color: #2a2a2c;
+  --user-bg: #1a1a1c;
+  --assistant-bg: #121213;
+  --error-bg: #2e1414;
+  --error-text: #e08c8c;
+  --body-bg-color-1: #0c0c0d;
+  --body-bg-color-2: #161617;
+  --button-text-color: #0c0c0d;
+}
+
+/* Edge vignette over a subtle baked-in film grain over the base gradient. */
+.theme-noir #chat-container {
+  background:
+    radial-gradient(ellipse 110% 85% at 50% 28%, transparent 45%, rgba(0, 0, 0, 0.6) 100%),
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.045'/%3E%3C/svg%3E") repeat,
+    linear-gradient(180deg, #111112, #0c0c0d);
+}
+
+/* button-text-color is the dark on-accent text; on transparent surfaces use the accent instead */
+.theme-noir .tab-button.active,
+.theme-noir .reset-button {
+  color: var(--accent-color);
+}
+
+/* Uppercase, letter-spaced headings for a noir title-card feel */
+.theme-noir .message-content h1,
+.theme-noir .message-content h2,
+.theme-noir .message-content h3 {
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+/* Flickering projector spotlight on the wordmark logo */
+@keyframes noir-flicker {
+  0%, 90%, 100% { opacity: 1; }
+  92% { opacity: 0.82; }
+  94% { opacity: 1; }
+  96% { opacity: 0.9; }
+  98% { opacity: 1; }
+}
+
+.theme-noir #wordmark-logo path {
+  stroke: var(--accent-color);
+  filter: drop-shadow(0 0 5px rgba(224, 169, 78, 0.5));
+  animation: noir-flicker 5s steps(1, end) infinite;
+}
+
+.theme-noir pre,
+.theme-noir pre code,
+.theme-noir .code-block {
+  background-color: #141415;
+  border: 1px solid var(--border-color);
+}
+
+/* Patina — a weathered copper monument: dark aged bronze in shadow, slowly
+   oxidizing to verdigris green. Mottled oxidation patches over the bronze,
+   engraved-plaque headings, and a logo glow that shimmers between copper and
+   verdigris like the metal turning over decades. */
+.theme-patina {
+  --bg-primary: #15110c;
+  --bg-secondary: #1f1812;
+  --text-primary: #e8e0d0;
+  --text-secondary: #a89878;
+  --accent-color: #6fc6a5;
+  --accent-hover: #8ad9bb;
+  --border-color: #3a2f22;
+  --user-bg: #241c14;
+  --assistant-bg: #1a140e;
+  --error-bg: #2e1814;
+  --error-text: #d98c70;
+  --body-bg-color-1: #15110c;
+  --body-bg-color-2: #20180f;
+  --button-text-color: #15110c;
+}
+
+/* Verdigris oxidation patches and a faint mineral speckle over the bronze base. */
+.theme-patina #chat-container {
+  background:
+    radial-gradient(60% 50% at 18% 22%, rgba(111, 198, 165, 0.07), transparent 60%),
+    radial-gradient(55% 48% at 82% 72%, rgba(111, 198, 165, 0.06), transparent 62%),
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='p'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.6' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23p)' opacity='0.04'/%3E%3C/svg%3E") repeat,
+    linear-gradient(165deg, #20180f, #15110c);
+}
+
+/* button-text-color is the dark on-accent text; on transparent surfaces use the accent instead */
+.theme-patina .tab-button.active,
+.theme-patina .reset-button {
+  color: var(--accent-color);
+}
+
+/* Engraved bronze-plaque headings */
+.theme-patina .message-content h1,
+.theme-patina .message-content h2,
+.theme-patina .message-content h3 {
+  color: var(--accent-color);
+  letter-spacing: 0.02em;
+}
+
+/* Slow oxidation shimmer: the logo glow drifts between copper and verdigris */
+@keyframes patina-oxidize {
+  0%, 100% { filter: drop-shadow(0 0 3px rgba(111, 198, 165, 0.45)); }
+  50% { filter: drop-shadow(0 0 7px rgba(176, 141, 87, 0.5)); }
+}
+
+.theme-patina #wordmark-logo path {
+  stroke: var(--accent-color);
+  animation: patina-oxidize 8s ease-in-out infinite;
+}
+
+.theme-patina pre,
+.theme-patina pre code,
+.theme-patina .code-block {
+  background-color: #181109;
+  border: 1px solid var(--border-color);
+}
+
+/* Sunset — a dusk sky: deep indigo at the zenith fading through magenta to a
+   warm orange horizon glow, lit by a golden setting-sun accent. Layered sky
+   gradient with a low sun-glow, a glowing logo, and a warm syntax palette. */
+.theme-sunset {
+  --bg-primary: #1a1326;
+  --bg-secondary: #251a38;
+  --text-primary: #f6e9dd;
+  --text-secondary: #c2a6b8;
+  --accent-color: #ff9e57;
+  --accent-hover: #ffb877;
+  --border-color: #3d2b4f;
+  --user-bg: #2e2142;
+  --assistant-bg: #1f1730;
+  --error-bg: #3a1726;
+  --error-text: #ff8c9e;
+  --body-bg-color-1: #1a1326;
+  --body-bg-color-2: #3a1f3d;
+  --button-text-color: #1a1326;
+}
+
+/* Dusk sky: indigo zenith → magenta band → burnt-orange horizon, with a warm
+   sun-glow rising from the bottom edge. */
+.theme-sunset #chat-container {
+  background:
+    radial-gradient(120% 70% at 50% 100%, rgba(255, 158, 87, 0.22), transparent 60%),
+    radial-gradient(90% 60% at 50% 95%, rgba(255, 110, 120, 0.16), transparent 65%),
+    linear-gradient(180deg, #1a1326 0%, #2e1a3e 45%, #5a2740 75%, #7a3a2e 100%);
+}
+
+/* button-text-color is the dark on-accent text; on transparent surfaces use the accent instead */
+.theme-sunset .tab-button.active,
+.theme-sunset .reset-button {
+  color: var(--accent-color);
+}
+
+/* Setting-sun glow on the wordmark logo */
+.theme-sunset #wordmark-logo path {
+  stroke: var(--accent-color);
+  filter: drop-shadow(0 0 6px rgba(255, 158, 87, 0.55));
+}
+
+.theme-sunset pre,
+.theme-sunset pre code,
+.theme-sunset .code-block {
+  background-color: #221733;
+  border: 1px solid var(--border-color);
+}
+
+/* Wine — a sommelier's wine list: deep oxblood/burgundy surfaces, warm
+   parchment text, and a gold accent with thin gold rules. Serif type and
+   letter-spaced headings for an elegant menu feel. */
+.theme-wine {
+  --bg-primary: #2a0e16;
+  --bg-secondary: #3a141f;
+  --text-primary: #f0e2cf;
+  --text-secondary: #c2a08a;
+  --accent-color: #d4af37;
+  --accent-hover: #e8c75a;
+  --border-color: #5a2230;
+  --user-bg: #451824;
+  --assistant-bg: #33121c;
+  --error-bg: #4a1622;
+  --error-text: #e88a8a;
+  --body-bg-color-1: #2a0e16;
+  --body-bg-color-2: #1c0910;
+  --button-text-color: #2a0e16;
+}
+
+.theme-wine body,
+.theme-wine input,
+.theme-wine textarea,
+.theme-wine button,
+.theme-wine select,
+.theme-wine .message-content,
+.theme-wine h1,
+.theme-wine h2,
+.theme-wine h3,
+.theme-wine p,
+.theme-wine label,
+.theme-wine span {
+  font-family: Georgia, "Times New Roman", serif;
+}
+
+/* button-text-color is the dark on-accent text; on transparent surfaces use the accent instead */
+.theme-wine .tab-button.active,
+.theme-wine .reset-button {
+  color: var(--accent-color);
+}
+
+/* Gold-ruled, letter-spaced menu headings */
+.theme-wine .message-content h1,
+.theme-wine .message-content h2,
+.theme-wine .message-content h3 {
+  color: var(--accent-color);
+  letter-spacing: 0.06em;
+}
+
+.theme-wine #wordmark-logo path {
+  stroke: var(--accent-color);
+}
+
+.theme-wine pre,
+.theme-wine pre code,
+.theme-wine .code-block {
+  background-color: #1f0b12;
+  border: 1px solid var(--border-color);
+}
+
+/* Autumn — cozy foliage: warm dark-bark base, rust/amber/ochre tones, and a
+   burnt-orange accent over a soft ember gradient. */
+.theme-autumn {
+  --bg-primary: #1f1611;
+  --bg-secondary: #2c2017;
+  --text-primary: #f0e3d2;
+  --text-secondary: #b89a7e;
+  --accent-color: #d97a36;
+  --accent-hover: #ec9551;
+  --border-color: #43301f;
+  --user-bg: #2e2117;
+  --assistant-bg: #241a12;
+  --error-bg: #3a1c16;
+  --error-text: #e0936f;
+  --body-bg-color-1: #1f1611;
+  --body-bg-color-2: #2c1d12;
+  --button-text-color: #1f1611;
+}
+
+.theme-autumn #chat-container {
+  background:
+    radial-gradient(80% 60% at 15% 10%, rgba(217, 122, 54, 0.10), transparent 60%),
+    radial-gradient(70% 55% at 88% 85%, rgba(176, 102, 40, 0.10), transparent 62%),
+    linear-gradient(165deg, #2c1d12, #1f1611);
+}
+
+/* button-text-color is the dark on-accent text; on transparent surfaces use the accent instead */
+.theme-autumn .tab-button.active,
+.theme-autumn .reset-button {
+  color: var(--accent-color);
+}
+
+.theme-autumn #wordmark-logo path {
+  stroke: var(--accent-color);
+}
+
+.theme-autumn pre,
+.theme-autumn pre code,
+.theme-autumn .code-block {
+  background-color: #261a10;
+  border: 1px solid var(--border-color);
+}
+
+/* Nebula — deep-space cosmos: indigo/violet void with a star-speckle field and
+   a luminous violet accent glowing on the logo. */
+.theme-nebula {
+  --bg-primary: #0b0a1f;
+  --bg-secondary: #14122e;
+  --text-primary: #e6e3ff;
+  --text-secondary: #9a96c8;
+  --accent-color: #b08cff;
+  --accent-hover: #c8aaff;
+  --border-color: #2a2552;
+  --user-bg: #1c1840;
+  --assistant-bg: #110f28;
+  --error-bg: #34163a;
+  --error-text: #ff8ac0;
+  --body-bg-color-1: #0b0a1f;
+  --body-bg-color-2: #1a1340;
+  --button-text-color: #0b0a1f;
+}
+
+/* Star-speckle field over a cosmic nebula gradient */
+.theme-nebula #chat-container {
+  background:
+    radial-gradient(1px 1px at 20% 30%, rgba(255, 255, 255, 0.7), transparent 100%),
+    radial-gradient(1px 1px at 70% 20%, rgba(255, 255, 255, 0.5), transparent 100%),
+    radial-gradient(1px 1px at 40% 70%, rgba(255, 255, 255, 0.6), transparent 100%),
+    radial-gradient(1px 1px at 85% 60%, rgba(255, 255, 255, 0.45), transparent 100%),
+    radial-gradient(1.5px 1.5px at 55% 45%, rgba(255, 255, 255, 0.6), transparent 100%),
+    radial-gradient(90% 70% at 75% 25%, rgba(176, 140, 255, 0.16), transparent 60%),
+    radial-gradient(80% 60% at 20% 80%, rgba(255, 110, 180, 0.12), transparent 62%),
+    linear-gradient(160deg, #0b0a1f, #1a1340);
+  background-repeat: repeat, repeat, repeat, repeat, repeat, no-repeat, no-repeat, no-repeat;
+  background-size: 200px 200px, 240px 240px, 180px 180px, 220px 220px, 260px 260px, auto, auto, auto;
+}
+
+/* button-text-color is the dark on-accent text; on transparent surfaces use the accent instead */
+.theme-nebula .tab-button.active,
+.theme-nebula .reset-button {
+  color: var(--accent-color);
+}
+
+/* Violet glow on the wordmark logo */
+.theme-nebula #wordmark-logo path {
+  stroke: var(--accent-color);
+  filter: drop-shadow(0 0 6px rgba(176, 140, 255, 0.6));
+}
+
+.theme-nebula pre,
+.theme-nebula pre code,
+.theme-nebula .code-block {
+  background-color: #100e26;
+  border: 1px solid var(--border-color);
+}
+
+/* Amber CRT — vintage amber-phosphor terminal: near-black screen, warm amber
+   text/accent, scanline overlay, and a monospace glow. Distinct from the green
+   terminal theme. */
+.theme-amber-crt {
+  --bg-primary: #160d00;
+  --bg-secondary: #1f1400;
+  --text-primary: #ffb000;
+  --text-secondary: #b87a00;
+  --accent-color: #ffb000;
+  --accent-hover: #ffc740;
+  --border-color: #3a2600;
+  --user-bg: #241700;
+  --assistant-bg: #1a1000;
+  --error-bg: #3a1400;
+  --error-text: #ff7043;
+  --body-bg-color-1: #160d00;
+  --body-bg-color-2: #1f1400;
+  --button-text-color: #160d00;
+}
+
+.theme-amber-crt body,
+.theme-amber-crt input,
+.theme-amber-crt textarea,
+.theme-amber-crt button,
+.theme-amber-crt select,
+.theme-amber-crt .message-content,
+.theme-amber-crt pre,
+.theme-amber-crt code,
+.theme-amber-crt span,
+.theme-amber-crt label,
+.theme-amber-crt .tab-button,
+.theme-amber-crt .radio-text {
+  font-family: "Courier New", Courier, monospace;
+}
+
+/* Scanline overlay + amber phosphor glow */
+.theme-amber-crt #chat-container {
+  background:
+    repeating-linear-gradient(
+      0deg,
+      rgba(255, 176, 0, 0.04) 0px,
+      rgba(255, 176, 0, 0.04) 1px,
+      transparent 1px,
+      transparent 3px
+    ),
+    radial-gradient(120% 90% at 50% 50%, rgba(255, 176, 0, 0.05), transparent 70%),
+    #160d00;
+}
+
+/* button-text-color is the dark on-accent text; on transparent surfaces use the accent instead */
+.theme-amber-crt .tab-button.active,
+.theme-amber-crt .reset-button {
+  color: var(--accent-color);
+}
+
+.theme-amber-crt #wordmark-logo path {
+  stroke: var(--accent-color);
+  filter: drop-shadow(0 0 5px rgba(255, 176, 0, 0.6));
+}
+
+.theme-amber-crt pre,
+.theme-amber-crt pre code,
+.theme-amber-crt .code-block {
+  background-color: #1a1000;
+  border: 1px solid var(--border-color);
+}
+
+/* Stained glass — jewel-toned light (ruby/sapphire/emerald) pooling over a
+   deep cathedral-glass gradient, with an amber accent. */
+.theme-stained-glass {
+  --bg-primary: #0a0e16;
+  --bg-secondary: #121a2c;
+  --text-primary: #eef0f5;
+  --text-secondary: #9aa6c0;
+  --accent-color: #e0b341;
+  --accent-hover: #f0c860;
+  --border-color: #05070c;
+  --user-bg: #3a1230;
+  --assistant-bg: #0e2236;
+  --error-bg: #3a1018;
+  --error-text: #ff7a86;
+  --body-bg-color-1: #0a0e16;
+  --body-bg-color-2: #141c30;
+  --button-text-color: #0a0e16;
+}
+
+/* Cathedral glass: jewel-tone light pooling behind the panes */
+.theme-stained-glass #chat-container {
+  background:
+    radial-gradient(60% 50% at 12% 15%, rgba(214, 40, 70, 0.16), transparent 60%),
+    radial-gradient(60% 50% at 88% 20%, rgba(40, 110, 214, 0.16), transparent 60%),
+    radial-gradient(70% 55% at 50% 95%, rgba(40, 180, 120, 0.14), transparent 62%),
+    linear-gradient(160deg, #0a0e16, #141c30);
+}
+
+/* button-text-color is the dark on-accent text; on transparent surfaces use the accent instead */
+.theme-stained-glass .tab-button.active,
+.theme-stained-glass .reset-button {
+  color: var(--accent-color);
+}
+
+.theme-stained-glass #wordmark-logo path {
+  stroke: var(--accent-color);
+  filter: drop-shadow(0 0 5px rgba(224, 179, 65, 0.5));
+}
+
+.theme-stained-glass pre,
+.theme-stained-glass pre code,
+.theme-stained-glass .code-block {
+  background-color: #0c1422;
+  border: 1px solid var(--border-color);
+}
+
+/* Forest — deep woodland: mossy green shadow, bark tones, and dappled golden
+   sunlight filtering down through the canopy, with a fresh leaf-green accent
+   that breathes like a canopy stirring in the breeze. */
+.theme-forest {
+  --bg-primary: #0e1810;
+  --bg-secondary: #16241a;
+  --text-primary: #e4f0e0;
+  --text-secondary: #9bb89a;
+  --accent-color: #6cc24a;
+  --accent-hover: #8fd86a;
+  --border-color: #2a3d2c;
+  --user-bg: #1c2e20;
+  --assistant-bg: #131f16;
+  --error-bg: #3a1c16;
+  --error-text: #e0936f;
+  --body-bg-color-1: #0e1810;
+  --body-bg-color-2: #16241a;
+  --button-text-color: #0e1810;
+}
+
+/* Dappled sunlight pooling through the canopy from above, with deep mossy
+   shadow gathering at the forest floor. */
+.theme-forest #chat-container {
+  background:
+    radial-gradient(50% 40% at 22% -5%, rgba(170, 220, 110, 0.12), transparent 60%),
+    radial-gradient(45% 34% at 68% -8%, rgba(205, 232, 120, 0.10), transparent 62%),
+    radial-gradient(60% 50% at 85% 112%, rgba(36, 78, 44, 0.20), transparent 60%),
+    linear-gradient(170deg, #16241a, #0e1810);
+}
+
+/* button-text-color is the dark on-accent text; on transparent surfaces use the accent instead */
+.theme-forest .tab-button.active,
+.theme-forest .reset-button {
+  color: var(--accent-color);
+}
+
+/* Canopy-breeze glow that gently swells on the wordmark logo */
+@keyframes forest-sway {
+  0%, 100% { filter: drop-shadow(0 0 3px rgba(108, 194, 74, 0.4)); }
+  50% { filter: drop-shadow(0 0 8px rgba(143, 216, 106, 0.6)); }
+}
+
+.theme-forest #wordmark-logo path {
+  stroke: var(--accent-color);
+  animation: forest-sway 7s ease-in-out infinite;
+}
+
+.theme-forest pre,
+.theme-forest pre code,
+.theme-forest .code-block {
+  background-color: #101a12;
+  border: 1px solid var(--border-color);
+}
+
+/* Comic — pop-art comic book: cream newsprint dotted with a Ben-Day halftone,
+   heavy ink outlines, and speech-bubble panels with hard offset shadows. A
+   punchy red accent and bold uppercase headings finish the four-color look. */
+.theme-comic {
+  --bg-primary: #fff8e7;
+  --bg-secondary: #ffedc2;
+  --text-primary: #1a1a1a;
+  --text-secondary: #555555;
+  --accent-color: #e63946;
+  --accent-hover: #ff5a67;
+  --border-color: #1a1a1a;
+  --user-bg: #ffe08a;
+  --assistant-bg: #ffffff;
+  --error-bg: #ffd6d6;
+  --error-text: #c1121f;
+  --body-bg-color-1: #fff8e7;
+  --body-bg-color-2: #ffe7b3;
+  --button-text-color: #ffffff;
+}
+
+/* Ben-Day halftone dot field over cream newsprint */
+.theme-comic #chat-container {
+  background-color: #fff8e7;
+  background-image: radial-gradient(rgba(230, 57, 70, 0.18) 1.5px, transparent 1.7px);
+  background-size: 12px 12px;
+}
+
+/* Inked speech-bubble panels with a hard offset shadow */
+.theme-comic .message .message-content {
+  border: 2px solid var(--border-color);
+  border-radius: 14px;
+  box-shadow: 3px 3px 0 var(--border-color);
+}
+
+.theme-comic .message.user .message-content {
+  background-color: var(--user-bg);
+}
+
+.theme-comic #user-input {
+  background-color: #ffffff;
+  border: 2px solid var(--border-color);
+  color: var(--text-primary);
+  caret-color: var(--accent-color);
+}
+
+.theme-comic #user-input::placeholder {
+  color: rgba(26, 26, 26, 0.5);
+}
+
+/* Bold uppercase comic-title headings */
+.theme-comic .message-content h1,
+.theme-comic .message-content h2,
+.theme-comic .message-content h3 {
+  font-family: "Trebuchet MS", "Segoe UI", system-ui, sans-serif;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+}
+
+.theme-comic .settings-group {
+  border: 2px solid var(--border-color);
+  background-color: #ffffff;
+}
+
+.theme-comic .tab-button.active {
+  background: transparent !important;
+  color: var(--accent-color) !important;
+  border-bottom: 3px solid var(--accent-color) !important;
+}
+
+.theme-comic #wordmark-logo path {
+  stroke: var(--accent-color);
+}
+
+.theme-comic pre,
+.theme-comic pre code,
+.theme-comic .code-block {
+  background-color: #fffdf5;
+  border: 2px solid var(--border-color);
+}

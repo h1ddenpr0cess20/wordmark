@@ -76,11 +76,6 @@
   animation: spin 1s linear infinite;
 }
 
-@keyframes spin {
-  0% { transform: rotate(0deg); }
-  100% { transform: rotate(360deg); }
-}
-
 .location-status {
   padding: 8px 12px;
   border-radius: 4px;
@@ -174,4 +169,20 @@
   color: var(--text-secondary);
   border-radius: 6px;
   margin-bottom: 12px;
+}
+
+/* Optional theme-pack rows: label beside the toggle (not stacked above it),
+   with the pack name emphasized. */
+.theme-pack-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.theme-pack-item > label {
+  display: inline;
+  margin-bottom: 0;
+  font-weight: 600;
+  font-size: 0.95rem;
 }

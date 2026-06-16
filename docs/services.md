@@ -116,7 +116,8 @@ Tools are managed under `src/ts/services/api/` — `toolManager.ts` (filtering +
 - Expands `[[IMAGE: filename]]` placeholders to `input_image` parts
 - Attaches inline images as base64 data URLs
 - Collects function call outputs for multi-turn flows
-- Builds system/developer messages with personality and context
+
+`src/ts/services/api/instructions.ts` builds system/developer messages with personality, location, timestamp, tool descriptions, and stored memories.
 
 ## Reasoning Support
 

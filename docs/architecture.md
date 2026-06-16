@@ -26,17 +26,17 @@ Modules
 - `components/`: UI behavior
   - `messages.ts`: render messages, code highlighting + copy buttons, reasoning toggle, image thumbnails in messages
   - `settings.ts`: header update, service/model dropdowns, settings panel layout helpers, and UI hooks that model-fetchers call
-  - `theme.ts`, `attachments.ts`, `logo.ts`, `aboutPopups.ts`, plus `ui/` helpers: general UI composition, themes, uploads, logo render, small popups
+  - `theme.ts`, `attachments/`, `logo.ts`, `aboutPopups.ts`, plus `ui/` helpers: general UI composition, themes, uploads, logo render, small popups
 
 - `services/`: API and feature services
   - `api.ts`: aggregates the Responses client helpers so UI modules can run turns and manage tools
   - `providers.ts`: provider capability registry — pure predicates (`isLocalService`, `serviceSupportsReasoning`, `usesServerManagedTools`, …) that replace scattered `serviceKey === …` checks
-  - `api/`: split helpers for configuration (`clientConfig.ts`), message prep (`messageUtils.ts`), request execution (`requestClient.ts`), non-streaming response normalization (`responseNormalization.ts`), and the tool system (`toolManager.ts` facade + `tools/catalog.ts`, `tools/preferences.ts`, `tools/mcp.ts`, `staticTools.ts`)
+  - `api/`: split helpers for configuration (`clientConfig.ts`), message prep (`messageUtils.ts`), system/developer prompt assembly (`instructions.ts`), token estimation/history windowing (`tokenBudget.ts`), request execution (`requestClient.ts`), non-streaming response normalization (`responseNormalization.ts`), and the tool system (`toolManager.ts` facade + `tools/catalog.ts`, `tools/preferences.ts`, `tools/mcp.ts`, `staticTools.ts`)
   - `streaming.ts`: orchestrates SSE consumption; wires the runtime/event processor and finalises messages
   - `streaming/runtime.ts`: maintains incremental output, reasoning buffers, DOM updates, and image attachment staging
-  - `streaming/eventProcessor.ts`: parses SSE event types for reasoning, tool status, image generation, and error handling (provider-agnostic — one unified event vocabulary)
+  - `streaming/eventProcessor.ts`: parses SSE event types for reasoning, tool status, image generation, and error handling (provider-agnostic — one unified event vocabulary); pure payload parsing/formatting lives in `streaming/eventParsing.ts`
   - `streaming/messageLifecycle.ts`: reconciles loading UI with stored history once streaming completes
-  - `streaming/codeInterpreter.ts`, `streaming/imageGeneration.ts`, `streaming/thinkingUtils.ts`: specialised helpers for tool output, gallery linking, and markdown sanitisation
+  - `streaming/codeInterpreter.ts` (+ `codeInterpreterRender.ts`), `streaming/imageGeneration.ts`, `streaming/thinkingUtils.ts`: specialised helpers for tool-output extraction/rendering, gallery linking, and markdown sanitisation
   - `history/`: chat history + URL state; loads/saves to IndexedDB; history panel helpers
   - `export.ts`: export chat to text with optional reasoning
   - `tts/`: voice list, autoplay, per-message audio resources, and IndexedDB for audio

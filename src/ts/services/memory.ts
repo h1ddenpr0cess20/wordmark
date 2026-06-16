@@ -1,5 +1,3 @@
-import { getMemories, addMemory, removeMemoryAt, getMemoryConfig } from "../utils/memoryStorage.ts";
-import { toolImplementations } from "./toolImplementations.ts";
 /**
  * Memory function-call tools.
  *
@@ -7,6 +5,9 @@ import { toolImplementations } from "./toolImplementations.ts";
  * Defines and registers the `remember` and `forget` tools, which let the model
  * persist and remove brief user memories via {@link toolImplementations}.
  */
+
+import { getMemories, addMemory, removeMemoryAt, getMemoryConfig } from "../utils/storage/memoryStorage.ts";
+import { toolImplementations } from "./toolImplementations.ts";
 
 /** Tool definition for `remember`: stores a brief memory. */
 export const memoryToolDefinition = {
@@ -27,6 +28,13 @@ export const memoryToolDefinition = {
   strict: false,
 };
 
+/**
+ * Handler for the `remember` tool: stores the supplied memory text.
+ *
+ * @param args - Tool arguments; `args.memory` holds the text to store.
+ * @returns `{ ok, stored, total }` on success, or `{ ok: false, message }`
+ * when memory is disabled, storage is unavailable, or an error is thrown.
+ */
 toolImplementations.remember = async function(args) {
   try {
     const cfg = getMemoryConfig ? getMemoryConfig() : { enabled: false, limit: 25 };
@@ -65,6 +73,15 @@ export const forgetToolDefinition = {
   strict: false,
 };
 
+/**
+ * Handler for the `forget` tool: removes the first stored memory whose text
+ * contains the given keyword (case-insensitive substring).
+ *
+ * @param args - Tool arguments; `args.keyword` is the substring to match.
+ * @returns `{ ok: true, removed, removed_index, matches, remaining }` when a
+ * memory is removed, or `{ ok: false, message }` when memory is disabled, the
+ * keyword is missing, or nothing matches.
+ */
 toolImplementations.forget = async function(args) {
   try {
     const cfg = getMemoryConfig ? getMemoryConfig() : { enabled: false };

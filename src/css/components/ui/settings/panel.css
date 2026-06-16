@@ -137,13 +137,6 @@
   flex-direction: column;
 }
 
-.tab-content.active {
-  display: block;
-  flex: 1 1 auto;
-  width: 100%;
-  overflow-y: visible;
-}
-
 .settings-group {
   margin-bottom: 22px;
 }

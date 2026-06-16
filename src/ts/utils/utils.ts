@@ -1,10 +1,15 @@
 /**
- * Miscellaneous shared helpers: debouncing, input sanitization, and management
- * of the collapsible reasoning ("thinking") containers.
+ * Miscellaneous domain-agnostic helpers: debouncing, input sanitization,
+ * record access, URL normalization, and size/text formatting.
+ *
+ * @remarks
+ * Re-exports {@link toggleThinking} and {@link stripBase64FromHistory} from
+ * their own modules so existing import paths stay stable; the implementations
+ * live in {@link ./thinking.ts} and {@link ./historyImages.ts}.
  */
 
-import { state } from "../init/state.ts";
-import type { Attachment } from "../../types/api.ts";
+export { toggleThinking } from "./thinking.ts";
+export { stripBase64FromHistory } from "./historyImages.ts";
 
 /**
  * Wraps a function so it only runs after `wait` ms have elapsed since the last
@@ -109,125 +114,3 @@ export function formatFileSize(bytes: number): string {
   return (bytes / (1024 * 1024)).toFixed(1) + " MB";
 }
 
-/**
- * Toggles a reasoning container's collapsed state and remembers the preference.
- *
- * @param id - The id of the thinking container to toggle.
- * @param event - Optional triggering event; bubbling and default are suppressed.
- */
-export function toggleThinking(id: string, event?: Event) {
-  if (event) {
-    event.stopPropagation();
-    event.preventDefault();
-  }
-
-  const thinkingContainer = document.getElementById(id);
-  if (!thinkingContainer) {
-    console.warn("Thinking container not found:", id);
-    return;
-  }
-
-  const wasCollapsed = thinkingContainer.classList.contains("collapsed");
-
-  thinkingContainer.classList.toggle("collapsed");
-
-  if (!state.userThinkingState || typeof state.userThinkingState !== "object") {
-    state.userThinkingState = {};
-  }
-  state.userThinkingState[id] = wasCollapsed === true;
-
-  if (state.verboseLogging) {
-    console.log(`Toggled thinking container ${id}: ${wasCollapsed ? "expanded" : "collapsed"}`);
-  }
-
-  if (wasCollapsed) {
-    const contentDiv = thinkingContainer.querySelector(".thinking-content");
-    if (contentDiv) {
-      setTimeout(() => {
-        contentDiv.scrollTop = 0;
-      }, 100);
-    }
-  }
-}
-
-/** Matches inline base64 image data URIs that should be stripped from stored history. */
-const INLINE_BASE64_IMAGE_PATTERN = /data:image\/[^;]+;base64,[^\s]+/g;
-
-/**
- * Replaces inline base64 image data in a stored user message with filename
- * placeholders, caching the stripped data URLs for later display.
- *
- * @remarks
- * Keeps large base64 strings out of conversation history. If the placeholders
- * are already present, only the base64 data is removed; otherwise the
- * placeholders are prepended to the remaining text.
- *
- * @param messageId - Id of the user message to rewrite.
- * @param placeholders - Placeholder strings such as `[[IMAGE: file.jpg]]`.
- */
-export function stripBase64FromHistory(messageId: string, placeholders: string[] = []) {
-  if (!Array.isArray(state.conversationHistory)) {
-    return;
-  }
-  const entry = state.conversationHistory.find(msg => msg.id === messageId);
-  if (!entry || entry.role !== "user") {
-    return;
-  }
-
-  function sanitizeAttachments() {
-    if (!Array.isArray(entry!.attachments)) {
-      return;
-    }
-    entry!.attachments = entry!.attachments
-      .map((att: Attachment): Attachment | null => {
-        if (!att || typeof att !== "object") {
-          return null;
-        }
-        const normalized: Attachment = { ...att };
-        if (normalized.filename && normalized.dataUrl) {
-          try {
-            if (state.imageDataCache && typeof state.imageDataCache.set === "function") {
-              state.imageDataCache.set(normalized.filename, normalized.dataUrl);
-            }
-          } catch (cacheErr) {
-            console.warn("Failed to cache attachment data for", normalized.filename, cacheErr);
-          }
-          normalized.inlineDataRemoved = true;
-          normalized.dataUrl = null;
-        }
-        return normalized;
-      })
-      .filter((att): att is Attachment => att !== null);
-  }
-
-  let textPart = typeof entry.content === "string" ? entry.content : "";
-
-  const existingPlaceholders = placeholders.filter(placeholder =>
-    textPart.includes(placeholder),
-  );
-
-  if (existingPlaceholders.length === placeholders.length) {
-    entry.content = textPart.replace(INLINE_BASE64_IMAGE_PATTERN, "").trim();
-    sanitizeAttachments();
-    return;
-  }
-
-  textPart = textPart.replace(INLINE_BASE64_IMAGE_PATTERN, "").trim();
-  const placeholderText = placeholders.join("\n");
-  entry.content = placeholderText + (textPart ? `\n\n${textPart}` : "");
-  sanitizeAttachments();
-}
-
-if (typeof document !== "undefined" && typeof document.addEventListener === "function") {
-  document.addEventListener("click", (event) => {
-    const target = event.target as Element | null;
-    const title = target?.closest(".thinking-title");
-    if (!title) {
-      return;
-    }
-    const container = title.closest(".thinking-container");
-    if (container && container.id) {
-      toggleThinking(container.id, event);
-    }
-  });
-}

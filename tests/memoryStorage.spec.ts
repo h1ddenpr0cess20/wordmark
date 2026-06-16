@@ -12,7 +12,7 @@ globalThis.localStorage = {
 globalThis.CustomEvent = class { constructor(public type: string, public init?: unknown) {} } as never;
 globalThis.window = { dispatchEvent() { return true; } } as unknown as Window & typeof globalThis;
 
-const mem = await import("../src/ts/utils/memoryStorage.js");
+const mem = await import("../src/ts/utils/storage/memoryStorage.js");
 
 function reset() {
   for (const k of Object.keys(store)) delete store[k];

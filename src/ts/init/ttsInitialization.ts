@@ -3,7 +3,7 @@
  */
 
 import { elements, state } from "./state.ts";
-import { setupMobileKeyboardHandling } from "../utils/mobileHandling.ts";
+import { setupMobileKeyboardHandling } from "../utils/dom/mobileHandling.ts";
 import { ttsConfig, availableTtsVoices, initTtsReferences } from "../services/tts.ts";
 
 interface TtsVoice {

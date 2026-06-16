@@ -6,7 +6,7 @@
  * touch scrolling, and adds tap-to-expand behavior for the system-prompt area.
  */
 
-import { elements } from "../init/state.ts";
+import { elements } from "../../init/state.ts";
 
 /** Returns `true` when the current device looks like a phone or small tablet. */
 export function isMobileDevice() {

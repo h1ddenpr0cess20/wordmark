@@ -71,5 +71,5 @@ Wordmark includes an optional, privacy‑friendly Memory feature that lets the a
 - UI: `src/ts/components/memory.ts`
 - API/system prompt glue: `src/ts/services/api.ts`
 - Tools: `src/ts/services/memory.ts` and injection in `src/ts/components/tools.ts`
-- Styles: `src/css/components/ui/settings.css` (number input tweaks) and `src/css/components/ui/tool-settings.css` (list layout)
+- Styles: `src/css/components/ui/settings/forms.css` (number input tweaks) and `src/css/components/ui/tool-settings/` (list layout)
 

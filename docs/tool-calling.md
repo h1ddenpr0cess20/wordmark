@@ -12,7 +12,8 @@ The former 600-line `toolManager.ts` god-object is split by responsibility; `too
 
 - `tools/catalog.ts` — the mutable tool registry. Owns `TOOL_CATALOG` (rich entries) and `TOOL_DEFINITIONS` (provider-facing definitions, kept in lockstep order), the `userMcpToolCount` boundary, and the typed splice mutators. It also loads persisted MCP servers and seeds the static tools at module load.
 - `tools/preferences.ts` — per-tool enable/disable map, persisted to `localStorage` (`wordmark_tool_preferences`); `isToolEnabled` / `setToolEnabled` / `setAllToolsEnabled`.
-- `tools/mcp.ts` — MCP server `registerMcpServer` / `unregisterMcpServer` plus availability ping + status cache (`refreshMcpAvailability`).
+- `tools/mcp.ts` — MCP server `registerMcpServer` / `unregisterMcpServer` plus the availability status cache and refresh (`refreshMcpAvailability`).
+- `tools/mcpProbe.ts` — the network reachability probing behind that cache (`pingMcpServer`, fetch/timeout, local-network detection); `tools/mcp.ts` re-exports `isLocalNetworkUrl`.
 - `staticTools.ts` — the pure `STATIC_TOOLS` data (the built-in/function tool definitions).
 - `toolManager.ts` — request-time tool filtering (`getEnabledToolDefinitions`), the UI catalog view (`getToolCatalog`), and re-exports of the above.
 
@@ -32,7 +33,7 @@ Built-in Tools
 
 - `open_meteo_forecast` (type: `function`) — Public weather forecasts via Open-Meteo (no key required). Handler in `src/ts/services/weather.ts`.
 - `web_search` (type: `builtin`) — Provider-managed web search (OpenAI, xAI). For xAI, also includes `x_search` for Twitter/X search.
-- `code_interpreter` (type: `builtin`) — Python code execution in provider sandbox (OpenAI, xAI). Outputs handled by `src/ts/services/streaming/codeInterpreter.ts`.
+- `code_interpreter` (type: `builtin`) — Python code execution in provider sandbox (OpenAI, xAI). Outputs extracted by `src/ts/services/streaming/codeInterpreter.ts` and rendered by `codeInterpreterRender.ts`.
 - `image_generation` (type: `builtin`) — OpenAI image generation. Outputs processed by `src/ts/services/streaming/imageGeneration.ts`.
 - `file_search` (type: `builtin`) — Vector store search across uploaded documents (OpenAI only). Rendered in reasoning timeline. xAI uses direct `input_file` references instead.
 - MCP connectors (type: `mcp`) — User-supplied servers registered in Settings → Tools. Availability depends on the external MCP server responding to ping checks.

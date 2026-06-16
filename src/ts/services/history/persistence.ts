@@ -11,127 +11,21 @@ import {
   saveConversationToDb,
   loadConversationFromDb,
   renameConversationInDb,
-} from "../../utils/conversationStorage.ts";
+} from "../../utils/storage/conversationStorage.ts";
 import { config } from "../../../config/config.ts";
-import { saveImageToDb, loadImageFromDb } from "../../utils/imageStorage.ts";
-import { detectMediaType } from "../mediaTools.ts";
+import { logVerbose } from "../../utils/logger.ts";
+import { loadImageFromDb } from "../../utils/storage/imageStorage.ts";
 import { ensureImagesHaveMessageIds } from "../streaming/imageGeneration.ts";
 import { renderChatHistoryList } from "./list.ts";
 import { renderConversationMessages } from "./render.ts";
-import type { Message } from "../../../types/api.ts";
-import type { ConversationRecord, GeneratedImage } from "../../../types/common.ts";
+import { processImageForStorage, markMessagesWithImages } from "./persistenceImages.ts";
+import type { ConversationRecord } from "../../../types/common.ts";
 
-function processImageForStorage(img: GeneratedImage, savePromises: Promise<unknown>[]) {
-  const processedImg = { ...img };
-  const mediaType = detectMediaType(processedImg);
-  const mimeType = processedImg.mimeType
-    || (typeof processedImg.url === "string" && processedImg.url.startsWith("data:")
-      ? processedImg.url.slice(5).split(";", 1)[0]
-      : (mediaType === "video" ? "video/mp4" : "image/png"));
-
-  if (processedImg.isStoredInDb && processedImg.filename) {
-    return {
-      filename: processedImg.filename,
-      prompt: processedImg.prompt || "",
-      tool: processedImg.tool || "",
-      timestamp: processedImg.timestamp || new Date().toISOString(),
-      associatedMessageId: processedImg.associatedMessageId || "",
-      isStoredInDb: true,
-      mediaType,
-      mimeType,
-      uploaded: Boolean(processedImg.uploaded),
-      callId: processedImg.callId || "",
-      model: processedImg.model || "",
-    };
-  }
-
-  if ((processedImg.url && processedImg.url.startsWith("data:")) || processedImg.pendingStorageData instanceof Blob) {
-    try {
-      if (!processedImg.filename) {
-        const extension = mimeType === "image/jpeg"
-          ? "jpg"
-          : mimeType === "image/webp"
-            ? "webp"
-            : mimeType === "video/webm"
-              ? "webm"
-              : mimeType === "video/quicktime"
-                ? "mov"
-                : mediaType === "video"
-                  ? "mp4"
-                  : "png";
-        const prefix = mediaType === "video" ? "video" : "image";
-        processedImg.filename = `${prefix}-${Date.now()}-${Math.random().toString(36).substring(2, 10)}.${extension}`;
-      }
-
-      const savePayload: Blob | string = processedImg.pendingStorageData instanceof Blob
-        ? processedImg.pendingStorageData
-        : processedImg.url!;
-      const savePromise = saveImageToDb?.(savePayload, processedImg.filename, {
-        prompt: processedImg.prompt || "",
-        tool: processedImg.tool || "",
-        associatedMessageId: processedImg.associatedMessageId || "",
-        mediaType,
-        mimeType,
-        uploaded: Boolean(processedImg.uploaded),
-        callId: processedImg.callId || "",
-        model: processedImg.model || "",
-      }).catch((err) => {
-        console.error("Failed to save image to IndexedDB:", err);
-        return null;
-      });
-
-      if (savePromise) {
-        savePromises.push(savePromise);
-      }
-
-      return {
-        filename: processedImg.filename,
-        prompt: processedImg.prompt || "",
-        tool: processedImg.tool || "",
-        timestamp: processedImg.timestamp || new Date().toISOString(),
-        associatedMessageId: processedImg.associatedMessageId || "",
-        isStoredInDb: true,
-        mediaType,
-        mimeType,
-        uploaded: Boolean(processedImg.uploaded),
-        callId: processedImg.callId || "",
-        model: processedImg.model || "",
-      };
-    } catch (error) {
-      console.error("Error processing image for storage:", error);
-      return {
-        filename: processedImg.filename || `fallback-${Date.now()}.${mediaType === "video" ? "mp4" : "png"}`,
-        prompt: processedImg.prompt || "",
-        timestamp: new Date().toISOString(),
-        imageUnavailable: true,
-        error: error instanceof Error ? error.message : "",
-        mediaType,
-        mimeType,
-      };
-    }
-  }
-
-  return processedImg;
-}
-
-function markMessagesWithImages(baseHistory: Message[], processedImages: GeneratedImage[]) {
-  return baseHistory.map((msg) => {
-    const markedMsg = { ...msg };
-
-    if (markedMsg.role === "assistant") {
-      const hasAssociatedImages = processedImages.some((img) => img.associatedMessageId === markedMsg.id);
-      if (hasAssociatedImages) {
-        markedMsg.hasImages = true;
-        if (!markedMsg.id) {
-          markedMsg.id = `msg-${Date.now()}-${Math.random().toString(36).substring(2, 10)}`;
-        }
-      }
-    }
-
-    return markedMsg;
-  });
-}
-
+/**
+ * Resolves the system-prompt type and content to persist with a conversation,
+ * preferring an already-loaded prompt and otherwise reading the selected
+ * personality/custom radio inputs. Defaults to `{ type: "none", content: "" }`.
+ */
 function normalizePromptState() {
   let promptType = "none";
   let promptContent = "";
@@ -162,6 +56,13 @@ function ensureLibrariesLoaded() {
   return Promise.resolve();
 }
 
+/**
+ * Loads a conversation's DB-stored images into an in-memory cache before
+ * rendering, so the transcript can resolve image placeholders synchronously.
+ *
+ * @param convo - The conversation whose `images` references are preloaded.
+ * @returns A promise for a `filename -> data` cache; failures yield an empty map.
+ */
 function preloadImages(convo: ConversationRecord) {
   const imageLoadPromises: Promise<void>[] = [];
   const imageCache = new Map<string, string | Blob>();
@@ -173,9 +74,7 @@ function preloadImages(convo: ConversationRecord) {
         .then((imageRecord) => {
           if (imageRecord?.data) {
             imageCache.set(filename, imageRecord.data);
-            if (state.verboseLogging) {
-              console.info(`Loaded image from IndexedDB: ${filename}`);
-            }
+            logVerbose(`Loaded image from IndexedDB: ${filename}`);
           }
         })
         .catch((err) => {
@@ -194,6 +93,16 @@ function preloadImages(convo: ConversationRecord) {
   });
 }
 
+/**
+ * Returns `messages` with developer-role entries (and nullish items) removed,
+ * or an empty array when the input is not an array. Developer messages are
+ * internal scaffolding that is never persisted or replayed.
+ */
+function withoutDeveloperMessages<T extends { role?: string }>(messages: T[] | null | undefined): T[] {
+  return Array.isArray(messages) ? messages.filter(msg => msg && msg.role !== "developer") : [];
+}
+
+/** Clears the in-memory conversation state (history, images, ids, prompt, thinking). */
 function resetConversationState() {
   state.conversationHistory = [];
   state.generatedImages = [];
@@ -216,14 +125,12 @@ export function saveCurrentConversation(meta: { name?: string; created?: string 
   }
 
   const updatedCount = ensureImagesHaveMessageIds();
-  if (state.verboseLogging && updatedCount > 0) {
-    console.info(`Associated ${updatedCount} images with messages before saving`);
+  if (updatedCount > 0) {
+    logVerbose(`Associated ${updatedCount} images with messages before saving`);
   }
 
   const now = new Date();
-  const baseHistory = Array.isArray(state.conversationHistory)
-    ? state.conversationHistory.filter(msg => msg && msg.role !== "developer")
-    : [];
+  const baseHistory = withoutDeveloperMessages(state.conversationHistory);
 
   const { promptType, promptContent } = normalizePromptState();
   const savePromises: Promise<unknown>[] = [];
@@ -250,8 +157,8 @@ export function saveCurrentConversation(meta: { name?: string; created?: string 
 
   Promise.all(savePromises)
     .then((results) => {
-      if (state.verboseLogging && results.length > 0) {
-        console.info(`Saved ${results.filter(Boolean).length} images to IndexedDB`);
+      if (results.length > 0) {
+        logVerbose(`Saved ${results.filter(Boolean).length} images to IndexedDB`);
       }
     })
     .catch((err) => {
@@ -260,9 +167,7 @@ export function saveCurrentConversation(meta: { name?: string; created?: string 
 
   saveConversationToDb?.(conversation)
     .then((id) => {
-      if (state.verboseLogging) {
-        console.info("Saved conversation to IndexedDB:", id);
-      }
+      logVerbose("Saved conversation to IndexedDB:", id);
     })
     .catch((err) => {
       console.error("Failed to save conversation to IndexedDB:", err);
@@ -302,9 +207,7 @@ export function startNewConversation(name: string | null = null) {
     elements.chatBox.innerHTML = "";
   }
 
-  if (state.verboseLogging) {
-    console.info("Started new conversation");
-  }
+  logVerbose("Started new conversation");
 };
 
 /**
@@ -333,10 +236,15 @@ export function loadConversation(id: string) {
     });
 };
 
+/**
+ * Replaces the in-memory state with a loaded conversation (dropping developer
+ * messages), clears the chat box, and renders the transcript with `imageCache`.
+ *
+ * @param convo - The loaded conversation record.
+ * @param imageCache - Preloaded `filename -> data` map from {@link preloadImages}.
+ */
 function loadConversationIntoUI(convo: ConversationRecord, imageCache: Map<string, string | Blob>) {
-  const filteredMessages = Array.isArray(convo.messages)
-    ? convo.messages.filter((msg) => msg && msg.role !== "developer")
-    : [];
+  const filteredMessages = withoutDeveloperMessages(convo.messages);
 
   state.conversationHistory = filteredMessages;
   state.generatedImages = Array.isArray(convo.images) ? convo.images : [];

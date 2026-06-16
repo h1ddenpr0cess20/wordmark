@@ -34,6 +34,20 @@ export async function generateSpeech(text: string) {
   }
 }
 
+/**
+ * Synthesizes speech via OpenAI's `gpt-4o-mini-tts` endpoint.
+ *
+ * @remarks
+ * Voice instructions are resolved in order of preference: the explicit
+ * {@link ttsConfig.instructions}; otherwise a personality-derived instruction
+ * when the personality prompt is the active, explicitly-set system prompt
+ * (with a directive to skip code blocks and `*emote*` text); otherwise a
+ * generic conversational tone. Audio is requested in WAV format.
+ *
+ * @param text - The text to synthesize.
+ * @returns A WAV audio `ArrayBuffer`, or `null` when no OpenAI API key is set.
+ * @throws If the speech request returns a non-ok status.
+ */
 async function generateSpeechOpenai(text: string) {
   const openaiApiKey = config.services.openai?.apiKey;
 
@@ -85,6 +99,18 @@ async function generateSpeechOpenai(text: string) {
   return response.arrayBuffer();
 }
 
+/**
+ * Synthesizes speech via xAI's `/v1/tts` endpoint.
+ *
+ * @remarks
+ * Requests WAV output at a 24 kHz sample rate with automatic language
+ * detection. Unlike the OpenAI path, this provider takes no free-form voice
+ * instructions — only the configured `voice_id`.
+ *
+ * @param text - The text to synthesize.
+ * @returns A WAV audio `ArrayBuffer`, or `null` when no xAI API key is set.
+ * @throws If the speech request returns a non-ok status.
+ */
 async function generateSpeechXai(text: string) {
   const xaiApiKey = config.services.xai?.apiKey;
 

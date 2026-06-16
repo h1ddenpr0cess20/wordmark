@@ -28,39 +28,55 @@ Purpose: quick orientation to the current project layout, key entry points, and 
     - `messages.ts`: Render and stream assistant/user messages; attachment previews.
     - `settings.ts`: Settings panel logic (API keys, service/model, tools, memory).
     - `theme.ts`: Theme switching and persistence.
-    - `attachments.ts`: Image/file uploads and previews.
+    - `attachments/`: Upload ingestion grouped together — `attachments.ts` (menu/drag-drop/paste/validation entry), `attachmentDragDrop.ts`, `attachmentPreviews.ts` (pending previews + removal), `outgoingAttachments.ts` (builds the outgoing message attachment payload).
     - `tools.ts`: Tool configuration UI hooked to the Responses client (`services/api.ts`).
     - `memory.ts`: Memory tab UI (enable, limit, add/remove/clear).
+    - `gallery/`: Media gallery — `gallery.ts` (panel/tabs/bulk-delete), `galleryData.ts` (IndexedDB reads), `galleryItem.ts` (per-item card markup).
+    - `vectorStore/`: Vector-store UI — `vectorStoreManager.ts` (list/activate/inspect/delete) and `vectorStoreFormatting.ts` (name/byte formatting helpers).
     - `aboutPopups.ts`, `logo.ts`, `ui/`: Ancillary UI + shared UI helpers (settings tabs, image interactions).
   - `services/`
     - `api.ts`: Aggregates Responses helpers so UI modules can run turns and manage tools.
     - `providers.ts`: Provider capability registry — pure predicates centralizing per-provider quirks.
     - `api/`: Modular request handling for the Responses API
       - `requestClient.ts`: Network layer for streaming/non-streaming requests; orchestrates tool execution loops
+      - `requestTransport.ts`: HTTP transport primitives — header building and streaming/non-streaming `fetch` execution
       - `clientConfig.ts`: Service configuration helpers (active model, API key, base URL, reasoning support)
-      - `messageUtils.ts`: Message serialization for Responses API (multimodal content, function calls, system prompts)
+      - `messageUtils.ts`: Message serialization for Responses API (multimodal content, function calls)
+      - `instructions.ts`: System/developer prompt assembly (prompt mode, personality, location, timestamp, tools, memories)
+      - `tokenBudget.ts`: Token estimation (~4 chars/token) and history-window trimming to a per-request budget
       - `responseNormalization.ts`: Folds non-streaming provider response shapes into normalized output/reasoning strings
       - `toolManager.ts`: Facade — request-time tool filtering + UI catalog view; re-exports the `tools/` sub-modules
       - `tools/catalog.ts`: The mutable tool registry (`TOOL_CATALOG`/`TOOL_DEFINITIONS`) + typed mutators
       - `tools/preferences.ts`: Per-tool enable/disable map + localStorage persistence
-      - `tools/mcp.ts`: MCP register/unregister + availability ping/cache
+      - `tools/mcp.ts`: MCP register/unregister + availability status cache
+      - `tools/mcpProbe.ts`: MCP server reachability probing (fetch/timeout, local-network detection)
       - `staticTools.ts`: The `STATIC_TOOLS` built-in/function tool definitions (pure data)
     - `streaming.ts`: SSE parser for Responses API; coordinates with streaming/* modules
     - `streaming/`: Specialized streaming response handlers
-      - `codeInterpreter.ts`: Extracts and renders code interpreter outputs (logs, files, charts)
+      - `codeInterpreter.ts`: Extracts code interpreter outputs (logs, files, charts) from response payloads
+      - `codeInterpreterParse.ts`: Pure code-interpreter parsers (file-id detection, subtype inference, attachment building)
+      - `codeInterpreterRender.ts`: Renders extracted code interpreter outputs into the message DOM (metadata hydration, downloads)
+      - `codeAttachmentMeta.ts`: Pure attachment naming/metadata helpers (filename, size, MIME-to-extension, header parsing)
       - `imageGeneration.ts`: Processes image_generation_call outputs, manages gallery integration
+      - `imageCallParsing.ts`: Pure parsers for an image-generation call node (prompt, mode, source label)
+      - `imageDataUrl.ts`: Pure image data-URL helpers (base64 detection, MIME parse/normalize, coercion)
+      - `eventParsing.ts`: Pure SSE event-parsing helpers (delta/reasoning extraction, tool-arg formatting, buffering)
+      - `finalizeExtract.ts`: Pure output/reasoning text extraction from finalized (non-streamed) response payloads
       - `messageLifecycle.ts`: Message finalization, content extraction, history management
       - `thinkingUtils.ts`: Separates thinking tags from main content for cleaner display
     - `history/`: Save/load conversations to IndexedDB and render conversation list
-    - `export.ts`: Export chats/images in multiple formats; gallery population and download
+    - `mediaTools.ts` / `mediaType.ts`: Media display/storage/registration; pure media-type detection, MIME inference, and thumbnail markup
+    - `grokImageTool.ts`: xAI Grok Imagine generate/edit image tool (request building, provider HTTP plumbing, tool registration)
+    - `export.ts` / `exportFormats.ts`: Export chats in multiple formats — download controller + the format serializer registry (txt/md/html/json/csv)
     - `apiKeys.ts` / `apiKeyStorage.ts`: In‑app key UI and storage/retrieval via localStorage
     - `memory.ts`: Memory management functions and tool exposure
     - `weather.ts`: Built-in Open-Meteo forecast tool handler
-    - `mcpServers.ts`: MCP server configuration UI and persistence
+    - `mcpServers.ts` / `mcpServerStore.ts`: MCP server settings UI + client wiring, and the localStorage CRUD store
   - `utils/`
-    - `memoryStorage.ts`: Local storage for memory (enable/limit/list) and prompt formatting.
-    - `storage.ts`: Typed localStorage facade + central `STORAGE_KEYS` registry.
-    - `logger.ts`, `tooltips.ts`, `menuSystem.ts`, `notifications.ts`: Misc helpers.
+    - `storage/`: All persistence helpers — `storage.ts` (typed localStorage facade + central `STORAGE_KEYS` registry), `memoryStorage.ts` (memory enable/limit/list + prompt formatting), `idb.ts` (IndexedDB open helper), and the IndexedDB-backed `conversationStorage.ts`/`imageStorage.ts`/`audioStorage.ts`.
+    - `dom/`: Browser/DOM helpers — `clipboard.ts` (copy-with-fallback), `download.ts` (anchor-based file download), `menuSystem.ts` (settings panel HTML injection), `mobileHandling.ts` (mobile input/viewport handling).
+    - `logger.ts`, `tooltips.ts`, `notifications.ts`: Misc helpers (logger exposes `logVerbose`; notification styling lives in `css/components/ui/notifications.css`).
+    - `inlineStatus.ts`, `thinking.ts`, `historyImages.ts`, `placeholders.ts`: Small shared helpers split out of `utils.ts`/settings UI (transient status toasts, reasoning-container toggle, history image stripping, placeholder regexes).
   - Vendor libraries (`dompurify`, `marked`, `highlight.js`) are npm dependencies imported directly by the modules that use them and bundled by Vite — there is no `src/ts/lib/` directory.
 
 - `css/`

@@ -11,7 +11,8 @@ globalThis.localStorage = {
 } as unknown as Storage;
 
 const { config } = await import('../src/config/config.js');
-const { buildRequestBody, buildHeaders } = await import('../src/ts/services/api/requestClient.js');
+const { buildRequestBody } = await import('../src/ts/services/api/requestClient.js');
+const { buildHeaders } = await import('../src/ts/services/api/requestTransport.js');
 
 config.defaultService = 'openai';
 config.services.openai.apiKey = 'test-key';

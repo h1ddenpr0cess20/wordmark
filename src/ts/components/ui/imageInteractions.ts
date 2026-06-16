@@ -8,8 +8,8 @@
 
 import { state } from "../../init/state.ts";
 import { icon } from "../../utils/icons.ts";
-import { deleteImageFromDb } from "../../utils/imageStorage.ts";
-import { isMobileDevice } from "../../utils/mobileHandling.ts";
+import { deleteImageFromDb } from "../../utils/storage/imageStorage.ts";
+import { isMobileDevice } from "../../utils/dom/mobileHandling.ts";
 import { escapeHtml } from "../../utils/sanitize.ts";
 import { detectMediaType, downloadMediaSource } from "../../services/mediaTools.ts";
 
@@ -23,6 +23,10 @@ interface ViewerItem {
   uploaded: boolean;
 }
 
+/**
+ * Determines a media element's type from its `data-media-type` attribute,
+ * falling back to its tag name (`<video>` → `"video"`, otherwise `"image"`).
+ */
 function elementMediaType(element: HTMLElement): "video" | "image" {
   const explicit = element?.dataset?.mediaType;
   if (explicit === "video" || explicit === "image") {
@@ -31,6 +35,21 @@ function elementMediaType(element: HTMLElement): "video" | "image" {
   return element?.tagName?.toLowerCase() === "video" ? "video" : "image";
 }
 
+/**
+ * Builds a slideshow top-bar icon button (download/close/delete) with the shared
+ * `slideshow-icon-btn` styling. The `title` doubles as the `aria-label`.
+ */
+function createSlideshowIconButton(id: string, title: string, iconName: string): HTMLButtonElement {
+  const button = document.createElement("button");
+  button.className = "slideshow-icon-btn";
+  button.id = id;
+  button.title = title;
+  button.setAttribute("aria-label", title);
+  button.innerHTML = icon(iconName, { width: 24, height: 24 });
+  return button;
+}
+
+/** Builds the `<video>` or `<img>` element shown in the slideshow viewer for an item. */
 function buildViewerMediaElement(item: ViewerItem) {
   const mediaType = item.mediaType;
   if (mediaType === "video") {
@@ -50,6 +69,14 @@ function buildViewerMediaElement(item: ViewerItem) {
   return img;
 }
 
+/**
+ * Normalizes a slideshow source into a {@link ViewerItem}, reading from a stored
+ * gallery record (`isGalleryMode`) or from a clicked DOM media element's
+ * `src`/`dataset`. Uploads are flagged by the `upload-` filename prefix.
+ *
+ * @param source - A gallery image record or a DOM `<img>`/`<video>` element.
+ * @param isGalleryMode - Whether `source` is a stored gallery record.
+ */
 function normalizeViewerItem(source: any, isGalleryMode: boolean): ViewerItem {
   if (isGalleryMode) {
     const mediaType = detectMediaType(source);
@@ -226,27 +253,12 @@ export function createImageSlideshow(images: any[], startIndex: number, isGaller
   const controlsBar = document.createElement("div");
   controlsBar.className = "gallery-slideshow-top-controls";
 
-  const downloadBtn = document.createElement("button");
-  downloadBtn.className = "slideshow-icon-btn";
-  downloadBtn.id = "slideshow-download";
-  downloadBtn.title = "Download this media";
-  downloadBtn.setAttribute("aria-label", "Download this media");
-  downloadBtn.innerHTML = icon("download", { width: 24, height: 24 });
+  const downloadBtn = createSlideshowIconButton("slideshow-download", "Download this media", "download");
 
-  const closeBtn = document.createElement("button");
-  closeBtn.className = "slideshow-icon-btn";
-  closeBtn.id = "slideshow-close";
-  closeBtn.title = "Close media viewer";
-  closeBtn.setAttribute("aria-label", "Close media viewer");
-  closeBtn.innerHTML = icon("x", { width: 24, height: 24 });
+  const closeBtn = createSlideshowIconButton("slideshow-close", "Close media viewer", "x");
 
   if (isGalleryMode) {
-    const deleteBtn = document.createElement("button");
-    deleteBtn.className = "slideshow-icon-btn";
-    deleteBtn.id = "slideshow-delete";
-    deleteBtn.title = "Delete this media permanently";
-    deleteBtn.setAttribute("aria-label", "Delete this media permanently");
-    deleteBtn.innerHTML = icon("trash", { width: 24, height: 24 });
+    const deleteBtn = createSlideshowIconButton("slideshow-delete", "Delete this media permanently", "trash");
     controlsBar.appendChild(deleteBtn);
 
     deleteBtn.addEventListener("click", () => {
@@ -401,6 +413,13 @@ export function createImageSlideshow(images: any[], startIndex: number, isGaller
   });
 }
 
+/**
+ * Collects every image/video across all chat messages in document order, so the
+ * slideshow can page through the whole conversation.
+ *
+ * @param clickedElement - The media element that was clicked.
+ * @returns The ordered media list and the clicked item's index (0 if not found).
+ */
 function gatherAllConversationMedia(clickedElement: Element) {
   const allMessages = Array.from(document.querySelectorAll(".message"));
   const allMedia: Element[] = [];

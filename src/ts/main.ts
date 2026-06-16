@@ -18,18 +18,18 @@ import "./init/state.ts";
 
 import "./utils/utils.ts";
 import "./utils/highlight.ts";
-import "./utils/imageStorage.ts";
-import "./utils/conversationStorage.ts";
-import "./utils/mobileHandling.ts";
+import "./utils/storage/imageStorage.ts";
+import "./utils/storage/conversationStorage.ts";
+import "./utils/dom/mobileHandling.ts";
 import "./utils/notifications.ts";
-import { initializeMenus } from "./utils/menuSystem.ts";
+import { initializeMenus } from "./utils/dom/menuSystem.ts";
 
 import "./components/messages.ts";
 import "./components/settings.ts";
 import "./components/ui.ts";
 import "./components/theme.ts";
 import "./components/interaction.ts";
-import "./components/attachments.ts";
+import "./components/attachments/attachments.ts";
 import "./components/tools.ts";
 import "./components/memory.ts";
 import "./components/logo.ts";
@@ -37,7 +37,7 @@ import "./components/aboutPopups.ts";
 
 import "./services/memory.ts";
 import "./services/apiKeys.ts";
-import "./services/mediaTools.ts";
+import "./services/grokImageTool.ts";
 import "./services/history.ts";
 
 import "./init/dom.ts";

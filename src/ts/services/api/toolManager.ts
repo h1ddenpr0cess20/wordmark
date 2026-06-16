@@ -9,14 +9,14 @@
  * `tools/mcp.ts`.
  */
 
-import { getMemoryConfig } from "../../utils/memoryStorage.ts";
+import { getMemoryConfig } from "../../utils/storage/memoryStorage.ts";
 import { getActiveServiceKey, getActiveModel } from "./clientConfig.ts";
 import { weatherToolHandler } from "../weather.ts";
 import { memoryToolDefinition, forgetToolDefinition } from "../memory.ts";
 import { getApiKey } from "../apiKeyStorage.ts";
 import { isLocalService, usesServerManagedTools } from "../providers.ts";
 import { MCP_ASSUME_ONLINE, config } from "../../../config/config.ts";
-import { state } from "../../init/state.ts";
+import { logVerbose } from "../../utils/logger.ts";
 import { TOOL_CATALOG, TOOL_DEFINITIONS } from "./tools/catalog.ts";
 import { getToolPreference, isToolEnabled, setToolEnabled, setAllToolsEnabled } from "./tools/preferences.ts";
 import {
@@ -51,6 +51,11 @@ const TOOL_HANDLERS: Record<string, (...args: unknown[]) => unknown> = {
   },
 };
 
+/**
+ * Reports whether a service is enabled per config — via `config.isServiceEnabled`
+ * when available, else the service's `enabled` flag. Defaults to `true` when no
+ * services are configured.
+ */
 function isConfiguredServiceEnabled(serviceKey: string): boolean {
   const services = config?.services;
   if (!services) {
@@ -63,6 +68,7 @@ function isConfiguredServiceEnabled(serviceKey: string): boolean {
   return Boolean(service && service.enabled !== false);
 }
 
+/** Reports whether a model is an OpenAI Codex model (by name), which excludes some tools. */
 function isCodexModel(modelName: string | undefined): boolean {
   return typeof modelName === "string" && modelName.toLowerCase().includes("codex");
 }
@@ -161,9 +167,7 @@ export function getEnabledToolDefinitions(serviceKey: string = getActiveServiceK
     }
 
     if (!clientSideToolsSupported && isClientSideToolType(tool.type)) {
-      if (state.verboseLogging) {
-        console.info(`Skipping client-side tool '${tool.displayName}' for xAI model '${modelName}'.`);
-      }
+      logVerbose(`Skipping client-side tool '${tool.displayName}' for xAI model '${modelName}'.`);
       return;
     }
 
@@ -171,9 +175,7 @@ export function getEnabledToolDefinitions(serviceKey: string = getActiveServiceK
       if (!isLocalService(serviceKey)) {
         const serverUrl = tool.definition?.server_url;
         if (serverUrl && isLocalNetworkUrl(serverUrl)) {
-          if (state.verboseLogging) {
-            console.info(`Skipping local MCP server ${tool.displayName} when using cloud service ${serviceKey}`);
-          }
+          logVerbose(`Skipping local MCP server ${tool.displayName} when using cloud service ${serviceKey}`);
           return;
         }
       }
@@ -200,18 +202,14 @@ export function getEnabledToolDefinitions(serviceKey: string = getActiveServiceK
     }
 
     if (tool.key === "builtin:image_generation" && serviceKey === "openai" && modelIsCodex) {
-      if (state.verboseLogging) {
-        console.info(`Skipping image generation tool for Codex model '${modelName}'.`);
-      }
+      logVerbose(`Skipping image generation tool for Codex model '${modelName}'.`);
       return;
     }
 
     if (tool.key === "builtin:code_interpreter") {
       const shellEnabled = getToolPreference("builtin:shell", false);
       if (shellEnabled && serviceKey === "openai") {
-        if (state.verboseLogging) {
-          console.info("Skipping code_interpreter because shell tool is enabled.");
-        }
+        logVerbose("Skipping code_interpreter because shell tool is enabled.");
         return;
       }
       if (usesServerManagedTools(serviceKey)) {
@@ -249,6 +247,15 @@ export function getEnabledToolDefinitions(serviceKey: string = getActiveServiceK
   return defs;
 }
 
+/**
+ * Appends the memory/forget client-side tool definitions to `defs` when memory
+ * is enabled. Skips them for models that disallow client-side tools, and when
+ * server-managed tools are already active for the service (to avoid mixing).
+ *
+ * @param defs - The tool-definition list to append to (mutated in place).
+ * @param serviceKey - Target service; defaults to the active service.
+ * @param modelName - Target model; defaults to the active model.
+ */
 function appendMemoryTools(defs: ToolDefinition[], serviceKey: string = getActiveServiceKey(), modelName: string = getActiveModel()) {
   try {
     const cfg = getMemoryConfig();
@@ -257,9 +264,7 @@ function appendMemoryTools(defs: ToolDefinition[], serviceKey: string = getActiv
     }
 
     if (!supportsClientSideTools(serviceKey, modelName)) {
-      if (state.verboseLogging) {
-        console.info(`Skipping memory tools for xAI model '${modelName}' because it disallows client-side tools.`);
-      }
+      logVerbose(`Skipping memory tools for xAI model '${modelName}' because it disallows client-side tools.`);
       return;
     }
 
@@ -271,9 +276,7 @@ function appendMemoryTools(defs: ToolDefinition[], serviceKey: string = getActiv
     });
 
     if (hasServerManagedTool && usesServerManagedTools(serviceKey)) {
-      if (state.verboseLogging) {
-        console.info(`Skipping memory tools because server-managed tools are active for service '${serviceKey}'.`);
-      }
+      logVerbose(`Skipping memory tools because server-managed tools are active for service '${serviceKey}'.`);
       return;
     }
     if (memoryToolDefinition) {

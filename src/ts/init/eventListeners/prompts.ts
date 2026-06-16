@@ -8,7 +8,7 @@
 
 import { elements } from "../state.ts";
 import { debounce } from "../../utils/utils.ts";
-import { focusUserInputSafely } from "../../utils/mobileHandling.ts";
+import { focusUserInputSafely } from "../../utils/dom/mobileHandling.ts";
 import { updateBrowserHistory } from "../../services/history/state.ts";
 import { startNewConversation } from "../../services/history/persistence.ts";
 import { updatePromptVisibility } from "../../components/ui/settingsControls.ts";

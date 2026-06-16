@@ -18,7 +18,7 @@ const {
   readString,
   writeString,
   removeKey,
-} = await import("../src/ts/utils/storage.ts");
+} = await import("../src/ts/utils/storage/storage.ts");
 
 test("dynamic key builders preserve the existing key format", () => {
   assert.equal(apiKeyStorageKey("openai"), "wordmark_api_key_openai");

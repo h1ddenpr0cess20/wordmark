@@ -1,10 +1,14 @@
-import { elements, state } from "../../init/state.ts";
-import { getMemoriesForPrompt } from "../../utils/memoryStorage.ts";
-import { getLocationForPrompt } from "../location.ts";
-import { getMediaToolInstructions } from "../mediaTools.ts";
-import { getToolsDescription } from "../../components/tools.ts";
+/**
+ * Message preparation helpers for the Responses API.
+ *
+ * @remarks
+ * Converts stored conversation messages into the Responses API input shape —
+ * expanding `[[IMAGE: ...]]` placeholders and attachments into multimodal
+ * content parts — and extracts tool/function calls back out of a response.
+ */
+
+import { state } from "../../init/state.ts";
 import { createImagePlaceholderRegex } from "../../utils/placeholders.ts";
-import { DEFAULT_PERSONALITY, DEFAULT_SYSTEM_PROMPT, PERSONALITY_PROMPT_TEMPLATE, config } from "../../../config/config.ts";
 import type {
   Attachment,
   CollectedFunctionCall,
@@ -13,10 +17,8 @@ import type {
   ResponseOutputItem,
   ToolCallLike,
 } from "../../../types/api.ts";
-/**
- * Message preparation helpers for the Responses API.
- */
 
+/** Maps a message role to the Responses API text content-part type. */
 function getTextPartType(role: string = "") {
   if (role === "assistant") {
     return "output_text";
@@ -27,10 +29,15 @@ function getTextPartType(role: string = "") {
   return "input_text";
 }
 
+/** Maps a message role to the Responses API image content-part type. */
 function getImagePartType(role: string = "") {
   return role === "assistant" ? "output_image" : "input_image";
 }
 
+/**
+ * Appends a trimmed text content part for `segment` to `parts`, using the
+ * role-appropriate text type. No-ops when the segment is empty or whitespace.
+ */
 function appendTextPart(parts: ContentPart[], role: string | undefined, segment: unknown) {
   if (segment === undefined || segment === null) {
     return;
@@ -45,6 +52,12 @@ function appendTextPart(parts: ContentPart[], role: string | undefined, segment:
   });
 }
 
+/**
+ * Resolves a usable image URL/data-URL for `filename`, checking the message's
+ * attachments first, then the runtime image cache and generated-image gallery.
+ *
+ * @returns The resolved URL, or `null` when no image data is available.
+ */
 function resolveImageUrl(filename: string | undefined, attachments: Attachment[] = []): string | null {
   if (!filename) {
     return null;
@@ -92,6 +105,11 @@ function resolveImageUrl(filename: string | undefined, attachments: Attachment[]
   return typeof candidate === "string" && candidate ? candidate : null;
 }
 
+/**
+ * Builds an image content part for `filename`, resolving its data via
+ * {@link resolveImageUrl}. Returns `null` (and warns when verbose logging is on)
+ * if no image data can be found.
+ */
 function createImagePart(filename: string, role: string | undefined, attachments?: Attachment[]): ContentPart | null {
   const imageUrl = resolveImageUrl(filename, attachments);
   if (!imageUrl) {
@@ -111,6 +129,14 @@ function createImagePart(filename: string, role: string | undefined, attachments
   };
 }
 
+/**
+ * Builds a user message's request content from its string body, splicing
+ * `[[IMAGE: ...]]` placeholders and any unreferenced attachments into image
+ * content parts interleaved with the surrounding text.
+ *
+ * @returns The original string when no images apply, otherwise the content-part
+ * array; falls back to the raw string if no image part could be produced.
+ */
 function buildUserContentFromString(message: Message): string | ContentPart[] {
   const rawContent = typeof message.content === "string" ? message.content : "";
   const attachments = Array.isArray(message.attachments) ? message.attachments : [];
@@ -234,81 +260,6 @@ export function serializeMessagesForRequest(messages: Message[] = []): Message[]
 }
 
 /**
- * Estimates the token count of a string using a ~4-chars-per-token heuristic.
- *
- * @param text - The text to measure.
- * @returns The estimated token count.
- */
-export function estimateTokens(text: unknown): number {
-  if (!text) {
-    return 0;
-  }
-  return Math.ceil(`${text}`.length / 4);
-}
-
-/**
- * Estimate the token cost of a single conversation message, including a small
- * fixed overhead for the role/structure envelope.
- *
- * @param message - The conversation message to measure.
- * @returns The estimated token count.
- */
-export function estimateMessageTokens(message: Message): number {
-  if (!message || typeof message !== "object") {
-    return 0;
-  }
-  let text = "";
-  if (typeof message.content === "string") {
-    text = message.content;
-  } else if (Array.isArray(message.content)) {
-    text = message.content
-      .map(part => {
-        if (typeof part === "string") {
-          return part;
-        }
-        if (part && typeof part === "object") {
-          return part.text || part.output || "";
-        }
-        return "";
-      })
-      .join(" ");
-  } else if (message.content && typeof message.content === "object") {
-    text = message.content.text || "";
-  }
-  return estimateTokens(text) + 4;
-}
-
-/**
- * Trim a conversation message list to fit within a token budget, keeping the most
- * recent messages and dropping the oldest first. The latest message is always
- * retained even if it alone exceeds the budget. A budget of 0 or less disables
- * trimming (the full list is returned).
- *
- * @param messages - The conversation messages, oldest first.
- * @param budget - The token budget; 0 or negative means "no limit".
- * @returns A trimmed copy in original order.
- */
-export function windowMessagesByTokenBudget(messages: Message[], budget: number): Message[] {
-  if (!Array.isArray(messages)) {
-    return [];
-  }
-  if (!budget || budget <= 0) {
-    return messages.slice();
-  }
-  const kept: Message[] = [];
-  let total = 0;
-  for (let i = messages.length - 1; i >= 0; i -= 1) {
-    const cost = estimateMessageTokens(messages[i]);
-    if (kept.length > 0 && total + cost > budget) {
-      break;
-    }
-    kept.unshift(messages[i]);
-    total += cost;
-  }
-  return kept;
-}
-
-/**
  * Extracts function/tool calls from a response's output array, handling the
  * several shapes providers use (top-level calls, message `tool_calls`, and
  * message content parts). Each result carries parsed args plus the raw JSON.
@@ -343,6 +294,11 @@ export function collectFunctionCalls(responseOutput: ResponseOutputItem[] = []):
     }
     return {};
   };
+
+  const extractNameAndArgs = (source: ToolCallLike) => ({
+    fnName: source.name || source.tool_name || (source.function && source.function.name),
+    rawArgs: source.arguments ?? (source.function && source.function.arguments),
+  });
 
   const buildToolCallInput = (
     name: string,
@@ -398,8 +354,7 @@ export function collectFunctionCalls(responseOutput: ResponseOutputItem[] = []):
     };
 
     if (item.type === "tool_call" || item.type === "function_call") {
-      const fnName = item.name || item.tool_name || (item.function && item.function.name);
-      const rawArgs = item.arguments ?? (item.function && item.function.arguments);
+      const { fnName, rawArgs } = extractNameAndArgs(item);
       const callId = item.id || item.call_id;
       processCall(fnName, rawArgs, callId, item);
       return;
@@ -409,8 +364,7 @@ export function collectFunctionCalls(responseOutput: ResponseOutputItem[] = []):
       if (Array.isArray(item.tool_calls)) {
         item.tool_calls.forEach(tc => {
           if (!tc) return;
-          const fnName = tc.name || tc.tool_name || (tc.function && tc.function.name);
-          const rawArgs = tc.arguments ?? (tc.function && tc.function.arguments);
+          const { fnName, rawArgs } = extractNameAndArgs(tc);
           const callId = tc.id || tc.call_id;
           processCall(fnName, rawArgs, callId, tc);
         });
@@ -420,8 +374,7 @@ export function collectFunctionCalls(responseOutput: ResponseOutputItem[] = []):
           if (!part || (part.type !== "function_call" && part.type !== "tool_call")) {
             return;
           }
-          const fnName = part.name || part.tool_name || (part.function && part.function.name);
-          const rawArgs = part.arguments ?? (part.function && part.function.arguments);
+          const { fnName, rawArgs } = extractNameAndArgs(part);
           const callId = part.id || part.call_id || item.call_id || item.id;
           processCall(fnName, rawArgs, callId, part);
         });
@@ -432,85 +385,3 @@ export function collectFunctionCalls(responseOutput: ResponseOutputItem[] = []):
   return calls;
 }
 
-/**
- * Resolves the active system instructions from the prompt settings: empty for
- * "no prompt", the custom prompt, the personality prompt, or the default.
- */
-export function buildInstructions() {
-  if (elements.noPromptRadio && elements.noPromptRadio.checked) {
-    return "";
-  }
-  if (elements.customPromptRadio && elements.customPromptRadio.checked && elements.systemPromptCustom) {
-    const custom = elements.systemPromptCustom.value.trim();
-    if (custom) {
-      return custom;
-    }
-  }
-  if (elements.personalityPromptRadio && elements.personalityPromptRadio.checked) {
-    return buildPersonalityInstruction();
-  }
-  const basePrompt = DEFAULT_SYSTEM_PROMPT || "";
-  return `${basePrompt}${state.shortResponseGuideline || ""}`.trim();
-}
-
-/**
- * Builds the developer/system message: the active instructions augmented with
- * location context and the current timestamp. Returns `""` when there are no
- * instructions.
- */
-export function buildDeveloperMessage() {
-  const instructions = buildInstructions();
-  if (!instructions) {
-    return "";
-  }
-  const locationInfo = getLocationForPrompt();
-  const timestamp = buildTimestampString();
-  let developerBlock = instructions;
-  if (locationInfo && !developerBlock.includes(locationInfo)) {
-    developerBlock += `\nCurrent location context${locationInfo}`;
-  }
-  if (!developerBlock.includes(timestamp)) {
-    developerBlock += `\n(Generated on ${timestamp})`;
-  }
-  if (config?.enableFunctionCalling) {
-    const toolsDescription = getToolsDescription();
-    if (toolsDescription) {
-      developerBlock += `\n${toolsDescription.trim()}`;
-    }
-    const mediaToolInstructions = getMediaToolInstructions();
-    if (mediaToolInstructions) {
-      developerBlock += `\n${mediaToolInstructions.trim()}`;
-    }
-  }
-  const memories = getMemoriesForPrompt();
-  if (memories) {
-    developerBlock += `\n${memories.trim()}`;
-  }
-  const trimmed = developerBlock.trim();
-  return trimmed ? trimmed : null;
-}
-
-function buildPersonalityInstruction() {
-  const personality = (elements.personalityInput && elements.personalityInput.value.trim())
-    || DEFAULT_PERSONALITY
-    || "a helpful assistant";
-  const template = PERSONALITY_PROMPT_TEMPLATE
-    || "Assume the personality of {personality}. Roleplay and never break character.{guideline}";
-  const guideline = state.shortResponseGuideline || "";
-  const datetime = buildTimestampString();
-  const location = getLocationForPrompt();
-  return template
-    .replace("{personality}", personality)
-    .replace("{guideline}", guideline)
-    .replace("{datetime}", datetime)
-    .replace("{location}", location || "Unknown location");
-}
-
-function buildTimestampString() {
-  try {
-    const options: Intl.DateTimeFormatOptions = { dateStyle: "full", timeStyle: "short" };
-    return new Intl.DateTimeFormat(undefined, options).format(new Date());
-  } catch {
-    return new Date().toISOString();
-  }
-}

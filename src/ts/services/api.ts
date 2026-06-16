@@ -8,10 +8,10 @@
 
 import { getActiveServiceKey } from "./api/clientConfig.ts";
 import {
-  buildInstructions,
   collectFunctionCalls,
   serializeMessagesForRequest,
 } from "./api/messageUtils.ts";
+import { buildInstructions } from "./api/instructions.ts";
 import {
   runTurn,
 } from "./api/requestClient.ts";

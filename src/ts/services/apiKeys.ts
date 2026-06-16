@@ -13,9 +13,10 @@ import { refreshToolSettingsUI } from "../components/tools.ts";
 import { config } from "../../config/config.ts";
 import { state } from "../init/state.ts";
 import { API_KEYS_STORAGE_PREFIX, loadApiKeysIntoConfig } from "./apiKeyStorage.ts";
-import { STORAGE_KEYS } from "../utils/storage.ts";
+import { STORAGE_KEYS } from "../utils/storage/storage.ts";
 import { isLocalService } from "./providers.ts";
 import { normalizeServerBaseUrl } from "../utils/utils.ts";
+import { showInlineStatus } from "../utils/inlineStatus.ts";
 
 const LMSTUDIO_SERVER_URL_KEY = STORAGE_KEYS.lmStudioServerUrl;
 const OLLAMA_SERVER_URL_KEY = STORAGE_KEYS.ollamaServerUrl;
@@ -158,31 +159,84 @@ function initApiKeys(retryCount: number = 0) {
   loadApiKeys();
 };
 
+/** Identifies a local provider whose base URL is user-configurable. */
+interface LocalServerUrlConfig {
+  input: HTMLInputElement | null;
+  storageKey: string;
+  serviceKey: "lmstudio" | "ollama";
+  statusClass: string;
+  anchorSelector: string;
+  label: string;
+}
+
 /**
- * Renders a transient inline status note: removes any prior note of the same
- * class, inserts a new one after `anchorSelector`, and auto-dismisses it.
- *
- * @param statusClass - CSS class identifying this note family (e.g. `lmstudio-status`).
- * @param anchorSelector - Selector for the element the note is inserted after.
- * @param message - The status text.
- * @param type - Visual variant appended to the class (`success` or `error`).
+ * Persists a local provider's base URL: normalizes the input, mirrors it onto
+ * the config (with a `/v1` suffix), refreshes the model list, and shows a status
+ * note. Shared by the LM Studio and Ollama savers.
  */
-function showInlineStatus(statusClass: string, anchorSelector: string, message: string, type: string = "success") {
-  const existing = document.querySelector(`.${statusClass}`) as HTMLElement | null;
-  if (existing) {
-    existing.remove();
+function saveLocalServerUrl({ input, storageKey, serviceKey, statusClass, anchorSelector, label }: LocalServerUrlConfig) {
+  try {
+    if (input && input.value) {
+      const serverUrl = normalizeServerBaseUrl(input.value);
+
+      localStorage.setItem(storageKey, serverUrl);
+
+      const service = config && config.services && config.services[serviceKey];
+      if (service) {
+        service.baseUrl = `${serverUrl}/v1`;
+
+        if (typeof service.fetchAndUpdateModels === "function") {
+          service.fetchAndUpdateModels().catch(error => {
+            console.error(`Error fetching ${label} models after URL update:`, error);
+          });
+        }
+      }
+
+      showInlineStatus(statusClass, anchorSelector, `${label} Base URL saved successfully!`, "success");
+
+      if (state.verboseLogging) {
+        console.info(`${label} Base URL saved to localStorage:`, serverUrl);
+      }
+    } else {
+      showInlineStatus(statusClass, anchorSelector, `Please enter a valid ${label} Base URL`, "error");
+    }
+  } catch (error) {
+    console.error(`Error saving ${label} Base URL:`, error);
+    showInlineStatus(statusClass, anchorSelector, `Error saving ${label} Base URL`, "error");
   }
+}
 
-  const statusElement = document.createElement("div");
-  statusElement.className = `${statusClass} ${type}`;
-  statusElement.textContent = message;
-
-  const anchor = document.querySelector(anchorSelector) as HTMLElement | null;
-  if (anchor) {
-    anchor.insertAdjacentElement("afterend", statusElement);
-    setTimeout(() => {
-      statusElement.remove();
-    }, 5000);
+/**
+ * Populates a local provider's URL input from localStorage (mirroring the value
+ * onto the config with a `/v1` suffix and refreshing models), or, when nothing
+ * is stored, back-fills the input from the config's existing base URL with the
+ * `/v1` suffix stripped. Shared by the LM Studio and Ollama loaders.
+ */
+function loadLocalServerUrl(
+  input: HTMLInputElement | null,
+  storageKey: string,
+  serviceKey: "lmstudio" | "ollama",
+  label: string,
+) {
+  if (!input) return;
+  const storedUrl = localStorage.getItem(storageKey);
+  const service = config && config.services && config.services[serviceKey];
+  if (storedUrl) {
+    input.value = storedUrl;
+    if (service) {
+      service.baseUrl = `${storedUrl}/v1`;
+      if (typeof service.fetchAndUpdateModels === "function") {
+        service.fetchAndUpdateModels().catch((error: unknown) => {
+          console.error(`Error fetching ${label} models on load:`, error);
+        });
+      }
+    }
+  } else if (service && service.baseUrl) {
+    let configUrl = service.baseUrl;
+    if (configUrl.endsWith("/v1")) {
+      configUrl = configUrl.slice(0, -3);
+    }
+    input.value = configUrl;
   }
 }
 
@@ -191,34 +245,14 @@ function showInlineStatus(statusClass: string, anchorSelector: string, message: 
  * (with a `/v1` suffix), refreshing the model list, and showing a status note.
  */
 function saveLmStudioServerUrl() {
-  try {
-    if (lmStudioServerUrlInput && lmStudioServerUrlInput.value) {
-      const serverUrl = normalizeServerBaseUrl(lmStudioServerUrlInput.value);
-
-      localStorage.setItem(LMSTUDIO_SERVER_URL_KEY, serverUrl);
-
-      if (config && config.services && config.services.lmstudio) {
-        config.services.lmstudio.baseUrl = `${serverUrl}/v1`;
-
-        if (typeof config.services.lmstudio.fetchAndUpdateModels === "function") {
-          config.services.lmstudio.fetchAndUpdateModels().catch(error => {
-            console.error("Error fetching LM Studio models after URL update:", error);
-          });
-        }
-      }
-
-      showInlineStatus("lmstudio-status", ".lmstudio-action-buttons", "LM Studio Base URL saved successfully!", "success");
-
-      if (state.verboseLogging) {
-        console.info("LM Studio Base URL saved to localStorage:", serverUrl);
-      }
-    } else {
-      showInlineStatus("lmstudio-status", ".lmstudio-action-buttons", "Please enter a valid LM Studio Base URL", "error");
-    }
-  } catch (error) {
-    console.error("Error saving LM Studio Base URL:", error);
-    showInlineStatus("lmstudio-status", ".lmstudio-action-buttons", "Error saving LM Studio Base URL", "error");
-  }
+  saveLocalServerUrl({
+    input: lmStudioServerUrlInput,
+    storageKey: LMSTUDIO_SERVER_URL_KEY,
+    serviceKey: "lmstudio",
+    statusClass: "lmstudio-status",
+    anchorSelector: ".lmstudio-action-buttons",
+    label: "LM Studio",
+  });
 };
 
 /**
@@ -226,34 +260,14 @@ function saveLmStudioServerUrl() {
  * (with a `/v1` suffix), refreshing the model list, and showing a status note.
  */
 function saveOllamaServerUrl() {
-  try {
-    if (ollamaServerUrlInput && ollamaServerUrlInput.value) {
-      const serverUrl = normalizeServerBaseUrl(ollamaServerUrlInput.value);
-
-      localStorage.setItem(OLLAMA_SERVER_URL_KEY, serverUrl);
-
-      if (config && config.services && config.services.ollama) {
-        config.services.ollama.baseUrl = `${serverUrl}/v1`;
-
-        if (typeof config.services.ollama.fetchAndUpdateModels === "function") {
-          config.services.ollama.fetchAndUpdateModels().catch(error => {
-            console.error("Error fetching Ollama models after URL update:", error);
-          });
-        }
-      }
-
-      showInlineStatus("ollama-status", ".ollama-action-buttons", "Ollama Base URL saved successfully!", "success");
-
-      if (state.verboseLogging) {
-        console.info("Ollama Base URL saved to localStorage:", serverUrl);
-      }
-    } else {
-      showInlineStatus("ollama-status", ".ollama-action-buttons", "Please enter a valid Ollama Base URL", "error");
-    }
-  } catch (error) {
-    console.error("Error saving Ollama Base URL:", error);
-    showInlineStatus("ollama-status", ".ollama-action-buttons", "Error saving Ollama Base URL", "error");
-  }
+  saveLocalServerUrl({
+    input: ollamaServerUrlInput,
+    storageKey: OLLAMA_SERVER_URL_KEY,
+    serviceKey: "ollama",
+    statusClass: "ollama-status",
+    anchorSelector: ".ollama-action-buttons",
+    label: "Ollama",
+  });
 };
 
 /**
@@ -333,52 +347,8 @@ function loadApiKeys() {
         }
       }
     }
-    if (lmStudioServerUrlInput) {
-      const storedLmUrl = localStorage.getItem(LMSTUDIO_SERVER_URL_KEY);
-
-      if (storedLmUrl) {
-        lmStudioServerUrlInput.value = storedLmUrl;
-
-        if (config && config.services && config.services.lmstudio) {
-          config.services.lmstudio.baseUrl = `${storedLmUrl}/v1`;
-
-          if (typeof config.services.lmstudio.fetchAndUpdateModels === "function") {
-            config.services.lmstudio.fetchAndUpdateModels().catch(error => {
-              console.error("Error fetching LM Studio models on load:", error);
-            });
-          }
-        }
-      } else if (config && config.services && config.services.lmstudio && config.services.lmstudio.baseUrl) {
-        let configLmUrl = config.services.lmstudio.baseUrl;
-        if (configLmUrl.endsWith("/v1")) {
-          configLmUrl = configLmUrl.slice(0, -3);
-        }
-        lmStudioServerUrlInput.value = configLmUrl;
-      }
-    }
-    if (ollamaServerUrlInput) {
-      const storedOllamaUrl = localStorage.getItem(OLLAMA_SERVER_URL_KEY);
-
-      if (storedOllamaUrl) {
-        ollamaServerUrlInput.value = storedOllamaUrl;
-
-        if (config && config.services && config.services.ollama) {
-          config.services.ollama.baseUrl = `${storedOllamaUrl}/v1`;
-
-          if (typeof config.services.ollama.fetchAndUpdateModels === "function") {
-            config.services.ollama.fetchAndUpdateModels().catch(error => {
-              console.error("Error fetching Ollama models on load:", error);
-            });
-          }
-        }
-      } else if (config && config.services && config.services.ollama && config.services.ollama.baseUrl) {
-        let configOllamaUrl = config.services.ollama.baseUrl;
-        if (configOllamaUrl.endsWith("/v1")) {
-          configOllamaUrl = configOllamaUrl.slice(0, -3);
-        }
-        ollamaServerUrlInput.value = configOllamaUrl;
-      }
-    }
+    loadLocalServerUrl(lmStudioServerUrlInput, LMSTUDIO_SERVER_URL_KEY, "lmstudio", "LM Studio");
+    loadLocalServerUrl(ollamaServerUrlInput, OLLAMA_SERVER_URL_KEY, "ollama", "Ollama");
     if (state.verboseLogging) {
       console.info("API keys loaded from localStorage");
     }

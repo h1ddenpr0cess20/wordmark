@@ -9,6 +9,7 @@
 
 import { state } from "../init/state.ts";
 import { icon } from "./icons.ts";
+import { copyTextToClipboard } from "./dom/clipboard.ts";
 import hljs from "highlight.js";
 
 state.hljsLoaded = true;
@@ -64,32 +65,7 @@ export function addCopyButton(codeBlock: HTMLElement) {
     copyButton.setAttribute("aria-label", "Copy code");
     copyButton.innerHTML = icon("copy", { width: 16, height: 16 });
     copyButton.addEventListener("click", () => {
-      const copyText = function(text: string) {
-        if (navigator && navigator.clipboard && typeof navigator.clipboard.writeText === "function") {
-          return navigator.clipboard.writeText(text)
-            .then(() => true)
-            .catch(err => {
-              console.error("Clipboard API failed:", err);
-              return false;
-            });
-        } else {
-          try {
-            const textArea = document.createElement("textarea");
-            textArea.value = text;
-            textArea.style.position = "fixed";
-            textArea.style.opacity = "0";
-            document.body.appendChild(textArea);
-            textArea.focus();
-            textArea.select();
-            const successful = document.execCommand("copy");
-            document.body.removeChild(textArea);
-            return Promise.resolve(successful);
-          } catch (err) {
-            console.error("execCommand fallback failed:", err);
-            return Promise.resolve(false);
-          }
-        }
-      }; copyText(codeBlock.innerText)
+      copyTextToClipboard(codeBlock.innerText)
         .then(success => {
           if (success) {
             const originalSvg = copyButton.innerHTML;

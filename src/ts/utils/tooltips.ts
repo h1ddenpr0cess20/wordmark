@@ -9,6 +9,8 @@
  * after initialization.
  */
 
+import { computeTooltipPlacement } from "./tooltipPosition.ts";
+
 let tooltipElement: HTMLElement | null = null;
 let tooltipTimeout: ReturnType<typeof setTimeout> | null = null;
 /** Delay, in milliseconds, before a hovered tooltip appears. */
@@ -249,57 +251,23 @@ function positionTooltip(element: HTMLElement) {
 
   const elementRect = element.getBoundingClientRect();
   const tooltipRect = tooltipElement.getBoundingClientRect();
-  const viewportWidth = window.innerWidth;
-  const viewportHeight = window.innerHeight;
-  const scrollX = window.pageXOffset || document.documentElement.scrollLeft;
-  const scrollY = window.pageYOffset || document.documentElement.scrollTop;
-
-  let left, top;
 
   tooltipElement.classList.remove("arrow-bottom", "arrow-left", "arrow-right");
   tooltipElement.style.maxWidth = "";
   tooltipElement.style.removeProperty("--arrow-offset");
 
-  if (element.classList.contains("tool-help-icon")) {
-    top = elementRect.bottom + scrollY + 5;
-    left = elementRect.left + scrollX - 10;
-  } else {
-    top = elementRect.top + scrollY - tooltipRect.height - 10;
-    left = elementRect.left + scrollX + (elementRect.width / 2) - (tooltipRect.width / 2);
-  }
+  const { left, top, arrowOffset } = computeTooltipPlacement({
+    elementRect,
+    tooltipRect,
+    viewportWidth: window.innerWidth,
+    viewportHeight: window.innerHeight,
+    scrollX: window.pageXOffset || document.documentElement.scrollLeft,
+    scrollY: window.pageYOffset || document.documentElement.scrollTop,
+    isHelpIcon: element.classList.contains("tool-help-icon"),
+  });
 
-  if (!element.classList.contains("tool-help-icon") && elementRect.top < tooltipRect.height + 10) {
-    top = elementRect.bottom + scrollY + 10;
-  }
-
-  if (left < scrollX + 10) {
-    if (elementRect.left < 50 && !element.classList.contains("tool-help-icon")) {
-      left = elementRect.right + scrollX + 10;
-      top = elementRect.top + scrollY + (elementRect.height / 2) - (tooltipRect.height / 2);
-    } else {
-      left = scrollX + 10;
-      if (element.classList.contains("tool-help-icon")) {
-        const arrowOffset = (elementRect.left + scrollX + elementRect.width / 2) - left;
-        tooltipElement.style.setProperty("--arrow-offset", `${Math.max(10, Math.min(arrowOffset, tooltipRect.width - 10))}px`);
-      }
-    }
-  } else if (left + tooltipRect.width > scrollX + viewportWidth - 10) {
-    if (elementRect.right > viewportWidth - 50 && !element.classList.contains("tool-help-icon")) {
-      left = elementRect.left + scrollX - tooltipRect.width - 10;
-      top = elementRect.top + scrollY + (elementRect.height / 2) - (tooltipRect.height / 2);
-    } else {
-      left = scrollX + viewportWidth - tooltipRect.width - 10;
-      if (element.classList.contains("tool-help-icon")) {
-        const arrowOffset = (elementRect.left + scrollX + elementRect.width / 2) - left;
-        tooltipElement.style.setProperty("--arrow-offset", `${Math.max(10, Math.min(arrowOffset, tooltipRect.width - 10))}px`);
-      }
-    }
-  }
-
-  if (top < scrollY + 10) {
-    top = scrollY + 10;
-  } else if (top + tooltipRect.height > scrollY + viewportHeight - 10) {
-    top = scrollY + viewportHeight - tooltipRect.height - 10;
+  if (arrowOffset !== null) {
+    tooltipElement.style.setProperty("--arrow-offset", `${arrowOffset}px`);
   }
 
   tooltipElement.style.left = `${Math.round(left)}px`;

@@ -6,7 +6,7 @@
  * database on first use.
  */
 
-import type { ConversationRecord } from "../../types/common.ts";
+import type { ConversationRecord } from "../../../types/common.ts";
 import { openDatabase } from "./idb.ts";
 
 const CONVO_DB_NAME = "wordmark-conversations";

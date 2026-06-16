@@ -4,7 +4,7 @@ import assert from "node:assert/strict";
 globalThis.window = globalThis.window || ({} as Window & typeof globalThis);
 
 const { elements, state } = await import("../src/ts/init/state.js");
-const { buildInstructions } = await import("../src/ts/services/api/messageUtils.js");
+const { buildInstructions } = await import("../src/ts/services/api/instructions.js");
 
 const el = elements as unknown as Record<string, unknown>;
 

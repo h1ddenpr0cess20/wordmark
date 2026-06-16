@@ -12,7 +12,7 @@ globalThis.localStorage = {
 } as unknown as Storage;
 
 const { elements } = await import("../src/ts/init/state.js");
-const { buildDeveloperMessage } = await import("../src/ts/services/api/messageUtils.js");
+const { buildDeveloperMessage } = await import("../src/ts/services/api/instructions.js");
 
 const el = elements as unknown as Record<string, unknown>;
 
