@@ -2,18 +2,15 @@
 @import url('./themes/base/base.css');
 @import url('./themes/base/dark.css');
 @import url('./themes/base/light.css');
-@import url('./themes/base/metal.css');
-@import url('./themes/base/neon.css');
 @import url('./themes/base/special.css');
-@import url('./themes/base/country.css');
 @import url('./themes/fonts/fonts.css');
 @import url('./themes/code/base.css');
 @import url('./themes/code/dark.css');
 @import url('./themes/code/light.css');
-@import url('./themes/code/metal.css');
-@import url('./themes/code/neon.css');
 @import url('./themes/code/special.css');
-@import url('./themes/code/country.css');
+/* Metal / Neon / Country theme packs are NOT bundled here — they are optional
+   and injected at runtime by components/theme.ts only when the user installs
+   them (see THEME_PACKS / injectPackStyles). */
 @import url('./global.css');
 @import url('./components/layout/layout.css');
 @import url('./components/layout/messages/bubbles.css');

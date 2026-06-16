@@ -965,6 +965,20 @@
   --button-text-color: #0a0e1a;
 }
 
+/* Northern-lights: two broad aurora pools — green/teal from the upper left,
+   violet from the upper right — emanating from above the top edge and blending
+   teal across the crown, over a deep night sky. Paint-only (background only, no
+   layout/box properties) so it cannot affect chat sizing. */
+.theme-aurora #chat-container {
+  background-color: #0a0e1a;
+  background-image:
+    radial-gradient(90% 60% at 25% -10%, rgba(79, 251, 176, 0.20), transparent 60%),
+    radial-gradient(90% 55% at 80% -5%, rgba(140, 130, 255, 0.18), transparent 60%),
+    radial-gradient(70% 50% at 55% 0%, rgba(95, 234, 212, 0.12), transparent 65%),
+    linear-gradient(180deg, #0c1224, #0a0e1a 70%);
+  background-repeat: no-repeat;
+}
+
 /* button-text-color is the dark on-accent text; on transparent surfaces use the accent instead */
 .theme-aurora .tab-button.active,
 .theme-aurora .reset-button {
