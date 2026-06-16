@@ -94,7 +94,16 @@ class PartyEngine {
    */
   async start(config: PartyConfig): Promise<void> {
     if (this.running) {
-      return;
+      this.abort = true;
+      this.paused = false;
+      try {
+        this.controller?.abort();
+      } catch {
+        /* noop */
+      }
+    }
+    while (this.running) {
+      await waitFor(PAUSE_POLL_MS);
     }
     if (!Array.isArray(config.characters) || config.characters.length < 2) {
       showError("Add at least two characters before starting a party.");
