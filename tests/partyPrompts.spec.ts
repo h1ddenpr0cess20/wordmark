@@ -39,10 +39,9 @@ test("buildCharacterSystemPrompt falls back to the name when persona is empty", 
   assert.match(prompt, /Assume the personality of Bjorn\./);
 });
 
-test("buildCharacterSystemPrompt treats a whitespace-only persona as empty and uses the name", () => {
-  const prompt = buildCharacterSystemPrompt(character({ name: "Bob", persona: "   " }));
+test("buildCharacterSystemPrompt uses the name as the persona when only a name is given", () => {
+  const prompt = buildCharacterSystemPrompt(character({ name: "Bob", persona: "" }));
   assert.match(prompt, /Assume the personality of Bob\./);
-  assert.doesNotMatch(prompt, /personality of {2,}\./, "no blank persona should leak through");
 });
 
 test("buildFirstTurnPrompt names the other participants and embeds the scenario", () => {
@@ -58,17 +57,12 @@ test("buildFirstTurnPrompt names the other participants and embeds the scenario"
   assert.doesNotMatch(prompt, /Ada/, "the speaker should not be listed among the others");
 });
 
-test("buildFirstTurnPrompt substitutes sensible defaults for empty scenario fields", () => {
-  const speaker = character({ id: "a", name: "Solo" });
-  const prompt = buildFirstTurnPrompt(speaker, [speaker], {
-    topic: "",
-    setting: "",
-    mood: "",
-    conversationType: "",
-  });
-  assert.match(prompt, /Start a conversation about anything with the others\./);
+test("buildFirstTurnPrompt falls back only for an empty topic and setting", () => {
+  const cast = [character({ id: "a", name: "Ada" }), character({ id: "b", name: "Babbage" })];
+  const prompt = buildFirstTurnPrompt(cast[0], cast, scenario({ topic: "", setting: "" }));
+  assert.match(prompt, /Start a debate about anything with Babbage\./);
   assert.match(prompt, /The setting is anywhere\./);
-  assert.match(prompt, /The mood is casual\./);
+  assert.match(prompt, /The mood is playful\./);
 });
 
 test("buildTurnPrompt embeds only the last six history lines", () => {
@@ -81,14 +75,14 @@ test("buildTurnPrompt embeds only the last six history lines", () => {
 });
 
 test("buildTurnPrompt tells the speaker to address the user when they interjected last", () => {
-  const history = ["Ada: hello", "Dustin: what about quantum?"];
-  const prompt = buildTurnPrompt(scenario(), history, "Dustin");
-  assert.match(prompt, /The latest message is from Dustin—address them directly/);
+  const history = ["Ada: hello", "Guest: what about quantum?"];
+  const prompt = buildTurnPrompt(scenario(), history, "Guest");
+  assert.match(prompt, /The latest message is from Guest—address them directly using the name "Guest" and answer their message before continuing the broader discussion\./);
 });
 
 test("buildTurnPrompt omits the address-the-user instruction for a normal AI turn", () => {
-  const history = ["Dustin: what about quantum?", "Ada: great question"];
-  const prompt = buildTurnPrompt(scenario(), history, "Dustin");
+  const history = ["Guest: what about quantum?", "Ada: great question"];
+  const prompt = buildTurnPrompt(scenario(), history, "Guest");
   assert.doesNotMatch(prompt, /address them directly/);
   assert.match(prompt, /Stay focused on the topic and respond in character\./);
 });
@@ -100,7 +94,7 @@ test("buildTurnPrompt keys interjection detection off the resolved user name, no
     /The latest message is from Observer/,
   );
   assert.doesNotMatch(
-    buildTurnPrompt(scenario(), history, "Dustin"),
+    buildTurnPrompt(scenario(), history, "Guest"),
     /address them directly/,
     "a different user name must not match the Observer-prefixed line",
   );

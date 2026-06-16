@@ -16,9 +16,8 @@ export const DEFAULT_USER_NAME = "Observer";
  * description is given, the character's name is used as the persona.
  */
 export function buildCharacterSystemPrompt(character: PartyCharacter): string {
-  const persona = character.persona.trim() || character.name.trim();
   return [
-    `Assume the personality of ${persona}.`,
+    `Assume the personality of ${character.persona || character.name}.`,
     "Roleplay as them and never break character.",
     "Do not speak as anyone else.",
     "Keep responses concise (one to three sentences).",
@@ -36,7 +35,7 @@ export function buildFirstTurnPrompt(
     .filter((c) => c.id !== speaker.id)
     .map((c) => c.name)
     .join(", ");
-  return `Start a ${scenario.conversationType || "conversation"} about ${scenario.topic || "anything"} with ${others || "the others"}. The setting is ${scenario.setting || "anywhere"}. The mood is ${scenario.mood || "casual"}. Begin naturally.`;
+  return `Start a ${scenario.conversationType} about ${scenario.topic || "anything"} with ${others}. The setting is ${scenario.setting || "anywhere"}. The mood is ${scenario.mood}. Begin naturally.`;
 }
 
 /**
@@ -54,13 +53,13 @@ export function buildTurnPrompt(scenario: PartyScenario, history: string[], user
   const followUpInstruction = [
     "Stay focused on the topic and respond in character.",
     userInterjected
-      ? `The latest message is from ${userName}—address them directly and answer their message before continuing the broader discussion.`
+      ? `The latest message is from ${userName}—address them directly using the name "${userName}" and answer their message before continuing the broader discussion.`
       : "",
   ]
     .filter(Boolean)
     .join(" ");
 
-  return `You're the next speaker in a ${scenario.conversationType || "conversation"} about ${scenario.topic || "anything"}. The setting is ${scenario.setting || "anywhere"}. The mood is ${scenario.mood || "casual"}. ${historySection}${followUpInstruction}`;
+  return `You're the next speaker in a ${scenario.conversationType} about ${scenario.topic || "anything"}. The setting is ${scenario.setting || "anywhere"}. The mood is ${scenario.mood}. ${historySection}${followUpInstruction}`;
 }
 
 /**
@@ -72,7 +71,7 @@ export function buildDecisionPrompt(
   characters: PartyCharacter[],
   history: string[],
 ): string {
-  return `Based on this ${scenario.conversationType || "conversation"} history, reply with the name of the most likely next speaker (matching the participant name exactly) followed by a pipe and your reasoning. Format: <name>|<reason>. Avoid round-robin patterns.\n\nParticipants: ${characters
+  return `Based on this ${scenario.conversationType} history, reply with the name of the most likely next speaker (matching the participant name exactly) followed by a pipe and your reasoning. Format: <name>|<reason>. Avoid round-robin patterns.\n\nParticipants: ${characters
     .map((c) => c.name)
     .join(", ")}\n\nHistory:\n${history.join("\n")}`;
 }
