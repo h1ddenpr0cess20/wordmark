@@ -41,7 +41,9 @@ A control bar appears in the chat area above the input while a party is active:
 
 - **Pause** — requests a pause at the next safe checkpoint (never mid-stream); an already-generated turn is not discarded.
 - **Resume** — continues a paused loop.
-- **Stop** — ends the loop and aborts any in-flight request. A stopped party leaves a **Resume party** control so you can pick the same cast and scenario back up.
+- **Stop** — ends the loop and aborts any in-flight request; a turn that has already produced tokens is still recorded rather than discarded. A stopped party leaves a **Resume party** control so you can pick the same cast and scenario back up.
+
+Loading a saved party conversation re-selects the **Party Mode** prompt mode automatically, so its system prompt and setup form are restored on load.
 
 ## Modules
 
@@ -52,4 +54,4 @@ A control bar appears in the chat area above the input while a party is active:
 - [`components/party/partyTab.ts`](../src/ts/components/party/partyTab.ts) — the Settings → Personality "Party Mode" tab UI.
 - `src/css/components/features/party/party.css` — control bar, name labels, and setup-form styling.
 
-Tests live in [`tests/partyPrompts.spec.ts`](../tests/partyPrompts.spec.ts) and [`tests/partyState.spec.ts`](../tests/partyState.spec.ts).
+Tests live in [`tests/partyPrompts.spec.ts`](../tests/partyPrompts.spec.ts), [`tests/partyState.spec.ts`](../tests/partyState.spec.ts), and [`tests/partyEngine.spec.ts`](../tests/partyEngine.spec.ts) — the last covering engine control flow (restart-after-stop, pause mid-turn, and aborted-but-already-generated turns) with the DOM/network dependencies faked via module mocks.

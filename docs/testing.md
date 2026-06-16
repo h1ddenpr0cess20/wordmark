@@ -10,7 +10,7 @@ The specs themselves are TypeScript and type-checked under strict mode. Browser-
 - `npm run test:watch` – reruns affected specs whenever a source file changes.
 - `npm run typecheck:tests` – type-checks the specs against `tsconfig.tests.json` (strict, zero errors required).
 
-Both run scripts go through `node --import ./tests/helpers/registerLoaders.mjs`, which registers the loaders that let Node import the app's TypeScript modules (transpiling `.ts`, resolving `.js`→`.ts` specifiers, handling Vite-style `?raw` imports) and provides a DOMPurify stub plus `globalThis.__APP_VERSION__`. The suite stubs browser primitives such as `window`, `document`, `Audio`, `localStorage`, and `fetch` so that modules can be exercised in isolation without a DOM.
+Both run scripts go through `node --experimental-test-module-mocks --import ./tests/helpers/registerLoaders.mjs`, which registers the loaders that let Node import the app's TypeScript modules (transpiling `.ts`, resolving `.js`→`.ts` specifiers, handling Vite-style `?raw` imports) and provides a DOMPurify stub plus `globalThis.__APP_VERSION__`. The `--experimental-test-module-mocks` flag enables `mock.module`, which the Party engine specs use to fake their DOM/network dependencies. The suite stubs browser primitives such as `window`, `document`, `Audio`, `localStorage`, and `fetch` so that modules can be exercised in isolation without a DOM.
 
 ## Coverage Highlights
 
@@ -26,7 +26,7 @@ Recent test additions capture critical service behaviours:
 | File & vector store APIs | `tests/filesService.spec.ts`, `tests/vectorStoreService.spec.ts` | Assistants file CRUD, upload batching, metadata storage |
 | TTS services | `tests/ttsQueue.spec.ts`, `tests/ttsPlayback.spec.ts` | Autoplay queues, audio lifecycle, error recovery |
 | Weather, attachments & assets | `tests/weatherService.spec.ts`, `tests/imageGeneration.spec.ts`, `tests/imageStorage.spec.ts` | Tool error handling, attachment dedupe, gallery storage |
-| Party mode | `tests/partyPrompts.spec.ts`, `tests/partyState.spec.ts` | Persona/first/subsequent-turn/decision prompt builders, user-name-keyed interjection detection, scenario/config defaults |
+| Party mode | `tests/partyPrompts.spec.ts`, `tests/partyState.spec.ts`, `tests/partyEngine.spec.ts` | Persona/first/subsequent-turn/decision prompt builders, user-name-keyed interjection detection, scenario/config defaults, and engine control flow (restart-after-stop, pause mid-turn, aborted-but-already-generated turns) |
 
 ## Adding New Specs
 
