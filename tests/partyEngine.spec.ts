@@ -17,6 +17,9 @@ interface RunTurnCall {
 
 const runTurnCalls: RunTurnCall[] = [];
 let finalizeCount = 0;
+let removeCount = 0;
+let throwAbort = false;
+let streamedDomText = "";
 let gate: { promise: Promise<void>; resolve: () => void } | null = null;
 
 function openGate(): void {
@@ -31,6 +34,11 @@ async function fakeRunTurn(opts: RunTurnCall): Promise<unknown> {
   runTurnCalls.push(opts);
   if (gate) {
     await gate.promise;
+  }
+  if (throwAbort) {
+    const error = new Error("Request aborted");
+    error.name = "AbortError";
+    throw error;
   }
   return { response: {}, outputText: "hello there", reasoningText: "" };
 }
@@ -50,7 +58,12 @@ function makeNode(): Record<string, unknown> {
     firstChild: null,
     children: [],
     classList: { add() {}, remove() {}, contains() { return false; } },
-    querySelector() { return null; },
+    querySelector(sel: string) {
+      if (sel === ".main-response-content") {
+        return { textContent: streamedDomText };
+      }
+      return null;
+    },
     querySelectorAll() { return []; },
     appendChild() {},
     append() {},
@@ -77,7 +90,7 @@ mockModule("../src/ts/init/state.ts", { state: fakeState, elements: { chatBox: m
 mockModule("../src/ts/components/ui/chatMessages.ts", { appendMessage: () => makeNode() });
 mockModule("../src/ts/services/streaming/messageLifecycle.ts", {
   finalizeStreamedResponse: () => { finalizeCount += 1; },
-  removeLoadingIndicator: () => {},
+  removeLoadingIndicator: () => { removeCount += 1; },
 });
 mockModule("../src/ts/services/history/persistence.ts", { saveCurrentConversation: () => {} });
 mockModule("../src/ts/components/messages.ts", { generateMessageId: () => `id-${Math.random().toString(36).slice(2)}` });
@@ -114,6 +127,9 @@ async function resetEngine(): Promise<void> {
   await delay(50);
   runTurnCalls.length = 0;
   finalizeCount = 0;
+  removeCount = 0;
+  throwAbort = false;
+  streamedDomText = "";
   gate = null;
   fakeState.partyMode = false;
   fakeState.activePartyConfig = null;
@@ -164,4 +180,22 @@ test("a pause requested mid-turn still records the in-progress turn", async () =
 
   partyEngine.stop();
   await loop;
+});
+
+test("an aborted turn that already produced tokens is recorded, never discarded", async () => {
+  await resetEngine();
+  // Simulate the abort path where runTurn throws AbortError but tokens had
+  // already streamed into the bubble.
+  throwAbort = true;
+  streamedDomText = "tokens that cost real money";
+
+  const loop = partyEngine.start(structuredClone(CONFIG));
+  await delay(120);
+  assert.ok(runTurnCalls.length >= 1, "the opening turn should have been attempted");
+
+  partyEngine.stop();
+  await loop;
+
+  assert.equal(removeCount, 0, "an aborted turn with generated text must not be removed/discarded");
+  assert.equal(finalizeCount, 1, "the already-generated tokens must be finalized and recorded");
 });

@@ -54,6 +54,16 @@ const TURN_DELAY_MS = 600;
 const PAUSE_POLL_MS = 150;
 const HISTORY_BUFFER_LIMIT = 12;
 
+/**
+ * Reads whatever text has already been streamed into a turn's bubble, used to
+ * recover generated (already paid-for) tokens when a turn is aborted before
+ * `runTurn` returns them.
+ */
+function readStreamedText(element: HTMLElement): string {
+  const main = element.querySelector<HTMLElement>(".main-response-content");
+  return (main?.textContent || "").trim();
+}
+
 const LOADING_HTML =
   "<div class=\"loading-animation\"><div class=\"loading-dot\"></div><div class=\"loading-dot\"></div><div class=\"loading-dot\"></div></div>";
 
@@ -281,8 +291,10 @@ class PartyEngine {
 
     this.controller = new AbortController();
 
+    let result: Awaited<ReturnType<typeof runTurn>> | null = null;
+    let fatalError: unknown = null;
     try {
-      const result = await runTurn({
+      result = await runTurn({
         inputMessages: [{ role: "user", content: prompt, id: `party-prompt-${loadingId}` }],
         model: getActiveModel(),
         systemOverride: buildCharacterSystemPrompt(speaker),
@@ -292,28 +304,38 @@ class PartyEngine {
         loadingId,
         abortController: this.controller,
       });
-
-      const element = document.getElementById(loadingId);
-      if (!element) {
-        return;
+    } catch (error) {
+      const aborted = this.abort || (error instanceof Error && error.name === "AbortError");
+      if (!aborted) {
+        fatalError = error;
       }
+    }
 
+    const element = document.getElementById(loadingId);
+    if (!element) {
+      if (fatalError) {
+        throw fatalError;
+      }
+      return;
+    }
+
+    const salvaged = result?.outputText?.trim() ? result.outputText : readStreamedText(element);
+
+    if (salvaged.trim()) {
       finalizeStreamedResponse(element, {
-        content: result.outputText,
-        reasoning: result.reasoningText,
-        response: result.response,
+        content: salvaged,
+        reasoning: result?.reasoningText || "",
+        response: result?.response,
         character: { name: speaker.name },
       });
-
       applyPartyNameLabel(element, speaker.name);
-      this.recordHistoryEntry(speaker.name, result.outputText || "");
-    } catch (error) {
-      if (this.abort || (error instanceof Error && error.name === "AbortError")) {
-        removeLoadingIndicator(loadingId);
-        return;
-      }
+      this.recordHistoryEntry(speaker.name, salvaged);
+    } else {
       removeLoadingIndicator(loadingId);
-      throw error;
+    }
+
+    if (fatalError) {
+      throw fatalError;
     }
   }
 
