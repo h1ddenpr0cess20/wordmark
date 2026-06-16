@@ -26,7 +26,7 @@ import {
   registerMcpServer,
   unregisterMcpServer,
 } from "./tools/mcp.ts";
-import type { ToolCatalogEntry, ToolDefinition } from "../../../types/tools.ts";
+import type { ToolCatalogEntry, ToolDefinition, ToolEntry } from "../../../types/tools.ts";
 
 const SERVER_MANAGED_TOOL_TYPES = new Set([
   "web_search",
@@ -144,8 +144,77 @@ export function getToolCatalog(): ToolCatalogEntry[] {
  *
  * @param serviceKey - Target service; defaults to the active service.
  * @param modelName - Target model; defaults to the active model.
+ * @param allowedToolKeys - When provided, only catalog tools whose `key` is in
+ *   this list are included (Party mode per-character tool selection). An empty
+ *   array yields no tools. When omitted, the full enabled set is returned and
+ *   memory tools are appended as usual.
  */
-export function getEnabledToolDefinitions(serviceKey: string = getActiveServiceKey(), modelName: string = getActiveModel()): ToolDefinition[] {
+function isToolAvailableForProvider(
+  tool: ToolEntry,
+  serviceKey: string,
+  modelName: string,
+  clientSideToolsSupported: boolean,
+  modelIsCodex: boolean,
+): boolean {
+  if (tool.hidden) {
+    return false;
+  }
+  if (tool.onlyServices && !tool.onlyServices.includes(serviceKey)) {
+    return false;
+  }
+  if (!clientSideToolsSupported && isClientSideToolType(tool.type)) {
+    return false;
+  }
+  if (tool.type === "mcp") {
+    if (!isLocalService(serviceKey)) {
+      const serverUrl = tool.definition?.server_url;
+      if (serverUrl && isLocalNetworkUrl(serverUrl)) {
+        return false;
+      }
+    }
+    const onlineState = (typeof window !== "undefined" && MCP_ASSUME_ONLINE === true)
+      ? true
+      : (getCachedMcpStatus(tool.key) ?? (typeof tool.isOnline === "boolean" ? tool.isOnline : false));
+    if (!onlineState) {
+      return false;
+    }
+  }
+  if (tool.requiresApiKeyService) {
+    const requiredKey = getApiKey(tool.requiresApiKeyService);
+    if (!requiredKey || !requiredKey.trim()) {
+      return false;
+    }
+  }
+  if (tool.key === "builtin:image_generation" && serviceKey === "openai" && modelIsCodex) {
+    return false;
+  }
+  return true;
+}
+
+/**
+ * Returns the catalog keys of tools usable with the given provider/model,
+ * applying the same provider/model gates as {@link getEnabledToolDefinitions}
+ * but ignoring per-tool user preferences. Used by Party mode to offer each
+ * character only the tools the active provider actually supports.
+ *
+ * @param serviceKey - Target service; defaults to the active service.
+ * @param modelName - Target model; defaults to the active model.
+ */
+export function getAvailableToolKeys(serviceKey: string = getActiveServiceKey(), modelName: string = getActiveModel()): string[] {
+  if (config && config.enableFunctionCalling === false) {
+    return [];
+  }
+  if (!isConfiguredServiceEnabled(serviceKey)) {
+    return [];
+  }
+  const modelIsCodex = isCodexModel(modelName);
+  const clientSideToolsSupported = supportsClientSideTools(serviceKey, modelName);
+  return TOOL_CATALOG
+    .filter(tool => isToolAvailableForProvider(tool, serviceKey, modelName, clientSideToolsSupported, modelIsCodex))
+    .map(tool => tool.key);
+}
+
+export function getEnabledToolDefinitions(serviceKey: string = getActiveServiceKey(), modelName: string = getActiveModel(), allowedToolKeys?: string[]): ToolDefinition[] {
   const masterEnabled = !(config && config.enableFunctionCalling === false);
   if (!masterEnabled) {
     return [];
@@ -154,55 +223,21 @@ export function getEnabledToolDefinitions(serviceKey: string = getActiveServiceK
     return [];
   }
 
+  const restrictKeys = Array.isArray(allowedToolKeys);
+  const allowedKeySet = restrictKeys ? new Set(allowedToolKeys) : null;
   const modelIsCodex = isCodexModel(modelName);
   const clientSideToolsSupported = supportsClientSideTools(serviceKey, modelName);
   const defs: ToolDefinition[] = [];
 
   TOOL_CATALOG.forEach(tool => {
-    if (tool.onlyServices && !tool.onlyServices.includes(serviceKey)) {
+    if (allowedKeySet && !allowedKeySet.has(tool.key)) {
       return;
     }
-    if (tool.hidden) {
-      return;
-    }
-
-    if (!clientSideToolsSupported && isClientSideToolType(tool.type)) {
-      logVerbose(`Skipping client-side tool '${tool.displayName}' for xAI model '${modelName}'.`);
+    if (!isToolAvailableForProvider(tool, serviceKey, modelName, clientSideToolsSupported, modelIsCodex)) {
       return;
     }
 
-    if (tool.type === "mcp") {
-      if (!isLocalService(serviceKey)) {
-        const serverUrl = tool.definition?.server_url;
-        if (serverUrl && isLocalNetworkUrl(serverUrl)) {
-          logVerbose(`Skipping local MCP server ${tool.displayName} when using cloud service ${serviceKey}`);
-          return;
-        }
-      }
-    }
-
-    const onlineState = tool.type === "mcp"
-      ? ((typeof window !== "undefined" && MCP_ASSUME_ONLINE === true)
-        ? true
-        : (getCachedMcpStatus(tool.key) ?? (typeof tool.isOnline === "boolean" ? tool.isOnline : false)))
-      : true;
-    if (!onlineState) {
-      return;
-    }
-
-    if (!getToolPreference(tool.key, tool.defaultEnabled !== false)) {
-      return;
-    }
-
-    if (tool.requiresApiKeyService) {
-      const requiredKey = getApiKey(tool.requiresApiKeyService);
-      if (!requiredKey || !requiredKey.trim()) {
-        return;
-      }
-    }
-
-    if (tool.key === "builtin:image_generation" && serviceKey === "openai" && modelIsCodex) {
-      logVerbose(`Skipping image generation tool for Codex model '${modelName}'.`);
+    if (!restrictKeys && !getToolPreference(tool.key, tool.defaultEnabled !== false)) {
       return;
     }
 
@@ -243,7 +278,9 @@ export function getEnabledToolDefinitions(serviceKey: string = getActiveServiceK
     defs.push(JSON.parse(JSON.stringify(tool.definition)));
   });
 
-  appendMemoryTools(defs, serviceKey, modelName);
+  if (!restrictKeys) {
+    appendMemoryTools(defs, serviceKey, modelName);
+  }
   return defs;
 }
 

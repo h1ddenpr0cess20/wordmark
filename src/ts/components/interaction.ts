@@ -12,6 +12,7 @@ import { finalizeStreamedResponse, removeLoadingIndicator } from "../services/st
 import { updateBrowserHistory } from "../services/history/state.ts";
 import { saveCurrentConversation } from "../services/history/persistence.ts";
 import { responsesClient } from "../services/api.ts";
+import { partyEngine } from "../services/party/partyEngine.ts";
 import { uploadFile, uploadAndAttachFiles, saveVectorStoreMetadata } from "../services/vectorStore.ts";
 import { generateMessageId, addMessageCopyButton } from "./messages.ts";
 import { appendMessage } from "./ui/chatMessages.ts";
@@ -158,6 +159,15 @@ export async function sendMessage() {
     if (state.verboseLogging) {
       console.info("No message entered. sendMessage aborted.");
     }
+    return;
+  }
+
+  if (state.partyMode && partyEngine.isRunning()) {
+    if (message) {
+      partyEngine.queueInterjection(message);
+    }
+    userInput.value = "";
+    userInput.style.height = "auto";
     return;
   }
 

@@ -5,6 +5,7 @@
 import type { Message } from "./api.ts";
 import type { GeneratedImage } from "./common.ts";
 import type { PendingDocument, PendingUpload } from "./attachments.ts";
+import type { PartyConfig } from "../ts/services/party/partyTypes.ts";
 
 /** A conversation's stored system-prompt selection. */
 export interface SystemPrompt {
@@ -50,6 +51,11 @@ export interface AppState {
   debug: boolean;
   verboseLogging: boolean;
   shortResponseGuideline: string;
+
+  /** Whether Party mode is currently the active chat mode. */
+  partyMode: boolean;
+  /** The cast + scenario for the active/loaded party conversation, if any. */
+  activePartyConfig: PartyConfig | null;
 }
 
 /** Cached references to the DOM elements the app interacts with. */

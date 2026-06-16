@@ -24,6 +24,7 @@ import { initializeModelSettings } from "./modelSettings.ts";
 import { setupEventListeners } from "./eventListeners.ts";
 import { initializeDOMReferences } from "./dom.ts";
 import { initializeAboutTab } from "./aboutTab.ts";
+import { initPartyTab } from "../components/party/partyTab.ts";
 import { initializeMarked } from "./marked.ts";
 import { logVerbose } from "../utils/logger.ts";
 import {
@@ -76,6 +77,13 @@ export async function initialize() {
 
     initToolsSettings();
     logVerbose("Tools settings initialized.");
+
+    try {
+      initPartyTab();
+      logVerbose("Party tab initialized.");
+    } catch (e) {
+      console.error("Party tab initialization failed:", e);
+    }
 
     {
       try {

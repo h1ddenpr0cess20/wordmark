@@ -26,6 +26,7 @@ import {
   registerMcpServer,
   unregisterMcpServer,
   getEnabledToolDefinitions,
+  getAvailableToolKeys,
   refreshMcpAvailability,
   supportsClientSideTools,
 } from "./api/toolManager.ts";
@@ -54,6 +55,7 @@ export const responsesClient = {
   registerMcpServer,
   unregisterMcpServer,
   getEnabledToolDefinitions,
+  getAvailableToolKeys,
   getActiveServiceKey,
   refreshMcpAvailability,
   supportsClientSideTools,

@@ -11,6 +11,7 @@ import { updateMessageContent } from "../streaming/messageLifecycle.ts";
 import { updatePromptVisibility } from "../../components/ui/settingsControls.ts";
 import { highlightAndAddCopyButtons, addMessageCopyButton, generateMessageId } from "../../components/messages.ts";
 import { appendMessage } from "../../components/ui/chatMessages.ts";
+import { partyEngine, applyPartyNameLabel } from "../party/partyEngine.ts";
 import { renderWordmarkLogo } from "../../components/logo.ts";
 import { setupImageInteractions } from "../../components/ui/imageInteractions.ts";
 import { updateHeaderInfo, updateModelSelector } from "../../components/settings.ts";
@@ -125,7 +126,6 @@ export function renderConversationMessages(convo: ConversationRecord, imageCache
         <g stroke="var(--accent-color)" stroke-width="1"></g>
       </svg>
     `;
-
     renderWordmarkLogo(sender.querySelector("g"));
 
     messageElement.appendChild(sender);
@@ -209,6 +209,9 @@ export function renderConversationMessages(convo: ConversationRecord, imageCache
     };
 
     updateMessageContent(messageElement, contentObj);
+    if (msg.character?.name) {
+      applyPartyNameLabel(messageElement, msg.character.name);
+    }
     highlightAndAddCopyButtons(messageElement);
     addMessageCopyButton(messageElement, messageId);
     setupImageInteractions(contentWrapper);
@@ -282,6 +285,7 @@ export function renderConversationMessages(convo: ConversationRecord, imageCache
   applySelectedModel();
 
   updateHeaderInfo?.();
+  partyEngine.refreshControlBar();
 
   if (!convo.id) {
     state.loadedSystemPrompt = null;

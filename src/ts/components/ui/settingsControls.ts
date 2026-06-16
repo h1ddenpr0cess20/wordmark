@@ -13,37 +13,24 @@ export function updatePromptVisibility() {
   const personalityContainer = document.getElementById("personality-container");
   const customPromptContainer = document.getElementById("custom-prompt-container");
   const noPromptContainer = document.getElementById("no-prompt-container");
+  const partyPanel = document.getElementById("party-panel");
+  const partyRadio = document.getElementById("party-prompt") as HTMLInputElement | null;
+  const verboseModeItem = document.getElementById("verbose-mode-item");
 
-  if (elements.personalityPromptRadio?.checked) {
-    if (personalityContainer) {
-      personalityContainer.style.display = "block";
-    }
-    if (customPromptContainer) {
-      customPromptContainer.style.display = "none";
-    }
-    if (noPromptContainer) {
-      noPromptContainer.style.display = "none";
-    }
-  } else if (elements.customPromptRadio?.checked) {
-    if (personalityContainer) {
-      personalityContainer.style.display = "none";
-    }
-    if (customPromptContainer) {
-      customPromptContainer.style.display = "block";
-    }
-    if (noPromptContainer) {
-      noPromptContainer.style.display = "none";
-    }
-  } else if (elements.noPromptRadio?.checked) {
-    if (personalityContainer) {
-      personalityContainer.style.display = "none";
-    }
-    if (customPromptContainer) {
-      customPromptContainer.style.display = "none";
-    }
-    if (noPromptContainer) {
-      noPromptContainer.style.display = "block";
-    }
+  if (personalityContainer) {
+    personalityContainer.style.display = elements.personalityPromptRadio?.checked ? "block" : "none";
+  }
+  if (customPromptContainer) {
+    customPromptContainer.style.display = elements.customPromptRadio?.checked ? "block" : "none";
+  }
+  if (noPromptContainer) {
+    noPromptContainer.style.display = elements.noPromptRadio?.checked ? "block" : "none";
+  }
+  if (partyPanel) {
+    partyPanel.style.display = partyRadio?.checked ? "block" : "none";
+  }
+  if (verboseModeItem) {
+    verboseModeItem.style.display = partyRadio?.checked ? "none" : "block";
   }
 }
 

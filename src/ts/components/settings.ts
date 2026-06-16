@@ -2,7 +2,7 @@
  * Settings panel functionality.
  */
 
-import { elements } from "../init/state.ts";
+import { elements, state } from "../init/state.ts";
 import { uiHooks } from "../init/uiHooks.ts";
 import { STORAGE_KEYS } from "../utils/storage/storage.ts";
 import { showInlineStatus } from "../utils/inlineStatus.ts";
@@ -126,6 +126,27 @@ export function updateHeaderInfo() {
         promptInfo = `Personality: ${elements.personalityInput.value.trim()}`;
       } else if (DEFAULT_PERSONALITY) {
         promptInfo = `Personality: ${DEFAULT_PERSONALITY}`;
+      }
+    }
+
+    if (state.partyMode) {
+      const cfg = state.activePartyConfig;
+      const names = (cfg?.characters ?? []).map(c => c.name).filter(Boolean);
+      if (names.length) {
+        const parts = [`Party: ${names.join(", ")}`];
+        const extras: [string, string | undefined][] = [
+          ["Topic", cfg?.scenario?.topic],
+          ["Setting", cfg?.scenario?.setting],
+          ["Tone", cfg?.scenario?.mood],
+        ];
+        for (const [label, value] of extras) {
+          if ((value || "").trim()) {
+            parts.push(`${label}: ${(value || "").trim()}`);
+          }
+        }
+        promptInfo = parts.join(" · ");
+      } else {
+        promptInfo = "Party mode";
       }
     }
 

@@ -64,6 +64,7 @@ export function buildRequestBody({
   reasoningEffort,
   stream,
   previousResponseId,
+  temperature,
 }: BuildRequestOptions): Record<string, unknown> {
   const targetModel = model || getActiveModel();
   const allowReasoning = supportsReasoningEffort(targetModel);
@@ -97,6 +98,9 @@ export function buildRequestBody({
   }
   if (previousResponseId) {
     payload.previous_response_id = previousResponseId;
+  }
+  if (typeof temperature === "number" && Number.isFinite(temperature)) {
+    payload.temperature = temperature;
   }
   if (usesServerManagedTools(serviceKey) && payload.text) {
     const usesServerSideTools = Array.isArray(tools) && tools.some((tool: ToolDefinition) => {
@@ -133,6 +137,9 @@ export async function runTurn({
   abortController,
   vectorStoreId,
   historyTokenBudget = 0,
+  systemOverride,
+  allowedTools,
+  temperature,
 }: RunTurnOptions): Promise<RunTurnResult> {
   const baseMessages = Array.isArray(inputMessages)
     ? inputMessages.filter(msg => msg && msg.role !== "developer" && msg.role !== "system")
@@ -151,7 +158,7 @@ export async function runTurn({
   const resolvedModel = model || getActiveModel();
   const windowedMessages = windowMessagesByTokenBudget(baseMessages, historyTokenBudget);
   const workingMessages = serializeMessagesForRequest(windowedMessages);
-  const developerContent = buildDeveloperMessage();
+  const developerContent = typeof systemOverride === "string" ? systemOverride : buildDeveloperMessage();
   if (developerContent) {
     const systemRole = serviceKey === "xai" ? "system" : "developer";
     workingMessages.unshift({
@@ -161,7 +168,7 @@ export async function runTurn({
     });
   }
   await refreshMcpAvailability(true);
-  let enabledTools = getEnabledToolDefinitions(serviceKey, resolvedModel);
+  let enabledTools = getEnabledToolDefinitions(serviceKey, resolvedModel, allowedTools);
   const clientSideToolsSupported = supportsClientSideTools(serviceKey, resolvedModel);
 
   enabledTools = applyVectorStoreIds(enabledTools, vectorStoreId);
@@ -184,6 +191,7 @@ export async function runTurn({
       reasoningEffort,
       stream,
       previousResponseId: previousAssistantHadImages ? previousResponseId : null,
+      temperature,
     });
 
     let responsePayload: ResponseObject | null = null;

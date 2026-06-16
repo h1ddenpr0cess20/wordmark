@@ -48,6 +48,8 @@ export interface Message {
   reasoning?: string;
   codeInterpreterOutputs?: unknown;
   timestamp?: string;
+  /** Party mode: the character that authored this message. */
+  character?: { name: string };
   [key: string]: unknown;
 }
 
@@ -61,6 +63,8 @@ export interface StreamedMessageContent {
   reasoning?: string;
   codeInterpreterOutputs?: unknown;
   response?: unknown;
+  /** Party mode: the character authoring this message. */
+  character?: { name: string };
 }
 
 /** A function/tool call as embedded in a provider response. */
@@ -117,6 +121,7 @@ export interface BuildRequestOptions {
   reasoningEffort?: string;
   stream?: boolean;
   previousResponseId?: string | null;
+  temperature?: number;
 }
 
 /** Options for `runTurn`. */
@@ -131,6 +136,18 @@ export interface RunTurnOptions {
   abortController?: AbortController | null;
   vectorStoreId?: string | null;
   historyTokenBudget?: number;
+  /**
+   * Party mode: replaces the auto-built developer/system message with this exact
+   * system prompt. When omitted, the standard developer message is used.
+   */
+  systemOverride?: string;
+  /**
+   * Party mode: restricts enabled tools to these catalog keys. `undefined` keeps
+   * the default enabled-tool set; an empty array runs the turn tool-free.
+   */
+  allowedTools?: string[];
+  /** Optional sampling temperature (set only when provided). */
+  temperature?: number;
 }
 
 /** Result of a completed `runTurn` cycle. */

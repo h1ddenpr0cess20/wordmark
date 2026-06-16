@@ -1,0 +1,40 @@
+/**
+ * Type definitions for Party mode: a multi-character agentic group chat where
+ * several AI personas converse autonomously and the user can interject at any
+ * time. All characters share the globally selected provider + model; only
+ * persona, name, label color, optional temperature, and per-tool selection
+ * differ between them.
+ */
+
+/** A single AI persona participating in a party conversation. */
+export interface PartyCharacter {
+  /** Stable id used for speaker bookkeeping. */
+  id: string;
+  /** Display name shown on the message label and used in transcript history. */
+  name: string;
+  /** Persona description injected as the character's system prompt. */
+  persona: string;
+  /** Optional per-character sampling temperature. */
+  temperature?: number;
+  /**
+   * Catalog keys (from `getToolCatalog()`) of the tools this character may use.
+   * An empty array means the character runs tool-free.
+   */
+  allowedTools: string[];
+}
+
+/** The shared scenario framing the conversation. */
+export interface PartyScenario {
+  topic: string;
+  setting: string;
+  mood: string;
+  conversationType: string;
+}
+
+/** Party configuration: the cast, the scenario, and what the cast calls the user. */
+export interface PartyConfig {
+  characters: PartyCharacter[];
+  scenario: PartyScenario;
+  /** What the characters call the user (defaults to "You"). */
+  userName?: string;
+}
