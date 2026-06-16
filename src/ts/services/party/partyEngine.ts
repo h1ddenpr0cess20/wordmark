@@ -50,7 +50,7 @@ export function applyPartyNameLabel(messageElement: HTMLElement, name: string): 
   label.textContent = name;
 }
 
-const TURN_DELAY_MS = 1500;
+const TURN_DELAY_MS = 600;
 const PAUSE_POLL_MS = 150;
 const HISTORY_BUFFER_LIMIT = 12;
 
@@ -283,10 +283,6 @@ class PartyEngine {
         loadingId,
         abortController: this.controller,
       });
-
-      if (this.abort) {
-        return;
-      }
 
       const element = document.getElementById(loadingId);
       if (!element) {
