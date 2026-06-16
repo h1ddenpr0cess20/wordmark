@@ -11,10 +11,14 @@ import type { PartyCharacter, PartyScenario } from "./partyTypes.ts";
 /** Fallback display name for the user when none is configured. */
 export const DEFAULT_USER_NAME = "Observer";
 
-/** Builds the system prompt that puts a model fully in character. */
+/**
+ * Builds the system prompt that puts a model fully in character. When no persona
+ * description is given, the character's name is used as the persona.
+ */
 export function buildCharacterSystemPrompt(character: PartyCharacter): string {
+  const persona = character.persona.trim() || character.name.trim();
   return [
-    `Assume the personality of ${character.persona || character.name}.`,
+    `Assume the personality of ${persona}.`,
     "Roleplay as them and never break character.",
     "Do not speak as anyone else.",
     "Keep responses concise (one to three sentences).",

@@ -39,6 +39,12 @@ test("buildCharacterSystemPrompt falls back to the name when persona is empty", 
   assert.match(prompt, /Assume the personality of Bjorn\./);
 });
 
+test("buildCharacterSystemPrompt treats a whitespace-only persona as empty and uses the name", () => {
+  const prompt = buildCharacterSystemPrompt(character({ name: "Bob", persona: "   " }));
+  assert.match(prompt, /Assume the personality of Bob\./);
+  assert.doesNotMatch(prompt, /personality of {2,}\./, "no blank persona should leak through");
+});
+
 test("buildFirstTurnPrompt names the other participants and embeds the scenario", () => {
   const cast = [
     character({ id: "a", name: "Ada" }),
