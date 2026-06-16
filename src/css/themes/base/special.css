@@ -1267,3 +1267,430 @@
 .theme-patina .hljs-comment { color: #7a6f5a; font-style: italic; }
 .theme-patina .hljs-function { color: #8fd9c0; }
 .theme-patina .hljs-number { color: #cf9b66; }
+
+/* Sunset — a dusk sky: deep indigo at the zenith fading through magenta to a
+   warm orange horizon glow, lit by a golden setting-sun accent. Layered sky
+   gradient with a low sun-glow, a glowing logo, and a warm syntax palette. */
+.theme-sunset {
+  --bg-primary: #1a1326;
+  --bg-secondary: #251a38;
+  --text-primary: #f6e9dd;
+  --text-secondary: #c2a6b8;
+  --accent-color: #ff9e57;
+  --accent-hover: #ffb877;
+  --border-color: #3d2b4f;
+  --user-bg: #2e2142;
+  --assistant-bg: #1f1730;
+  --error-bg: #3a1726;
+  --error-text: #ff8c9e;
+  --body-bg-color-1: #1a1326;
+  --body-bg-color-2: #3a1f3d;
+  --button-text-color: #1a1326;
+}
+
+/* Dusk sky: indigo zenith → magenta band → burnt-orange horizon, with a warm
+   sun-glow rising from the bottom edge. */
+.theme-sunset #chat-container {
+  background:
+    radial-gradient(120% 70% at 50% 100%, rgba(255, 158, 87, 0.22), transparent 60%),
+    radial-gradient(90% 60% at 50% 95%, rgba(255, 110, 120, 0.16), transparent 65%),
+    linear-gradient(180deg, #1a1326 0%, #2e1a3e 45%, #5a2740 75%, #7a3a2e 100%);
+}
+
+/* button-text-color is the dark on-accent text; on transparent surfaces use the accent instead */
+.theme-sunset .tab-button.active,
+.theme-sunset .reset-button {
+  color: var(--accent-color);
+}
+
+/* Setting-sun glow on the wordmark logo */
+.theme-sunset #wordmark-logo path {
+  stroke: var(--accent-color);
+  filter: drop-shadow(0 0 6px rgba(255, 158, 87, 0.55));
+}
+
+.theme-sunset pre,
+.theme-sunset pre code,
+.theme-sunset .code-block {
+  background-color: #221733;
+  border: 1px solid var(--border-color);
+}
+
+/* Sunset code palette (coral, gold, amber, rose over muted mauve) */
+.theme-sunset {
+  --code-accent: #ff8e72;
+  --code-string: #ffcf8b;
+  --code-comment: #9a7a9a;
+  --code-accent-2: #ffb877;
+  --code-number: #ff7a9e;
+}
+
+/* Wine — a sommelier's wine list: deep oxblood/burgundy surfaces, warm
+   parchment text, and a gold accent with thin gold rules. Serif type and
+   letter-spaced headings for an elegant menu feel. */
+.theme-wine {
+  --bg-primary: #2a0e16;
+  --bg-secondary: #3a141f;
+  --text-primary: #f0e2cf;
+  --text-secondary: #c2a08a;
+  --accent-color: #d4af37;
+  --accent-hover: #e8c75a;
+  --border-color: #5a2230;
+  --user-bg: #451824;
+  --assistant-bg: #33121c;
+  --error-bg: #4a1622;
+  --error-text: #e88a8a;
+  --body-bg-color-1: #2a0e16;
+  --body-bg-color-2: #1c0910;
+  --button-text-color: #2a0e16;
+}
+
+.theme-wine body,
+.theme-wine input,
+.theme-wine textarea,
+.theme-wine button,
+.theme-wine select,
+.theme-wine .message-content,
+.theme-wine h1,
+.theme-wine h2,
+.theme-wine h3,
+.theme-wine p,
+.theme-wine label,
+.theme-wine span {
+  font-family: Georgia, "Times New Roman", serif;
+}
+
+/* button-text-color is the dark on-accent text; on transparent surfaces use the accent instead */
+.theme-wine .tab-button.active,
+.theme-wine .reset-button {
+  color: var(--accent-color);
+}
+
+/* Gold-ruled, letter-spaced menu headings */
+.theme-wine .message-content h1,
+.theme-wine .message-content h2,
+.theme-wine .message-content h3 {
+  color: var(--accent-color);
+  letter-spacing: 0.06em;
+}
+
+.theme-wine #wordmark-logo path {
+  stroke: var(--accent-color);
+}
+
+.theme-wine pre,
+.theme-wine pre code,
+.theme-wine .code-block {
+  background-color: #1f0b12;
+  border: 1px solid var(--border-color);
+}
+
+/* Wine code palette (gold, rosé, claret) */
+.theme-wine {
+  --code-accent: #d4af37;
+  --code-string: #e8b4a0;
+  --code-comment: #8a5a66;
+  --code-accent-2: #e8c75a;
+  --code-number: #d98a9a;
+}
+
+/* Autumn — cozy foliage: warm dark-bark base, rust/amber/ochre tones, and a
+   burnt-orange accent over a soft ember gradient. */
+.theme-autumn {
+  --bg-primary: #1f1611;
+  --bg-secondary: #2c2017;
+  --text-primary: #f0e3d2;
+  --text-secondary: #b89a7e;
+  --accent-color: #d97a36;
+  --accent-hover: #ec9551;
+  --border-color: #43301f;
+  --user-bg: #2e2117;
+  --assistant-bg: #241a12;
+  --error-bg: #3a1c16;
+  --error-text: #e0936f;
+  --body-bg-color-1: #1f1611;
+  --body-bg-color-2: #2c1d12;
+  --button-text-color: #1f1611;
+}
+
+.theme-autumn #chat-container {
+  background:
+    radial-gradient(80% 60% at 15% 10%, rgba(217, 122, 54, 0.10), transparent 60%),
+    radial-gradient(70% 55% at 88% 85%, rgba(176, 102, 40, 0.10), transparent 62%),
+    linear-gradient(165deg, #2c1d12, #1f1611);
+}
+
+/* button-text-color is the dark on-accent text; on transparent surfaces use the accent instead */
+.theme-autumn .tab-button.active,
+.theme-autumn .reset-button {
+  color: var(--accent-color);
+}
+
+.theme-autumn #wordmark-logo path {
+  stroke: var(--accent-color);
+}
+
+.theme-autumn pre,
+.theme-autumn pre code,
+.theme-autumn .code-block {
+  background-color: #261a10;
+  border: 1px solid var(--border-color);
+}
+
+/* Autumn code palette (rust, amber, ochre, forest) */
+.theme-autumn {
+  --code-accent: #d97a36;
+  --code-string: #b5a84a;
+  --code-comment: #7e6a52;
+  --code-accent-2: #e0a35a;
+  --code-number: #c25a3a;
+}
+
+/* Nebula — deep-space cosmos: indigo/violet void with a star-speckle field and
+   a luminous violet accent glowing on the logo. */
+.theme-nebula {
+  --bg-primary: #0b0a1f;
+  --bg-secondary: #14122e;
+  --text-primary: #e6e3ff;
+  --text-secondary: #9a96c8;
+  --accent-color: #b08cff;
+  --accent-hover: #c8aaff;
+  --border-color: #2a2552;
+  --user-bg: #1c1840;
+  --assistant-bg: #110f28;
+  --error-bg: #34163a;
+  --error-text: #ff8ac0;
+  --body-bg-color-1: #0b0a1f;
+  --body-bg-color-2: #1a1340;
+  --button-text-color: #0b0a1f;
+}
+
+/* Star-speckle field over a cosmic nebula gradient */
+.theme-nebula #chat-container {
+  background:
+    radial-gradient(1px 1px at 20% 30%, rgba(255, 255, 255, 0.7), transparent 100%),
+    radial-gradient(1px 1px at 70% 20%, rgba(255, 255, 255, 0.5), transparent 100%),
+    radial-gradient(1px 1px at 40% 70%, rgba(255, 255, 255, 0.6), transparent 100%),
+    radial-gradient(1px 1px at 85% 60%, rgba(255, 255, 255, 0.45), transparent 100%),
+    radial-gradient(1.5px 1.5px at 55% 45%, rgba(255, 255, 255, 0.6), transparent 100%),
+    radial-gradient(90% 70% at 75% 25%, rgba(176, 140, 255, 0.16), transparent 60%),
+    radial-gradient(80% 60% at 20% 80%, rgba(255, 110, 180, 0.12), transparent 62%),
+    linear-gradient(160deg, #0b0a1f, #1a1340);
+  background-repeat: repeat, repeat, repeat, repeat, repeat, no-repeat, no-repeat, no-repeat;
+  background-size: 200px 200px, 240px 240px, 180px 180px, 220px 220px, 260px 260px, auto, auto, auto;
+}
+
+/* button-text-color is the dark on-accent text; on transparent surfaces use the accent instead */
+.theme-nebula .tab-button.active,
+.theme-nebula .reset-button {
+  color: var(--accent-color);
+}
+
+/* Violet glow on the wordmark logo */
+.theme-nebula #wordmark-logo path {
+  stroke: var(--accent-color);
+  filter: drop-shadow(0 0 6px rgba(176, 140, 255, 0.6));
+}
+
+.theme-nebula pre,
+.theme-nebula pre code,
+.theme-nebula .code-block {
+  background-color: #100e26;
+  border: 1px solid var(--border-color);
+}
+
+/* Nebula code palette (violet, cyan, magenta, star-gold) */
+.theme-nebula {
+  --code-accent: #b08cff;
+  --code-string: #79e0e8;
+  --code-comment: #6a6699;
+  --code-accent-2: #ff8ac0;
+  --code-number: #ffd479;
+}
+
+/* Deco — Art Deco / Gatsby glamour: black ground, gold accent, and uppercase
+   letter-spaced display headings. */
+.theme-deco {
+  --bg-primary: #0d0d0d;
+  --bg-secondary: #161410;
+  --text-primary: #f3ead2;
+  --text-secondary: #b8a878;
+  --accent-color: #c9a227;
+  --accent-hover: #e0bb45;
+  --border-color: #4a3f1c;
+  --user-bg: #1c1810;
+  --assistant-bg: #121008;
+  --error-bg: #2e1614;
+  --error-text: #d98a7a;
+  --body-bg-color-1: #0d0d0d;
+  --body-bg-color-2: #161410;
+  --button-text-color: #0d0d0d;
+}
+
+/* button-text-color is the dark on-accent text; on transparent surfaces use the accent instead */
+.theme-deco .tab-button.active,
+.theme-deco .reset-button {
+  color: var(--accent-color);
+}
+
+/* Gold geometric frame + uppercase display headings */
+.theme-deco .message-content h1,
+.theme-deco .message-content h2,
+.theme-deco .message-content h3 {
+  color: var(--accent-color);
+  text-transform: uppercase;
+  letter-spacing: 0.14em;
+  font-family: Georgia, "Times New Roman", serif;
+}
+
+.theme-deco #wordmark-logo path {
+  stroke: var(--accent-color);
+  filter: drop-shadow(0 0 4px rgba(201, 162, 39, 0.5));
+}
+
+.theme-deco pre,
+.theme-deco pre code,
+.theme-deco .code-block {
+  background-color: #141208;
+  border: 1px solid var(--border-color);
+}
+
+/* Deco code palette (gold, brass, ivory) */
+.theme-deco {
+  --code-accent: #c9a227;
+  --code-string: #d8c98a;
+  --code-comment: #7a6f4a;
+  --code-accent-2: #e0bb45;
+  --code-number: #b89048;
+}
+
+/* Amber CRT — vintage amber-phosphor terminal: near-black screen, warm amber
+   text/accent, scanline overlay, and a monospace glow. Distinct from the green
+   terminal theme. */
+.theme-amber-crt {
+  --bg-primary: #160d00;
+  --bg-secondary: #1f1400;
+  --text-primary: #ffb000;
+  --text-secondary: #b87a00;
+  --accent-color: #ffb000;
+  --accent-hover: #ffc740;
+  --border-color: #3a2600;
+  --user-bg: #241700;
+  --assistant-bg: #1a1000;
+  --error-bg: #3a1400;
+  --error-text: #ff7043;
+  --body-bg-color-1: #160d00;
+  --body-bg-color-2: #1f1400;
+  --button-text-color: #160d00;
+}
+
+.theme-amber-crt body,
+.theme-amber-crt input,
+.theme-amber-crt textarea,
+.theme-amber-crt button,
+.theme-amber-crt select,
+.theme-amber-crt .message-content,
+.theme-amber-crt pre,
+.theme-amber-crt code,
+.theme-amber-crt span,
+.theme-amber-crt label,
+.theme-amber-crt .tab-button,
+.theme-amber-crt .radio-text {
+  font-family: "Courier New", Courier, monospace;
+}
+
+/* Scanline overlay + amber phosphor glow */
+.theme-amber-crt #chat-container {
+  background:
+    repeating-linear-gradient(
+      0deg,
+      rgba(255, 176, 0, 0.04) 0px,
+      rgba(255, 176, 0, 0.04) 1px,
+      transparent 1px,
+      transparent 3px
+    ),
+    radial-gradient(120% 90% at 50% 50%, rgba(255, 176, 0, 0.05), transparent 70%),
+    #160d00;
+}
+
+/* button-text-color is the dark on-accent text; on transparent surfaces use the accent instead */
+.theme-amber-crt .tab-button.active,
+.theme-amber-crt .reset-button {
+  color: var(--accent-color);
+}
+
+.theme-amber-crt #wordmark-logo path {
+  stroke: var(--accent-color);
+  filter: drop-shadow(0 0 5px rgba(255, 176, 0, 0.6));
+}
+
+.theme-amber-crt pre,
+.theme-amber-crt pre code,
+.theme-amber-crt .code-block {
+  background-color: #1a1000;
+  border: 1px solid var(--border-color);
+}
+
+/* Amber CRT code palette (amber phosphor monochrome) */
+.theme-amber-crt {
+  --code-accent: #ffc740;
+  --code-string: #ffd479;
+  --code-comment: #a07000;
+  --code-accent-2: #ffb000;
+  --code-number: #ff8c40;
+}
+
+/* Stained glass — jewel-toned light (ruby/sapphire/emerald) pooling over a
+   deep cathedral-glass gradient, with an amber accent. */
+.theme-stained-glass {
+  --bg-primary: #0a0e16;
+  --bg-secondary: #121a2c;
+  --text-primary: #eef0f5;
+  --text-secondary: #9aa6c0;
+  --accent-color: #e0b341;
+  --accent-hover: #f0c860;
+  --border-color: #05070c;
+  --user-bg: #3a1230;
+  --assistant-bg: #0e2236;
+  --error-bg: #3a1018;
+  --error-text: #ff7a86;
+  --body-bg-color-1: #0a0e16;
+  --body-bg-color-2: #141c30;
+  --button-text-color: #0a0e16;
+}
+
+/* Cathedral glass: jewel-tone light pooling behind the panes */
+.theme-stained-glass #chat-container {
+  background:
+    radial-gradient(60% 50% at 12% 15%, rgba(214, 40, 70, 0.16), transparent 60%),
+    radial-gradient(60% 50% at 88% 20%, rgba(40, 110, 214, 0.16), transparent 60%),
+    radial-gradient(70% 55% at 50% 95%, rgba(40, 180, 120, 0.14), transparent 62%),
+    linear-gradient(160deg, #0a0e16, #141c30);
+}
+
+/* button-text-color is the dark on-accent text; on transparent surfaces use the accent instead */
+.theme-stained-glass .tab-button.active,
+.theme-stained-glass .reset-button {
+  color: var(--accent-color);
+}
+
+.theme-stained-glass #wordmark-logo path {
+  stroke: var(--accent-color);
+  filter: drop-shadow(0 0 5px rgba(224, 179, 65, 0.5));
+}
+
+.theme-stained-glass pre,
+.theme-stained-glass pre code,
+.theme-stained-glass .code-block {
+  background-color: #0c1422;
+  border: 1px solid var(--border-color);
+}
+
+/* Stained-glass code palette (ruby, sapphire, emerald, amber) */
+.theme-stained-glass {
+  --code-accent: #e05670;
+  --code-string: #4fc28a;
+  --code-comment: #5a6a88;
+  --code-accent-2: #5aa0e0;
+  --code-number: #e0b341;
+}
