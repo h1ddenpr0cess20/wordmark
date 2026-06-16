@@ -217,7 +217,14 @@ export function renderConversationMessages(convo: ConversationRecord, imageCache
     setupImageInteractions(contentWrapper);
   });
 
-  if (convo.systemPrompt) {
+  if (convo.mode === "party") {
+    state.loadedSystemPrompt = convo.systemPrompt || null;
+    const partyRadio = document.getElementById("party-prompt") as HTMLInputElement | null;
+    if (partyRadio) {
+      partyRadio.checked = true;
+    }
+    updatePromptVisibility();
+  } else if (convo.systemPrompt) {
     const systemPrompt = convo.systemPrompt;
     state.loadedSystemPrompt = systemPrompt;
 
