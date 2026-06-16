@@ -26,6 +26,7 @@ Recent test additions capture critical service behaviours:
 | File & vector store APIs | `tests/filesService.spec.ts`, `tests/vectorStoreService.spec.ts` | Assistants file CRUD, upload batching, metadata storage |
 | TTS services | `tests/ttsQueue.spec.ts`, `tests/ttsPlayback.spec.ts` | Autoplay queues, audio lifecycle, error recovery |
 | Weather, attachments & assets | `tests/weatherService.spec.ts`, `tests/imageGeneration.spec.ts`, `tests/imageStorage.spec.ts` | Tool error handling, attachment dedupe, gallery storage |
+| Party mode | `tests/partyPrompts.spec.ts`, `tests/partyState.spec.ts` | Persona/first/subsequent-turn/decision prompt builders, user-name-keyed interjection detection, scenario/config defaults |
 
 ## Adding New Specs
 

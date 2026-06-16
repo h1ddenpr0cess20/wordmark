@@ -27,6 +27,7 @@ Wordmark is a client-side AI chat for OpenAI/xAI Responses APIs and local LM Stu
 - [Overview](docs/overview.md)
 - [Services & Models](docs/services.md)
 - [Tool Calling](docs/tool-calling.md)
+- [Party Mode](docs/party-mode.md)
 - [Streaming](docs/streaming.md)
 - [Memory](docs/memory.md)
 - [Security](docs/security.md)
@@ -40,6 +41,7 @@ Wordmark is a client-side AI chat for OpenAI/xAI Responses APIs and local LM Stu
 - **Providers** — OpenAI Responses (hosted), xAI Grok (Responses-compatible), and local LM Studio or Ollama servers ([Services & Models](docs/services.md))
 - **Tool calling** — built-in weather, provider web + X search, Code Interpreter, image generation, file search (OpenAI), direct file attachments (xAI), and custom MCP servers ([Tool Calling](docs/tool-calling.md))
 - **Streaming & reasoning** — dedicated reasoning panel, rich tool timelines, inline code previews, automatic image capture ([Streaming](docs/streaming.md))
+- **Party mode** — autonomous multi-character group chat over your chosen provider; build a cast and scenario, then interject any time without pausing ([Party Mode](docs/party-mode.md))
 - **TTS** — OpenAI (13 voices) and xAI (5 voices) providers, optional autoplay, per-message controls, audio cached locally
 - **UX** — themes, responsive layout, syntax highlighting, markdown, image gallery ([UI & UX](docs/ui-and-ux.md))
 - **Local-only storage** — conversations, images, and audio via IndexedDB; keys stay in the browser ([Storage](docs/storage.md))

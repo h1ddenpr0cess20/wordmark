@@ -33,6 +33,7 @@ Purpose: quick orientation to the current project layout, key entry points, and 
     - `memory.ts`: Memory tab UI (enable, limit, add/remove/clear).
     - `gallery/`: Media gallery — `gallery.ts` (panel/tabs/bulk-delete), `galleryData.ts` (IndexedDB reads), `galleryItem.ts` (per-item card markup).
     - `vectorStore/`: Vector-store UI — `vectorStoreManager.ts` (list/activate/inspect/delete) and `vectorStoreFormatting.ts` (name/byte formatting helpers).
+    - `party/`: Party mode UI — `partyTab.ts` (Settings → Personality "Party Mode" tab: cast/scenario editor and the Start control).
     - `aboutPopups.ts`, `logo.ts`, `ui/`: Ancillary UI + shared UI helpers (settings tabs, image interactions).
   - `services/`
     - `api.ts`: Aggregates Responses helpers so UI modules can run turns and manage tools.
@@ -71,6 +72,7 @@ Purpose: quick orientation to the current project layout, key entry points, and 
     - `apiKeys.ts` / `apiKeyStorage.ts`: In‑app key UI and storage/retrieval via localStorage
     - `memory.ts`: Memory management functions and tool exposure
     - `weather.ts`: Built-in Open-Meteo forecast tool handler
+    - `party/`: Party mode (autonomous multi-character group chat) — `partyEngine.ts` (turn-loop singleton), `partyPrompts.ts` (prompt builders), `partyTypes.ts` (types), `partyState.ts` (setup-form defaults); see `docs/party-mode.md`
     - `mcpServers.ts` / `mcpServerStore.ts`: MCP server settings UI + client wiring, and the localStorage CRUD store
   - `utils/`
     - `storage/`: All persistence helpers — `storage.ts` (typed localStorage facade + central `STORAGE_KEYS` registry), `memoryStorage.ts` (memory enable/limit/list + prompt formatting), `idb.ts` (IndexedDB open helper), and the IndexedDB-backed `conversationStorage.ts`/`imageStorage.ts`/`audioStorage.ts`.
@@ -95,6 +97,7 @@ Purpose: quick orientation to the current project layout, key entry points, and 
 - Images: upload (attachments) plus generation/edit — OpenAI `image_generation` and xAI image tools, with outputs processed in `services/streaming/imageGeneration.ts`.
 - Tool Calling: toggled in Settings; the catalogue/handlers live under `services/api/` (`toolManager.ts` facade + `tools/` sub-modules + `staticTools.ts`; see `docs/tool-calling.md`).
 - Memory: optional, local‑only storage; UI + prompt injection (see `docs/memory.md`).
+- Party Mode: autonomous multi-character group chat over the selected provider; engine + prompts under `services/party/`, tab UI in `components/party/partyTab.ts` (see `docs/party-mode.md`).
 - Security: DOMPurify config and sanitizers in `init/initialization.ts`.
 
 ## Manual Smoke Test

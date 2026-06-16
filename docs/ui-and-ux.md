@@ -43,6 +43,13 @@ TTS
 - Autoplay mode queues and plays new assistant messages sequentially. Per-message controls provide play/pause, stop, and download (WAV).
 - Audio is cached in IndexedDB (last 15 files kept). The voice selector updates dynamically when switching providers.
 
+Party Mode
+
+- A third prompt mode under Settings → Personality: build a cast of AI personas and a scenario, then **Start Party** to launch an autonomous multi-character group chat. Each turn streams into its own bubble labeled with the speaker's name.
+- Type into the normal input bar at any time to interject — no pause required; the cast addresses you by the configured name.
+- A control bar above the input offers Pause / Resume / Stop while a party runs; a stopped party can be resumed with the same cast and scenario.
+- See [docs/party-mode.md](./party-mode.md) for the full feature reference.
+
 Mobile
 
 - Mobile keyboard handling and layout helpers are provided in `utils/mobileHandling.ts` and wired by `init/ttsInitialization.ts`.
