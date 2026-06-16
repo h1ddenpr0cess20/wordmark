@@ -2,6 +2,24 @@
 
 All notable changes to Wordmark are documented here. Earlier versions didn't follow proper semver — this changelog reflects what actually shipped, not what the version numbers said at the time.
 
+## [3.2.0] - 2026-06-16
+
+A theme-heavy release plus a large internal refactor/dedupe pass. Minor bump: many new user-facing themes and a new default, with everything else backward-compatible.
+
+### Added
+- **13 new special themes** — Aurora, Tidepool, Ember, Noir, Patina, Sunset, Wine, Autumn, Nebula, Amber CRT, Stained Glass, Forest, and Comic. Each ships a matching code-block syntax palette.
+- **Aurora is the new default theme** — a northern-lights gradient.
+- **Optional theme packs** — the Metal, Neon, and Country collections are no longer bundled by default; install them from the settings panel to add them to the theme list.
+
+### Changed
+- **Contact page** — emoji replaced with the SVG icon sprite (new github, bug, message-circle, star, zap, and dollar-sign symbols), fixed the back-link icon path, and simplified the donations copy.
+- **Settings panels** — dropped the incidental bordered box around setting groups on Parchment, E-Ink, Synthwave, Solarized, Nord, and Dracula (Blueprint and Comic keep theirs, where bordered panels are the theme concept).
+- **Internal refactors** — grouped attachments, gallery, vector-store, DOM, and storage helpers into dedicated modules; extracted shared helpers (clipboard copy, anchor download, reasoning-panel renderer, document-upload flow, and more) and deduped repeated logic across history, tools, and TTS.
+- **Logging** — introduced a `logVerbose` helper and collapsed dozens of verbose-log guards across initialization, tool, history, and TTS code paths.
+
+### Fixed
+- **Code-block syntax theming** — special themes now drive syntax-highlight colors through shared code-palette variables, so fenced code renders correctly under every theme.
+
 ## [3.1.0] - 2026-06-14
 
 A large robustness + test-coverage pass plus user-facing theme additions. Minor bump: new themes are user-facing features; everything else is backward-compatible fixes and internal cleanup.
