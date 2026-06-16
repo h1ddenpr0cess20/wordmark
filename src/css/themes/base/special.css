@@ -428,12 +428,6 @@
   font-family: "Georgia", "Iowan Old Style", "Palatino Linotype", serif;
 }
 
-.theme-parchment .hljs-keyword { color: #8b2f1e; }
-.theme-parchment .hljs-string { color: #5a6b2b; }
-.theme-parchment .hljs-comment { color: #9a8a68; font-style: italic; }
-.theme-parchment .hljs-function { color: #8b5a2b; }
-.theme-parchment .hljs-number { color: #a8703a; }
-
 .theme-parchment body,
 .theme-parchment input,
 .theme-parchment textarea,
@@ -550,11 +544,6 @@
 }
 
 /* grayscale syntax highlighting (weight/contrast instead of hue) */
-.theme-eink .hljs-keyword { color: #000000; font-weight: 600; }
-.theme-eink .hljs-string { color: #3a3a3a; }
-.theme-eink .hljs-comment { color: #7a7a7a; font-style: italic; }
-.theme-eink .hljs-function { color: #161616; font-weight: 600; }
-.theme-eink .hljs-number { color: #2b2b2b; }
 
 .theme-eink body,
 .theme-eink input,
@@ -678,12 +667,6 @@
   border: 1px solid var(--code-border);
 }
 
-.theme-synthwave .hljs-keyword { color: #ff2e97; }
-.theme-synthwave .hljs-string { color: #5cffd0; }
-.theme-synthwave .hljs-comment { color: #8a6cc0; font-style: italic; }
-.theme-synthwave .hljs-function { color: #00eaff; }
-.theme-synthwave .hljs-number { color: #ffd166; }
-
 .theme-solarized {
   --bg-primary: #002b36;
   --bg-secondary: #073642;
@@ -754,13 +737,6 @@
   background-color: #073642;
   border: 1px solid var(--code-border);
 }
-
-/* Solarized syntax palette */
-.theme-solarized .hljs-keyword { color: #859900; }
-.theme-solarized .hljs-string { color: #2aa198; }
-.theme-solarized .hljs-comment { color: #586e75; font-style: italic; }
-.theme-solarized .hljs-function { color: #268bd2; }
-.theme-solarized .hljs-number { color: #d33682; }
 
 .theme-nord {
   --bg-primary: #2e3440;
@@ -833,13 +809,6 @@
   border: 1px solid var(--code-border);
 }
 
-/* Nord aurora/frost syntax palette */
-.theme-nord .hljs-keyword { color: #81a1c1; }
-.theme-nord .hljs-string { color: #a3be8c; }
-.theme-nord .hljs-comment { color: #616e88; font-style: italic; }
-.theme-nord .hljs-function { color: #88c0d0; }
-.theme-nord .hljs-number { color: #b48ead; }
-
 .theme-dracula {
   --bg-primary: #282a36;
   --bg-secondary: #21222c;
@@ -911,13 +880,6 @@
   border: 1px solid var(--code-border);
 }
 
-/* Dracula syntax palette */
-.theme-dracula .hljs-keyword { color: #ff79c6; }
-.theme-dracula .hljs-string { color: #f1fa8c; }
-.theme-dracula .hljs-comment { color: #6272a4; font-style: italic; }
-.theme-dracula .hljs-function { color: #50fa7b; }
-.theme-dracula .hljs-number { color: #bd93f9; }
-
 .theme-tidepool {
   --bg-primary: #06181c;
   --bg-secondary: #0c2a30;
@@ -945,13 +907,6 @@
   background-color: #0a2228;
   border: 1px solid var(--border-color);
 }
-
-/* Tidepool syntax palette */
-.theme-tidepool .hljs-keyword { color: #2fd6c3; }
-.theme-tidepool .hljs-string { color: #9ce0a8; }
-.theme-tidepool .hljs-comment { color: #5a8983; font-style: italic; }
-.theme-tidepool .hljs-function { color: #7fd6ff; }
-.theme-tidepool .hljs-number { color: #f2c66d; }
 
 /* button-text-color is the dark on-accent text; on transparent surfaces use the accent instead */
 .theme-tidepool .tab-button.active,
@@ -986,13 +941,6 @@
   background-color: #1d1410;
   border: 1px solid var(--border-color);
 }
-
-/* Ember syntax palette */
-.theme-ember .hljs-keyword { color: #ff6a2b; }
-.theme-ember .hljs-string { color: #e8b86d; }
-.theme-ember .hljs-comment { color: #8a6a55; font-style: italic; }
-.theme-ember .hljs-function { color: #ffb37a; }
-.theme-ember .hljs-number { color: #ff8c69; }
 
 /* button-text-color is the dark on-accent text; on transparent surfaces use the accent instead */
 .theme-ember .tab-button.active,
@@ -1041,13 +989,6 @@
   background-color: #0f1626;
   border: 1px solid var(--border-color);
 }
-
-/* Aurora syntax palette (polar greens, teals, violets) */
-.theme-aurora .hljs-keyword { color: #4ffbb0; }
-.theme-aurora .hljs-string { color: #5eead4; }
-.theme-aurora .hljs-comment { color: #5a6f99; font-style: italic; }
-.theme-aurora .hljs-function { color: #8c82ff; }
-.theme-aurora .hljs-number { color: #ff6b9d; }
 
 .theme-frost {
   --bg-primary: #0e1422;
@@ -1121,13 +1062,6 @@
   border: 1px solid var(--border-color);
 }
 
-/* Frost syntax palette (icy cyan/mint/violet) */
-.theme-frost .hljs-keyword { color: #7fdfff; }
-.theme-frost .hljs-string { color: #9fe8c8; }
-.theme-frost .hljs-comment { color: #6b7a99; font-style: italic; }
-.theme-frost .hljs-function { color: #b8a9ff; }
-.theme-frost .hljs-number { color: #ffb3c8; }
-
 /* Noir — 1940s film-noir: charcoal monochrome lit by a single warm amber
    spotlight, with film grain, an edge vignette, a flickering projector logo,
    and uppercase title-card headings. */
@@ -1192,13 +1126,6 @@
   border: 1px solid var(--border-color);
 }
 
-/* Noir syntax palette (amber/sepia monochrome) */
-.theme-noir .hljs-keyword { color: #e0a94e; }
-.theme-noir .hljs-string { color: #c9b886; }
-.theme-noir .hljs-comment { color: #6f6c64; font-style: italic; }
-.theme-noir .hljs-function { color: #d6c7a8; }
-.theme-noir .hljs-number { color: #c98a5e; }
-
 /* Patina — a weathered copper monument: dark aged bronze in shadow, slowly
    oxidizing to verdigris green. Mottled oxidation patches over the bronze,
    engraved-plaque headings, and a logo glow that shimmers between copper and
@@ -1261,13 +1188,6 @@
   border: 1px solid var(--border-color);
 }
 
-/* Patina syntax palette (verdigris greens, copper, aged bronze) */
-.theme-patina .hljs-keyword { color: #6fc6a5; }
-.theme-patina .hljs-string { color: #c2b083; }
-.theme-patina .hljs-comment { color: #7a6f5a; font-style: italic; }
-.theme-patina .hljs-function { color: #8fd9c0; }
-.theme-patina .hljs-number { color: #cf9b66; }
-
 /* Sunset — a dusk sky: deep indigo at the zenith fading through magenta to a
    warm orange horizon glow, lit by a golden setting-sun accent. Layered sky
    gradient with a low sun-glow, a glowing logo, and a warm syntax palette. */
@@ -1314,15 +1234,6 @@
 .theme-sunset .code-block {
   background-color: #221733;
   border: 1px solid var(--border-color);
-}
-
-/* Sunset code palette (coral, gold, amber, rose over muted mauve) */
-.theme-sunset {
-  --code-accent: #ff8e72;
-  --code-string: #ffcf8b;
-  --code-comment: #9a7a9a;
-  --code-accent-2: #ffb877;
-  --code-number: #ff7a9e;
 }
 
 /* Wine — a sommelier's wine list: deep oxblood/burgundy surfaces, warm
@@ -1385,15 +1296,6 @@
   border: 1px solid var(--border-color);
 }
 
-/* Wine code palette (gold, rosé, claret) */
-.theme-wine {
-  --code-accent: #d4af37;
-  --code-string: #e8b4a0;
-  --code-comment: #8a5a66;
-  --code-accent-2: #e8c75a;
-  --code-number: #d98a9a;
-}
-
 /* Autumn — cozy foliage: warm dark-bark base, rust/amber/ochre tones, and a
    burnt-orange accent over a soft ember gradient. */
 .theme-autumn {
@@ -1435,15 +1337,6 @@
 .theme-autumn .code-block {
   background-color: #261a10;
   border: 1px solid var(--border-color);
-}
-
-/* Autumn code palette (rust, amber, ochre, forest) */
-.theme-autumn {
-  --code-accent: #d97a36;
-  --code-string: #b5a84a;
-  --code-comment: #7e6a52;
-  --code-accent-2: #e0a35a;
-  --code-number: #c25a3a;
 }
 
 /* Nebula — deep-space cosmos: indigo/violet void with a star-speckle field and
@@ -1499,15 +1392,6 @@
   border: 1px solid var(--border-color);
 }
 
-/* Nebula code palette (violet, cyan, magenta, star-gold) */
-.theme-nebula {
-  --code-accent: #b08cff;
-  --code-string: #79e0e8;
-  --code-comment: #6a6699;
-  --code-accent-2: #ff8ac0;
-  --code-number: #ffd479;
-}
-
 /* Deco — Art Deco / Gatsby glamour: black ground, gold accent, and uppercase
    letter-spaced display headings. */
 .theme-deco {
@@ -1553,15 +1437,6 @@
 .theme-deco .code-block {
   background-color: #141208;
   border: 1px solid var(--border-color);
-}
-
-/* Deco code palette (gold, brass, ivory) */
-.theme-deco {
-  --code-accent: #c9a227;
-  --code-string: #d8c98a;
-  --code-comment: #7a6f4a;
-  --code-accent-2: #e0bb45;
-  --code-number: #b89048;
 }
 
 /* Amber CRT — vintage amber-phosphor terminal: near-black screen, warm amber
@@ -1631,15 +1506,6 @@
   border: 1px solid var(--border-color);
 }
 
-/* Amber CRT code palette (amber phosphor monochrome) */
-.theme-amber-crt {
-  --code-accent: #ffc740;
-  --code-string: #ffd479;
-  --code-comment: #a07000;
-  --code-accent-2: #ffb000;
-  --code-number: #ff8c40;
-}
-
 /* Stained glass — jewel-toned light (ruby/sapphire/emerald) pooling over a
    deep cathedral-glass gradient, with an amber accent. */
 .theme-stained-glass {
@@ -1684,13 +1550,4 @@
 .theme-stained-glass .code-block {
   background-color: #0c1422;
   border: 1px solid var(--border-color);
-}
-
-/* Stained-glass code palette (ruby, sapphire, emerald, amber) */
-.theme-stained-glass {
-  --code-accent: #e05670;
-  --code-string: #4fc28a;
-  --code-comment: #5a6a88;
-  --code-accent-2: #5aa0e0;
-  --code-number: #e0b341;
 }
