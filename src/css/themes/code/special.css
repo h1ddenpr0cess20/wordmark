@@ -133,17 +133,6 @@
   --code-comment: #6a6699;
 }
 
-.theme-deco {
-  --code-bg: #141208;
-  --code-border: var(--border-color);
-  --code-text: var(--text-primary);
-  --code-number: #b89048;
-  --code-accent: #c9a227;
-  --code-accent-2: #e0bb45;
-  --code-string: #d8c98a;
-  --code-comment: #7a6f4a;
-}
-
 .theme-amber-crt {
   --code-bg: #1a1000;
   --code-border: var(--border-color);
@@ -208,17 +197,6 @@
   --code-accent-2: #ffb37a;
   --code-string: #e8b86d;
   --code-comment: #8a6a55;
-}
-
-.theme-frost {
-  --code-bg: rgba(10, 16, 30, 0.55);
-  --code-border: var(--border-color);
-  --code-text: var(--text-primary);
-  --code-number: #ffb3c8;
-  --code-accent: #7fdfff;
-  --code-accent-2: #b8a9ff;
-  --code-string: #9fe8c8;
-  --code-comment: #6b7a99;
 }
 
 .theme-noir {
@@ -296,5 +274,27 @@
   --code-accent-2: #7fd6ff;
   --code-string: #9ce0a8;
   --code-comment: #5a8983;
+}
+
+.theme-forest {
+  --code-bg: #101a12;
+  --code-border: var(--border-color);
+  --code-text: var(--text-primary);
+  --code-number: #d8b86a;
+  --code-accent: #6cc24a;
+  --code-accent-2: #a3d977;
+  --code-string: #c2d488;
+  --code-comment: #6f8a6c;
+}
+
+.theme-comic {
+  --code-bg: #fffdf5;
+  --code-border: var(--border-color);
+  --code-text: #1a1a1a;
+  --code-number: #1d3a8a;
+  --code-accent: #e63946;
+  --code-accent-2: #2a6fdb;
+  --code-string: #2e7d32;
+  --code-comment: #8a7a55;
 }
 

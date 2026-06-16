@@ -401,7 +401,6 @@
 }
 
 .theme-parchment .settings-group {
-  border: 1px solid var(--border-color);
   background-color: rgba(255, 252, 244, 0.55);
 }
 
@@ -512,7 +511,6 @@
 }
 
 .theme-eink .settings-group {
-  border: 1px solid var(--border-color);
   background-color: #ffffff;
 }
 
@@ -635,7 +633,6 @@
 }
 
 .theme-synthwave .settings-group {
-  border: 1px solid var(--border-color);
   background-color: rgba(13, 4, 32, 0.5);
 }
 
@@ -708,7 +705,6 @@
 }
 
 .theme-solarized .settings-group {
-  border: 1px solid var(--border-color);
   background-color: #073642;
 }
 
@@ -779,7 +775,6 @@
 }
 
 .theme-nord .settings-group {
-  border: 1px solid var(--border-color);
   background-color: #353c4a;
 }
 
@@ -850,7 +845,6 @@
 }
 
 .theme-dracula .settings-group {
-  border: 1px solid var(--border-color);
   background-color: #2a2c3a;
 }
 
@@ -1001,78 +995,6 @@
 .theme-aurora pre code,
 .theme-aurora .code-block {
   background-color: #0f1626;
-  border: 1px solid var(--border-color);
-}
-
-.theme-frost {
-  --bg-primary: #0e1422;
-  --bg-secondary: rgba(255, 255, 255, 0.06);
-  --text-primary: #eef4ff;
-  --text-secondary: #aab8d4;
-  --accent-color: #7fdfff;
-  --accent-hover: #adecff;
-  --border-color: rgba(255, 255, 255, 0.18);
-  --user-bg: rgba(127, 223, 255, 0.12);
-  --assistant-bg: rgba(255, 255, 255, 0.05);
-  --error-bg: rgba(255, 90, 120, 0.15);
-  --error-text: #ff8fa3;
-  --body-bg-color-1: #0e1422;
-  --body-bg-color-2: #1d2c4a;
-  --button-text-color: #0e1422;
-}
-
-/* Luminous gradient base so the frosted panes have something to blur through */
-.theme-frost #chat-container {
-  background:
-    radial-gradient(120% 80% at 15% 0%, rgba(127, 223, 255, 0.10), transparent 60%),
-    radial-gradient(120% 80% at 85% 100%, rgba(160, 130, 255, 0.10), transparent 60%),
-    linear-gradient(160deg, #0e1422, #1d2c4a);
-}
-
-/* Frosted glass surfaces */
-.theme-frost .message-content,
-.theme-frost #settings-panel,
-.theme-frost .settings-group,
-.theme-frost #user-input,
-.theme-frost #history-panel,
-.theme-frost #gallery-panel {
-  background-color: var(--bg-secondary);
-  -webkit-backdrop-filter: blur(14px) saturate(140%);
-  backdrop-filter: blur(14px) saturate(140%);
-  border: 1px solid var(--border-color);
-  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.25);
-}
-
-.theme-frost .message.user .message-content {
-  background-color: var(--user-bg);
-}
-
-/* button-text-color is the dark on-accent text; on transparent surfaces use the accent instead */
-.theme-frost .tab-button.active,
-.theme-frost .reset-button {
-  color: var(--accent-color);
-}
-
-.theme-frost #wordmark-logo path {
-  stroke: var(--accent-color);
-}
-
-/* Native dropdowns can't blur a translucent pane, so the option popup would be
-   white-on-white. Give selects/options an opaque frosted-dark surface instead. */
-.theme-frost .setting-item select,
-.theme-frost .model-selector-container select,
-.theme-frost .export-format-select,
-.theme-frost option {
-  background-color: #15203a;
-  color: var(--text-primary);
-}
-
-.theme-frost pre,
-.theme-frost pre code,
-.theme-frost .code-block {
-  background-color: rgba(10, 16, 30, 0.55);
-  -webkit-backdrop-filter: blur(6px);
-  backdrop-filter: blur(6px);
   border: 1px solid var(--border-color);
 }
 
@@ -1406,53 +1328,6 @@
   border: 1px solid var(--border-color);
 }
 
-/* Deco — Art Deco / Gatsby glamour: black ground, gold accent, and uppercase
-   letter-spaced display headings. */
-.theme-deco {
-  --bg-primary: #0d0d0d;
-  --bg-secondary: #161410;
-  --text-primary: #f3ead2;
-  --text-secondary: #b8a878;
-  --accent-color: #c9a227;
-  --accent-hover: #e0bb45;
-  --border-color: #4a3f1c;
-  --user-bg: #1c1810;
-  --assistant-bg: #121008;
-  --error-bg: #2e1614;
-  --error-text: #d98a7a;
-  --body-bg-color-1: #0d0d0d;
-  --body-bg-color-2: #161410;
-  --button-text-color: #0d0d0d;
-}
-
-/* button-text-color is the dark on-accent text; on transparent surfaces use the accent instead */
-.theme-deco .tab-button.active,
-.theme-deco .reset-button {
-  color: var(--accent-color);
-}
-
-/* Gold geometric frame + uppercase display headings */
-.theme-deco .message-content h1,
-.theme-deco .message-content h2,
-.theme-deco .message-content h3 {
-  color: var(--accent-color);
-  text-transform: uppercase;
-  letter-spacing: 0.14em;
-  font-family: Georgia, "Times New Roman", serif;
-}
-
-.theme-deco #wordmark-logo path {
-  stroke: var(--accent-color);
-  filter: drop-shadow(0 0 4px rgba(201, 162, 39, 0.5));
-}
-
-.theme-deco pre,
-.theme-deco pre code,
-.theme-deco .code-block {
-  background-color: #141208;
-  border: 1px solid var(--border-color);
-}
-
 /* Amber CRT — vintage amber-phosphor terminal: near-black screen, warm amber
    text/accent, scanline overlay, and a monospace glow. Distinct from the green
    terminal theme. */
@@ -1564,4 +1439,138 @@
 .theme-stained-glass .code-block {
   background-color: #0c1422;
   border: 1px solid var(--border-color);
+}
+
+/* Forest — deep woodland: mossy green shadow, bark tones, and dappled golden
+   sunlight filtering down through the canopy, with a fresh leaf-green accent
+   that breathes like a canopy stirring in the breeze. */
+.theme-forest {
+  --bg-primary: #0e1810;
+  --bg-secondary: #16241a;
+  --text-primary: #e4f0e0;
+  --text-secondary: #9bb89a;
+  --accent-color: #6cc24a;
+  --accent-hover: #8fd86a;
+  --border-color: #2a3d2c;
+  --user-bg: #1c2e20;
+  --assistant-bg: #131f16;
+  --error-bg: #3a1c16;
+  --error-text: #e0936f;
+  --body-bg-color-1: #0e1810;
+  --body-bg-color-2: #16241a;
+  --button-text-color: #0e1810;
+}
+
+/* Dappled sunlight pooling through the canopy from above, with deep mossy
+   shadow gathering at the forest floor. */
+.theme-forest #chat-container {
+  background:
+    radial-gradient(50% 40% at 22% -5%, rgba(170, 220, 110, 0.12), transparent 60%),
+    radial-gradient(45% 34% at 68% -8%, rgba(205, 232, 120, 0.10), transparent 62%),
+    radial-gradient(60% 50% at 85% 112%, rgba(36, 78, 44, 0.20), transparent 60%),
+    linear-gradient(170deg, #16241a, #0e1810);
+}
+
+/* button-text-color is the dark on-accent text; on transparent surfaces use the accent instead */
+.theme-forest .tab-button.active,
+.theme-forest .reset-button {
+  color: var(--accent-color);
+}
+
+/* Canopy-breeze glow that gently swells on the wordmark logo */
+@keyframes forest-sway {
+  0%, 100% { filter: drop-shadow(0 0 3px rgba(108, 194, 74, 0.4)); }
+  50% { filter: drop-shadow(0 0 8px rgba(143, 216, 106, 0.6)); }
+}
+
+.theme-forest #wordmark-logo path {
+  stroke: var(--accent-color);
+  animation: forest-sway 7s ease-in-out infinite;
+}
+
+.theme-forest pre,
+.theme-forest pre code,
+.theme-forest .code-block {
+  background-color: #101a12;
+  border: 1px solid var(--border-color);
+}
+
+/* Comic — pop-art comic book: cream newsprint dotted with a Ben-Day halftone,
+   heavy ink outlines, and speech-bubble panels with hard offset shadows. A
+   punchy red accent and bold uppercase headings finish the four-color look. */
+.theme-comic {
+  --bg-primary: #fff8e7;
+  --bg-secondary: #ffedc2;
+  --text-primary: #1a1a1a;
+  --text-secondary: #555555;
+  --accent-color: #e63946;
+  --accent-hover: #ff5a67;
+  --border-color: #1a1a1a;
+  --user-bg: #ffe08a;
+  --assistant-bg: #ffffff;
+  --error-bg: #ffd6d6;
+  --error-text: #c1121f;
+  --body-bg-color-1: #fff8e7;
+  --body-bg-color-2: #ffe7b3;
+  --button-text-color: #ffffff;
+}
+
+/* Ben-Day halftone dot field over cream newsprint */
+.theme-comic #chat-container {
+  background-color: #fff8e7;
+  background-image: radial-gradient(rgba(230, 57, 70, 0.18) 1.5px, transparent 1.7px);
+  background-size: 12px 12px;
+}
+
+/* Inked speech-bubble panels with a hard offset shadow */
+.theme-comic .message .message-content {
+  border: 2px solid var(--border-color);
+  border-radius: 14px;
+  box-shadow: 3px 3px 0 var(--border-color);
+}
+
+.theme-comic .message.user .message-content {
+  background-color: var(--user-bg);
+}
+
+.theme-comic #user-input {
+  background-color: #ffffff;
+  border: 2px solid var(--border-color);
+  color: var(--text-primary);
+  caret-color: var(--accent-color);
+}
+
+.theme-comic #user-input::placeholder {
+  color: rgba(26, 26, 26, 0.5);
+}
+
+/* Bold uppercase comic-title headings */
+.theme-comic .message-content h1,
+.theme-comic .message-content h2,
+.theme-comic .message-content h3 {
+  font-family: "Trebuchet MS", "Segoe UI", system-ui, sans-serif;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+}
+
+.theme-comic .settings-group {
+  border: 2px solid var(--border-color);
+  background-color: #ffffff;
+}
+
+.theme-comic .tab-button.active {
+  background: transparent !important;
+  color: var(--accent-color) !important;
+  border-bottom: 3px solid var(--accent-color) !important;
+}
+
+.theme-comic #wordmark-logo path {
+  stroke: var(--accent-color);
+}
+
+.theme-comic pre,
+.theme-comic pre code,
+.theme-comic .code-block {
+  background-color: #fffdf5;
+  border: 2px solid var(--border-color);
 }
