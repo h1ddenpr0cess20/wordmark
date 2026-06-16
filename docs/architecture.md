@@ -42,6 +42,7 @@ Modules
   - `tts/`: voice list, autoplay, per-message audio resources, and IndexedDB for audio
   - `location.ts`: optional geolocation + reverse geocode for prompt context
   - `weather.ts`: Open-Meteo tool handler used by the built-in function call
+  - `party/`: Party mode (autonomous multi-character group chat) — `partyEngine.ts` (the turn-loop singleton: speaker selection, interjections, pause/resume/stop, control bar), `partyPrompts.ts` (system/turn/decision prompt builders), `partyTypes.ts`, and `partyState.ts` (setup-form defaults). Runs on top of `runTurn`; the tab UI is `components/party/partyTab.ts` (see [docs/party-mode.md](./party-mode.md))
 
 - `utils/`: common helpers
   - `conversationStorage.ts`, `imageStorage.ts`, `audioStorage.ts`: IndexedDB databases

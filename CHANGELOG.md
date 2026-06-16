@@ -2,6 +2,15 @@
 
 All notable changes to Wordmark are documented here. Earlier versions didn't follow proper semver — this changelog reflects what actually shipped, not what the version numbers said at the time.
 
+## [3.3.0] - 2026-06-16
+
+Adds Party mode, an autonomous multi-character group chat. Minor bump: a new user-facing feature, backward-compatible with everything else.
+
+### Added
+- **Party mode** — several AI personas converse autonomously on top of the existing provider-agnostic `runTurn` pipeline, and you can interject at any time without pausing. Includes a settings tab to build the cast (name, persona, optional temperature, per-character tool selection) and scenario (topic, setting, mood, conversation type), AI-driven speaker selection for three or more characters, a pause/resume/stop control bar, and persistence of the active party. Each turn streams into its own bubble with the speaker's name label shown from the moment generation begins.
+- When a character is given a name but no persona description, the name is used as the persona.
+- **Tests** — coverage for the Party prompt builders (persona/first/subsequent-turn/decision prompts, user-name-keyed interjection detection), scenario/config defaults, and engine control flow (restart-after-stop, pause mid-turn, aborted-but-already-generated turns).
+
 ## [3.2.0] - 2026-06-16
 
 A theme-heavy release plus a large internal refactor/dedupe pass. Minor bump: many new user-facing themes and a new default, with everything else backward-compatible.

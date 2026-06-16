@@ -15,6 +15,10 @@
         <input type="radio" name="prompt-type" id="no-prompt" value="none">
         <span class="radio-text">No System Prompt</span>
       </label>
+      <label class="radio-label">
+        <input type="radio" name="prompt-type" id="party-prompt" value="party">
+        <span class="radio-text">Party Mode</span>
+      </label>
     </div>
   </div>
 
@@ -64,8 +68,58 @@
     <p class="info-text">When set, no system prompt will be sent to the AI model.</p>
   </div>
 
+  <div class="hidden" id="party-panel">
+    <p class="info-text">A multi-character group chat where several AI personas converse on their own and you can jump in at any time. All characters use the provider and model selected in the Model tab.</p>
+
+    <h4>Scenario</h4>
+    <div class="setting-item">
+      <label for="party-user-name">What the characters call you</label>
+      <input type="text" id="party-user-name" placeholder="Observer">
+    </div>
+    <div class="setting-item">
+      <label for="party-topic">Topic</label>
+      <input type="text" id="party-topic" placeholder="e.g. the future of space travel">
+    </div>
+    <div class="setting-item">
+      <label for="party-setting">Setting</label>
+      <input type="text" id="party-setting" placeholder="e.g. a dimly lit jazz bar">
+    </div>
+    <div class="setting-item">
+      <label for="party-mood">Mood</label>
+      <select id="party-mood">
+        <option value="friendly">Friendly</option>
+        <option value="serious">Serious</option>
+        <option value="chaotic">Chaotic</option>
+        <option value="thoughtful">Thoughtful</option>
+        <option value="playful">Playful</option>
+        <option value="hostile">Hostile</option>
+      </select>
+    </div>
+    <div class="setting-item">
+      <label for="party-conversation-type">Conversation Type</label>
+      <select id="party-conversation-type">
+        <option value="conversation">Conversation</option>
+        <option value="debate">Debate</option>
+        <option value="argument">Argument</option>
+        <option value="meeting">Meeting</option>
+        <option value="brainstorming">Brainstorming</option>
+        <option value="lighthearted">Lighthearted</option>
+        <option value="joking">Joking</option>
+        <option value="therapy">Therapy</option>
+      </select>
+    </div>
+
+    <h4>Characters</h4>
+    <p class="info-text">Add at least two characters. Each can be granted its own set of tools.</p>
+    <div id="party-characters"></div>
+    <div class="action-buttons">
+      <button type="button" id="party-add-character">Add Character</button>
+      <button type="button" id="party-start" title="Start a new party conversation">Start Party</button>
+    </div>
+  </div>
+
   <!-- Verbose Mode Toggle -->
-  <div class="setting-item">
+  <div class="setting-item" id="verbose-mode-item">
     <label for="verbose-mode-toggle">Verbose Mode</label>
     <div class="toggle-container">
       <input type="checkbox" id="verbose-mode-toggle">

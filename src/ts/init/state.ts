@@ -46,6 +46,9 @@ export const state: AppState = {
   debug: false,
   verboseLogging: false,
   shortResponseGuideline: "",
+
+  partyMode: false,
+  activePartyConfig: null,
 };
 
 /** Cached DOM element references, populated by `dom.ts` after panels load. */

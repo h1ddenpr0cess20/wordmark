@@ -12,6 +12,7 @@ Key Features
 - Streaming responses with per-turn reasoning timelines and tool progress
 - Image upload and gallery management
 - Conversation history, image gallery, and TTS with local audio cache
+- Party mode: autonomous multi-character group chat you can interject into ([docs/party-mode.md](./party-mode.md))
 - Themes and responsive UI
  - Header shortcuts and indicators:
    - Click the logo (About), model name (Model), or personality line (Personality) to open those Settings tabs.

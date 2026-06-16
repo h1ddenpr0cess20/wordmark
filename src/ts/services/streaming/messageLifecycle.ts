@@ -188,6 +188,7 @@ export function finalizeStreamedResponse(loadingMessage: HTMLElement | null, con
     hasImages: willHaveImages,
     responseId: isRecord(responsePayload) && typeof responsePayload.id === "string" ? responsePayload.id : undefined,
     codeInterpreterOutputs,
+    character: contentObj && typeof contentObj === "object" ? contentObj.character : undefined,
   });
 
   const existingThinkingContainer = document.getElementById(thinkingId);
@@ -317,7 +318,13 @@ export function updateMessageContent(loadingMessage: HTMLElement | null, assista
   let hasThinking = Boolean(thinkingContent);
   const thinkingId = `thinking-${loadingMessage.id}`;
 
+  const partyNameLabel = contentWrapper.querySelector<HTMLElement>(":scope > .party-name");
+
   contentWrapper.innerHTML = "";
+
+  if (partyNameLabel) {
+    contentWrapper.appendChild(partyNameLabel);
+  }
 
   if (state.messageImages && state.messageImages[loadingMessage.id]) {
     const imagesContainer = document.createElement("div");

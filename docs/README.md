@@ -11,6 +11,7 @@ Contents
 - LM Studio (Local Models): docs/lm-studio.md
 - Ollama (Local Models): docs/ollama.md
 - Tool Calling: docs/tool-calling.md
+- Party Mode: docs/party-mode.md
 - Testing & Coverage: docs/testing.md
 - Storage: docs/storage.md
 - UI & UX: docs/ui-and-ux.md

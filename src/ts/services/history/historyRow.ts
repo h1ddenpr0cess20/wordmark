@@ -50,6 +50,11 @@ export function formatConversationDate(updated: ConversationRecord["updated"]): 
 
 /** Resolves the prompt summary text and its CSS class for a conversation. */
 export function resolveConversationPrompt(convo: ConversationRecord): { info: string; cssClass: string } {
+  if (convo.mode === "party") {
+    const names = (convo.characters || []).map(c => c.name).filter(Boolean);
+    const summary = names.length ? `Party: ${names.join(", ")}` : "Party";
+    return { info: truncate(summary, 40), cssClass: "party" };
+  }
   if (!convo.systemPrompt) {
     return { info: "", cssClass: "none" };
   }

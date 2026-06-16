@@ -137,7 +137,7 @@ export function saveCurrentConversation(meta: { name?: string; created?: string 
   const processedImages = (state.generatedImages || []).map(img => processImageForStorage(img, savePromises));
   const markedMessages = markMessagesWithImages(baseHistory, processedImages);
 
-  const conversation = {
+  const conversation: ConversationRecord = {
     id: state.currentConversationId || `${now.getTime()}`,
     name: meta.name || state.currentConversationName || `Conversation ${now.toLocaleString()}`,
     created: meta.created || now.toISOString(),
@@ -152,8 +152,15 @@ export function saveCurrentConversation(meta: { name?: string; created?: string 
     },
   };
 
-  state.currentConversationId = conversation.id;
-  state.currentConversationName = conversation.name;
+  if (state.activePartyConfig) {
+    conversation.mode = "party";
+    conversation.characters = state.activePartyConfig.characters;
+    conversation.scenario = state.activePartyConfig.scenario;
+    conversation.userName = state.activePartyConfig.userName;
+  }
+
+  state.currentConversationId = conversation.id ?? null;
+  state.currentConversationName = conversation.name ?? null;
 
   Promise.all(savePromises)
     .then((results) => {
@@ -252,6 +259,18 @@ function loadConversationIntoUI(convo: ConversationRecord, imageCache: Map<strin
   state.currentConversationName = convo.name || null;
   state.loadedSystemPrompt = convo.systemPrompt || null;
   state.userThinkingState = {};
+
+  if (convo.mode === "party" && Array.isArray(convo.characters)) {
+    state.partyMode = true;
+    state.activePartyConfig = {
+      characters: convo.characters,
+      scenario: convo.scenario || { topic: "", setting: "", mood: "friendly", conversationType: "conversation" },
+      userName: convo.userName,
+    };
+  } else {
+    state.partyMode = false;
+    state.activePartyConfig = null;
+  }
 
   if (elements.chatBox) {
     elements.chatBox.innerHTML = "";
