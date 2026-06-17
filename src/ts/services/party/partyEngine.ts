@@ -20,6 +20,7 @@ import { generateMessageId } from "../../components/messages.ts";
 import { sanitizeInput } from "../../utils/utils.ts";
 import { escapeHtml } from "../../utils/sanitize.ts";
 import { showError } from "../../utils/notifications.ts";
+import { logVerbose } from "../../utils/logger.ts";
 import { runTurn, buildRequestBody } from "../api/requestClient.ts";
 import { executeNonStreamingRequest } from "../api/requestTransport.ts";
 import { extractOutputText } from "../api/responseNormalization.ts";
@@ -374,13 +375,17 @@ class PartyEngine {
       const candidate = raw.split("|")[0]?.trim().toLowerCase();
       const match = this.characters.find((c) => c.name.toLowerCase() === candidate);
       if (match) {
+        logVerbose("Party: decision picked next speaker:", match.name, "—", raw);
         return match;
       }
+      logVerbose("Party: decision output didn't match a participant; using random fallback. Raw:", raw);
     } catch (error) {
       console.warn("Party: failed to choose next speaker, falling back to random.", error);
     }
 
-    return this.pickRandomSpeaker(currentSpeaker.id);
+    const fallback = this.pickRandomSpeaker(currentSpeaker.id);
+    logVerbose("Party: random next speaker:", fallback.name);
+    return fallback;
   }
 
   private async waitIfPaused(): Promise<void> {
