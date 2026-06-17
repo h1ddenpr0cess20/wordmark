@@ -182,6 +182,66 @@ test("a pause requested mid-turn still records the in-progress turn", async () =
   await loop;
 });
 
+test("typing into a stopped party restarts it instead of falling through to regular chat", async () => {
+  await resetEngine();
+
+  const first = partyEngine.start(structuredClone(CONFIG));
+  await delay(80);
+  partyEngine.stop();
+  await first;
+
+  assert.equal(partyEngine.isRunning(), false, "party should be stopped");
+  assert.ok(fakeState.activePartyConfig, "the active config must survive a stop so the party can resume");
+
+  const turnsBefore = runTurnCalls.length;
+  const historyBefore = (fakeState.conversationHistory as unknown[]).length;
+
+  partyEngine.queueInterjection("what about modal logic?");
+  await delay(150);
+
+  assert.equal(
+    (fakeState.conversationHistory as unknown[]).length,
+    historyBefore + 1,
+    "the typed message must be recorded in the transcript",
+  );
+  assert.ok(
+    runTurnCalls.length > turnsBefore,
+    "a stopped party must restart and emit a turn, never hand the message to regular chat",
+  );
+
+  partyEngine.stop();
+  await delay(50);
+});
+
+test("typing while paused resumes the loop and weaves in the message", async () => {
+  await resetEngine();
+  openGate();
+
+  const loop = partyEngine.start(structuredClone(CONFIG));
+  await delay(80);
+  partyEngine.pause();
+  gate?.resolve();
+  await delay(800);
+  assert.ok(partyEngine.isPaused(), "the engine should be paused before we type");
+
+  const turnsBefore = runTurnCalls.length;
+  const historyBefore = (fakeState.conversationHistory as unknown[]).length;
+
+  partyEngine.queueInterjection("jump back in");
+  await delay(800);
+
+  assert.equal(partyEngine.isPaused(), false, "sending while paused must resume the loop");
+  assert.equal(
+    (fakeState.conversationHistory as unknown[]).length,
+    historyBefore + 1,
+    "the interjection must be recorded once",
+  );
+  assert.ok(runTurnCalls.length > turnsBefore, "the resumed loop must emit a follow-up turn");
+
+  partyEngine.stop();
+  await loop;
+});
+
 test("an aborted turn that already produced tokens is recorded, never discarded", async () => {
   await resetEngine();
   // Simulate the abort path where runTurn throws AbortError but tokens had

@@ -235,26 +235,40 @@ class PartyEngine {
   }
 
   /**
-   * Queues a user interjection. The bubble is rendered and recorded immediately;
-   * the loop weaves it into the prompt history at the next checkpoint. No pause
-   * is required.
+   * Queues a user interjection from the chat input. The bubble is rendered and
+   * recorded immediately, then the loop is made to run so the message gets a
+   * response: a live loop weaves it in at the next checkpoint, a paused loop is
+   * resumed, and a stopped party is restarted with the message already in the
+   * transcript. Never falls through to regular chat.
    */
   queueInterjection(message: string): void {
     const trimmed = message.trim();
-    if (!trimmed || !this.running) {
+    if (!trimmed || !state.activePartyConfig) {
       return;
     }
-    const userElement = appendMessage("You", sanitizeInput(trimmed), "user", true);
+    this.recordUserBubble(trimmed);
+    if (this.running) {
+      this.pendingInterjections.push(trimmed);
+      this.skipDelayNextTurn = true;
+      if (this.paused) {
+        this.resume();
+      }
+      return;
+    }
+    void this.start(state.activePartyConfig);
+  }
+
+  /** Renders the user's interjection bubble and records it in conversation history. */
+  private recordUserBubble(message: string): void {
+    const userElement = appendMessage("You", sanitizeInput(message), "user", true);
     const userId = userElement ? userElement.id : generateMessageId();
     state.conversationHistory.push({
       role: "user",
-      content: trimmed,
+      content: message,
       id: userId,
       timestamp: new Date().toISOString(),
     });
     saveCurrentConversation();
-    this.pendingInterjections.push(trimmed);
-    this.skipDelayNextTurn = true;
   }
 
   /** Rebuilds the rolling prompt-history buffer from the loaded transcript. */
@@ -350,6 +364,8 @@ class PartyEngine {
         inputMessages: [{ role: "user", content: buildDecisionPrompt(this.scenario, this.characters, this.history) }],
         model: getActiveModel(),
         temperature: 0.3,
+        reasoningEffort: "low",
+        verbosity: "low",
         stream: false,
       });
       const response = await executeNonStreamingRequest(body, this.controller);
