@@ -65,6 +65,7 @@ export function buildRequestBody({
   stream,
   previousResponseId,
   temperature,
+  maxOutputTokens,
 }: BuildRequestOptions): Record<string, unknown> {
   const targetModel = model || getActiveModel();
   const allowReasoning = supportsReasoningEffort(targetModel);
@@ -101,6 +102,9 @@ export function buildRequestBody({
   }
   if (typeof temperature === "number" && Number.isFinite(temperature)) {
     payload.temperature = temperature;
+  }
+  if (typeof maxOutputTokens === "number" && Number.isFinite(maxOutputTokens)) {
+    payload.max_output_tokens = maxOutputTokens;
   }
   if (usesServerManagedTools(serviceKey) && payload.text) {
     const usesServerSideTools = Array.isArray(tools) && tools.some((tool: ToolDefinition) => {

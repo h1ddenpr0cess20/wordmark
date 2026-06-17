@@ -366,6 +366,7 @@ class PartyEngine {
         temperature: 0.3,
         reasoningEffort: "low",
         verbosity: "low",
+        maxOutputTokens: 2048,
         stream: false,
       });
       const response = await executeNonStreamingRequest(body, this.controller);
