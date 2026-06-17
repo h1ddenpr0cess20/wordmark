@@ -1,6 +1,5 @@
-import test from "node:test";
+import test, { after, mock } from "node:test";
 import assert from "node:assert/strict";
-import { mock } from "node:test";
 
 /**
  * Integration tests for the Party engine's control flow. The engine has heavy
@@ -122,9 +121,19 @@ function delay(ms: number): Promise<void> {
   return new Promise((r) => setTimeout(r, ms));
 }
 
-async function resetEngine(): Promise<void> {
+/** Stops the engine and waits until its loop has fully torn down, so a leaked
+ * loop from one test can't pollute the next or keep the process alive. */
+async function waitForIdle(): Promise<void> {
   partyEngine.stop();
-  await delay(50);
+  for (let i = 0; i < 200 && partyEngine.isRunning(); i++) {
+    await delay(10);
+  }
+}
+
+after(waitForIdle);
+
+async function resetEngine(): Promise<void> {
+  await waitForIdle();
   runTurnCalls.length = 0;
   finalizeCount = 0;
   removeCount = 0;
@@ -209,8 +218,7 @@ test("typing into a stopped party restarts it instead of falling through to regu
     "a stopped party must restart and emit a turn, never hand the message to regular chat",
   );
 
-  partyEngine.stop();
-  await delay(50);
+  await waitForIdle();
 });
 
 test("typing while paused resumes the loop and weaves in the message", async () => {
