@@ -13,13 +13,15 @@ import { escapeHtml } from "../../utils/sanitize.ts";
 import { truncate } from "../../utils/utils.ts";
 import type { ConversationRecord } from "../../../types/common.ts";
 
+type ConversationMessage = NonNullable<ConversationRecord["messages"]>[number];
+
 /** Extracts displayable text from a message's content (plain string or structured parts). */
-function messageText(message: ConversationRecord["messages"][number]): string {
+function messageText(message: ConversationMessage): string {
   if (typeof message.content === "string") {
     return message.content;
   }
   if (Array.isArray(message.content)) {
-    const part = message.content.find(p => p.type === "input_text" || p.type === "text");
+    const part = message.content.find((p: { type?: string; text?: string; content?: unknown }) => p.type === "input_text" || p.type === "text");
     return part ? (part.text || (typeof part.content === "string" ? part.content : "") || "") : "";
   }
   return "";

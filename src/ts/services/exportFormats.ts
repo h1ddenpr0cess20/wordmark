@@ -8,11 +8,68 @@
  * normalizes conversation history and drives these builders.
  */
 
-import { escapeHtml } from "../utils/sanitize.ts";
+import { marked } from "marked";
+import { escapeHtml, sanitizeWithMedia } from "../utils/sanitize.ts";
+import chatExportStyles from "../../css/components/features/export/chat-export.css?raw";
+import chatExportTemplate from "../../html/chat-export.html?raw";
+
+/**
+ * Theme CSS custom properties captured from the live app and replayed into the
+ * HTML export so it mirrors the on-screen chat under the user's selected theme.
+ */
+export const THEME_EXPORT_VARS = [
+  "--bg-primary", "--bg-secondary", "--bg-hover",
+  "--text-primary", "--text-secondary",
+  "--border-color", "--border-color-rgb",
+  "--accent-color", "--accent-color-rgb", "--accent-hover",
+  "--user-bg", "--assistant-bg",
+  "--code-bg", "--code-border", "--code-text",
+  "--code-inline-bg", "--code-inline-border",
+] as const;
+
+/** Light-theme fallbacks used when a theme variable wasn't captured (e.g. headless export). */
+const THEME_FALLBACKS: Record<string, string> = {
+  "--bg-primary": "#ffffff",
+  "--bg-secondary": "#f4f5f8",
+  "--bg-hover": "#eceef3",
+  "--text-primary": "#1f2330",
+  "--text-secondary": "#5b6170",
+  "--border-color": "#e2e5ec",
+  "--border-color-rgb": "226, 229, 236",
+  "--accent-color": "#4f46e5",
+  "--accent-color-rgb": "79, 70, 229",
+  "--accent-hover": "#6366f1",
+  "--user-bg": "#eef1ff",
+  "--assistant-bg": "#ffffff",
+  "--code-bg": "#0f172a",
+  "--code-border": "#1e293b",
+  "--code-text": "#e2e8f0",
+  "--code-inline-bg": "#eef0f6",
+  "--code-inline-border": "#dfe2ea",
+};
 
 /** Per-export metadata shared with every format builder. */
 export interface ExportMeta {
   iso: string;
+  /** Captured theme CSS variables (see {@link THEME_EXPORT_VARS}); absent values fall back. */
+  theme?: Record<string, string>;
+}
+
+/** Renders markdown to sanitized HTML using the same pipeline as the live chat. */
+function renderMarkdown(text: string): string {
+  if (!text) {
+    return "";
+  }
+  const html = marked.parse(text, { async: false }) as string;
+  return sanitizeWithMedia(html);
+}
+
+/** Emits a `:root` block defining every export theme variable, captured value or fallback. */
+function buildThemeRoot(theme?: Record<string, string>): string {
+  const declarations = THEME_EXPORT_VARS
+    .map((name) => `        ${name}: ${(theme && theme[name]) || THEME_FALLBACKS[name]};`)
+    .join("\n");
+  return `:root {\n${declarations}\n      }`;
 }
 
 /** A conversation message normalised into the shape the format builders consume. */
@@ -45,10 +102,17 @@ const EXPORT_FORMAT_ALIASES: Record<string, string> = {
   csv: "csv",
 };
 
-/** Quotes and escapes a value for inclusion in a CSV cell. */
+/**
+ * Quotes and escapes a value for inclusion in a CSV cell, neutralizing
+ * spreadsheet formula injection by prefixing a leading `= + - @` (non-numeric)
+ * with an apostrophe so tools like Excel treat it as text.
+ */
 function formatCsvValue(value: unknown) {
   const stringValue = value === null || value === undefined ? "" : String(value);
-  const escaped = stringValue.replace(/"/g, "\"\"");
+  const guarded = /^[=+\-@\t\r]/.test(stringValue) && !/^-?\d/.test(stringValue)
+    ? `'${stringValue}`
+    : stringValue;
+  const escaped = guarded.replace(/"/g, "\"\"");
   return `"${escaped}"`;
 }
 
@@ -100,48 +164,36 @@ export const EXPORT_FORMATS: Record<string, ExportFormat> = {
     mime: "text/html",
     build(messages, includeThinking, meta) {
       const messageSections = messages.map((msg) => {
+        const roleClass = msg.role === "user" ? "user" : msg.role === "assistant" ? "assistant" : "other";
+        const initial = escapeHtml((msg.senderLabel || "?").trim().charAt(0).toUpperCase() || "?");
         const timestampHtml = msg.timestamp
-          ? `<div class="chat-timestamp">${escapeHtml(msg.timestamp)}</div>`
+          ? `<span class="timestamp">${escapeHtml(msg.timestamp)}</span>`
           : "";
         const contentHtml = msg.content
-          ? escapeHtml(msg.content).replace(/\n/g, "<br>")
-          : "<em>No content</em>";
+          ? renderMarkdown(msg.content)
+          : "<p class=\"empty\"><em>No content</em></p>";
         let reasoningHtml = "";
         if (includeThinking && msg.reasoning.length > 0) {
-          const reasoningBlocks = msg.reasoning
-            .map((segment) => `<p>${escapeHtml(segment).replace(/\n/g, "<br>")}</p>`)
-            .join("\n");
-          reasoningHtml = `<div class="chat-reasoning"><h4>Reasoning</h4>${reasoningBlocks}</div>`;
+          const reasoningBody = msg.reasoning.map((segment) => renderMarkdown(segment)).join("\n");
+          reasoningHtml = `<details class="reasoning"><summary>Reasoning</summary><div class="reasoning-body">${reasoningBody}</div></details>`;
         }
         return `
-        <article class="chat-message">
-          <h3>${escapeHtml(msg.senderLabel)}</h3>
-          ${timestampHtml}
-          <div class="chat-content">${contentHtml}</div>
-          ${reasoningHtml}
-        </article>
-        `;
+        <article class="message ${roleClass}">
+          <div class="avatar" aria-hidden="true">${initial}</div>
+          <div class="bubble">
+            <div class="meta"><span class="sender">${escapeHtml(msg.senderLabel)}</span>${timestampHtml}</div>
+            <div class="content">${contentHtml}</div>
+            ${reasoningHtml}
+          </div>
+        </article>`;
       }).join("\n");
-      return `<!DOCTYPE html>
-<html lang="en">
-  <head>
-    <meta charset="utf-8">
-    <title>Chat Export</title>
-    <style>
-      body { font-family: "Segoe UI", Arial, sans-serif; padding: 24px; background-color: #fafafa; color: #222; }
-      h1 { margin-bottom: 24px; }
-      .chat-message { background: #fff; border-radius: 12px; padding: 16px; margin-bottom: 16px; box-shadow: 0 2px 4px rgba(0,0,0,0.08); }
-      .chat-content { margin-top: 8px; white-space: pre-wrap; }
-      .chat-timestamp { font-size: 0.85rem; color: #666; margin-top: 4px; }
-      .chat-reasoning { margin-top: 12px; padding: 12px; background: #f4f6fc; border-radius: 8px; border: 1px solid #d9e1ff; }
-      .chat-reasoning h4 { margin: 0 0 8px 0; }
-    </style>
-  </head>
-  <body>
-    <h1>Chat Export (${meta.iso})</h1>
-    ${messageSections}
-  </body>
-</html>`;
+      const substitutions: Record<string, string> = {
+        "{{themeRoot}}": buildThemeRoot(meta.theme),
+        "{{styles}}": chatExportStyles,
+        "{{iso}}": escapeHtml(meta.iso),
+        "{{messages}}": messageSections,
+      };
+      return chatExportTemplate.replace(/\{\{(?:themeRoot|styles|iso|messages)\}\}/g, (token) => substitutions[token]);
     },
   },
   json: {
