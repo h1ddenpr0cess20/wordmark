@@ -11,6 +11,7 @@ import {
 } from "../src/ts/utils/storage/conversationStorage.ts";
 import { saveImageToDb } from "../src/ts/utils/storage/imageStorage.ts";
 import { state, elements } from "../src/ts/init/state.ts";
+import { uiHooks } from "../src/ts/init/uiHooks.ts";
 
 type FakeReq = {
   onsuccess: ((ev: { target: { result: unknown } }) => void) | null;
@@ -159,7 +160,7 @@ function flush() {
 // ensureImagesHaveMessageIds, indexedDB, ...) stays on the window stub.
 const STATE_KEYS = new Set([
   "conversationHistory", "generatedImages", "currentConversationId",
-  "currentConversationName", "loadedSystemPrompt",
+  "currentConversationName", "loadedSystemPrompt", "activePartyConfig", "partyMode",
 ]);
 const ELEMENT_KEYS = new Set([
   "chatBox", "modelSelector", "personalityPromptRadio", "personalityInput",
@@ -178,6 +179,8 @@ async function resetDb(extra: Record<string, unknown> = {}) {
     currentConversationId: null,
     currentConversationName: null,
     loadedSystemPrompt: null,
+    activePartyConfig: null,
+    partyMode: false,
   });
   const stateRecord = state as unknown as Record<string, unknown>;
   const elementsRecord = elements as unknown as Record<string, unknown>;
@@ -308,4 +311,56 @@ test("startNewConversation saves existing session and resets state", async () =>
   assert.equal(state.currentConversationId, null);
   assert.equal(state.currentConversationName, "Fresh Chat");
   assert.equal(elements.chatBox!.innerHTML, "");
+});
+
+test("startNewConversation persists an active party's metadata, then tears down party state", async () => {
+  const partyConfig = {
+    characters: [
+      { id: "1", name: "Ada", persona: "mathematician", allowedTools: [] },
+      { id: "2", name: "Bob", persona: "poet", allowedTools: [] },
+    ],
+    scenario: { topic: "Math vs poetry", setting: "cafe", mood: "lively", conversationType: "debate" },
+    userName: "Host",
+  };
+  let stopPartyCalls = 0;
+  uiHooks.stopParty = () => { stopPartyCalls++; };
+  try {
+    await resetDb({
+      chatBox: { innerHTML: "" },
+      conversationHistory: [{ role: "assistant", content: "Let's begin", character: { name: "Ada" } }],
+      currentConversationId: "party-1",
+      currentConversationName: "Party chat",
+      activePartyConfig: partyConfig,
+      partyMode: true,
+      ensureImagesHaveMessageIds() { return 0; },
+      modelSelector: { value: "gpt-4o" },
+      noPromptRadio: { checked: true },
+    });
+
+    // The flush runs while the party is still active, so the archived record must
+    // keep its party metadata; the teardown happens afterwards in the reset.
+    startNewConversation("Fresh chat");
+    await flush();
+    await flush();
+
+    const all = await getAllConversationsFromDb();
+    const archived = all.find(convo => convo.id === "party-1") as {
+      mode?: string;
+      characters?: Array<{ name: string }>;
+      scenario?: { topic: string };
+      userName?: string;
+    } | undefined;
+    assert.ok(archived, "the party conversation should still be persisted");
+    assert.equal(archived!.mode, "party");
+    assert.equal(archived!.characters!.length, 2);
+    assert.equal(archived!.scenario!.topic, "Math vs poetry");
+    assert.equal(archived!.userName, "Host");
+
+    // The fresh chat is no longer a party, and the running engine was stopped.
+    assert.equal(state.partyMode, false);
+    assert.equal(state.activePartyConfig, null);
+    assert.equal(stopPartyCalls, 1);
+  } finally {
+    uiHooks.stopParty = undefined;
+  }
 });

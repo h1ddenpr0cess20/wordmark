@@ -33,6 +33,7 @@ import {
   DEFAULT_USER_NAME,
 } from "./partyPrompts.ts";
 import type { PartyCharacter, PartyConfig } from "./partyTypes.ts";
+import { uiHooks } from "../../init/uiHooks.ts";
 
 /** Places the character's name as a label inside the message bubble, keeping the
  * wordmark logo as the sender icon. */
@@ -512,3 +513,7 @@ class PartyEngine {
 
 /** Shared Party engine singleton. */
 export const partyEngine = new PartyEngine();
+
+// Let low-level modules (e.g. conversation reset) tear down a running party
+// without importing the engine's heavy dependency graph.
+uiHooks.stopParty = () => partyEngine.stop();
