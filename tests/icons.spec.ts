@@ -6,7 +6,7 @@ test('icon helper renders expected SVG attributes', () => {
   const svg = icon('settings', { width: 24, height: 24, className: 'c', style: 'opacity:1' });
   assert.match(svg, /<svg[^>]+width="24"/);
   assert.match(svg, /class="c"/);
-  assert.match(svg, /<use href="\/icons\.svg#settings"><\/use>/);
+  assert.match(svg, /<use href="#settings"><\/use>/);
 });
 
 test('icon helper marks decorative icons hidden from assistive tech', () => {

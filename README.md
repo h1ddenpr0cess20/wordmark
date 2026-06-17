@@ -34,6 +34,7 @@ Wordmark is a client-side AI chat for OpenAI/xAI Responses APIs and local LM Stu
 - [Storage](docs/storage.md)
 - [UI & UX](docs/ui-and-ux.md)
 - [Docker](docs/docker.md)
+- [Android App](docs/android.md)
 - [Troubleshooting](docs/troubleshooting.md)
 
 ## Features

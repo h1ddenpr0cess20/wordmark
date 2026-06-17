@@ -10,7 +10,24 @@ const https =
     ? { key: readFileSync("key.pem"), cert: readFileSync("cert.pem") }
     : undefined;
 
+// Inline the icon sprite into index.html so every `<use href="#id">` is a
+// same-document reference. Android System WebView does not fetch an external
+// SVG sprite for `<use>` elements inserted after initial load (e.g. message
+// copy buttons, dynamically injected panels), so external refs render blank
+// there. A same-document sprite resolves reliably in every engine.
+const inlineIconSprite = {
+  name: "inline-icon-sprite",
+  transformIndexHtml: {
+    order: "pre" as const,
+    handler(html: string) {
+      const sprite = readFileSync("src/assets/icons.svg", "utf-8");
+      return html.replace("<body>", `<body>\n${sprite}`);
+    },
+  },
+};
+
 export default defineConfig({
+  plugins: [inlineIconSprite],
   root: ".",
   publicDir: "public",
   // Inject the app version from package.json (single source of truth) so only

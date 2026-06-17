@@ -6,6 +6,7 @@ Contents
 
 - Getting Started: docs/getting-started.md
 - Docker & Containers: docs/docker.md
+- Android App: docs/android.md
 - Architecture: docs/architecture.md
 - Services & Models: docs/services.md
 - LM Studio (Local Models): docs/lm-studio.md
