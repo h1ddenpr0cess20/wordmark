@@ -171,19 +171,18 @@ function bindScenarioInput(id: string, key: keyof PartyConfig["scenario"]): void
   input.addEventListener("change", handler);
 }
 
+/**
+ * Reacts to a prompt-type radio change. This is a *draft* action: it only
+ * reveals/hides the relevant prompt fields (the party panel for "party", the
+ * personality/custom inputs otherwise). It must NOT mutate the open
+ * conversation's live state (`partyMode`, `activePartyConfig`) or its header —
+ * that only happens when the user actually applies a prompt (a "Set …" button,
+ * "Start Party", loading a conversation, or starting a new chat). Tearing down
+ * party state here would corrupt the open conversation before it is applied
+ * (e.g. dropping its party info, or flipping the header to the drafted prompt).
+ */
 function syncPartyMode(): void {
-  const partyRadio = document.getElementById("party-prompt") as HTMLInputElement | null;
-  const partyOn = Boolean(partyRadio?.checked);
   updatePromptVisibility();
-  state.partyMode = partyOn;
-  if (!partyOn) {
-    if (partyEngine.isRunning()) {
-      partyEngine.stop();
-    }
-    state.activePartyConfig = null;
-    partyEngine.refreshControlBar();
-  }
-  updateHeaderInfo();
 }
 
 function closeSettingsPanel(): void {

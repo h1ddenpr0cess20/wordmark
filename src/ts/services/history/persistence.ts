@@ -19,6 +19,7 @@ import { ensureImagesHaveMessageIds } from "../streaming/imageGeneration.ts";
 import { renderChatHistoryList } from "./list.ts";
 import { renderConversationMessages } from "./render.ts";
 import { processImageForStorage, markMessagesWithImages } from "./persistenceImages.ts";
+import { uiHooks } from "../../init/uiHooks.ts";
 import type { ConversationRecord } from "../../../types/common.ts";
 
 /**
@@ -102,7 +103,12 @@ function withoutDeveloperMessages<T extends { role?: string }>(messages: T[] | n
   return Array.isArray(messages) ? messages.filter(msg => msg && msg.role !== "developer") : [];
 }
 
-/** Clears the in-memory conversation state (history, images, ids, prompt, thinking). */
+/**
+ * Clears the in-memory conversation state (history, images, ids, prompt,
+ * thinking) and tears down any active party. Party teardown lives here — rather
+ * than on the prompt-type radio change — so merely drafting a different prompt
+ * never ends the open party; it ends only when a new conversation is started.
+ */
 function resetConversationState() {
   state.conversationHistory = [];
   state.generatedImages = [];
@@ -110,6 +116,12 @@ function resetConversationState() {
   state.currentConversationName = null;
   state.loadedSystemPrompt = null;
   state.userThinkingState = {};
+
+  if (state.partyMode || state.activePartyConfig) {
+    uiHooks.stopParty?.();
+  }
+  state.partyMode = false;
+  state.activePartyConfig = null;
 }
 
 /**

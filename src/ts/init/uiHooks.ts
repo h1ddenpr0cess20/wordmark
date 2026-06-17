@@ -10,6 +10,8 @@
 export interface UiHooks {
   /** Re-render the model dropdown; pass `true` when the model fetch errored. */
   updateModelsDropdown?: (fetchError?: boolean) => void;
+  /** Stop the party engine (abort in-flight turn, remove the control bar). */
+  stopParty?: () => void;
 }
 
 /** The shared UI hook registry instance. */
