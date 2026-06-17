@@ -33,6 +33,36 @@ test('extractConversationTitle falls back when there is no user message', () => 
   assert.equal(extractConversationTitle(asConvo({})), '(No user message)');
 });
 
+test('extractConversationTitle titles a party by its scenario topic', () => {
+  const title = extractConversationTitle(asConvo({
+    mode: 'party',
+    scenario: { topic: 'modal logic' },
+    characters: [{ name: 'Ada' }, { name: 'Boole' }],
+    messages: [{ role: 'assistant', content: 'Shall we begin?' }],
+  }));
+  assert.equal(title, 'modal logic');
+});
+
+test('extractConversationTitle falls back to the opening line, then the cast, for a topicless party', () => {
+  assert.equal(
+    extractConversationTitle(asConvo({
+      mode: 'party',
+      scenario: { topic: '' },
+      characters: [{ name: 'Ada' }, { name: 'Boole' }],
+      messages: [{ role: 'assistant', content: 'Ada: hello there' }],
+    })),
+    'Ada: hello there',
+  );
+  assert.equal(
+    extractConversationTitle(asConvo({
+      mode: 'party',
+      characters: [{ name: 'Ada' }, { name: 'Boole' }],
+      messages: [],
+    })),
+    'Ada, Boole',
+  );
+});
+
 test('resolveConversationPrompt maps each prompt type', () => {
   assert.deepEqual(
     resolveConversationPrompt(asConvo({ systemPrompt: { type: 'custom', content: 'be terse' } })),

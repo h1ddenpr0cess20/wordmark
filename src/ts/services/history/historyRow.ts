@@ -13,20 +13,42 @@ import { escapeHtml } from "../../utils/sanitize.ts";
 import { truncate } from "../../utils/utils.ts";
 import type { ConversationRecord } from "../../../types/common.ts";
 
-/** Derives a conversation's list title from its first user message (truncated). */
+/** Extracts displayable text from a message's content (plain string or structured parts). */
+function messageText(message: ConversationRecord["messages"][number]): string {
+  if (typeof message.content === "string") {
+    return message.content;
+  }
+  if (Array.isArray(message.content)) {
+    const part = message.content.find(p => p.type === "input_text" || p.type === "text");
+    return part ? (part.text || (typeof part.content === "string" ? part.content : "") || "") : "";
+  }
+  return "";
+}
+
+/**
+ * Derives a conversation's list title. Party conversations are titled by their
+ * scenario topic (falling back to the opening line, then the cast), since they
+ * often open on an AI turn rather than a user message; other conversations use
+ * their first user message.
+ */
 export function extractConversationTitle(convo: ConversationRecord): string {
+  if (convo.mode === "party") {
+    const topic = convo.scenario?.topic?.trim();
+    if (topic) {
+      return truncate(topic, 50);
+    }
+    const opening = (convo.messages || []).map(messageText).find(text => text.trim());
+    if (opening) {
+      return truncate(opening, 50);
+    }
+    const names = (convo.characters || []).map(c => c.name).filter(Boolean);
+    return names.length ? names.join(", ") : "Party";
+  }
   const userMsg = (convo.messages || []).find((m) => m.role === "user");
   if (!userMsg) {
     return "(No user message)";
   }
-  let text = "";
-  if (typeof userMsg.content === "string") {
-    text = userMsg.content;
-  } else if (Array.isArray(userMsg.content)) {
-    const part = userMsg.content.find(p => p.type === "input_text" || p.type === "text");
-    text = part ? (part.text || (typeof part.content === "string" ? part.content : "") || "") : "";
-  }
-  return truncate(text, 50);
+  return truncate(messageText(userMsg), 50);
 }
 
 /**
