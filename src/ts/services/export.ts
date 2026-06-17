@@ -11,7 +11,7 @@
 import { elements, state } from "../init/state.ts";
 import { STORAGE_KEYS } from "../utils/storage/storage.ts";
 import type { Message } from "../../types/api.ts";
-import { EXPORT_FORMATS, normaliseExportFormat, type ExportMessage } from "./exportFormats.ts";
+import { EXPORT_FORMATS, normaliseExportFormat, THEME_EXPORT_VARS, type ExportMessage } from "./exportFormats.ts";
 import { triggerAnchorDownload } from "../utils/dom/download.ts";
 
 /**
@@ -67,15 +67,32 @@ function normaliseMessagesForExport(history: Message[]): ExportMessage[] {
         }
       });
 
+      const characterName = msg.character?.name?.trim();
       return {
         role: msg.role || "",
-        senderLabel: msg.role === "user" ? "You" : "Assistant",
+        senderLabel: characterName || (msg.role === "user" ? "You" : "Assistant"),
         content: stripped,
         rawContent: (baseContent || "").trim(),
         reasoning: dedupedReasoning,
         timestamp: typeof msg.timestamp === "string" ? msg.timestamp : "",
       };
     });
+}
+
+/** Captures the active theme's export CSS variables from the live document for the HTML export. */
+function captureThemeVars(): Record<string, string> {
+  const captured: Record<string, string> = {};
+  if (typeof getComputedStyle !== "function" || typeof document === "undefined" || !document.body) {
+    return captured;
+  }
+  const styles = getComputedStyle(document.body);
+  for (const name of THEME_EXPORT_VARS) {
+    const value = styles.getPropertyValue(name).trim();
+    if (value) {
+      captured[name] = value;
+    }
+  }
+  return captured;
 }
 
 /** Returns the persisted export-format preference, defaulting to `"md"`. */
@@ -161,7 +178,7 @@ export function exportChat() {
     return;
   }
 
-  const exportMeta = { iso: new Date().toISOString() };
+  const exportMeta = { iso: new Date().toISOString(), theme: captureThemeVars() };
   const exportContent = formatConfig.build(normalisedMessages, includeThinking, exportMeta);
 
   const blob = new Blob([exportContent], { type: formatConfig.mime });

@@ -130,8 +130,17 @@ function setupExportCapture(format: string) {
   globalThis.document = {
     body: { appendChild() {}, removeChild() {} },
     getElementById() { return null; },
-    createElement() {
-      return { href: '', download: '', click() {} };
+    createElement(tag: string) {
+      if (tag === 'a') {
+        return { href: '', download: '', click() {} };
+      }
+      // Minimal element used by sanitizeWithMedia: stores innerHTML, no children to post-process.
+      let html = '';
+      return {
+        set innerHTML(value: string) { html = value; },
+        get innerHTML() { return html; },
+        querySelectorAll() { return []; },
+      };
     },
   } as unknown as Document;
   globalThis.URL = {
@@ -143,14 +152,14 @@ function setupExportCapture(format: string) {
   return capture;
 }
 
-test('exportChat escapes HTML-special message content in html exports', async () => {
+test('html export renders message markdown to HTML', async () => {
   const capture = setupExportCapture('html');
   state.conversationHistory = [
     {
       role: 'user',
-      content: '<img src=x onerror=alert(1)>',
+      content: '# Heading\n\n**bold** with `code` and a list:\n\n- one\n- two',
       reasoning: [],
-      timestamp: '"><script>alert(2)</script>',
+      timestamp: '2024-01-01T10:00:00Z',
     },
   ] as unknown as typeof state.conversationHistory;
 
@@ -158,10 +167,43 @@ test('exportChat escapes HTML-special message content in html exports', async ()
 
   assert.ok(capture.blob);
   const html = await (capture.blob as Blob).text();
-  assert.ok(!html.includes('<img src=x onerror=alert(1)>'));
-  assert.ok(!html.includes('<script>alert(2)</script>'));
-  assert.ok(html.includes('&lt;img src=x onerror=alert(1)&gt;'));
-  assert.ok(html.includes('&quot;&gt;&lt;script&gt;alert(2)&lt;/script&gt;'));
+  // Markdown is rendered through marked (content sanitization is covered by sanitize.spec.ts).
+  assert.ok(html.includes('<h1'));
+  assert.ok(html.includes('<strong>bold</strong>'));
+  assert.ok(html.includes('<code>code</code>'));
+  assert.ok(html.includes('<li>one</li>'));
+  // The page shell and message scaffolding are present.
+  assert.ok(html.includes('class="message user"'));
+  assert.ok(html.includes('class="export-container"'));
+});
+
+test('html export escapes the sender label and uses the theme :root block', async () => {
+  const capture = setupExportCapture('html');
+  state.conversationHistory = [
+    { role: 'assistant', content: 'hi', reasoning: [], timestamp: '', character: { name: '<b>Ada</b>' } },
+  ] as unknown as typeof state.conversationHistory;
+
+  exportChat();
+
+  const html = await (capture.blob as Blob).text();
+  assert.ok(html.includes('<span class="sender">&lt;b&gt;Ada&lt;/b&gt;</span>'));
+  assert.ok(html.includes(':root {'));
+  assert.ok(html.includes('--accent-color:'));
+});
+
+test('exports label party turns by character name across formats', async () => {
+  const capture = setupExportCapture('md');
+  state.conversationHistory = [
+    { role: 'assistant', content: 'Greetings.', reasoning: [], timestamp: '', character: { name: 'Boole' } },
+    { role: 'user', content: 'hello', reasoning: [], timestamp: '' },
+  ] as unknown as typeof state.conversationHistory;
+
+  exportChat();
+
+  const md = await (capture.blob as Blob).text();
+  assert.ok(md.includes('### Boole'));
+  assert.ok(md.includes('### You'));
+  assert.ok(!md.includes('### Assistant'));
 });
 
 test('exportChat quotes and escapes CSV cells containing delimiters and quotes', async () => {

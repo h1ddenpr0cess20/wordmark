@@ -162,7 +162,7 @@ export async function sendMessage() {
     return;
   }
 
-  if (state.partyMode && partyEngine.isRunning()) {
+  if (state.partyMode && state.activePartyConfig) {
     if (message) {
       partyEngine.queueInterjection(message);
     }

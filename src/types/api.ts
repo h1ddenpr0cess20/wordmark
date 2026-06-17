@@ -122,6 +122,7 @@ export interface BuildRequestOptions {
   stream?: boolean;
   previousResponseId?: string | null;
   temperature?: number;
+  maxOutputTokens?: number;
 }
 
 /** Options for `runTurn`. */

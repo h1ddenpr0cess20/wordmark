@@ -1,6 +1,5 @@
-import test from "node:test";
+import test, { after, mock } from "node:test";
 import assert from "node:assert/strict";
-import { mock } from "node:test";
 
 /**
  * Integration tests for the Party engine's control flow. The engine has heavy
@@ -122,9 +121,19 @@ function delay(ms: number): Promise<void> {
   return new Promise((r) => setTimeout(r, ms));
 }
 
-async function resetEngine(): Promise<void> {
+/** Stops the engine and waits until its loop has fully torn down, so a leaked
+ * loop from one test can't pollute the next or keep the process alive. */
+async function waitForIdle(): Promise<void> {
   partyEngine.stop();
-  await delay(50);
+  for (let i = 0; i < 200 && partyEngine.isRunning(); i++) {
+    await delay(10);
+  }
+}
+
+after(waitForIdle);
+
+async function resetEngine(): Promise<void> {
+  await waitForIdle();
   runTurnCalls.length = 0;
   finalizeCount = 0;
   removeCount = 0;
@@ -177,6 +186,65 @@ test("a pause requested mid-turn still records the in-progress turn", async () =
 
   assert.equal(finalizeCount, 1, "the turn that was generating when pause was clicked must be saved");
   assert.ok(partyEngine.isPaused(), "the engine should be paused after the in-flight turn completes");
+
+  partyEngine.stop();
+  await loop;
+});
+
+test("typing into a stopped party restarts it instead of falling through to regular chat", async () => {
+  await resetEngine();
+
+  const first = partyEngine.start(structuredClone(CONFIG));
+  await delay(80);
+  partyEngine.stop();
+  await first;
+
+  assert.equal(partyEngine.isRunning(), false, "party should be stopped");
+  assert.ok(fakeState.activePartyConfig, "the active config must survive a stop so the party can resume");
+
+  const turnsBefore = runTurnCalls.length;
+  const historyBefore = (fakeState.conversationHistory as unknown[]).length;
+
+  partyEngine.queueInterjection("what about modal logic?");
+  await delay(150);
+
+  assert.equal(
+    (fakeState.conversationHistory as unknown[]).length,
+    historyBefore + 1,
+    "the typed message must be recorded in the transcript",
+  );
+  assert.ok(
+    runTurnCalls.length > turnsBefore,
+    "a stopped party must restart and emit a turn, never hand the message to regular chat",
+  );
+
+  await waitForIdle();
+});
+
+test("typing while paused resumes the loop and weaves in the message", async () => {
+  await resetEngine();
+  openGate();
+
+  const loop = partyEngine.start(structuredClone(CONFIG));
+  await delay(80);
+  partyEngine.pause();
+  gate?.resolve();
+  await delay(800);
+  assert.ok(partyEngine.isPaused(), "the engine should be paused before we type");
+
+  const turnsBefore = runTurnCalls.length;
+  const historyBefore = (fakeState.conversationHistory as unknown[]).length;
+
+  partyEngine.queueInterjection("jump back in");
+  await delay(800);
+
+  assert.equal(partyEngine.isPaused(), false, "sending while paused must resume the loop");
+  assert.equal(
+    (fakeState.conversationHistory as unknown[]).length,
+    historyBefore + 1,
+    "the interjection must be recorded once",
+  );
+  assert.ok(runTurnCalls.length > turnsBefore, "the resumed loop must emit a follow-up turn");
 
   partyEngine.stop();
   await loop;

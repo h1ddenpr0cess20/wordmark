@@ -138,6 +138,7 @@ export function updateHeaderInfo() {
           ["Topic", cfg?.scenario?.topic],
           ["Setting", cfg?.scenario?.setting],
           ["Tone", cfg?.scenario?.mood],
+          ["Type", cfg?.scenario?.conversationType],
         ];
         for (const [label, value] of extras) {
           if ((value || "").trim()) {
