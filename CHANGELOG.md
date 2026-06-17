@@ -2,6 +2,21 @@
 
 All notable changes to Wordmark are documented here. Earlier versions didn't follow proper semver — this changelog reflects what actually shipped, not what the version numbers said at the time.
 
+## [3.3.1] - 2026-06-16
+
+A Party mode and chat-export polish release. Patch bump: bug fixes and output improvements, all backward-compatible.
+
+### Added
+- **Themed HTML chat export** — the HTML export now renders message markdown through the same `marked` + DOMPurify pipeline as the live chat and reproduces the on-screen layout (avatars, user/assistant bubbles, code blocks, tables, and a reasoning disclosure) using the active theme's colors, captured at export time. The export stylesheet and page shell live in `src/css`/`src/html` and are inlined via `?raw`.
+
+### Fixed
+- **Party interjections** — typing into a paused or stopped party now queues your message and resumes/restarts the loop instead of falling through to a regular-chat turn.
+- **Party history titles** — party conversations are titled by their scenario topic (falling back to the opening line, then the cast) instead of "(No user message)".
+- **Party export labels** — exports now label each turn by character name across every format, rather than a flat "Assistant".
+- **Party header** — the header info line now includes the scenario's conversation type.
+- **Speaker-decision cost** — the next-speaker routing request is pinned to low reasoning effort/verbosity with a bounded output, and its outcome is logged via `logVerbose`, so it no longer inherits the user's global setting and runs away on tokens.
+- **CSV export** — cells beginning with `= + - @` are escaped to prevent spreadsheet formula injection.
+
 ## [3.3.0] - 2026-06-16
 
 Adds Party mode, an autonomous multi-character group chat. Minor bump: a new user-facing feature, backward-compatible with everything else.
