@@ -4,6 +4,7 @@
 
 import { elements, state } from "../init/state.ts";
 import { uiHooks } from "../init/uiHooks.ts";
+import { logVerbose } from "../utils/logger.ts";
 import { STORAGE_KEYS } from "../utils/storage/storage.ts";
 import { showInlineStatus } from "../utils/inlineStatus.ts";
 import { DEFAULT_PERSONALITY, config } from "../../config/config.ts";
@@ -183,7 +184,9 @@ export function getDataSettingsEnabled() {
 export function setDataSettingsEnabled(enabled: boolean) {
   try {
     localStorage.setItem(STORAGE_KEYS.dataSettingsEnabled, enabled ? "true" : "false");
-  } catch { /* noop */ }
+  } catch (error) {
+    console.warn("Failed to persist data-settings toggle:", error);
+  }
 
   const toggle = elements.dataSettingsToggle || (document.getElementById("data-settings-toggle") as HTMLInputElement | null);
   if (toggle) {
@@ -512,7 +515,7 @@ export function initializePersonalityInput() {
   if (elements.personalityInput && DEFAULT_PERSONALITY) {
     elements.personalityInput.value = DEFAULT_PERSONALITY;
     elements.personalityInput.setAttribute("data-explicitly-set", "true");
-    console.info("Default personality explicitly set in personality input box");
+    logVerbose("Default personality explicitly set in personality input box");
   } else {
     console.warn("Could not initialize personality input: element or default personality not available");
   }

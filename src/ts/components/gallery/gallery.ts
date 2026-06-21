@@ -210,22 +210,7 @@ const loadGalleryImages = async function() {
 const deleteImageAndUpdateGallery = async function(filename: string) {
   try {
     await deleteImageFromDb(filename);
-
-    const galleryItem = document.querySelector<HTMLElement>(`.gallery-item[data-filename="${filename}"]`);
-    if (galleryItem) {
-      galleryItem.remove();
-
-      const galleryCount = document.getElementById("gallery-count");
-      if (galleryCount) {
-        const currentCount = parseInt(galleryCount.textContent || "0", 10);
-        galleryCount.textContent = String(currentCount - 1);
-      }
-
-      const galleryGrid = document.getElementById("gallery-grid");
-      if (galleryGrid && galleryGrid.children.length === 0) {
-        galleryGrid.innerHTML = "<div class=\"gallery-empty\">No media found in gallery</div>";
-      }
-    }
+    loadGalleryImages();
   } catch (error) {
     console.error("Error deleting media:", error);
     alert("Failed to delete the media item. Please try again.");
@@ -285,27 +270,26 @@ const bulkDeleteSelectedImages = async function() {
     galleryGrid.appendChild(loadingIndicator);
   }
 
-  try {
-    const deletePromises: Promise<unknown>[] = [];
+  const deletePromises: Promise<unknown>[] = [];
 
-    selectedCheckboxes.forEach((checkbox) => {
-      const galleryItem = checkbox.closest<HTMLElement>(".gallery-item");
-      if (galleryItem) {
-        const filename = galleryItem.dataset.filename;
-        if (filename) {
-          deletePromises.push(deleteImageFromDb(filename));
-        }
+  selectedCheckboxes.forEach((checkbox) => {
+    const galleryItem = checkbox.closest<HTMLElement>(".gallery-item");
+    if (galleryItem) {
+      const filename = galleryItem.dataset.filename;
+      if (filename) {
+        deletePromises.push(deleteImageFromDb(filename));
       }
-    });
+    }
+  });
 
-    await Promise.all(deletePromises);
+  const results = await Promise.allSettled(deletePromises);
+  const failures = results.filter((r): r is PromiseRejectedResult => r.status === "rejected");
+  failures.forEach((r) => console.error("Failed to delete media item:", r.reason));
 
-    loadGalleryImages();
-  } catch (error) {
-    console.error("Error bulk deleting media:", error);
-    alert("Some media items could not be deleted. Please try again.");
+  loadGalleryImages();
 
-    loadGalleryImages();
+  if (failures.length > 0) {
+    alert(`${failures.length} of ${deletePromises.length} media item(s) could not be deleted. Please try again.`);
   }
 };
 

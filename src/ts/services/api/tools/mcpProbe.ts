@@ -11,6 +11,7 @@
 
 import { MCP_ASSUME_ONLINE } from "../../../../config/config.ts";
 import { state } from "../../../init/state.ts";
+import { logVerbose } from "../../../utils/logger.ts";
 
 interface McpFetchResult {
   status: "ok" | "bad-status" | "timeout" | "error";
@@ -24,7 +25,7 @@ const MCP_PING_TIMEOUT_MS = 4000;
 export function isLocalNetworkUrl(url: string): boolean {
   try {
     const parsed = new URL(url);
-    const hostname = parsed.hostname.toLowerCase();
+    const hostname = parsed.hostname.toLowerCase().replace(/^\[|\]$/g, "");
     if (hostname === "localhost" || hostname === "127.0.0.1" || hostname === "::1") {
       return true;
     }
@@ -53,9 +54,7 @@ export async function pingMcpServer(url: string | undefined): Promise<boolean | 
     return true;
   }
   if (!isHostAllowed(normalizedUrl)) {
-    if (state.verboseLogging) {
-      console.info(`Skipping MCP availability check for ${normalizedUrl} due to CSP restrictions.`);
-    }
+    logVerbose(`Skipping MCP availability check for ${normalizedUrl} due to CSP restrictions.`);
     return null;
   }
   const corsAttempt = await attemptMcpFetch(normalizedUrl, "cors");

@@ -8,7 +8,8 @@
  * `HTMLElement` / `Element` types.
  */
 
-import { elements, state } from "./state.ts";
+import { elements } from "./state.ts";
+import { logVerbose } from "../utils/logger.ts";
 
 const byId = <T extends HTMLElement = HTMLElement>(id: string): T | null =>
   document.getElementById(id) as T | null;
@@ -70,15 +71,13 @@ export function initializeDOMReferences() {
   elements.closeGalleryButton = bySel<HTMLButtonElement>(".close-gallery");
   elements.galleryGrid = byId("gallery-grid");
 
-  if (state.verboseLogging) {
-    console.info("DOM references assigned:", {
-      chatBox: Boolean(elements.chatBox),
-      userInput: Boolean(elements.userInput),
-      sendButton: Boolean(elements.sendButton),
-      modelSelector: Boolean(elements.modelSelector),
-      serviceSelector: Boolean(elements.serviceSelector),
-      reasoningEffortSelector: Boolean(elements.reasoningEffortSelector),
-      verbositySelector: Boolean(elements.verbositySelector),
-    });
-  }
+  logVerbose("DOM references assigned:", {
+    chatBox: Boolean(elements.chatBox),
+    userInput: Boolean(elements.userInput),
+    sendButton: Boolean(elements.sendButton),
+    modelSelector: Boolean(elements.modelSelector),
+    serviceSelector: Boolean(elements.serviceSelector),
+    reasoningEffortSelector: Boolean(elements.reasoningEffortSelector),
+    verbositySelector: Boolean(elements.verbositySelector),
+  });
 }

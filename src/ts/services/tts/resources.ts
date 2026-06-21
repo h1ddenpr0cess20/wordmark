@@ -9,7 +9,9 @@
 import { saveAudioToDb } from "../../utils/storage/audioStorage.ts";
 import { ttsConfig, ttsRuntime } from "./config.ts";
 import { stopTtsAudio } from "./playback.ts";
-import { state } from "../../init/state.ts";
+import { createScopedLogger } from "../../utils/logger.ts";
+
+const logTts = createScopedLogger("tts");
 
 interface TtsAudioResource {
   url: string;
@@ -85,9 +87,7 @@ export const ttsAudioResources = {
       }
     });
 
-    if (state.verboseLogging) {
-      console.info("Cleared all stored audio resources");
-    }
+    logTts("Cleared all stored audio resources");
   },
 };
 
@@ -96,7 +96,5 @@ export function clearTtsAudioResources() {
   stopTtsAudio();
   ttsAudioResources.clearAll();
 
-  if (state.verboseLogging) {
-    console.info("All audio resources cleared");
-  }
+  logTts("All audio resources cleared");
 }

@@ -63,23 +63,20 @@ export function addCopyButton(codeBlock: HTMLElement) {
     const copyButton = document.createElement("button");
     copyButton.className = "copy-btn";
     copyButton.setAttribute("aria-label", "Copy code");
-    copyButton.innerHTML = icon("copy", { width: 16, height: 16 });
+    const copyIcon = icon("copy", { width: 16, height: 16 });
+    copyButton.innerHTML = copyIcon;
+    let resetTimer: ReturnType<typeof setTimeout> | undefined;
     copyButton.addEventListener("click", () => {
-      copyTextToClipboard(codeBlock.innerText)
+      const codeText = codeBlock.getAttribute("data-original-code") ?? codeBlock.textContent ?? "";
+      copyTextToClipboard(codeText)
         .then(success => {
-          if (success) {
-            const originalSvg = copyButton.innerHTML;
-            copyButton.innerHTML = icon("check", { width: 16, height: 16 });
-            setTimeout(() => {
-              copyButton.innerHTML = originalSvg;
-            }, 1500);
-          } else {
-            const originalSvg = copyButton.innerHTML;
-            copyButton.innerHTML = icon("x", { width: 16, height: 16 });
-            setTimeout(() => {
-              copyButton.innerHTML = originalSvg;
-            }, 1500);
+          copyButton.innerHTML = icon(success ? "check" : "x", { width: 16, height: 16 });
+          if (resetTimer) {
+            clearTimeout(resetTimer);
           }
+          resetTimer = setTimeout(() => {
+            copyButton.innerHTML = copyIcon;
+          }, 1500);
         });
     });
     if (codeBlock.parentNode) {

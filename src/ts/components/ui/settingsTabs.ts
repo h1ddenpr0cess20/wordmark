@@ -6,7 +6,7 @@ import { getApiKey } from "../../services/apiKeyStorage.ts";
 import { isLocalService } from "../../services/providers.ts";
 import { openSettingsAndSwitch } from "../../init/eventListeners/settingsPanel.ts";
 import { config } from "../../../config/config.ts";
-import { state } from "../../init/state.ts";
+import { logVerbose } from "../../utils/logger.ts";
 
 /** Wires settings tab buttons so clicking one activates its tab and content panel. */
 export function initTabs() {
@@ -87,7 +87,5 @@ export function openApiKeysTabIfNeeded() {
   }
 
   openSettingsAndSwitch("tab-apikeys");
-  if (state.verboseLogging) {
-    console.info("Automatically opened API keys tab via helper due to missing API key");
-  }
+  logVerbose("Automatically opened API keys tab via helper due to missing API key");
 }

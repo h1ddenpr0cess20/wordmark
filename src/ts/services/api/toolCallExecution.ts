@@ -96,10 +96,23 @@ export async function executeToolCalls(
     try {
       result = await call.handler(call.argsDict || {});
     } catch (error) {
+      console.error(`Tool '${call.name}' execution failed:`, error);
       result = { error: (error instanceof Error && error.message) || "Function execution failed" };
     }
     const resolvedCallId = call.callId || `call_${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 8)}`;
-    const normalizedOutput = typeof result === "string" ? result : JSON.stringify(result);
+    let normalizedOutput: string;
+    if (typeof result === "string") {
+      normalizedOutput = result;
+    } else {
+      try {
+        normalizedOutput = JSON.stringify(result) ?? "";
+      } catch (error) {
+        console.error(`Tool '${call.name}' result could not be serialized:`, error);
+        normalizedOutput = JSON.stringify({
+          error: (error instanceof Error && error.message) || "Tool result could not be serialized",
+        });
+      }
+    }
     if (preferToolCallFor(call.name)) {
       const resultPayload: Record<string, unknown> = {
         type: "tool_result",

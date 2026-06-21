@@ -45,7 +45,7 @@ Streaming & Rendering
 
 Storage
 
-- Conversations, images, audio use their own IndexedDB databases with small helper APIs (`utils/*Storage.ts`).
+- Conversations, images, audio use their own IndexedDB databases with small helper APIs (`utils/storage/*Storage.ts`).
 - When changing schema, bump DB versions and add migration logic in `onupgradeneeded` as needed.
 
 Safety & Sanitization

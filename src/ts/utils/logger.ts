@@ -74,6 +74,7 @@ function makeWrapper(method: ConsoleMethod, gateVerbose: boolean) {
     lastTimes.set(key, now);
     if (lastTimes.size > maxEntries) {
       lastTimes.clear();
+      suppressed.clear();
     }
   };
 }
@@ -95,6 +96,26 @@ export function logVerbose(...args: unknown[]): void {
   if (state.verboseLogging) {
     console.info(...args);
   }
+}
+
+/**
+ * Builds a verbose logger that prefixes every line with `[scope]`.
+ *
+ * @remarks
+ * A reusable form of the hand-rolled `if (state.verboseLogging) console.info("[x]", ...)`
+ * pattern used for area-scoped diagnostics. Like {@link logVerbose}, output is
+ * gated on `state.verboseLogging` and routed through `console.info` so the active
+ * {@link applyConsoleLogging} wrapping still applies.
+ *
+ * @param scope - The label placed inside the `[...]` prefix, e.g. `"image-debug"`.
+ */
+export function createScopedLogger(scope: string): (...args: unknown[]) => void {
+  const prefix = `[${scope}]`;
+  return (...args: unknown[]) => {
+    if (state.verboseLogging) {
+      console.info(prefix, ...args);
+    }
+  };
 }
 
 /**
@@ -129,7 +150,16 @@ if (typeof window !== "undefined" && typeof window.addEventListener === "functio
   window.addEventListener("error", function(event) {
     if (state.debug) {
       const err = event && (event.error || event.message || "Unknown error");
-      console.error("Uncaught error:", err);
+      const location = event && event.filename
+        ? ` (${event.filename}:${event.lineno ?? "?"}:${event.colno ?? "?"})`
+        : "";
+      console.error(`Uncaught error${location}:`, err);
+    }
+  });
+  window.addEventListener("unhandledrejection", function(event) {
+    if (state.debug) {
+      const reason = event && ("reason" in event ? event.reason : event);
+      console.error("Unhandled promise rejection:", reason ?? "Unknown reason");
     }
   });
 }

@@ -7,6 +7,7 @@
  */
 
 import { elements, state } from "../../init/state.ts";
+import { logVerbose } from "../../utils/logger.ts";
 import { saveConversationToDb } from "../../utils/storage/conversationStorage.ts";
 import { appendMessage } from "../../components/ui/chatMessages.ts";
 import { updateHeaderInfo } from "../../components/settings.ts";
@@ -67,7 +68,7 @@ export function loadFromUrl() {
     messages.forEach((msg: Message) => {
       if (msg.role !== "system") {
         const content = typeof msg.content === "string" ? msg.content : "";
-        appendMessage(msg.role === "user" ? "You" : "  ", content, msg.role || "");
+        appendMessage(msg.role === "user" ? "You" : "Assistant", content, msg.role || "");
       }
     });
 
@@ -102,9 +103,7 @@ export function loadFromUrl() {
 
     saveConversationToDb?.(conversation)
       .then((id) => {
-        if (state.verboseLogging) {
-          console.info("Saved URL-imported conversation to IndexedDB:", id);
-        }
+        logVerbose("Saved URL-imported conversation to IndexedDB:", id);
       })
       .catch((err) => {
         console.error("Failed to save URL-imported conversation to IndexedDB:", err);

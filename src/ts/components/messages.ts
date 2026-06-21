@@ -6,6 +6,7 @@ import hljs from "highlight.js";
 import { state } from "../init/state.ts";
 import { icon } from "../utils/icons.ts";
 import { addCopyButton } from "../utils/highlight.ts";
+import { copyTextToClipboard } from "../utils/dom/clipboard.ts";
 
 /**
  * Highlights code blocks in a message element and adds copy buttons.
@@ -107,9 +108,7 @@ export function addMessageCopyButton(messageElement: HTMLElement | null, message
     if (!raw) {
       return;
     }
-    if (navigator.clipboard && navigator.clipboard.writeText) {
-      navigator.clipboard.writeText(raw);
-    }
+    copyTextToClipboard(raw);
   });
   messageElement.appendChild(btn);
 }

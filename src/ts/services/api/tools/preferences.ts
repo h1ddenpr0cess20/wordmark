@@ -7,9 +7,11 @@
  */
 
 import { STORAGE_KEYS, readJSON, writeJSON } from "../../../utils/storage/storage.ts";
+import { createScopedLogger } from "../../../utils/logger.ts";
 import { TOOL_CATALOG } from "./catalog.ts";
 
 const TOOL_STORAGE_KEY = STORAGE_KEYS.toolPreferences;
+const logToolPrefs = createScopedLogger("tool-prefs");
 
 let toolPreferences = loadToolPreferences();
 
@@ -22,8 +24,8 @@ export function loadToolPreferences(): Record<string, boolean> {
 function saveToolPreferences(prefs: Record<string, boolean>) {
   try {
     writeJSON(TOOL_STORAGE_KEY, prefs);
-  } catch {
-    /* Ignore storage errors */
+  } catch (err) {
+    logToolPrefs("Failed to persist tool preferences:", err);
   }
 }
 

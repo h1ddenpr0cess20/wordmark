@@ -58,3 +58,28 @@ export function supportsResponseIncludeFields(serviceKey: string | null | undefi
 export function usesServerManagedTools(serviceKey: string | null | undefined): boolean {
   return serviceKey === "xai";
 }
+
+/**
+ * Role for the leading instruction message prepended to a request. xAI (Grok)
+ * expects `system`; the Responses API and other providers use `developer`.
+ */
+export function instructionMessageRole(serviceKey: string | null | undefined): "system" | "developer" {
+  return serviceKey === "xai" ? "system" : "developer";
+}
+
+/**
+ * Whether the provider's text-to-speech endpoint accepts a voice-instructions
+ * prompt. OpenAI's `gpt-4o-mini-tts` does; xAI (Grok) does not.
+ */
+export function ttsSupportsInstructions(serviceKey: string | null | undefined): boolean {
+  return serviceKey !== "xai";
+}
+
+/**
+ * Whether the provider attaches documents as direct `input_file` uploads rather
+ * than through a vector store + file_search. xAI (Grok) uploads files directly;
+ * other providers use a vector store.
+ */
+export function usesDirectFileUpload(serviceKey: string | null | undefined): boolean {
+  return serviceKey === "xai";
+}

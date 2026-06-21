@@ -86,8 +86,8 @@
 
 .gallery-select-checkbox {
   accent-color: var(--accent-color);
-  width: 16px;
-  height: 16px;
+  width: 15px;
+  height: 15px;
 }
 
 .gallery-item-footer {
@@ -104,33 +104,8 @@
 
 .gallery-actions {
   display: flex;
-  gap: 10px;
-}
-
-.gallery-actions button {
-  background: none;
-  border: none;
-  color: var(--text-secondary);
-  cursor: pointer;
-  font-size: 0.95rem;
-  padding: 0;
-  width: 24px;
-  height: 24px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: 4px;
-  transition: all 0.2s;
-}
-
-.gallery-actions button:hover {
-  background-color: var(--accent-color);
-  color: var(--text-primary);
-}
-
-.gallery-actions {
-  display: flex;
   justify-content: space-between;
+  gap: 10px;
   margin-top: 5px;
 }
 
@@ -141,26 +116,18 @@
   cursor: pointer;
   font-size: 1rem;
   padding: 2px 5px;
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   border-radius: 4px;
   transition: background-color 0.2s;
 }
 
 .gallery-actions button:hover {
   background-color: var(--accent-color);
-}
-
-.gallery-select-container {
-  display: flex;
-  align-items: center;
-  gap: 4px;
-  cursor: pointer;
-  font-size: 0.8rem;
-}
-
-.gallery-select-checkbox {
-  accent-color: var(--accent-color);
-  width: 15px;
-  height: 15px;
+  color: var(--button-text-color);
 }
 .truncated-prompt {
   font-size: 0.75rem;

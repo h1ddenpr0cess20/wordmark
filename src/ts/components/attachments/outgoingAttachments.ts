@@ -3,7 +3,7 @@
  *
  * @remarks
  * Turns the pending image/document uploads into the markup, placeholder tokens,
- * and history attachment records consumed by {@link ./interaction.ts}'s
+ * and history attachment records consumed by {@link ../interaction.ts}'s
  * `sendMessage`. As a side effect it stamps each upload with a generated
  * filename/timestamp and primes `state.imageDataCache`, matching the inline
  * behavior it replaced.
@@ -12,6 +12,7 @@
 import { state } from "../../init/state.ts";
 import { imagePlaceholder } from "../../utils/placeholders.ts";
 import { formatFileSize } from "../../utils/utils.ts";
+import { escapeHtml } from "../../utils/sanitize.ts";
 import type { Attachment } from "../../../types/api.ts";
 import type { PendingDocument, PendingUpload } from "../../../types/attachments.ts";
 
@@ -77,7 +78,7 @@ export function buildOutgoingAttachments(uploads: PendingUpload[], documents: Pe
       const directoryMarkup = [
         "<div class=\"attached-document\">",
         `<span class="doc-icon">${icon}</span>`,
-        `<span class="doc-name">${doc.directoryName}</span>`,
+        `<span class="doc-name">${escapeHtml(doc.directoryName)}</span>`,
         `<span class="doc-size">${directoryFiles.length} file${directoryFiles.length !== 1 ? "s" : ""} (${formatFileSize(totalSize)})</span>`,
         "</div>",
       ].join("\n");
@@ -98,7 +99,7 @@ export function buildOutgoingAttachments(uploads: PendingUpload[], documents: Pe
       const fileMarkup = [
         "<div class=\"attached-document\">",
         `<span class="doc-icon">${icon}</span>`,
-        `<span class="doc-name">${doc.name}</span>`,
+        `<span class="doc-name">${escapeHtml(doc.name)}</span>`,
         `<span class="doc-size">${formatFileSize(doc.size || 0)}</span>`,
         "</div>",
       ].join("\n");

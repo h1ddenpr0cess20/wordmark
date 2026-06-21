@@ -136,6 +136,29 @@ test('processor captures final payload, attaches images, and finalizes reasoning
   assert.equal(runtime.state.attachCalls.length, 1);
 });
 
+test('mcp_call.failed reports the error code and message in the reasoning trace', () => {
+  const runtime = createRuntimeStub();
+  const processor = createStreamingEventProcessor(runtime as unknown as StreamingRuntimeArg);
+
+  processor.processEvent('response.mcp_call.failed', [
+    JSON.stringify({ error: { code: 424, message: 'Failed to connect to MCP server' } }),
+  ]);
+
+  const reasoning = runtime.state.reasoningLines.join('\n');
+  assert.ok(reasoning.includes('424: Failed to connect to MCP server'), 'should include code and message');
+  assert.ok(reasoning.includes('failed'), 'should mark the call as failed');
+});
+
+test('mcp_call.failed falls back to "failed" when no error detail is present', () => {
+  const runtime = createRuntimeStub();
+  const processor = createStreamingEventProcessor(runtime as unknown as StreamingRuntimeArg);
+
+  processor.processEvent('response.mcp_call.failed', [JSON.stringify({})]);
+
+  const reasoning = runtime.state.reasoningLines.join('\n');
+  assert.ok(reasoning.includes('failed'), 'should still render a failure line without throwing');
+});
+
 test('processEvent ignores non-object SSE payloads without throwing', () => {
   const runtime = createRuntimeStub();
   const processor = createStreamingEventProcessor(runtime as unknown as StreamingRuntimeArg);

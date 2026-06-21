@@ -180,7 +180,7 @@ body.theme-usa {
   --error-text: #ff6b6b;
   --body-bg-color-1: #1a3277;
   --body-bg-color-2: #2a4a9c;
-  --button-text-color: #ffffff;
+  --button-text-color: #000000;
 }
 
 .theme-france {

@@ -54,6 +54,13 @@
   filter: drop-shadow(0 0 2px rgba(0, 0, 0, 0.3));
 }
 
+@media (hover: none) {
+  .image-download-btn,
+  .video-expand-btn {
+    opacity: 1;
+  }
+}
+
 .generated-images {
   display: flex;
   flex-wrap: wrap;

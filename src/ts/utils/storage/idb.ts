@@ -7,6 +7,7 @@
  * logging and result handling are meaningfully different.
  */
 
+/** Options for {@link openDatabase}: the database identity and upgrade hook. */
 export interface OpenDatabaseOptions {
   /** Database name passed to `indexedDB.open`. */
   name: string;

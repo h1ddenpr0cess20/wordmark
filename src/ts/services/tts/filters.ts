@@ -2,7 +2,7 @@
  * TTS content filters.
  */
 
-import { state } from "../../init/state.ts";
+import { logVerbose } from "../../utils/logger.ts";
 
 /**
  * Reports whether a message should be skipped for TTS: missing, a system
@@ -15,9 +15,7 @@ export function shouldSkipTts(messageId: string) {
   }
 
   if (messageElement.classList.contains("system-message")) {
-    if (state.verboseLogging) {
-      console.info("Skipping TTS for system message or message with trigger keywords");
-    }
+    logVerbose("Skipping TTS for system message");
     return true;
   }
 
@@ -42,9 +40,7 @@ export function shouldSkipTts(messageId: string) {
 
   for (const keyword of triggerKeywords) {
     if (messageText.includes(keyword)) {
-      if (state.verboseLogging) {
-        console.info("Skipping TTS for system message or message with trigger keywords");
-      }
+      logVerbose(`Skipping TTS for message with code/tool-output marker: ${JSON.stringify(keyword)}`);
       return true;
     }
   }

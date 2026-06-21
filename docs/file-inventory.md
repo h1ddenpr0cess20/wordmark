@@ -77,7 +77,7 @@ Purpose: quick orientation to the current project layout, key entry points, and 
   - `utils/`
     - `storage/`: All persistence helpers — `storage.ts` (typed localStorage facade + central `STORAGE_KEYS` registry), `memoryStorage.ts` (memory enable/limit/list + prompt formatting), `idb.ts` (IndexedDB open helper), and the IndexedDB-backed `conversationStorage.ts`/`imageStorage.ts`/`audioStorage.ts`.
     - `dom/`: Browser/DOM helpers — `clipboard.ts` (copy-with-fallback), `download.ts` (anchor-based file download), `menuSystem.ts` (settings panel HTML injection), `mobileHandling.ts` (mobile input/viewport handling).
-    - `logger.ts`, `tooltips.ts`, `notifications.ts`: Misc helpers (logger exposes `logVerbose`; notification styling lives in `css/components/ui/notifications.css`).
+    - `logger.ts`, `tooltips.ts`, `notifications.ts`: Misc helpers (logger exposes `logVerbose` and `createScopedLogger`, the scoped `[area]`-prefixed logger used across the codebase; notification styling lives in `css/components/ui/notifications.css`).
     - `inlineStatus.ts`, `thinking.ts`, `historyImages.ts`, `placeholders.ts`: Small shared helpers split out of `utils.ts`/settings UI (transient status toasts, reasoning-container toggle, history image stripping, placeholder regexes).
   - Vendor libraries (`dompurify`, `marked`, `highlight.js`) are npm dependencies imported directly by the modules that use them and bundled by Vite — there is no `src/ts/lib/` directory.
 

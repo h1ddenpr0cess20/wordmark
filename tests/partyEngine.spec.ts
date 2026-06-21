@@ -97,6 +97,7 @@ mockModule("../src/ts/utils/utils.ts", { sanitizeInput: (s: string) => s });
 mockModule("../src/ts/utils/sanitize.ts", { escapeHtml: (s: string) => s });
 mockModule("../src/ts/utils/notifications.ts", { showError: () => {} });
 mockModule("../src/ts/services/api/requestClient.ts", { runTurn: fakeRunTurn, buildRequestBody: () => ({}) });
+mockModule("../src/ts/services/api/toolManager.ts", { getToolCatalog: () => [], getAvailableToolKeys: () => [] });
 mockModule("../src/ts/services/api/requestTransport.ts", { executeNonStreamingRequest: async () => ({}) });
 mockModule("../src/ts/services/api/responseNormalization.ts", { extractOutputText: () => "" });
 mockModule("../src/ts/services/api/clientConfig.ts", { getActiveModel: () => "fake-model" });

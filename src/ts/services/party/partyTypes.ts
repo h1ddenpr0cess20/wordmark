@@ -28,6 +28,7 @@ export interface PartyScenario {
   topic: string;
   setting: string;
   mood: string;
+  /** Kind of exchange (e.g. "conversation", "debate"); interpolated verbatim into the turn prompts. */
   conversationType: string;
 }
 
@@ -35,6 +36,6 @@ export interface PartyScenario {
 export interface PartyConfig {
   characters: PartyCharacter[];
   scenario: PartyScenario;
-  /** What the characters call the user (defaults to "You"). */
+  /** What the characters call the user (defaults to `DEFAULT_USER_NAME`, "Observer"). */
   userName?: string;
 }

@@ -29,8 +29,13 @@
 
 .upload-previews {
   display: flex;
+  flex-wrap: wrap;
   gap: 6px;
   margin-bottom: 6px;
+}
+
+.upload-previews:empty {
+  margin-bottom: 0;
 }
 
 .upload-preview-container {
@@ -54,7 +59,7 @@
   height: 20px;
   border-radius: 50%;
   background-color: var(--error-bg);
-  color: white;
+  color: var(--error-text);
   border: 2px solid var(--bg-primary);
   font-size: 12px;
   font-weight: bold;
@@ -69,6 +74,7 @@
 
 .upload-preview-remove:hover {
   background-color: var(--error-color);
+  color: var(--error-color-text);
   transform: scale(1.1);
 }
 
@@ -85,7 +91,7 @@
   left: 50%;
   transform: translate(-50%, -50%);
   background-color: var(--accent-color);
-  color: var(--bg-primary);
+  color: var(--button-text-color);
   padding: 8px 16px;
   border-radius: 4px;
   font-size: 0.9rem;

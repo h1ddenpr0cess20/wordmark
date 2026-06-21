@@ -8,7 +8,7 @@ import { updateBrowserHistory } from "../history/state.ts";
 import { saveCurrentConversation } from "../history/persistence.ts";
 import { ttsConfig, generateTtsForMessage } from "../tts.ts";
 import {
-  imageDebugLog,
+  logImageDebug,
   processImageGenerationOutputs,
 } from "./imageGeneration.ts";
 import {
@@ -155,7 +155,7 @@ export function finalizeStreamedResponse(loadingMessage: HTMLElement | null, con
   }
 
   if (state.currentGeneratedImageHtml && state.currentGeneratedImageHtml.length > 0) {
-    imageDebugLog("Detected pending generated images before rendering message.", {
+    logImageDebug("Detected pending generated images before rendering message.", {
       count: state.currentGeneratedImageHtml.length,
     });
   }
@@ -203,7 +203,7 @@ export function finalizeStreamedResponse(loadingMessage: HTMLElement | null, con
     }
     imagesContainer.innerHTML = state.currentGeneratedImageHtml.join("");
     setupImageInteractions(imagesContainer);
-    imageDebugLog("Injected generated images into chat bubble.", {
+    logImageDebug("Injected generated images into chat bubble.", {
       imageCount: state.currentGeneratedImageHtml.length,
       messageId: loadingMessage.id,
     });
@@ -231,7 +231,7 @@ export function finalizeStreamedResponse(loadingMessage: HTMLElement | null, con
     const historyEntry = state.conversationHistory.find(entry => entry.id === loadingMessage.id);
     if (historyEntry) {
       historyEntry.hasImages = true;
-      imageDebugLog("Marked conversation history entry as having images.", {
+      logImageDebug("Marked conversation history entry as having images.", {
         messageId: loadingMessage.id,
       });
     }
@@ -260,7 +260,7 @@ export function finalizeStreamedResponse(loadingMessage: HTMLElement | null, con
   saveCurrentConversation();
 
   if (state.currentGeneratedImageHtml && state.currentGeneratedImageHtml.length > 0) {
-    imageDebugLog("Resetting currentGeneratedImageHtml; pending images should now be associated.", {
+    logImageDebug("Resetting currentGeneratedImageHtml; pending images should now be associated.", {
       messageId: loadingMessage.id,
     });
   }

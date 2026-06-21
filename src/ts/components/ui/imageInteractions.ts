@@ -13,6 +13,8 @@ import { isMobileDevice } from "../../utils/dom/mobileHandling.ts";
 import { escapeHtml } from "../../utils/sanitize.ts";
 import { detectMediaType, downloadMediaSource } from "../../services/mediaTools.ts";
 
+let activeSlideshowKeydown: ((event: KeyboardEvent) => void) | null = null;
+
 /** Normalized media descriptor consumed by the slideshow viewer. */
 interface ViewerItem {
   mediaType: string;
@@ -168,7 +170,6 @@ export function setupImageInteractions(messageElement: HTMLElement | null) {
         return;
       }
 
-      state.isSlideshowOpen = true;
       const allMediaData = gatherAllConversationMedia(img);
       createImageSlideshow(allMediaData.images, allMediaData.clickedIndex);
     });
@@ -199,7 +200,6 @@ export function setupImageInteractions(messageElement: HTMLElement | null) {
         return;
       }
 
-      state.isSlideshowOpen = true;
       const allMediaData = gatherAllConversationMedia(video);
       createImageSlideshow(allMediaData.images, allMediaData.clickedIndex);
     });
@@ -209,6 +209,8 @@ export function setupImageInteractions(messageElement: HTMLElement | null) {
 /**
  * Opens a fullscreen slideshow overlay for `images`, starting at `startIndex`.
  *
+ * @param images - The media records to page through; a no-op when empty.
+ * @param startIndex - Index of the item to show first.
  * @param isGalleryMode - When `true`, enables gallery-specific controls.
  */
 export function createImageSlideshow(images: any[], startIndex: number, isGalleryMode = false) {
@@ -218,6 +220,10 @@ export function createImageSlideshow(images: any[], startIndex: number, isGaller
 
   const existingSlideshow = document.querySelector(".gallery-slideshow");
   if (existingSlideshow) {
+    if (activeSlideshowKeydown) {
+      document.removeEventListener("keydown", activeSlideshowKeydown);
+      activeSlideshowKeydown = null;
+    }
     document.body.removeChild(existingSlideshow);
   }
 
@@ -286,6 +292,13 @@ export function createImageSlideshow(images: any[], startIndex: number, isGaller
             galleryCount.textContent = String(Math.max(0, currentCount - 1));
           }
 
+          const activeTabCountId = state.currentGalleryTab === "uploaded" ? "uploaded-count" : "generated-count";
+          const activeTabCount = document.getElementById(activeTabCountId);
+          if (activeTabCount) {
+            const tabCount = parseInt(activeTabCount.textContent || "0", 10);
+            activeTabCount.textContent = String(Math.max(0, tabCount - 1));
+          }
+
           if (!state.galleryImages.length) {
             closeSlideshow();
             const galleryGrid = document.getElementById("gallery-grid");
@@ -318,6 +331,9 @@ export function createImageSlideshow(images: any[], startIndex: number, isGaller
 
   const closeSlideshow = () => {
     document.removeEventListener("keydown", handleKeydown);
+    if (activeSlideshowKeydown === handleKeydown) {
+      activeSlideshowKeydown = null;
+    }
     if (slideshow.parentNode) {
       document.body.removeChild(slideshow);
     }
@@ -375,6 +391,7 @@ export function createImageSlideshow(images: any[], startIndex: number, isGaller
     }
   };
 
+  activeSlideshowKeydown = handleKeydown;
   document.addEventListener("keydown", handleKeydown);
 
   slideshow.addEventListener("click", (event) => {
@@ -408,7 +425,10 @@ export function createImageSlideshow(images: any[], startIndex: number, isGaller
 
   downloadBtn.addEventListener("click", () => {
     const item = normalizeViewerItem(images[currentIndex], isGalleryMode);
-    downloadMediaSource(item.url, item.filename || `${item.mediaType}-${Date.now()}`)
+    const fallbackName = item.mediaType === "video"
+      ? `video-${Date.now()}.mp4`
+      : `image-${Date.now()}.png`;
+    downloadMediaSource(item.url, item.filename || fallbackName)
       .catch(error => console.error(`Failed to download ${item.mediaType}:`, error));
   });
 }
@@ -418,7 +438,8 @@ export function createImageSlideshow(images: any[], startIndex: number, isGaller
  * slideshow can page through the whole conversation.
  *
  * @param clickedElement - The media element that was clicked.
- * @returns The ordered media list and the clicked item's index (0 if not found).
+ * @returns `{ images, clickedIndex }` - the ordered media list and the clicked
+ *   item's index (0 if not found).
  */
 function gatherAllConversationMedia(clickedElement: Element) {
   const allMessages = Array.from(document.querySelectorAll(".message"));

@@ -30,7 +30,10 @@ function renderAssistantIcon(senderElement: HTMLElement) {
  * @param sender - Display label for the message author.
  * @param content - Message text/markdown.
  * @param type - CSS type class (e.g. `"user"`, `"assistant"`, `"system-message"`).
- * @param skipHistory - When `true`, renders without pushing to conversation history.
+ * @param skipHistory - Set when the message is not being recorded in history
+ *   (e.g. during history replay); this function does not persist history itself,
+ *   so its only effect here is to suppress re-enabling auto-scroll for
+ *   user/system messages.
  * @returns The created message element.
  */
 export function appendMessage(sender: string, content: string, type: string, skipHistory = false) {
@@ -101,6 +104,9 @@ export function appendMessage(sender: string, content: string, type: string, ski
  * Appends an assistant message, rendering its markdown/reasoning and (unless
  * `skipHistory`) recording it in conversation history with a generated id.
  *
+ * @param assistantMessage - The assistant's message text/markdown.
+ * @param skipHistory - When `true`, the message is rendered but not pushed to
+ *   conversation history.
  * @returns The created message element.
  */
 export function appendAssistantMessage(assistantMessage: string, skipHistory = false) {

@@ -73,7 +73,23 @@ function createFakeIndexedDB() {
   const db = {
     objectStoreNames,
     createObjectStore(name: string) { const s = createStore(name); stores.set(name, s); return s; },
-    transaction(_names?: unknown, _mode?: unknown) { return { objectStore: (n: string) => stores.get(n) }; },
+    transaction(_names?: unknown, _mode?: unknown) {
+      const txn: {
+        objectStore: (n: string) => unknown;
+        oncomplete: (() => void) | null;
+        onabort: (() => void) | null;
+        onerror: (() => void) | null;
+        error: unknown;
+      } = {
+        objectStore: (n: string) => stores.get(n),
+        oncomplete: null,
+        onabort: null,
+        onerror: null,
+        error: null,
+      };
+      setImmediate(() => setImmediate(() => txn.oncomplete && txn.oncomplete()));
+      return txn;
+    },
   };
 
   return {

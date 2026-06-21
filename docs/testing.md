@@ -10,7 +10,7 @@ The specs themselves are TypeScript and type-checked under strict mode. Browser-
 - `npm run test:watch` – reruns affected specs whenever a source file changes.
 - `npm run typecheck:tests` – type-checks the specs against `tsconfig.tests.json` (strict, zero errors required).
 
-Both run scripts go through `node --experimental-test-module-mocks --import ./tests/helpers/registerLoaders.mjs`, which registers the loaders that let Node import the app's TypeScript modules (transpiling `.ts`, resolving `.js`→`.ts` specifiers, handling Vite-style `?raw` imports) and provides a DOMPurify stub plus `globalThis.__APP_VERSION__`. The `--experimental-test-module-mocks` flag enables `mock.module`, which the Party engine specs use to fake their DOM/network dependencies. The suite stubs browser primitives such as `window`, `document`, `Audio`, `localStorage`, and `fetch` so that modules can be exercised in isolation without a DOM.
+Both run scripts go through `node --experimental-test-module-mocks --import ./tests/helpers/registerLoaders.mjs`, which registers the loaders that let Node import the app's TypeScript modules (transpiling `.ts`, resolving `.js`→`.ts` specifiers, handling Vite-style `?raw` imports) and provides a DOMPurify stub plus `globalThis.__APP_VERSION__`. The `--experimental-test-module-mocks` flag enables `mock.module`, which the Party engine specs use to fake their DOM/network dependencies. Most specs stub browser primitives such as `window`, `document`, `Audio`, `localStorage`, and `fetch` so that modules can be exercised in isolation with lightweight doubles. DOM-heavy modules that need a real `document` (element construction, `querySelector`, `classList`, `dataset`) instead use `jsdom`: construct a `new JSDOM(...)` and assign `globalThis.window`/`globalThis.document` from it before importing the module under test (see `tests/codeInterpreterRender.spec.ts`, `tests/renderMedia.spec.ts`, `tests/ttsControls.spec.ts`).
 
 ## Coverage Highlights
 
@@ -31,7 +31,7 @@ Recent test additions capture critical service behaviours:
 ## Adding New Specs
 
 1. Place files in `tests/*.spec.ts` (use nested folders for helpers only).
-2. Set up any required globals (`globalThis.window`, `document`, `fetch`, `localStorage`, …) **before** importing the module under test, then load it with a dynamic `await import("../src/ts/.../module.ts")`. Type partial global stubs by casting `as unknown as <LibType>` (e.g. `as unknown as Storage`) at the assignment so the source keeps real lib types.
+2. Set up any required globals (`globalThis.window`, `document`, `fetch`, `localStorage`, …) **before** importing the module under test, then load it with a dynamic `await import("../src/ts/.../module.ts")`. Type partial global stubs by casting `as unknown as <LibType>` (e.g. `as unknown as Storage`) at the assignment so the source keeps real lib types. For modules that build/query real DOM, prefer a `jsdom` document over hand-rolled stubs.
 3. Assert against the module's exported API and observable side effects—avoid relying on private module scope.
 4. Prefer deterministic timeouts (`setTimeout(() => fn(), 0)`) and mocked timers to keep the suite fast (<5s).
 5. Run `npm run typecheck:tests` to confirm the new spec type-checks under strict mode.

@@ -93,7 +93,10 @@ export function setupDragAndDrop(inputWrapper: HTMLElement, handleFiles: HandleF
           (entry as FileSystemFileEntry).file((file: FileWithRelativePath) => {
             file._relativePath = path + file.name;
             resolve([file]);
-          }, () => resolve([]));
+          }, (err) => {
+            console.warn("Failed to read dropped file:", err);
+            resolve([]);
+          });
         } else if (entry.isDirectory) {
           const reader = (entry as FileSystemDirectoryEntry).createReader();
           const entries: FileSystemEntry[] = [];
@@ -105,18 +108,25 @@ export function setupDragAndDrop(inputWrapper: HTMLElement, handleFiles: HandleF
                 );
                 Promise.all(promises).then((results) => {
                   resolve(([] as File[]).concat(...results));
-                }).catch(() => resolve([]));
+                }).catch((err) => {
+                  console.warn("Failed to read dropped directory entries:", err);
+                  resolve([]);
+                });
               } else {
                 entries.push(...batch);
                 readBatch();
               }
-            }, () => resolve([]));
+            }, (err) => {
+              console.warn("Failed to read dropped directory entries:", err);
+              resolve([]);
+            });
           };
           readBatch();
         } else {
           resolve([]);
         }
-      } catch {
+      } catch (err) {
+        console.warn("Failed to read dropped entry:", err);
         resolve([]);
       }
     });
@@ -128,8 +138,12 @@ export function setupDragAndDrop(inputWrapper: HTMLElement, handleFiles: HandleF
         (entry as FileSystemFileEntry).file((file: FileWithRelativePath) => {
           file._relativePath = file.name;
           resolve(file);
-        }, () => resolve(null));
-      } catch {
+        }, (err) => {
+          console.warn("Failed to read dropped file:", err);
+          resolve(null);
+        });
+      } catch (err) {
+        console.warn("Failed to read dropped file:", err);
         resolve(null);
       }
     });

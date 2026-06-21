@@ -16,10 +16,15 @@ let enableLoggingValue: string | null = null;
 globalThis.localStorage = {
   getItem(key: string) { return key === "enableLogging" ? enableLoggingValue : null; },
 } as unknown as Storage;
-globalThis.window = globalThis.window || { addEventListener() {} };
+const windowHandlers: Record<string, ((event: unknown) => void)[]> = {};
+globalThis.window = {
+  addEventListener(type: string, handler: (event: unknown) => void) {
+    (windowHandlers[type] ??= []).push(handler);
+  },
+} as unknown as Window & typeof globalThis;
 
 // Dynamic import so the spies above are in place first.
-const { applyConsoleLogging } = await import("../src/ts/utils/logger.ts");
+const { applyConsoleLogging, createScopedLogger } = await import("../src/ts/utils/logger.ts");
 const { state } = await import("../src/ts/init/state.ts");
 
 function reset() {
@@ -78,6 +83,49 @@ test("identical messages within the dedupe window collapse to one emit", () => {
   assert.equal(calls.warn[1][1], "different");
 });
 
+test("flooding more than maxEntries distinct lines stays correct (cache reset path)", () => {
+  reset();
+  state.debug = true;
+  state.verboseLogging = true;
+  applyConsoleLogging();
+
+  const total = 600;
+  for (let i = 0; i < total; i++) {
+    console.warn(`distinct-${i}`);
+  }
+
+  assert.equal(calls.warn.length, total, "every distinct line emits exactly once");
+  for (const call of calls.warn) {
+    assert.equal(call.length, 2, "no trailing duplicate-count argument on distinct lines");
+  }
+});
+
+test("uncaught error handler appends source location when present", () => {
+  reset();
+  state.debug = true;
+  state.verboseLogging = true;
+  applyConsoleLogging();
+  const onError = (windowHandlers["error"] ?? [])[0];
+  assert.ok(onError, "an error handler is registered");
+
+  const err = new Error("boom");
+  onError({ error: err, filename: "app.js", lineno: 12, colno: 5 });
+  assert.equal(calls.error.length, 1);
+  assert.match(calls.error[0][1] as string, /^Uncaught error \(app\.js:12:5\):$/);
+  assert.equal(calls.error[0][2], err);
+});
+
+test("uncaught error handler omits location when filename is absent", () => {
+  reset();
+  state.debug = true;
+  applyConsoleLogging();
+  const onError = (windowHandlers["error"] ?? [])[0];
+
+  onError({ message: "no location" });
+  assert.equal(calls.error.length, 1);
+  assert.match(calls.error[0][1] as string, /^Uncaught error:$/);
+});
+
 test("production (debug off): log/info suppressed unless enableLogging set", () => {
   reset();
   state.debug = false;
@@ -95,6 +143,55 @@ test("production (debug off): log/info suppressed unless enableLogging set", () 
   assert.equal(calls.warn.length, 1);
   assert.equal(calls.warn[0][0], "warn-passes");
   assert.equal(calls.error.length, 1);
+});
+
+test("unhandledrejection handler logs the reason in debug mode only", () => {
+  reset();
+  const handlers = windowHandlers["unhandledrejection"] ?? [];
+  assert.equal(handlers.length, 1, "exactly one rejection handler registered");
+  const onRejection = handlers[0];
+
+  state.debug = false;
+  onRejection({ reason: new Error("ignored when not debugging") });
+  assert.equal(calls.error.length, 0, "no log when debug off");
+
+  state.debug = true;
+  applyConsoleLogging();
+  onRejection({ reason: new Error("boom async") });
+  assert.equal(calls.error.length, 1, "logged once in debug mode");
+  assert.equal(calls.error[0][1], "Unhandled promise rejection:");
+  assert.equal((calls.error[0][2] as Error).message, "boom async");
+});
+
+test("unhandledrejection handler falls back when reason is absent", () => {
+  reset();
+  state.debug = true;
+  applyConsoleLogging();
+  const onRejection = (windowHandlers["unhandledrejection"] ?? [])[0];
+
+  onRejection({ reason: undefined });
+  assert.equal(calls.error.length, 1);
+  assert.equal(calls.error[0][2], "Unknown reason");
+});
+
+test("createScopedLogger gates on verboseLogging and prefixes the scope", () => {
+  reset();
+  state.debug = true;
+  state.verboseLogging = false;
+  applyConsoleLogging();
+  const log = createScopedLogger("image-debug");
+
+  log("hidden while verbose off");
+  assert.equal(calls.info.length, 0, "scoped logger suppressed when verbose off");
+
+  state.verboseLogging = true;
+  applyConsoleLogging();
+  log("now visible", 7);
+
+  assert.equal(calls.info.length, 1);
+  assert.equal(calls.info[0][1], "[image-debug]");
+  assert.equal(calls.info[0][2], "now visible");
+  assert.equal(calls.info[0][3], 7);
 });
 
 test("production with enableLogging set: log/info pass through raw", () => {

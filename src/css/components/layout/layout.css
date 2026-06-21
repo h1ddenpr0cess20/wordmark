@@ -7,14 +7,13 @@
   flex-direction: column;
   overflow: hidden;
   position: fixed;
-  top: 10vh;
+  top: max(10vh, 104px);
   bottom: 4vh;
   height: auto;
-  animation: fadeInContainer 0.5s ease-out;
 }
 #header {
   background-color: var(--bg-primary);
-  padding: 18px 20px 0px 20px;
+  padding: 18px 168px 0px 20px;
   display: flex;
   flex-direction: column;
   align-items: flex-start;
@@ -112,6 +111,10 @@
   color: var(--accent-color);
   letter-spacing: 1px;
   cursor: pointer;
+  max-width: 100%;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
   transition: color 0.16s ease, text-shadow 0.16s ease, filter 0.16s ease;
 }
 

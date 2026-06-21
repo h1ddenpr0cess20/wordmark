@@ -7,7 +7,10 @@
  */
 
 import type { ConversationRecord } from "../../../types/common.ts";
+import { createScopedLogger } from "../logger.ts";
 import { openDatabase } from "./idb.ts";
+
+const logConvoStore = createScopedLogger("conversation-storage");
 
 const CONVO_DB_NAME = "wordmark-conversations";
 const CONVO_DB_VERSION = 1;
@@ -24,12 +27,12 @@ export function initConversationDb() {
     onUpgrade: (db) => {
       if (!db.objectStoreNames.contains(CONVO_STORE_NAME)) {
         db.createObjectStore(CONVO_STORE_NAME, { keyPath: "id" });
-        console.info("Created conversation store in IndexedDB");
+        logConvoStore("Created conversation store in IndexedDB");
       }
     },
   }).then((db) => {
     conversationDb = db;
-    console.info("IndexedDB initialized for conversation storage");
+    logConvoStore("IndexedDB initialized for conversation storage");
   });
 }
 
@@ -63,8 +66,13 @@ export function saveConversationToDb(conversation: ConversationRecord): Promise<
       reject(request.error);
     };
 
-    request.onsuccess = () => {
-      console.info("Conversation saved to IndexedDB with ID:", conversation.id);
+    transaction.onabort = () => {
+      console.error("Conversation save transaction aborted:", transaction.error);
+      reject(transaction.error || new Error("Conversation save transaction aborted"));
+    };
+
+    transaction.oncomplete = () => {
+      logConvoStore("Conversation saved to IndexedDB with ID:", conversation.id);
       resolve(conversation.id!);
     };
   });
@@ -100,7 +108,7 @@ export function loadConversationFromDb(id: string): Promise<ConversationRecord> 
     request.onsuccess = () => {
       const result = request.result;
       if (result) {
-        console.info("Conversation loaded from IndexedDB:", id);
+        logConvoStore("Conversation loaded from IndexedDB:", id);
         resolve(result);
       } else {
         const error = new Error("Conversation not found in IndexedDB");
@@ -139,7 +147,7 @@ export function getAllConversationsFromDb(): Promise<ConversationRecord[]> {
         conversations.push(cursor.value);
         cursor.continue();
       } else {
-        console.info(`Retrieved ${conversations.length} conversations from IndexedDB`);
+        logConvoStore(`Retrieved ${conversations.length} conversations from IndexedDB`);
         resolve(conversations);
       }
     };
@@ -170,8 +178,13 @@ export function deleteConversationFromDb(id: string): Promise<boolean> {
       reject(request.error);
     };
 
-    request.onsuccess = () => {
-      console.info("Conversation deleted from IndexedDB:", id);
+    transaction.onabort = () => {
+      console.error("Conversation delete transaction aborted:", transaction.error);
+      reject(transaction.error || new Error("Conversation delete transaction aborted"));
+    };
+
+    transaction.oncomplete = () => {
+      logConvoStore("Conversation deleted from IndexedDB:", id);
       resolve(true);
     };
   });

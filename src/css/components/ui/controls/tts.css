@@ -26,11 +26,11 @@
   transform: translateY(-1px);
 }
 .tts-stop {
-  background-color: var(--error-bg, #e74c3c);
-  color: var(--error-contrast, white);
+  background-color: var(--error-color);
+  color: var(--error-color-text);
 }
 .tts-stop:hover {
-  background-color: var(--error-hover, #c0392b);
+  background-color: color-mix(in srgb, var(--error-color) 85%, #000 15%);
   transform: translateY(-1px);
 }
 .tts-download {

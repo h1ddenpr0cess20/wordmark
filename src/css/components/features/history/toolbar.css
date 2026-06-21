@@ -38,7 +38,7 @@
 
 .history-new-button {
   background-color: var(--accent-color);
-  color: white;
+  color: var(--button-text-color);
   border: none;
   border-radius: 6px;
   padding: 8px 12px;
@@ -67,7 +67,7 @@
 
 .history-load-btn {
   background-color: var(--accent-color);
-  color: white;
+  color: var(--button-text-color);
 }
 
 .history-load-btn:hover:not(:disabled) {
@@ -85,12 +85,12 @@
 }
 
 .history-delete-btn {
-  background-color: rgba(231, 76, 60, 0.1);
-  color: #e74c3c;
+  background-color: color-mix(in srgb, var(--error-color) 10%, transparent);
+  color: var(--error-color);
 }
 
 .history-delete-btn:hover:not(:disabled) {
-  background-color: rgba(231, 76, 60, 0.2);
+  background-color: color-mix(in srgb, var(--error-color) 20%, transparent);
 }
 
 .history-select-all-btn,

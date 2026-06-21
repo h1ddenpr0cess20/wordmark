@@ -13,7 +13,7 @@ import {
   renameConversationInDb,
 } from "../../utils/storage/conversationStorage.ts";
 import { config } from "../../../config/config.ts";
-import { logVerbose } from "../../utils/logger.ts";
+import { createScopedLogger } from "../../utils/logger.ts";
 import { loadImageFromDb } from "../../utils/storage/imageStorage.ts";
 import { ensureImagesHaveMessageIds } from "../streaming/imageGeneration.ts";
 import { renderChatHistoryList } from "./list.ts";
@@ -21,6 +21,8 @@ import { renderConversationMessages } from "./render.ts";
 import { processImageForStorage, markMessagesWithImages } from "./persistenceImages.ts";
 import { uiHooks } from "../../init/uiHooks.ts";
 import type { ConversationRecord } from "../../../types/common.ts";
+
+const logHistory = createScopedLogger("history");
 
 /**
  * Resolves the system-prompt type and content to persist with a conversation,
@@ -75,7 +77,7 @@ function preloadImages(convo: ConversationRecord) {
         .then((imageRecord) => {
           if (imageRecord?.data) {
             imageCache.set(filename, imageRecord.data);
-            logVerbose(`Loaded image from IndexedDB: ${filename}`);
+            logHistory(`Loaded image from IndexedDB: ${filename}`);
           }
         })
         .catch((err) => {
@@ -138,7 +140,7 @@ export function saveCurrentConversation(meta: { name?: string; created?: string 
 
   const updatedCount = ensureImagesHaveMessageIds();
   if (updatedCount > 0) {
-    logVerbose(`Associated ${updatedCount} images with messages before saving`);
+    logHistory(`Associated ${updatedCount} images with messages before saving`);
   }
 
   const now = new Date();
@@ -177,7 +179,7 @@ export function saveCurrentConversation(meta: { name?: string; created?: string 
   Promise.all(savePromises)
     .then((results) => {
       if (results.length > 0) {
-        logVerbose(`Saved ${results.filter(Boolean).length} images to IndexedDB`);
+        logHistory(`Saved ${results.filter(Boolean).length} images to IndexedDB`);
       }
     })
     .catch((err) => {
@@ -186,7 +188,7 @@ export function saveCurrentConversation(meta: { name?: string; created?: string 
 
   saveConversationToDb?.(conversation)
     .then((id) => {
-      logVerbose("Saved conversation to IndexedDB:", id);
+      logHistory("Saved conversation to IndexedDB:", id);
     })
     .catch((err) => {
       console.error("Failed to save conversation to IndexedDB:", err);
@@ -226,7 +228,7 @@ export function startNewConversation(name: string | null = null) {
     elements.chatBox.innerHTML = "";
   }
 
-  logVerbose("Started new conversation");
+  logHistory("Started new conversation");
 };
 
 /**

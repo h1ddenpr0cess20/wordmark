@@ -4,14 +4,14 @@ All app data is stored locally in the browser using IndexedDB. No server-side st
 
 Conversations
 
-- File: `src/ts/utils/conversationStorage.ts`
+- File: `src/ts/utils/storage/conversationStorage.ts`
 - DB: `wordmark-conversations` v1, Store: `conversations`, keyPath: `id`
 - Content: messages array (role, content, optional reasoning, IDs/timestamps), images refs, model/service, system prompt meta
 - Helpers: `initConversationDb`, `saveConversationToDb`, `loadConversationFromDb`, `getAllConversationsFromDb`, `deleteConversationFromDb`, `renameConversationInDb`
 
 Images
 
-- File: `src/ts/utils/imageStorage.ts`
+- File: `src/ts/utils/storage/imageStorage.ts`
 - DB: `wordmark-images` v1, Store: `images`, keyPath: `filename`
 - Content: base64 data or Blob, metadata (tool, prompt, timestamp, associatedMessageId)
 - Helpers: `saveImageToDb`, `loadImageFromDb`, `deleteImageFromDb`, diagnostics utilities, and upload helpers:
@@ -20,10 +20,10 @@ Images
 
 TTS Audio
 
-- File: `src/ts/utils/audioStorage.ts`
+- File: `src/ts/utils/storage/audioStorage.ts`
 - DB: `wordmark-audio` v1, Store: `tts-audio`, indexes on `messageId` and `timestamp`
 - Content: raw audio data (ArrayBuffer), original text, selected voice, timestamps
-- Helpers: `saveAudioToDb`, `loadAudioForMessage`, `deleteAudioFromDb`, `cleanupOldAudio` (keeps last 15 by timestamp)
+- Helpers: `saveAudioToDb`, `loadAudioForMessage`, `cleanupOldAudio` (keeps last 15 by timestamp), `exportAudioForDownload`
 
 Runtime Storage
 

@@ -10,6 +10,7 @@
  */
 
 import { state } from "../init/state.ts";
+import { logVerbose } from "./logger.ts";
 
 /**
  * Toggles a reasoning container's collapsed state and remembers the preference.
@@ -38,9 +39,7 @@ export function toggleThinking(id: string, event?: Event) {
   }
   state.userThinkingState[id] = wasCollapsed === true;
 
-  if (state.verboseLogging) {
-    console.log(`Toggled thinking container ${id}: ${wasCollapsed ? "expanded" : "collapsed"}`);
-  }
+  logVerbose(`Toggled thinking container ${id}: ${wasCollapsed ? "expanded" : "collapsed"}`);
 
   if (wasCollapsed) {
     const contentDiv = thinkingContainer.querySelector(".thinking-content");

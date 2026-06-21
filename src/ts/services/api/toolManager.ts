@@ -17,7 +17,7 @@ import { getApiKey } from "../apiKeyStorage.ts";
 import { isLocalService, usesServerManagedTools } from "../providers.ts";
 import { MCP_ASSUME_ONLINE, config } from "../../../config/config.ts";
 import { logVerbose } from "../../utils/logger.ts";
-import { TOOL_CATALOG, TOOL_DEFINITIONS } from "./tools/catalog.ts";
+import { TOOL_CATALOG, TOOL_DEFINITIONS, cloneDefinition } from "./tools/catalog.ts";
 import { getToolPreference, isToolEnabled, setToolEnabled, setAllToolsEnabled } from "./tools/preferences.ts";
 import {
   getCachedMcpStatus,
@@ -136,18 +136,18 @@ export function getToolCatalog(): ToolCatalogEntry[] {
 }
 
 /**
- * Builds the list of tool definitions to send with a request, applying every
- * gate: master switch, service enablement, service/model compatibility, MCP
- * online and local-network rules, per-tool preferences, required API keys, and
- * provider-specific exclusions (e.g. Codex image generation, shell vs. code
- * interpreter).
+ * Reports whether a single catalog tool is available for the given
+ * provider/model, applying the compatibility gates (but not per-tool user
+ * preferences): hidden flag, service allow-list, client-side support, MCP
+ * local-network/online rules, required API keys, and the Codex
+ * image-generation exclusion.
  *
- * @param serviceKey - Target service; defaults to the active service.
- * @param modelName - Target model; defaults to the active model.
- * @param allowedToolKeys - When provided, only catalog tools whose `key` is in
- *   this list are included (Party mode per-character tool selection). An empty
- *   array yields no tools. When omitted, the full enabled set is returned and
- *   memory tools are appended as usual.
+ * @param tool - Catalog entry to evaluate.
+ * @param serviceKey - Target service key.
+ * @param modelName - Target model name.
+ * @param clientSideToolsSupported - Whether the model accepts client-side tools.
+ * @param modelIsCodex - Whether the model is a Codex variant.
+ * @returns `true` when the tool may be offered for this provider/model.
  */
 function isToolAvailableForProvider(
   tool: ToolEntry,
@@ -199,6 +199,7 @@ function isToolAvailableForProvider(
  *
  * @param serviceKey - Target service; defaults to the active service.
  * @param modelName - Target model; defaults to the active model.
+ * @returns The catalog keys of the tools supported for that provider/model.
  */
 export function getAvailableToolKeys(serviceKey: string = getActiveServiceKey(), modelName: string = getActiveModel()): string[] {
   if (config && config.enableFunctionCalling === false) {
@@ -214,6 +215,20 @@ export function getAvailableToolKeys(serviceKey: string = getActiveServiceKey(),
     .map(tool => tool.key);
 }
 
+/**
+ * Builds the list of tool definitions to send to the model, resolving each
+ * catalog entry to its provider-appropriate shape (server-managed vs.
+ * client-side) and honoring the master function-calling toggle and per-tool
+ * user preferences. Returns an empty list when function calling is disabled or
+ * the service is not configured/enabled.
+ *
+ * @param serviceKey - Target service; defaults to the active service.
+ * @param modelName - Target model; defaults to the active model.
+ * @param allowedToolKeys - When provided, restricts output to these catalog
+ *   keys and bypasses per-tool preference checks and memory-tool appending;
+ *   when omitted, all preference-enabled available tools are included.
+ * @returns The provider-ready tool definitions.
+ */
 export function getEnabledToolDefinitions(serviceKey: string = getActiveServiceKey(), modelName: string = getActiveModel(), allowedToolKeys?: string[]): ToolDefinition[] {
   const masterEnabled = !(config && config.enableFunctionCalling === false);
   if (!masterEnabled) {
@@ -252,7 +267,7 @@ export function getEnabledToolDefinitions(serviceKey: string = getActiveServiceK
           type: "code_interpreter",
         });
       } else {
-        defs.push(JSON.parse(JSON.stringify(tool.definition)));
+        defs.push(cloneDefinition(tool.definition));
       }
       return;
     }
@@ -275,7 +290,7 @@ export function getEnabledToolDefinitions(serviceKey: string = getActiveServiceK
       return;
     }
 
-    defs.push(JSON.parse(JSON.stringify(tool.definition)));
+    defs.push(cloneDefinition(tool.definition));
   });
 
   if (!restrictKeys) {
@@ -317,10 +332,10 @@ function appendMemoryTools(defs: ToolDefinition[], serviceKey: string = getActiv
       return;
     }
     if (memoryToolDefinition) {
-      defs.push(JSON.parse(JSON.stringify(memoryToolDefinition)));
+      defs.push(cloneDefinition(memoryToolDefinition));
     }
     if (forgetToolDefinition) {
-      defs.push(JSON.parse(JSON.stringify(forgetToolDefinition)));
+      defs.push(cloneDefinition(forgetToolDefinition));
     }
   } catch (error) {
     console.warn("Unable to append memory tools:", error);
