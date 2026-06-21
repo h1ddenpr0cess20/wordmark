@@ -65,7 +65,9 @@ export async function initVectorStoreManager() {
         if (meta && typeof meta === "object") {
           Object.keys(meta).forEach(id => removeVectorStoreMetadata(id));
         }
-      } catch { /* noop */ }
+      } catch (error) {
+        console.warn("Failed to clear vector store metadata:", error);
+      }
       if (showInfo) {
         showInfo("Cleared all active vector stores");
       }

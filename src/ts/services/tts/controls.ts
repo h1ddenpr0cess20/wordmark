@@ -6,7 +6,8 @@
  * controls, including the placeholder state shown while audio is synthesizing.
  */
 
-import { elements, state } from "../../init/state.ts";
+import { elements } from "../../init/state.ts";
+import { createScopedLogger } from "../../utils/logger.ts";
 import { showError } from "../../utils/notifications.ts";
 import { exportAudioForDownload } from "../../utils/storage/audioStorage.ts";
 import { triggerAnchorDownload } from "../../utils/dom/download.ts";
@@ -16,6 +17,9 @@ import { generateSpeech } from "./api.ts";
 import { stopTtsAudio, handleTtsAudioEnded } from "./playback.ts";
 import { playNextMessageInQueue } from "./queue.ts";
 import { removeExistingTtsControls, attachTtsControls } from "./controlsDom.ts";
+
+const logTts = createScopedLogger("tts");
+
 /**
  * Generates TTS for a finished message. When autoplay is on, synthesizes audio,
  * attaches playback controls, and enqueues it; otherwise attaches on-demand
@@ -28,17 +32,16 @@ export async function generateTtsForMessage(text: string, messageId: string) {
 
   try {
     if (ttsRuntime.activeTtsAudio && ttsRuntime.activeTtsAudio.paused) {
-      if (state.verboseLogging) {
-        console.info("Active TTS audio is paused; treating as stopped before queuing next message.");
-      }
+      logTts("Active TTS audio is paused; treating as stopped before queuing next message.");
       stopTtsAudio();
     }
 
     const lowerText = text.toLowerCase();
-    const keywordsToFilter = ["voice playback stopped", "tts test", "testing tts", "stop voice"];
+    const controlPhrases = ["voice playback stopped", "tts test", "testing tts", "stop voice"];
 
-    if (keywordsToFilter.some((keyword) => lowerText.includes(keyword))) {
-      console.info("Skipping TTS for system message or message with trigger keywords");
+    const matchedControlPhrase = controlPhrases.find((phrase) => lowerText.includes(phrase));
+    if (matchedControlPhrase) {
+      logTts("Skipping TTS for control phrase:", matchedControlPhrase);
       return;
     }
 
@@ -49,15 +52,15 @@ export async function generateTtsForMessage(text: string, messageId: string) {
         addTtsControlsToMessage(audioData, messageId, text);
 
         if (!ttsMessageQueue.includes(messageId)) {
-          console.info("Adding message to TTS queue:", messageId);
+          logTts("Adding message to TTS queue:", messageId);
           ttsMessageQueue.push(messageId);
 
           if (!ttsRuntime.activeTtsAudio) {
-            console.info("No active audio, starting autoplay sequence");
+            logTts("No active audio, starting autoplay sequence");
             ttsRuntime.autoplayActive = true;
             playNextMessageInQueue();
           } else {
-            console.info("Audio already playing, message queued for later playback");
+            logTts("Audio already playing, message queued for later playback");
           }
         }
       } else {
@@ -326,15 +329,24 @@ export function addTtsControlsToMessage(audioData: ArrayBuffer, messageId: strin
           audio.addEventListener("canplay", canPlayHandler, { once: true });
         }
       } else {
-        audio.play();
-        playbackState.isPlaying = true;
-        isPlaying = true;
-        playPauseButton.innerHTML = ttsSvgIcons.pause;
-        playPauseButton.title = "Pause voice";
-        playPauseButton.setAttribute("aria-label", "Pause voice");
-        statusText.textContent = "Playing";
-        statusText.style.display = "inline";
-        ttsRuntime.activeTtsAudio = audio;
+        audio.play().then(() => {
+          playbackState.isPlaying = true;
+          isPlaying = true;
+          playPauseButton.innerHTML = ttsSvgIcons.pause;
+          playPauseButton.title = "Pause voice";
+          playPauseButton.setAttribute("aria-label", "Pause voice");
+          statusText.textContent = "Playing";
+          statusText.style.display = "inline";
+          ttsRuntime.activeTtsAudio = audio;
+        }).catch((error) => {
+          console.error("Failed to play audio:", error);
+          playPauseButton.innerHTML = ttsSvgIcons.play;
+          statusText.textContent = "Failed";
+          statusText.style.display = "inline";
+          setTimeout(() => {
+            statusText.style.display = "none";
+          }, 3000);
+        });
       }
     } else {
       audio.pause();
@@ -424,7 +436,7 @@ export function addTtsControlsToMessage(audioData: ArrayBuffer, messageId: strin
     ttsAudioResources.removeUrl(audioUrl);
 
     if (ttsConfig.autoplay) {
-      console.info("Audio error, trying next message in queue");
+      logTts("Audio error, trying next message in queue");
       setTimeout(() => playNextMessageInQueue(), 500);
     }
   });

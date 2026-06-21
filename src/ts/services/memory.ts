@@ -78,9 +78,9 @@ export const forgetToolDefinition = {
  * contains the given keyword (case-insensitive substring).
  *
  * @param args - Tool arguments; `args.keyword` is the substring to match.
- * @returns `{ ok: true, removed, removed_index, matches, remaining }` when a
- * memory is removed, or `{ ok: false, message }` when memory is disabled, the
- * keyword is missing, or nothing matches.
+ * @returns `{ ok: true, keyword, removed, removed_index, matches, remaining }`
+ * when a memory is removed, or `{ ok: false, message }` when memory is disabled,
+ * the keyword is missing, or nothing matches.
  */
 toolImplementations.forget = async function(args) {
   try {

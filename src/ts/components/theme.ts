@@ -9,6 +9,7 @@
 
 import hljs from "highlight.js";
 import { STORAGE_KEYS } from "../utils/storage/storage.ts";
+import { logVerbose } from "../utils/logger.ts";
 import { parseThemeClassNames, getThemeDisplayName } from "./themeNames.ts";
 import darkThemeCss from "../../css/themes/base/dark.css?raw";
 import lightThemeCss from "../../css/themes/base/light.css?raw";
@@ -112,10 +113,10 @@ function packThemeClasses(pack: ThemePack): string[] {
 
 /** Installs a pack: injects its CSS, persists the choice, and refreshes the selector. */
 function installThemePack(pack: ThemePack) {
-  injectPackStyles(pack);
   const installed = getInstalledPacks();
   installed.add(pack.key);
   setInstalledPacks(installed);
+  injectPackStyles(pack);
   themeCategories = extractThemesFromCSS();
   populateThemeSelector();
   if (themeSelector) {
@@ -165,10 +166,15 @@ function setupThemePackToggles() {
     }
     checkbox.checked = installed.has(pack.key);
     checkbox.addEventListener("change", () => {
-      if (checkbox.checked) {
-        installThemePack(pack);
-      } else {
-        uninstallThemePack(pack);
+      try {
+        if (checkbox.checked) {
+          installThemePack(pack);
+        } else {
+          uninstallThemePack(pack);
+        }
+      } catch (error) {
+        console.error(`Failed to ${checkbox.checked ? "install" : "uninstall"} theme pack '${pack.key}':`, error);
+        checkbox.checked = getInstalledPacks().has(pack.key);
       }
     });
   }
@@ -358,7 +364,7 @@ function rehighlightCodeBlocks() {
     const codeBlocks = document.querySelectorAll<HTMLElement>("pre code");
 
     if (codeBlocks && codeBlocks.length > 0) {
-      console.log(`Rehighlighting ${codeBlocks.length} code blocks with current theme`);
+      logVerbose(`Rehighlighting ${codeBlocks.length} code blocks with current theme`);
 
       hljs.configure({
         ignoreUnescapedHTML: true,
@@ -380,7 +386,7 @@ function rehighlightCodeBlocks() {
         }
       });
     } else {
-      console.log("No code blocks found to rehighlight");
+      logVerbose("No code blocks found to rehighlight");
     }
   } catch (error) {
     console.error("Error in rehighlightCodeBlocks:", error);

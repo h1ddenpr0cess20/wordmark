@@ -11,7 +11,7 @@ import { elements, state } from "../../init/state.ts";
 import {
   IMAGE_GENERATION_CALL_TYPE,
   collectImageCandidates,
-  imageDebugLog,
+  logImageDebug,
   type ImageCandidate,
 } from "./imageGeneration.ts";
 import { processMainContentMarkdown, separateThinkingSegments } from "./thinkingUtils.ts";
@@ -229,7 +229,7 @@ export function createStreamingRuntime({
         mimeType: item.mimeType || "image/png",
         sourceLabel: label,
       });
-      imageDebugLog("Captured image data from stream event.", {
+      logImageDebug("Captured image data from stream event.", {
         sourceLabel: label,
         mimeType: item.mimeType || "image/png",
         preview: item.dataUrl.substring(0, 48),

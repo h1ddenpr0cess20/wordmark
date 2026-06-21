@@ -18,8 +18,12 @@ import {
   extractDeltaText,
   extractReasoningText,
 } from "./eventParsing.ts";
+import { createScopedLogger } from "../../utils/logger.ts";
+import { showWarning } from "../../utils/notifications.ts";
 
 type StreamingRuntime = ReturnType<typeof createStreamingRuntime>;
+
+const logStream = createScopedLogger("stream");
 
 /**
  * Creates the SSE event processor for a streaming turn. The returned handler
@@ -131,7 +135,7 @@ export function createStreamingEventProcessor(runtime: StreamingRuntime) {
     try {
       payload = JSON.parse(dataStr);
     } catch (err) {
-      console.error("Failed to parse SSE payload:", err, dataStr);
+      console.error("Failed to parse SSE payload:", eventType || "<no-event>", err, dataStr);
       return;
     }
     if (!payload || typeof payload !== "object") {
@@ -383,9 +387,12 @@ export function createStreamingEventProcessor(runtime: StreamingRuntime) {
       break;
     }
     case "response.mcp_call.failed": {
-      const error = payload?.error?.message || "failed";
-      runtime.appendReasoningLine(`❌ _failed: ${error}_`);
+      const errorMessage = payload?.error?.message || "failed";
+      const errorCode = payload?.error?.code;
+      const detail = errorCode ? `${errorCode}: ${errorMessage}` : errorMessage;
+      runtime.appendReasoningLine(`❌ _failed: ${detail}_`);
       runtime.appendReasoningLine("");
+      showWarning(`MCP server call failed (${detail}). The server may be offline or unreachable.`);
       break;
     }
     case "response.file_search_call.in_progress": {
@@ -580,6 +587,8 @@ export function createStreamingEventProcessor(runtime: StreamingRuntime) {
     default: {
       if (!finalResponsePayload && payload.response) {
         finalResponsePayload = payload.response;
+      } else {
+        logStream("unhandled event type:", effectiveType || "<empty>");
       }
       break;
     }

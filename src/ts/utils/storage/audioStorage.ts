@@ -9,6 +9,9 @@
 
 import { openDatabase } from "./idb.ts";
 import { triggerAnchorDownload } from "../dom/download.ts";
+import { createScopedLogger } from "../logger.ts";
+
+const logAudioStore = createScopedLogger("audio-storage");
 
 const AUDIO_DB_NAME = "wordmark-audio";
 const AUDIO_DB_VERSION = 1;
@@ -43,12 +46,12 @@ export function initAudioDb() {
         store.createIndex("messageId", "messageId", { unique: false });
         store.createIndex("timestamp", "timestamp", { unique: false });
 
-        console.info("Created TTS audio store in IndexedDB");
+        logAudioStore("Created TTS audio store in IndexedDB");
       }
     },
   }).then((db) => {
     audioDb = db;
-    console.info("IndexedDB initialized for TTS audio storage");
+    logAudioStore("IndexedDB initialized for TTS audio storage");
   });
 }
 
@@ -89,8 +92,13 @@ export function saveAudioToDb(audioData: ArrayBuffer, messageId: string, text: s
       reject(request.error);
     };
 
-    request.onsuccess = () => {
-      console.info("Audio saved to IndexedDB for message:", messageId);
+    transaction.onabort = () => {
+      console.error("Audio save transaction aborted:", transaction.error);
+      reject(transaction.error || new Error("Audio save transaction aborted"));
+    };
+
+    transaction.oncomplete = () => {
+      logAudioStore("Audio saved to IndexedDB for message:", messageId);
 
       cleanupOldAudio().catch(err => {
         console.warn("Error during audio cleanup:", err);
@@ -132,7 +140,7 @@ export function loadAudioForMessage(messageId: string): Promise<StoredAudio> {
       const results = request.result;
       if (results && results.length > 0) {
         results.sort((a: { timestamp: number }, b: { timestamp: number }) => b.timestamp - a.timestamp);
-        console.info("Audio loaded from IndexedDB for message:", messageId);
+        logAudioStore("Audio loaded from IndexedDB for message:", messageId);
         resolve(results[0]);
       } else {
         const error = new Error("Audio not found for this message");
@@ -192,7 +200,7 @@ export function cleanupOldAudio(): Promise<number> {
             deleteRequest.onsuccess = () => {
               deletedCount++;
               if (deletedCount + errorCount === recordsToDelete.length) {
-                console.info(`Cleaned up ${deletedCount} old audio records`);
+                logAudioStore(`Cleaned up ${deletedCount} old audio records`);
                 resolve(deletedCount);
               }
             };

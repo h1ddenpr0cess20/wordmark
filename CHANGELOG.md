@@ -2,6 +2,28 @@
 
 All notable changes to Wordmark are documented here. Earlier versions didn't follow proper semver — this changelog reflects what actually shipped, not what the version numbers said at the time.
 
+## [3.4.1] - 2026-06-21
+
+Everything done since the 3.4.0 release (tag `v3.4.0`): a broad error-surfacing and observability pass, accessibility and UI-polish fixes, and a large test-coverage expansion. All backward-compatible.
+
+### Added
+- **Expanded test coverage** — the suite grew to 501 deterministic specs, adding jsdom-backed coverage of code-interpreter output rendering, generated-media element construction, and on-demand TTS controls, plus image/media helpers, vector-store metadata + LRU eviction, the MCP server store, export formats with the CSV-injection guard, data-URI decoding, the Grok image tools, finalize-extract, and `isLocalNetworkUrl`.
+
+### Changed
+- **Scoped logging** — introduced `createScopedLogger`; routed init, history, TTS, services, location, API-keys, interaction, party, streaming, about-tab, and storage diagnostics through verbose-gated `[area]` loggers, replacing scattered hand-rolled `console.info` guards. Stopped logging user location (PII).
+- **Provider capability registry** — centralized xAI quirks (direct file upload, no TTS instructions, instruction-message role) as predicates in `services/providers.ts`.
+- **IndexedDB durability** — image, audio, and conversation writes now resolve on transaction commit and reject on abort instead of on the request callback.
+- **CI** — checkout/setup-node actions bumped to v5 (Node 24).
+
+### Fixed
+- **Error surfacing** — silent failures now report instead of being swallowed: vector-store metadata/active-id reads, data-settings init and toggle persistence, tool-handler execution, tool-result serialization, dropped file/directory reads, theme-pack installs (no more half-applied state), MCP call failures (surfaced with the error code), malformed data URIs, and file reads (descriptive error including the filename).
+- **Layout & zoom** — logo overlapping the header on zoom, long model names overlapping the top-right buttons, slide-in panels clipped on narrow viewports, message text sliding under the upload button, an emptied upload-preview row leaving a gap above the composer, upload previews wrapping instead of overflowing, the gallery header/tabs pinned while only the grid scrolls, slideshow clipping with long captions, wide tables overflowing in chat and exports, and scrolling in about/legal/help popups.
+- **History panel** — shift-click range selection anchored to the last clicked row (not document order), stale keydown listener removed before re-render, Ctrl+A intercepted only in multi-select, the panel marked `inert` on close, and focus no longer stolen to the toggle on outside-click dismissal.
+- **Gallery & slideshow** — counts re-sync after a single-item delete, partial bulk-delete failures reported via `Promise.allSettled`, the media-viewer flag no longer sticks when there's nothing to show, an orphaned slideshow keydown listener removed on reopen, the active tab badge updated on slideshow delete, and a file extension added to the download fallback name.
+- **Themes** — low-contrast button text on the light-gray and Greece themes, undefined background variables (`--bg-tertiary` and others), the attachment remove button losing its hover background, and the Data-tab file picker restyled to a minimal color fix (reverting an over-engineered redesign).
+- **Copy buttons** — code blocks copy from the exact source instead of rendered `innerText`, the message copy button uses the shared clipboard helper, and the code copy button no longer sticks on the feedback icon after rapid re-clicks.
+- **TTS & misc** — `audio.play()` rejections handled on the resume path, skip logs made accurate, the composer resets to its 56px baseline after sending, toast notifications announce to screen readers via ARIA roles, inline image/video buttons show on touch devices, and the assistant logo shows for messages imported from a shared chat URL.
+
 ## [3.3.1] - 2026-06-16
 
 A Party mode and chat-export polish release. Patch bump: bug fixes and output improvements, all backward-compatible.

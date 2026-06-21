@@ -3,6 +3,7 @@
  */
 
 import { state } from "../../init/state.ts";
+import { logVerbose } from "../../utils/logger.ts";
 import {
   DEFAULT_VERBOSITY,
   DEFAULT_REASONING_EFFORT,
@@ -21,6 +22,7 @@ import {
   serviceSupportsReasoning,
   supportsResponseIncludeFields,
   usesServerManagedTools,
+  instructionMessageRole,
 } from "../providers.ts";
 import { extractOutputText, extractReasoningText } from "./responseNormalization.ts";
 import {
@@ -53,6 +55,18 @@ const DEFAULT_INCLUDE_FIELDS = [
  * provider-specific shaping: include fields, reasoning config, and dropping the
  * `text` block for server-managed tool calls.
  *
+ * @param options - The turn's request inputs.
+ * @param options.inputMessages - Conversation messages serialized into `input`.
+ * @param options.instructions - Optional developer/system instructions block.
+ * @param options.tools - Tool definitions to advertise; omitted when empty.
+ * @param options.model - Target model; defaults to the active model.
+ * @param options.verbosity - Text verbosity; defaults to `DEFAULT_VERBOSITY`.
+ * @param options.reasoningEffort - Reasoning effort; applied only when the
+ *   model and service support reasoning.
+ * @param options.stream - Whether to request a streamed response.
+ * @param options.previousResponseId - Prior response id for multi-turn chaining.
+ * @param options.temperature - Sampling temperature; included only when finite.
+ * @param options.maxOutputTokens - Output-token cap; included only when finite.
  * @returns The JSON-serializable request body.
  */
 export function buildRequestBody({
@@ -121,7 +135,6 @@ export function buildRequestBody({
   return payload;
 }
 
-/** Builds request headers, adding a Bearer token when the active service has a key. */
 /**
  * Runs one conversation turn end to end: windows the history to the token
  * budget, prepends the developer/system message, resolves enabled tools and
@@ -164,9 +177,8 @@ export async function runTurn({
   const workingMessages = serializeMessagesForRequest(windowedMessages);
   const developerContent = typeof systemOverride === "string" ? systemOverride : buildDeveloperMessage();
   if (developerContent) {
-    const systemRole = serviceKey === "xai" ? "system" : "developer";
     workingMessages.unshift({
-      role: systemRole,
+      role: instructionMessageRole(serviceKey),
       content: developerContent,
       id: "developer-message",
     });
@@ -251,9 +263,7 @@ export async function runTurn({
       .map((call: CollectedFunctionCall): ActionableCall | null => {
         const handler = TOOL_HANDLERS[call.name] || toolImplementations[call.name];
         if (!handler) {
-          if (state.verboseLogging) {
-            console.info(`Skipping server-managed tool call '${call.name || "<unknown>"}'`);
-          }
+          logVerbose(`Skipping server-managed tool call '${call.name || "<unknown>"}'`);
           return null;
         }
         return { ...call, handler };

@@ -12,17 +12,50 @@ import type { PartyCharacter, PartyScenario } from "./partyTypes.ts";
 export const DEFAULT_USER_NAME = "Observer";
 
 /**
- * Builds the system prompt that puts a model fully in character. When no persona
- * description is given, the character's name is used as the persona.
+ * Minimal descriptor of a tool a character may call, used to make the character
+ * aware of its tools in the system prompt. Resolved by the engine from the tool
+ * catalog so this module stays free of the tool-manager dependency graph.
  */
-export function buildCharacterSystemPrompt(character: PartyCharacter): string {
-  return [
+export interface PartyToolInfo {
+  /** Catalog key (e.g. `builtin:web_search`); used to detect web search. */
+  key: string;
+  /** Human-readable tool name shown to the model. */
+  displayName: string;
+  /** Optional short description of what the tool does. */
+  description?: string;
+}
+
+/**
+ * Builds the system prompt that puts a model fully in character. When no persona
+ * description is given, the character's name is used as the persona. When the
+ * character has tools, a tool-awareness block is appended so the model knows the
+ * tools exist and is nudged to use them when appropriate (party turns otherwise
+ * never carry the main chat's tool instructions).
+ */
+export function buildCharacterSystemPrompt(character: PartyCharacter, tools: PartyToolInfo[] = []): string {
+  const lines = [
     `Assume the personality of ${character.persona || character.name}.`,
     "Roleplay as them and never break character.",
     "Do not speak as anyone else.",
     "Keep responses concise (one to three sentences).",
     "Do not prefix responses with your name.",
-  ].join(" ");
+  ];
+
+  if (tools.length) {
+    const list = tools
+      .map((tool) => (tool.description ? `${tool.displayName} — ${tool.description}` : tool.displayName))
+      .join("; ");
+    lines.push(
+      `You have access to these tools and should use them when they would help, rather than guessing or claiming you can't: ${list}.`,
+    );
+    if (tools.some((tool) => tool.key === "builtin:web_search")) {
+      lines.push(
+        "When the conversation touches on current events, facts, or anything you are unsure about, search the web before answering.",
+      );
+    }
+  }
+
+  return lines.join(" ");
 }
 
 /** Builds the opening-turn user prompt for the first speaker. */

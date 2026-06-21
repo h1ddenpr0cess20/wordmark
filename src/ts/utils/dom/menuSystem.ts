@@ -16,6 +16,7 @@ import apiKeysHtml from "../../../html/panels/settings/apiKeys.html?raw";
 import locationHtml from "../../../html/panels/settings/location.html?raw";
 import { initTheme } from "../../components/theme.ts";
 import aboutHtml from "../../../html/panels/settings/about.html?raw";
+import { logVerbose } from "../logger.ts";
 
 /** Maps each panel's source path to its build-time bundled markup. */
 const PANEL_HTML = {
@@ -96,7 +97,7 @@ export async function initializeMenus() {
   try {
     await HTMLLoader.loadHTML("src/html/panels.html", "menu-panels-container");
     await HTMLLoader.loadMultiple(SETTINGS_TAB_PARTIALS);
-    console.log("All menu panels loaded successfully");
+    logVerbose("All menu panels loaded successfully");
     try {
       await initTheme();
     } catch (e) {

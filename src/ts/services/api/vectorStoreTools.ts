@@ -35,8 +35,8 @@ export function applyVectorStoreIds(
     if (Array.isArray(activeIds)) {
       activeIds.forEach(id => { if (id) idsSet.add(id); });
     }
-  } catch {
-    /* non-fatal */
+  } catch (error) {
+    console.warn("Failed to read active vector store IDs:", error);
   }
   if (explicitVectorStoreId) {
     idsSet.add(explicitVectorStoreId);

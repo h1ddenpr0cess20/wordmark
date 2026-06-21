@@ -12,8 +12,10 @@ type FakeEl = {
   innerHTML: string;
   children: FakeEl[];
   parentNode: FakeEl | null;
+  attributes: Record<string, string>;
   listeners: Record<string, Array<(e: unknown) => void>>;
-  setAttribute(): void;
+  setAttribute(name: string, value: string): void;
+  getAttribute(name: string): string | null;
   addEventListener(type: string, cb: (e: unknown) => void): void;
   appendChild(child: FakeEl): void;
   removeChild(child: FakeEl): void;
@@ -30,8 +32,10 @@ function makeElement() {
     innerHTML: "",
     children: [],
     parentNode: null,
+    attributes: {},
     listeners: {},
-    setAttribute() {},
+    setAttribute(name: string, value: string) { this.attributes[name] = value; },
+    getAttribute(name: string) { return name in this.attributes ? this.attributes[name] : null; },
     addEventListener(type: string, cb: (e: unknown) => void) {
       this.listeners[type] = this.listeners[type] || [];
       this.listeners[type].push(cb);
@@ -75,7 +79,7 @@ globalThis.document = {
 } as unknown as Document;
 globalThis.requestAnimationFrame = ((cb: FrameRequestCallback) => { cb(0); return 0; }) as unknown as typeof requestAnimationFrame;
 
-const { initNotificationSystem, showSuccess, clearAllNotifications } =
+const { initNotificationSystem, showSuccess, showError, clearAllNotifications } =
   await import("../src/ts/utils/notifications.ts");
 
 test("initNotificationSystem creates container once", () => {
@@ -96,4 +100,14 @@ test("showNotification adds and clears notifications", async () => {
   clearAllNotifications();
   await new Promise(r => setTimeout(r, 320));
   assert.equal(nc.querySelectorAll(".notification").length, 0);
+});
+
+test("notifications carry an ARIA live role so screen readers announce them", () => {
+  const ok = showSuccess("done") as unknown as FakeEl;
+  assert.equal(ok.getAttribute("role"), "status", "success should be a polite status");
+
+  const err = showError("boom") as unknown as FakeEl;
+  assert.equal(err.getAttribute("role"), "alert", "errors should be assertive alerts");
+
+  clearAllNotifications();
 });

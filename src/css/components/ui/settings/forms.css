@@ -1,6 +1,14 @@
 .setting-item {
   margin-bottom: 16px;
 }
+#assistant-file-upload::file-selector-button {
+  background-color: var(--accent-color);
+  color: var(--button-text-color);
+  cursor: pointer;
+}
+#assistant-file-upload::file-selector-button:hover {
+  background-color: var(--accent-hover);
+}
 #assistant-file-list {
   max-height: 260px;
   overflow-y: auto;

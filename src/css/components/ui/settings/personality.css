@@ -114,21 +114,21 @@
 #test-tts,
 #export-chat {
   background-color: var(--accent-color);
-  color: white;
+  color: var(--button-text-color);
 }
 
 #reset-personality,
 #stop-tts,
 #clear-memory {
-  background-color: var(--error-color, #dc3545);
-  color: #fff;
+  background-color: var(--error-color);
+  color: var(--error-color-text);
   border: none;
 }
 
 #reset-personality:hover,
 #stop-tts:hover,
 #clear-memory:hover {
-  background-color: color-mix(in srgb, var(--error-color, #dc3545) 85%, #000 15%);
+  background-color: color-mix(in srgb, var(--error-color) 85%, #000 15%);
 }
 
 #clear-tts-cache {

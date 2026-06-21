@@ -78,7 +78,8 @@ function renderMCPServersList() {
  *
  * @param serverLabel - The server label to remove.
  * @param fallbackDisplayName - Name shown if the server is no longer in storage.
- * @returns `true` if the server was removed.
+ * @returns `true` if the server was removed, or `false` if the label is empty
+ *   or the user cancels the confirmation.
  */
 export function requestMcpServerRemoval(serverLabel: string, fallbackDisplayName?: string) {
   if (!serverLabel) {

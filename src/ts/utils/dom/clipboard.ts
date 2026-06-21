@@ -4,7 +4,7 @@
  * @remarks
  * Prefers the async Clipboard API and falls back to a hidden-`<textarea>` +
  * `document.execCommand("copy")` for browsers without it. Extracted from
- * {@link ./highlight.ts}'s copy button so the modern/fallback branching is
+ * {@link ../highlight.ts}'s copy button so the modern/fallback branching is
  * reusable and testable in isolation.
  */
 

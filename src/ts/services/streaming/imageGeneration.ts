@@ -3,6 +3,7 @@
  */
 
 import { state } from "../../init/state.ts";
+import { createScopedLogger } from "../../utils/logger.ts";
 import { registerGeneratedMedia } from "../mediaTools.ts";
 import { imagePlaceholder, mediaPlaceholder } from "../../utils/placeholders.ts";
 import type { ResponseObject } from "../../../types/api.ts";
@@ -92,11 +93,7 @@ export function ensureImagesHaveMessageIds() {
 }
 
 /** Logs an `[image-debug]` message to the console when verbose logging is on. */
-export function imageDebugLog(...args: unknown[]) {
-  if (typeof window !== "undefined" && state.verboseLogging) {
-    console.info("[image-debug]", ...args);
-  }
-}
+export const logImageDebug = createScopedLogger("image-debug");
 
 /**
  * Recursively walks an arbitrary response value, collecting image data URLs into
@@ -202,12 +199,12 @@ export function collectImageCandidates(
  */
 export function processImageGenerationOutputs(responsePayload: ResponseObject | null) {
   if (!responsePayload || typeof responsePayload !== "object") {
-    imageDebugLog("Skipping image extraction: response payload missing or invalid.");
+    logImageDebug("Skipping image extraction: response payload missing or invalid.");
     return;
   }
 
   const outputs = Array.isArray(responsePayload.output) ? responsePayload.output : [];
-  imageDebugLog("Scanning response payload for image calls.", {
+  logImageDebug("Scanning response payload for image calls.", {
     outputLength: outputs.length,
     rawOutputKeys: outputs.map((item) => item && item.type),
   });
@@ -232,7 +229,7 @@ export function processImageGenerationOutputs(responsePayload: ResponseObject | 
            entryType === "image_variation";
   });
 
-  imageDebugLog("Filtered to image generation outputs only.", {
+  logImageDebug("Filtered to image generation outputs only.", {
     totalOutputs: outputs.length,
     imageGenerationOutputs: imageGenerationOutputs.length,
     types: imageGenerationOutputs.map((item) => item.type),
@@ -250,7 +247,7 @@ export function processImageGenerationOutputs(responsePayload: ResponseObject | 
     const entryType = typeof entry.type === "string" ? entry.type : null;
     const entryMime = pickString(entry, ["mime_type", "media_type"]) ?? undefined;
 
-    imageDebugLog("Inspecting response output entry", {
+    logImageDebug("Inspecting response output entry", {
       index: idx,
       type: entryType,
       keys: Object.keys(entry),
@@ -261,13 +258,13 @@ export function processImageGenerationOutputs(responsePayload: ResponseObject | 
     collectImageCandidates(entry.output, collected, entryMime, entrySeen, localVisited);
     collectImageCandidates(entry.images, collected, entryMime, entrySeen, localVisited);
 
-    imageDebugLog("Collected image candidates from entry", {
+    logImageDebug("Collected image candidates from entry", {
       index: idx,
       candidateCount: collected.length,
       entryType,
     });
 
-    imageDebugLog("Collected image candidates", {
+    logImageDebug("Collected image candidates", {
       index: idx,
       candidateCount: collected.length,
       candidatesPreview: collected.map((candidate, candidateIdx) => ({
@@ -314,6 +311,6 @@ export function processImageGenerationOutputs(responsePayload: ResponseObject | 
     });
   });
 
-  imageDebugLog("currentGeneratedImageHtml snapshot", state.currentGeneratedImageHtml);
-  imageDebugLog("generatedImages snapshot count", Array.isArray(state.generatedImages) ? state.generatedImages.length : 0);
+  logImageDebug("currentGeneratedImageHtml snapshot", state.currentGeneratedImageHtml);
+  logImageDebug("generatedImages snapshot count", Array.isArray(state.generatedImages) ? state.generatedImages.length : 0);
 }

@@ -3,8 +3,8 @@
  */
 
 import { elements, state } from "../init/state.ts";
+import { createScopedLogger } from "../utils/logger.ts";
 import { showError, showInfo } from "../utils/notifications.ts";
-
 import { sanitizeInput, stripBase64FromHistory } from "../utils/utils.ts";
 import { saveImageToDb } from "../utils/storage/imageStorage.ts";
 import { scrollInputIntoView } from "../utils/dom/mobileHandling.ts";
@@ -14,11 +14,14 @@ import { saveCurrentConversation } from "../services/history/persistence.ts";
 import { responsesClient } from "../services/api.ts";
 import { partyEngine } from "../services/party/partyEngine.ts";
 import { uploadFile, uploadAndAttachFiles, saveVectorStoreMetadata } from "../services/vectorStore.ts";
+import { usesDirectFileUpload } from "../services/providers.ts";
 import { generateMessageId, addMessageCopyButton } from "./messages.ts";
 import { appendMessage } from "./ui/chatMessages.ts";
 import { getVerbosity, getReasoningEffort, getHistoryTokenBudget } from "../init/modelSettings.ts";
 import { buildOutgoingAttachments } from "./attachments/outgoingAttachments.ts";
 import type { PendingDocument } from "../../types/attachments.ts";
+
+const logInteraction = createScopedLogger("interaction");
 
 /** Outcome of {@link uploadPendingDocuments}: whether to proceed, plus the (possibly new) vector-store id. */
 interface DocumentUploadResult {
@@ -46,7 +49,7 @@ async function uploadPendingDocuments(
   activeServiceKey: string,
   vectorStoreId: string | null,
 ): Promise<DocumentUploadResult> {
-  console.log("Has documents:", documentsToUpload.length);
+  logInteraction("Has documents:", documentsToUpload.length);
 
   const files: File[] = [];
   documentsToUpload.forEach(doc => {
@@ -57,7 +60,7 @@ async function uploadPendingDocuments(
     }
   });
 
-  if (activeServiceKey === "xai") {
+  if (usesDirectFileUpload(activeServiceKey)) {
     try {
       if (showInfo) {
         showInfo("Uploading files...");
@@ -80,7 +83,7 @@ async function uploadPendingDocuments(
         }
       }
 
-      console.info("Files uploaded for xAI:", fileIds);
+      logInteraction("Files uploaded for xAI:", fileIds);
       if (showInfo) {
         showInfo(`${fileIds.length} file(s) uploaded`);
       }
@@ -92,7 +95,7 @@ async function uploadPendingDocuments(
       return { ok: false, vectorStoreId };
     }
   } else {
-    console.log("File search enabled:", responsesClient?.isToolEnabled("builtin:file_search"));
+    logInteraction("File search enabled:", responsesClient?.isToolEnabled("builtin:file_search"));
 
     if (!responsesClient?.isToolEnabled("builtin:file_search")) {
       console.warn("File Search tool is not enabled. Documents will not be uploaded.");
@@ -101,13 +104,13 @@ async function uploadPendingDocuments(
       }
     } else {
       try {
-        console.info("Uploading documents to vector store...");
+        logInteraction("Uploading documents to vector store...");
 
         if (showInfo) {
           showInfo("Creating vector store and uploading documents...");
         }
 
-        console.log("Files to upload:", files.map(f => f.name));
+        logInteraction("Files to upload:", files.map(f => f.name));
         const result = await uploadAndAttachFiles(files, `Chat-${Date.now()}`);
         vectorStoreId = result.vectorStoreId;
         state.activeVectorStore = vectorStoreId;
@@ -120,7 +123,7 @@ async function uploadPendingDocuments(
           });
         }
 
-        console.info("Documents uploaded to vector store:", vectorStoreId);
+        logInteraction("Documents uploaded to vector store:", vectorStoreId);
 
         if (showInfo) {
           const uploadedCount = files.length - (result.skipped || 0);
@@ -156,9 +159,7 @@ export async function sendMessage() {
   const hasDocuments = state.pendingDocuments && state.pendingDocuments.length > 0;
 
   if (!message && !hasImages && !hasDocuments) {
-    if (state.verboseLogging) {
-      console.info("No message entered. sendMessage aborted.");
-    }
+    logInteraction("No message entered. sendMessage aborted.");
     return;
   }
 
@@ -167,15 +168,13 @@ export async function sendMessage() {
       partyEngine.queueInterjection(message);
     }
     userInput.value = "";
-    userInput.style.height = "auto";
+    userInput.style.height = "56px";
     return;
   }
 
   state.shouldStopGeneration = false;
 
-  if (state.verboseLogging) {
-    console.info("New message send initiated:", message);
-  }
+  logInteraction("New message send initiated:", message);
 
   sendButton.classList.add("stop-mode");
   sendButton.title = "Stop generation";
@@ -244,11 +243,11 @@ export async function sendMessage() {
   if (preview) {
     preview.innerHTML = "";
   }
-  console.info("User message added to conversation history.");
+  logInteraction("User message added to conversation history.");
   saveCurrentConversation();
 
   userInput.value = "";
-  userInput.style.height = "auto";
+  userInput.style.height = "56px";
 
   const loadingId = `loading-${Date.now()}`;
   const loadingHTML = "<div class=\"loading-animation\"><div class=\"loading-dot\"></div><div class=\"loading-dot\"></div><div class=\"loading-dot\"></div></div>";
@@ -259,7 +258,7 @@ export async function sendMessage() {
   }
 
   updateBrowserHistory();
-  console.info("Browser history updated.");
+  logInteraction("Browser history updated.");
 
   state.activeLoadingMessageId = loadingId;
   state.isResponsePending = true;
@@ -270,6 +269,9 @@ export async function sendMessage() {
     const uploadResult = await uploadPendingDocuments(documentsToUpload, activeServiceKey, vectorStoreId);
     if (!uploadResult.ok) {
       removeLoadingIndicator(loadingId);
+      if (uploads.length > 0) {
+        stripBase64FromHistory(userId, placeholders);
+      }
       resetSendButton();
       return;
     }
@@ -367,9 +369,7 @@ export function stopGeneration() {
 
   resetSendButton();
 
-  if (state.verboseLogging) {
-    console.info("Response generation cancelled.");
-  }
+  logInteraction("Response generation cancelled.");
 }
 
 /**

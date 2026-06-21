@@ -36,6 +36,7 @@ export function processMainContentMarkdown(mainText: string) {
  * Splits text into main content and reasoning by extracting `<think>...</think>`
  * segments.
  *
+ * @param text - The text to split; may contain `<think>...</think>` segments.
  * @returns `{ content, reasoning }` with the reasoning segments removed from content.
  */
 export function separateThinkingSegments(text: string) {

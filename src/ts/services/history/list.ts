@@ -13,6 +13,9 @@ import {
 } from "../../utils/storage/conversationStorage.ts";
 import { startNewConversation, loadConversation, renameConversation } from "./persistence.ts";
 import { buildHistoryRowHtml } from "./historyRow.ts";
+import { updatePanelOpenState } from "../../init/eventListeners/settingsPanel.ts";
+
+let activeHistoryKeydown: ((e: KeyboardEvent) => void) | null = null;
 
 /**
  * Renders the saved-conversation list into the history panel, wiring each
@@ -79,7 +82,9 @@ export function renderChatHistoryList() {
 
       const closeHistoryPanel = () => {
         elements.historyPanel?.setAttribute("aria-hidden", "true");
+        elements.historyPanel?.setAttribute("inert", "true");
         elements.historyButton?.setAttribute("aria-expanded", "false");
+        updatePanelOpenState();
       };
 
       const updateButtonStates = () => {
@@ -205,8 +210,8 @@ export function renderChatHistoryList() {
             loadButton.click();
           }
         } else if (e.key === "a" && (e.ctrlKey || e.metaKey)) {
-          e.preventDefault();
           if (multiSelectCheckbox.checked) {
+            e.preventDefault();
             selectAllButton.click();
           }
         } else if (e.key === "Escape") {
@@ -214,6 +219,10 @@ export function renderChatHistoryList() {
         }
       };
 
+      if (activeHistoryKeydown) {
+        document.removeEventListener("keydown", activeHistoryKeydown);
+      }
+      activeHistoryKeydown = handleKeydown;
       document.addEventListener("keydown", handleKeydown);
 
       const tableContainer = document.createElement("div");
@@ -236,6 +245,8 @@ export function renderChatHistoryList() {
 
       const tbody = document.createElement("tbody");
 
+      let anchorRow: Element | null = null;
+
       convos.forEach((convo) => {
         const row = document.createElement("tr");
         row.className = "history-row";
@@ -253,12 +264,12 @@ export function renderChatHistoryList() {
           if (isMultiSelect) {
             if (e.ctrlKey || e.metaKey) {
               row.classList.toggle("selected");
+              anchorRow = row;
             } else if (e.shiftKey) {
               const allRows = Array.from(document.querySelectorAll(".history-row"));
-              const lastSelected = document.querySelector(".history-row.selected:last-of-type");
 
-              if (lastSelected) {
-                const startIndex = allRows.indexOf(lastSelected);
+              if (anchorRow && allRows.includes(anchorRow)) {
+                const startIndex = allRows.indexOf(anchorRow);
                 const endIndex = allRows.indexOf(row);
                 const [minIndex, maxIndex] = [Math.min(startIndex, endIndex), Math.max(startIndex, endIndex)];
                 for (let i = minIndex; i <= maxIndex; i += 1) {
@@ -266,13 +277,16 @@ export function renderChatHistoryList() {
                 }
               } else {
                 row.classList.add("selected");
+                anchorRow = row;
               }
             } else {
               row.classList.toggle("selected");
+              anchorRow = row;
             }
           } else {
             deselectAllRows();
             row.classList.add("selected");
+            anchorRow = row;
           }
 
           updateButtonStates();

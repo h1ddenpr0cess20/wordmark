@@ -132,6 +132,7 @@ export function getBaseUrl(): string {
  * do not; Grok models only when they are "fast" variants; all others do.
  *
  * @param modelName - Model to check; defaults to the active model.
+ * @returns `true` when the model accepts a reasoning-effort parameter.
  */
 export function supportsReasoningEffort(modelName: string | null = null): boolean {
   const model = String(modelName || getActiveModel() || "").toLowerCase();

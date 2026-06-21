@@ -134,6 +134,7 @@ function createImagePart(filename: string, role: string | undefined, attachments
  * `[[IMAGE: ...]]` placeholders and any unreferenced attachments into image
  * content parts interleaved with the surrounding text.
  *
+ * @param message - The user message whose `content` body and `attachments` are spliced.
  * @returns The original string when no images apply, otherwise the content-part
  * array; falls back to the raw string if no image part could be produced.
  */

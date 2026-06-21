@@ -147,28 +147,33 @@ export function setupPromptTapExpand() {
     return;
   }
 
-  const container = promptContainer;
+  promptContainer.removeEventListener("click", handlePromptTap);
+  promptContainer.addEventListener("click", handlePromptTap);
 
-  container.removeEventListener("click", handlePromptTap);
+  document.removeEventListener("click", handlePromptOutsideTap);
+  document.addEventListener("click", handlePromptOutsideTap);
+}
 
-  function handlePromptTap(e: Event) {
-    e.preventDefault();
-    e.stopPropagation();
-
-    if (container.classList.contains("expanded")) {
-      container.classList.remove("expanded");
-    } else {
-      container.classList.add("expanded");
-    }
+/** Toggles the system-prompt area open or closed on tap. */
+function handlePromptTap(e: Event) {
+  const container = document.getElementById("model-info");
+  if (!container) {
+    return;
   }
+  e.preventDefault();
+  e.stopPropagation();
+  container.classList.toggle("expanded");
+}
 
-  container.addEventListener("click", handlePromptTap);
-
-  document.addEventListener("click", (e) => {
-    if (!promptContainer.contains(e.target as Node) && promptContainer.classList.contains("expanded")) {
-      promptContainer.classList.remove("expanded");
-    }
-  });
+/** Collapses the expanded system-prompt area when tapping outside it. */
+function handlePromptOutsideTap(e: Event) {
+  const container = document.getElementById("model-info");
+  if (!container) {
+    return;
+  }
+  if (!container.contains(e.target as Node) && container.classList.contains("expanded")) {
+    container.classList.remove("expanded");
+  }
 }
 
 if (typeof window !== "undefined" && typeof window.addEventListener === "function") {

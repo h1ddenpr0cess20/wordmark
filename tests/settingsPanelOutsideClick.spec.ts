@@ -116,3 +116,28 @@ test("outside click DOES close the gallery when the slideshow is closed", () => 
     "gallery should close on an outside click when the slideshow is closed",
   );
 });
+
+test("outside click dismissal does not steal focus back to the gallery button", () => {
+  const galleryPanel = makeGalleryPanel();
+  state.isSlideshowOpen = false;
+
+  let focusCalls = 0;
+  clickHandlers.length = 0;
+  elements.settingsButton = null;
+  elements.settingsPanel = null;
+  elements.closeSettingsButton = null;
+  elements.historyPanel = null;
+  elements.historyButton = null;
+  elements.galleryButton = {
+    setAttribute() {},
+    focus() { focusCalls++; },
+  } as unknown as HTMLButtonElement;
+  elements.galleryPanel = galleryPanel as unknown as HTMLElement;
+
+  initializeSettingsPanelControls();
+  const handler = clickHandlers[clickHandlers.length - 1];
+  handler(outsideClickEvent());
+
+  assert.equal(galleryPanel.getAttribute("aria-hidden"), "true", "gallery should still close");
+  assert.equal(focusCalls, 0, "outside-click dismissal must not move focus to the gallery button");
+});

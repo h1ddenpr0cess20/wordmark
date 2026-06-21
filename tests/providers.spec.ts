@@ -7,6 +7,9 @@ import {
   serviceSupportsReasoning,
   supportsResponseIncludeFields,
   usesServerManagedTools,
+  instructionMessageRole,
+  ttsSupportsInstructions,
+  usesDirectFileUpload,
 } from "../src/ts/services/providers.ts";
 
 test("isLocalService is true only for local-server providers", () => {
@@ -47,4 +50,28 @@ test("usesServerManagedTools is true only for xai", () => {
   assert.equal(usesServerManagedTools("openai"), false);
   assert.equal(usesServerManagedTools("lmstudio"), false);
   assert.equal(usesServerManagedTools("ollama"), false);
+});
+
+test("instructionMessageRole is 'system' for xai and 'developer' otherwise", () => {
+  assert.equal(instructionMessageRole("xai"), "system");
+  assert.equal(instructionMessageRole("openai"), "developer");
+  assert.equal(instructionMessageRole("lmstudio"), "developer");
+  assert.equal(instructionMessageRole("ollama"), "developer");
+  assert.equal(instructionMessageRole(null), "developer");
+  assert.equal(instructionMessageRole(undefined), "developer");
+});
+
+test("ttsSupportsInstructions is false only for xai", () => {
+  assert.equal(ttsSupportsInstructions("openai"), true);
+  assert.equal(ttsSupportsInstructions("xai"), false);
+  assert.equal(ttsSupportsInstructions(null), true);
+  assert.equal(ttsSupportsInstructions(undefined), true);
+});
+
+test("usesDirectFileUpload is true only for xai", () => {
+  assert.equal(usesDirectFileUpload("xai"), true);
+  assert.equal(usesDirectFileUpload("openai"), false);
+  assert.equal(usesDirectFileUpload("lmstudio"), false);
+  assert.equal(usesDirectFileUpload(null), false);
+  assert.equal(usesDirectFileUpload(undefined), false);
 });

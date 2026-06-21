@@ -20,6 +20,7 @@ import {
   playNextMessageInQueue,
 } from "../../services/tts.ts";
 import { config } from "../../../config/config.ts";
+import { ttsSupportsInstructions } from "../../services/providers.ts";
 import { initializeTts, populateTtsVoiceSelector } from "../ttsInitialization.ts";
 import { updateFeatureStatus } from "../../components/settings.ts";
 
@@ -57,7 +58,7 @@ export function setupTtsEventListeners() {
       populateTtsVoiceSelector();
       const instructionsItem = elements.ttsInstructionsInput?.closest<HTMLElement>(".setting-item");
       if (instructionsItem) {
-        instructionsItem.style.display = ttsConfig.provider === "xai" ? "none" : "";
+        instructionsItem.style.display = ttsSupportsInstructions(ttsConfig.provider) ? "" : "none";
       }
     });
   }

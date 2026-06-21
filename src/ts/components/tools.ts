@@ -17,6 +17,7 @@ import { responsesClient } from "../services/api.ts";
 import { config } from "../../config/config.ts";
 import type { ToolCatalogEntry } from "../../types/tools.ts";
 import { isLocalService } from "../services/providers.ts";
+import { isLocalNetworkUrl } from "../services/api/tools/mcpProbe.ts";
 
 let initToolsSettings: () => void;
 let updateMasterToolCallingStatus: (enabled: boolean) => void;
@@ -205,7 +206,7 @@ let getToolsDescription: () => string;
       toolsContainer.innerHTML = `
         <div class="tool-template-placeholder">
           <p><strong>No tools are configured.</strong></p>
-          <p class="tool-template-subcopy">Add tool definitions in <code>src/ts/services/api.ts</code> to expose them here.</p>
+          <p class="tool-template-subcopy">Add tool definitions in <code>src/ts/services/api/staticTools.ts</code> to expose them here.</p>
         </div>
       `;
       return;
@@ -421,25 +422,6 @@ let getToolsDescription: () => string;
   updateToolDefinitions = function() {
     refreshToolSettingsUI();
   };
-
-  function isLocalNetworkUrl(url: string): boolean {
-    try {
-      const parsed = new URL(url);
-      const hostname = parsed.hostname.toLowerCase();
-
-      if (hostname === "localhost" || hostname === "127.0.0.1" || hostname === "::1") {
-        return true;
-      }
-      if (hostname.match(/^192\.168\.\d+\.\d+$/)) return true;
-      if (hostname.match(/^10\.\d+\.\d+\.\d+$/)) return true;
-      if (hostname.match(/^172\.(1[6-9]|2[0-9]|3[01])\.\d+\.\d+$/)) return true;
-      if (hostname.endsWith(".local")) return true;
-
-      return false;
-    } catch {
-      return false;
-    }
-  }
 
   getToolsDescription = function() {
     if (!config || config.enableFunctionCalling === false) {

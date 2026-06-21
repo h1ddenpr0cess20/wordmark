@@ -38,7 +38,7 @@ Wordmark includes an optional, privacy‑friendly Memory feature that lets the a
 - Live updates: UI auto‑rerenders on memory changes
   - Events: `memories:changed` (add/remove/clear/trim), `memories:config` (enabled/limit)
 
-### Public Functions (exported from `src/ts/utils/memoryStorage.ts`)
+### Public Functions (exported from `src/ts/utils/storage/memoryStorage.ts`)
 - `getMemoryConfig()`: `{ enabled, limit }`
 - `setMemoryEnabled(enabled: boolean)`
 - `setMemoryLimit(limit: number)`
@@ -67,7 +67,7 @@ Wordmark includes an optional, privacy‑friendly Memory feature that lets the a
   - The numeric input is themed and spaced for major engines; report your browser/version if it still looks off
 
 ## File Map
-- Storage: `src/ts/utils/memoryStorage.ts`
+- Storage: `src/ts/utils/storage/memoryStorage.ts`
 - UI: `src/ts/components/memory.ts`
 - API/system prompt glue: `src/ts/services/api.ts`
 - Tools: `src/ts/services/memory.ts` and injection in `src/ts/components/tools.ts`

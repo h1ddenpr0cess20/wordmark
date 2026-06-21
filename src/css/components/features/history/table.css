@@ -148,13 +148,13 @@
 }
 
 .prompt-type.custom {
-  background-color: rgba(255, 152, 0, 0.15);
-  color: #ff9800;
+  background-color: color-mix(in srgb, var(--warning-color) 15%, transparent);
+  color: var(--warning-color);
 }
 
 .prompt-type.none {
-  background-color: rgba(158, 158, 158, 0.15);
-  color: #9e9e9e;
+  background-color: color-mix(in srgb, var(--neutral-color) 15%, transparent);
+  color: var(--neutral-color);
 }
 
 .model-info {

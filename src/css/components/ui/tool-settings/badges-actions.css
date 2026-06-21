@@ -4,23 +4,23 @@
   border-radius: 999px;
   text-transform: uppercase;
   letter-spacing: 0.05em;
-  background-color: var(--badge-bg, rgba(128, 128, 128, 0.2));
+  background-color: var(--badge-bg, color-mix(in srgb, var(--neutral-color) 20%, transparent));
   color: var(--badge-text, var(--text-secondary));
 }
 
 .tool-badge-mcp {
-  --badge-bg: rgba(63, 94, 251, 0.15);
+  --badge-bg: color-mix(in srgb, var(--accent-color) 15%, transparent);
   --badge-text: var(--accent-color);
 }
 
 .tool-badge-function {
-  --badge-bg: rgba(0, 200, 150, 0.15);
-  --badge-text: var(--success-color, #00a896);
+  --badge-bg: color-mix(in srgb, var(--success-color) 15%, transparent);
+  --badge-text: var(--success-color);
 }
 
 .tool-badge-builtin {
-  --badge-bg: rgba(255, 165, 0, 0.15);
-  --badge-text: var(--warning-color, #e59f23);
+  --badge-bg: color-mix(in srgb, var(--warning-color) 15%, transparent);
+  --badge-text: var(--warning-color);
 }
 
 .tool-mcp-endpoint {
@@ -40,7 +40,7 @@
 .tool-action-delete {
   border: none;
   background: transparent;
-  color: var(--error-color, #dc3545);
+  color: var(--error-color);
   cursor: pointer;
   width: 32px;
   height: 24px;
@@ -54,12 +54,12 @@
 }
 
 .tool-action-delete:hover {
-  background-color: rgba(220, 53, 69, 0.12);
+  background-color: color-mix(in srgb, var(--error-color) 12%, transparent);
   transform: scale(1.05);
 }
 
 .tool-action-delete:focus-visible {
-  outline: 2px solid var(--error-color, #dc3545);
+  outline: 2px solid var(--error-color);
   outline-offset: 2px;
 }
 
@@ -77,7 +77,7 @@
 }
 
 .tool-offline .tool-note {
-  color: var(--warning-color, #e59f23);
+  color: var(--warning-color);
 }
 
 .tools-disabled .tool-master-disabled {

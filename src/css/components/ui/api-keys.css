@@ -72,15 +72,15 @@
 }
 
 .api-keys-status.success {
-  background-color: rgba(46, 204, 113, 0.1);
-  border: 1px solid rgba(46, 204, 113, 0.5);
-  color: #2ecc71;
+  background-color: color-mix(in srgb, var(--success-color) 10%, transparent);
+  border: 1px solid color-mix(in srgb, var(--success-color) 50%, transparent);
+  color: var(--success-color);
 }
 
 .api-keys-status.error {
-  background-color: rgba(231, 76, 60, 0.1);
-  border: 1px solid rgba(231, 76, 60, 0.5);
-  color: #e74c3c;
+  background-color: color-mix(in srgb, var(--error-color) 10%, transparent);
+  border: 1px solid color-mix(in srgb, var(--error-color) 50%, transparent);
+  color: var(--error-color);
 }
 .local-server-settings {
   margin-top: 20px;
@@ -123,15 +123,15 @@
 .service-status.success,
 .lmstudio-status.success,
 .ollama-status.success {
-  background-color: var(--success-bg, rgba(0, 128, 0, 0.1));
-  color: var(--success-color, #1e8e3e);
-  border: 1px solid var(--success-border, rgba(0, 128, 0, 0.2));
+  background-color: color-mix(in srgb, var(--success-color) 10%, transparent);
+  color: var(--success-color);
+  border: 1px solid color-mix(in srgb, var(--success-color) 30%, transparent);
 }
 
 .service-status.error,
 .lmstudio-status.error,
 .ollama-status.error {
-  background-color: var(--error-bg, rgba(255, 0, 0, 0.1));
-  color: var(--error-color, #d93025);
-  border: 1px solid var(--error-border, rgba(255, 0, 0, 0.2));
+  background-color: var(--error-bg);
+  color: var(--error-text);
+  border: 1px solid var(--error-text);
 }

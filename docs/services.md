@@ -13,10 +13,13 @@ Defined in `src/config/config.ts` under `config.services` with a `defaultService
 ### Provider Capability Registry
 
 Per-provider quirks (which service is local vs. cloud, supports `reasoning.effort`,
-accepts `include` fields, or runs tools server-side) are centralized as pure
-predicates in `src/ts/services/providers.ts` — `isLocalService`, `isCloudService`,
+accepts `include` fields, runs tools server-side, the leading instruction-message
+role, whether TTS accepts a voice-instructions prompt, and whether documents are
+uploaded directly vs. via a vector store) are centralized as pure predicates in
+`src/ts/services/providers.ts` — `isLocalService`, `isCloudService`,
 `serviceSupportsReasoning`, `supportsResponseIncludeFields`,
-`usesServerManagedTools`. This is the single place to edit when adding or changing
+`usesServerManagedTools`, `instructionMessageRole`, `ttsSupportsInstructions`,
+`usesDirectFileUpload`. This is the single place to edit when adding or changing
 a provider; the request builder, tool filter, and key handling all read from it
 instead of re-deriving `serviceKey === …` checks at each call site.
 

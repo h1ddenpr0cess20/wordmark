@@ -44,6 +44,31 @@ test("buildCharacterSystemPrompt uses the name as the persona when only a name i
   assert.match(prompt, /Assume the personality of Bob\./);
 });
 
+test("buildCharacterSystemPrompt omits the tool block when the character has no tools", () => {
+  const prompt = buildCharacterSystemPrompt(character());
+  assert.doesNotMatch(prompt, /You have access to these tools/);
+  assert.doesNotMatch(prompt, /search the web/);
+});
+
+test("buildCharacterSystemPrompt lists the character's tools and nudges web search", () => {
+  const prompt = buildCharacterSystemPrompt(character(), [
+    { key: "builtin:web_search", displayName: "Web Search", description: "find fresh info" },
+    { key: "builtin:open_meteo_forecast", displayName: "Weather Forecast" },
+  ]);
+  assert.match(prompt, /You have access to these tools and should use them/);
+  assert.match(prompt, /Web Search — find fresh info/);
+  assert.match(prompt, /Weather Forecast/);
+  assert.match(prompt, /search the web before answering/);
+});
+
+test("buildCharacterSystemPrompt only nudges web search when web search is present", () => {
+  const prompt = buildCharacterSystemPrompt(character(), [
+    { key: "builtin:open_meteo_forecast", displayName: "Weather Forecast" },
+  ]);
+  assert.match(prompt, /You have access to these tools/);
+  assert.doesNotMatch(prompt, /search the web before answering/);
+});
+
 test("buildFirstTurnPrompt names the other participants and embeds the scenario", () => {
   const cast = [
     character({ id: "a", name: "Ada" }),

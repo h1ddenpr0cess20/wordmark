@@ -9,7 +9,9 @@
 import { ttsConfig, ttsRuntime, ttsMessageQueue } from "./config.ts";
 import { shouldSkipTts } from "./filters.ts";
 import { stopTtsAudio } from "./playback.ts";
-import { logVerbose } from "../../utils/logger.ts";
+import { createScopedLogger } from "../../utils/logger.ts";
+
+const logTts = createScopedLogger("tts");
 
 /**
  * Plays the next queued message by clicking its play control, skipping entries
@@ -18,17 +20,17 @@ import { logVerbose } from "../../utils/logger.ts";
  */
 export function playNextMessageInQueue() {
   if (!ttsMessageQueue.length || !ttsConfig.autoplay) {
-    logVerbose("Autoplay sequence ended: queue empty or autoplay disabled");
+    logTts("Autoplay sequence ended: queue empty or autoplay disabled");
     ttsRuntime.autoplayActive = false;
     return;
   }
 
   if (ttsRuntime.activeTtsAudio) {
-    logVerbose("Audio already playing, will continue queue when finished");
+    logTts("Audio already playing, will continue queue when finished");
     return;
   }
 
-  logVerbose("Playing next message in queue. Queue length:", ttsMessageQueue.length);
+  logTts("Playing next message in queue. Queue length:", ttsMessageQueue.length);
 
   const nextMessageId = ttsMessageQueue[0];
   const messageElement = document.getElementById(nextMessageId);
@@ -73,13 +75,13 @@ export function addMessageToTtsQueue(messageId: string) {
 
   if (!ttsMessageQueue.includes(messageId)) {
     ttsMessageQueue.push(messageId);
-    logVerbose("Adding message to TTS queue:", messageId);
+    logTts("Adding message to TTS queue:", messageId);
 
     if (!ttsRuntime.activeTtsAudio && ttsRuntime.autoplayActive) {
-      logVerbose("No active audio, starting autoplay sequence");
+      logTts("No active audio, starting autoplay sequence");
       playQueuedTtsMessage();
     } else if (ttsRuntime.activeTtsAudio) {
-      logVerbose("Audio already playing, message queued for later playback");
+      logTts("Audio already playing, message queued for later playback");
     }
   }
 }
@@ -88,10 +90,10 @@ export function addMessageToTtsQueue(messageId: string) {
 export function startTtsAutoplay() {
   if (ttsConfig.enabled && ttsConfig.autoplay && !ttsRuntime.autoplayActive) {
     ttsRuntime.autoplayActive = true;
-    logVerbose("Starting TTS autoplay sequence.");
+    logTts("Starting TTS autoplay sequence.");
     playQueuedTtsMessage();
   } else {
-    logVerbose("TTS autoplay not started: already active or disabled.");
+    logTts("TTS autoplay not started: already active or disabled.");
   }
 }
 
@@ -99,7 +101,7 @@ export function startTtsAutoplay() {
 export function stopTtsAutoplay() {
   if (ttsRuntime.autoplayActive) {
     ttsRuntime.autoplayActive = false;
-    logVerbose("Stopping TTS autoplay sequence.");
+    logTts("Stopping TTS autoplay sequence.");
     stopTtsAudio();
   }
 }

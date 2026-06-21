@@ -17,6 +17,9 @@ import { STORAGE_KEYS } from "../utils/storage/storage.ts";
 import { isLocalService } from "./providers.ts";
 import { normalizeServerBaseUrl } from "../utils/utils.ts";
 import { showInlineStatus } from "../utils/inlineStatus.ts";
+import { createScopedLogger } from "../utils/logger.ts";
+
+const logApiKeys = createScopedLogger("api-keys");
 
 const LMSTUDIO_SERVER_URL_KEY = STORAGE_KEYS.lmStudioServerUrl;
 const OLLAMA_SERVER_URL_KEY = STORAGE_KEYS.ollamaServerUrl;
@@ -194,9 +197,7 @@ function saveLocalServerUrl({ input, storageKey, serviceKey, statusClass, anchor
 
       showInlineStatus(statusClass, anchorSelector, `${label} Base URL saved successfully!`, "success");
 
-      if (state.verboseLogging) {
-        console.info(`${label} Base URL saved to localStorage:`, serverUrl);
-      }
+      logApiKeys(`${label} Base URL saved to localStorage:`, serverUrl);
     } else {
       showInlineStatus(statusClass, anchorSelector, `Please enter a valid ${label} Base URL`, "error");
     }
@@ -317,9 +318,7 @@ function saveApiKeys() {
 
     refreshApiDependentUi();
 
-    if (state.verboseLogging) {
-      console.info("API keys saved to localStorage");
-    }
+    logApiKeys("API keys saved to localStorage");
   } catch (error) {
     console.error("Error saving API keys:", error);
     showApiKeyStatus("Error saving API keys", "error");
@@ -349,9 +348,7 @@ function loadApiKeys() {
     }
     loadLocalServerUrl(lmStudioServerUrlInput, LMSTUDIO_SERVER_URL_KEY, "lmstudio", "LM Studio");
     loadLocalServerUrl(ollamaServerUrlInput, OLLAMA_SERVER_URL_KEY, "ollama", "Ollama");
-    if (state.verboseLogging) {
-      console.info("API keys loaded from localStorage");
-    }
+    logApiKeys("API keys loaded from localStorage");
 
     refreshApiDependentUi();
   } catch (error) {
@@ -412,9 +409,7 @@ if (typeof document !== "undefined") {
     setTimeout(() => {
       initApiKeys();
 
-      if (state.verboseLogging) {
-        console.info("API keys management system initialized");
-      }
+      logApiKeys("API keys management system initialized");
     }, 100);
   });
 

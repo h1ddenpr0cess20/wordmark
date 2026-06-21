@@ -13,6 +13,8 @@ state.pendingUploads = [];
 state.pendingDocuments = [];
 state.activeVectorStore = null;
 
+let activeUploadMenuCleanup: (() => void) | null = null;
+
 /**
  * Wires the image/document upload inputs, upload button, and drag-and-drop on
  * the input area, routing selected files into the pending-attachment state.
@@ -35,14 +37,24 @@ export function initImageUploads() {
 
   uploadInput.addEventListener("change", async(e: Event) => {
     const files = Array.from((e.target as HTMLInputElement).files || []);
-    await handleFiles(files);
-    uploadInput.value = "";
+    try {
+      await handleFiles(files);
+    } catch (error) {
+      console.error("Failed to process selected files:", error);
+    } finally {
+      uploadInput.value = "";
+    }
   });
 
   directoryInput.addEventListener("change", async(e: Event) => {
     const files = Array.from((e.target as HTMLInputElement).files || []);
-    await handleFiles(files, { isDirectory: true });
-    directoryInput.value = "";
+    try {
+      await handleFiles(files, { isDirectory: true });
+    } catch (error) {
+      console.error("Failed to process selected directory:", error);
+    } finally {
+      directoryInput.value = "";
+    }
   });
 
   setupDragAndDrop(inputWrapper, handleFiles);
@@ -54,14 +66,23 @@ export function initImageUploads() {
  * Show upload menu to choose between files or directory
  */
 function showUploadMenu(button: HTMLElement, fileInput: HTMLInputElement, directoryInput: HTMLInputElement) {
-  const existingMenu = document.querySelector<HTMLElement>(".upload-menu");
-  if (existingMenu) {
-    existingMenu.remove();
+  if (activeUploadMenuCleanup) {
+    activeUploadMenuCleanup();
     return;
   }
 
   const menu = document.createElement("div");
   menu.className = "upload-menu";
+
+  let closeMenu: ((e: MouseEvent) => void) | null = null;
+  const removeMenu = () => {
+    menu.remove();
+    if (closeMenu) {
+      document.removeEventListener("click", closeMenu);
+    }
+    activeUploadMenuCleanup = null;
+  };
+  activeUploadMenuCleanup = removeMenu;
 
   const filesOption = document.createElement("button");
   filesOption.className = "upload-menu-item";
@@ -73,7 +94,7 @@ function showUploadMenu(button: HTMLElement, fileInput: HTMLInputElement, direct
     <span>Attach Files</span>
   `;
   filesOption.addEventListener("click", () => {
-    menu.remove();
+    removeMenu();
     fileInput.click();
   });
 
@@ -86,7 +107,7 @@ function showUploadMenu(button: HTMLElement, fileInput: HTMLInputElement, direct
     <span>Attach Directory</span>
   `;
   directoryOption.addEventListener("click", () => {
-    menu.remove();
+    removeMenu();
     directoryInput.click();
   });
 
@@ -101,10 +122,9 @@ function showUploadMenu(button: HTMLElement, fileInput: HTMLInputElement, direct
   document.body.appendChild(menu);
 
   setTimeout(() => {
-    const closeMenu = (e: MouseEvent) => {
+    closeMenu = (e: MouseEvent) => {
       if (!menu.contains(e.target as Node) && e.target !== button) {
-        menu.remove();
-        document.removeEventListener("click", closeMenu);
+        removeMenu();
       }
     };
     document.addEventListener("click", closeMenu);
@@ -115,7 +135,10 @@ function readFileAsDataURL(file: File): Promise<string> {
   return new Promise((resolve, reject) => {
     const reader = new FileReader();
     reader.onload = () => resolve(reader.result as string);
-    reader.onerror = reject;
+    reader.onerror = () => {
+      const reason = reader.error?.message || "unknown error";
+      reject(new Error(`Failed to read "${file.name}": ${reason}`));
+    };
     reader.readAsDataURL(file);
   });
 }
@@ -233,9 +256,26 @@ async function handleFiles(files: File[], options: { isDirectory?: boolean } = {
     }
 
     if (imageFiles.length > 0) {
+      const unreadableFiles: string[] = [];
       for (const file of imageFiles) {
-        const dataUrl = await readFileAsDataURL(file);
-        state.pendingUploads.push({ file, dataUrl });
+        try {
+          const dataUrl = await readFileAsDataURL(file);
+          state.pendingUploads.push({ file, dataUrl });
+        } catch (error) {
+          console.error(`Failed to read image "${file.name}":`, error);
+          unreadableFiles.push(file.name);
+        }
+      }
+
+      if (unreadableFiles.length > 0) {
+        const message = unreadableFiles.length === 1
+          ? `File "${unreadableFiles[0]}" could not be read and was skipped.`
+          : `${unreadableFiles.length} files could not be read and were skipped: ${unreadableFiles.slice(0, 3).join(", ")}${unreadableFiles.length > 3 ? "..." : ""}`;
+        if (showInfo) {
+          showInfo(message);
+        } else {
+          console.warn("Unreadable files skipped:", unreadableFiles);
+        }
       }
     }
 

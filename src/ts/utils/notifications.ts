@@ -48,6 +48,7 @@ export function showNotification(message: string, type: string = "info", duratio
 
   const notification = document.createElement("div");
   notification.className = `notification ${type}`;
+  notification.setAttribute("role", type === "error" || type === "warning" ? "alert" : "status");
 
   const messageEl = document.createElement("div");
   messageEl.className = "notification-message";

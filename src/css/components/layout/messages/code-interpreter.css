@@ -91,6 +91,6 @@
 
 .code-interpreter-file-error .code-interpreter-file-name,
 .code-interpreter-file-error .code-interpreter-file-meta {
-  color: var(--error-text, #ff6b6b);
+  color: var(--error-text);
 }
 

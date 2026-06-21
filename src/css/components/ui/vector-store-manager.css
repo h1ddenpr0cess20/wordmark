@@ -1,7 +1,7 @@
 .vector-store-manager {
   margin-top: 20px;
   padding: 15px;
-  background: var(--background-secondary);
+  background: var(--bg-secondary);
   border-radius: 8px;
 }
 
@@ -34,7 +34,7 @@
   max-height: 500px;
   overflow-y: auto;
   padding: 10px;
-  background: var(--background-primary);
+  background: var(--bg-primary);
   border: 1px solid var(--border-color);
   border-radius: 4px;
 }
@@ -42,7 +42,7 @@
 .vector-store-item {
   padding: 15px;
   margin-bottom: 10px;
-  background: var(--background-secondary);
+  background: var(--bg-secondary);
   border: 1px solid var(--border-color);
   border-radius: 6px;
   transition: all 0.2s ease;
@@ -55,7 +55,7 @@
 
 .vector-store-item.active {
   border-color: var(--accent-color);
-  background: var(--background-tertiary);
+  background: var(--bg-tertiary);
 }
 
 .vector-store-header {
@@ -84,7 +84,7 @@
   display: inline-block;
   padding: 3px 8px;
   background: var(--accent-color);
-  color: white;
+  color: var(--button-text-color);
   border-radius: 3px;
   font-size: 0.75em;
   font-weight: bold;
@@ -115,14 +115,14 @@
 }
 
 .btn-delete {
-  background: var(--error-color, #dc3545);
-  color: #fff;
-  border-color: var(--error-color, #dc3545);
+  background: var(--error-color);
+  color: var(--error-color-text);
+  border-color: var(--error-color);
 }
 
 .btn-delete:hover {
-  background: color-mix(in srgb, var(--error-color, #dc3545) 85%, #000 15%);
-  border-color: color-mix(in srgb, var(--error-color, #dc3545) 80%, #000 20%);
+  background: color-mix(in srgb, var(--error-color) 85%, #000 15%);
+  border-color: color-mix(in srgb, var(--error-color) 80%, #000 20%);
 }
 
 .vector-store-meta {
@@ -159,10 +159,10 @@
 
 .error-message {
   padding: 15px;
-  background: rgba(220, 53, 69, 0.1);
-  border: 1px solid #dc3545;
+  background: var(--error-bg);
+  border: 1px solid var(--error-text);
   border-radius: 4px;
-  color: #dc3545;
+  color: var(--error-text);
   text-align: center;
 }
 .vector-store-details {
@@ -192,11 +192,10 @@
 
 .vector-store-details ul {
   list-style: none;
-  padding: 0;
   margin: 10px 0;
   max-height: 200px;
   overflow-y: auto;
-  background: var(--background-secondary);
+  background: var(--bg-secondary);
   border: 1px solid var(--border-color);
   border-radius: 4px;
   padding: 10px;

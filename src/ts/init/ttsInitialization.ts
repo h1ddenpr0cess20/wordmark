@@ -2,9 +2,11 @@
  * TTS initialization for the chatbot application
  */
 
-import { elements, state } from "./state.ts";
+import { elements } from "./state.ts";
+import { logVerbose } from "../utils/logger.ts";
 import { setupMobileKeyboardHandling } from "../utils/dom/mobileHandling.ts";
 import { ttsConfig, availableTtsVoices, initTtsReferences } from "../services/tts.ts";
+import { ttsSupportsInstructions } from "../services/providers.ts";
 
 interface TtsVoice {
   id: string;
@@ -38,7 +40,7 @@ export function initializeTts() {
     elements.ttsInstructionsInput.value = ttsConfig.instructions || "";
     const instructionsItem = elements.ttsInstructionsInput.closest<HTMLElement>(".setting-item");
     if (instructionsItem) {
-      instructionsItem.style.display = (ttsConfig.provider || "openai") === "xai" ? "none" : "";
+      instructionsItem.style.display = ttsSupportsInstructions(ttsConfig.provider) ? "" : "none";
     }
   }
 
@@ -86,7 +88,5 @@ export function populateTtsVoiceSelector() {
  */
 export function initializeMobileKeyboardHandling() {
   setupMobileKeyboardHandling();
-  if (state.verboseLogging) {
-    console.info("Mobile keyboard handling initialized.");
-  }
+  logVerbose("Mobile keyboard handling initialized.");
 }

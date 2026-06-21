@@ -1,6 +1,6 @@
 {
   "name": "wordmark",
-  "version": "3.4.0",
+  "version": "3.4.1",
   "description": "Client-side, backend-free AI assistant platform for OpenAI and xAI Grok (Responses API) plus local LM Studio/Ollama servers, with tool calling, MCP servers, web/X search, image generation, TTS, and fully local storage.",
   "main": "index.html",
   "type": "module",
@@ -74,12 +74,14 @@
   ],
   "devDependencies": {
     "@eslint/js": "^10.0.1",
+    "@types/jsdom": "^28.0.3",
     "@types/node": "^25.9.3",
     "@typescript-eslint/eslint-plugin": "^8.61.0",
     "@typescript-eslint/parser": "^8.61.0",
     "eslint": "^10.5.0",
     "globals": "^17.6.0",
     "html-validate": "^11.4.0",
+    "jsdom": "^29.1.1",
     "npm-check-updates": "^22.2.3",
     "tsx": "^4.22.4",
     "typescript": "^6.0.3",

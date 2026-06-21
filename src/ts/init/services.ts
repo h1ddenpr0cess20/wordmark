@@ -15,6 +15,9 @@ import { updateMasterToolCallingStatus, refreshToolSettingsUI } from "../compone
 import { DEFAULT_PERSONALITY, DEFAULT_SHORT_RESPONSE_GUIDELINE, DEFAULT_SYSTEM_PROMPT, config } from "../../config/config.ts";
 import { pickCloudFallback } from "./serviceSelection.ts";
 import { isCloudService } from "../services/providers.ts";
+import { createScopedLogger } from "../utils/logger.ts";
+
+const logServices = createScopedLogger("services");
 
 /**
  * Initializes the service selector from config.
@@ -30,9 +33,7 @@ export function initializeServicesAndModels() {
       config.defaultService = config.normalizeServiceKey(config.defaultService);
     }
     elements.serviceSelector.value = config.defaultService;
-    if (state.verboseLogging) {
-      console.info("Service selector initialized.");
-    }
+    logServices("Service selector initialized.");
 
     updateModelSelector();
   }
@@ -76,9 +77,7 @@ export async function selectDefaultService() {
   const cloudFallback = pickCloudFallback(services, current);
   if (cloudFallback) {
     applyService(cloudFallback);
-    if (state.verboseLogging) {
-      console.info(`No API key for ${current}; defaulting to ${cloudFallback}.`);
-    }
+    logServices(`No API key for ${current}; defaulting to ${cloudFallback}.`);
     return false;
   }
 
@@ -102,9 +101,7 @@ export async function selectDefaultService() {
     if (Array.isArray(svc.models) && svc.models.some(isUsableModel)) {
       applyService(local);
 
-      if (state.verboseLogging) {
-        console.info(`No cloud API keys found; defaulting to ${local}.`);
-      }
+      logServices(`No cloud API keys found; defaulting to ${local}.`);
       return true;
     }
   }
@@ -129,9 +126,7 @@ export function initializeServiceModels() {
   if (serviceConfig && typeof serviceConfig.fetchAndUpdateModels === "function") {
     serviceConfig.fetchAndUpdateModels()
       .then(() => {
-        if (state.verboseLogging) {
-          console.info("Models fetched on initialization for:", serviceKey);
-        }
+        logServices("Models fetched on initialization for:", serviceKey);
         if (config.defaultService === serviceKey) {
           updateModelSelector();
         }
@@ -172,17 +167,13 @@ export function initializeConversationName() {
 export function initializeDefaultValues() {
   if (elements.systemPromptCustom) {
     elements.systemPromptCustom.value = DEFAULT_SYSTEM_PROMPT;
-    if (state.verboseLogging) {
-      console.info("Default system prompt set.");
-    }
+    logServices("Default system prompt set.");
   }
 
   if (elements.personalityInput) {
     elements.personalityInput.value = DEFAULT_PERSONALITY;
     elements.personalityInput.setAttribute("data-explicitly-set", "true");
-    if (state.verboseLogging) {
-      console.info("Default personality set.");
-    }
+    logServices("Default personality set.");
   }
 }
 

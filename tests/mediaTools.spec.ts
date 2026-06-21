@@ -2,13 +2,19 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 
 globalThis.window = globalThis.window || {};
+(globalThis.window as unknown as { atob: typeof atob }).atob = atob;
 
 const {
   isVideoMimeType,
   detectMediaType,
+  makeFilename,
   buildMediaRecordHtml,
   getMediaDisplayUrl,
+  decodeDataUri,
 } = await import('../src/ts/services/mediaTools.js');
+const {
+  inferMimeTypeFromFilename,
+} = await import('../src/ts/services/mediaType.js');
 
 type MediaRecord = Parameters<typeof buildMediaRecordHtml>[0];
 const asRecord = (r: unknown): MediaRecord => r as MediaRecord;
@@ -19,6 +25,56 @@ test('isVideoMimeType matches only video/* mime types', () => {
   assert.equal(isVideoMimeType('image/png'), false);
   assert.equal(isVideoMimeType(''), false);
   assert.equal(isVideoMimeType('application/octet-stream'), false);
+});
+
+test('inferMimeTypeFromFilename maps each known extension and defaults to image/png', () => {
+  assert.equal(inferMimeTypeFromFilename('clip.mp4'), 'video/mp4');
+  assert.equal(inferMimeTypeFromFilename('clip.m4v'), 'video/mp4');
+  assert.equal(inferMimeTypeFromFilename('clip.mov'), 'video/quicktime');
+  assert.equal(inferMimeTypeFromFilename('clip.webm'), 'video/webm');
+  assert.equal(inferMimeTypeFromFilename('photo.jpg'), 'image/jpeg');
+  assert.equal(inferMimeTypeFromFilename('photo.jpeg'), 'image/jpeg');
+  assert.equal(inferMimeTypeFromFilename('photo.webp'), 'image/webp');
+  assert.equal(inferMimeTypeFromFilename('anim.gif'), 'image/gif');
+  assert.equal(inferMimeTypeFromFilename('photo.png'), 'image/png');
+  // case-insensitive, and unknown/empty/missing extensions default to image/png
+  assert.equal(inferMimeTypeFromFilename('CLIP.MP4'), 'video/mp4');
+  assert.equal(inferMimeTypeFromFilename('document.txt'), 'image/png');
+  assert.equal(inferMimeTypeFromFilename('noextension'), 'image/png');
+  assert.equal(inferMimeTypeFromFilename(''), 'image/png');
+  assert.equal(inferMimeTypeFromFilename(), 'image/png');
+});
+
+test('makeFilename picks the extension matching the mime type', () => {
+  const cases: Array<[string, string]> = [
+    ['image/jpeg', 'jpg'],
+    ['image/webp', 'webp'],
+    ['image/gif', 'gif'],
+    ['image/png', 'png'],
+    ['video/webm', 'webm'],
+    ['video/quicktime', 'mov'],
+    ['video/mp4', 'mp4'],
+  ];
+  for (const [mimeType, ext] of cases) {
+    const name = makeFilename('shot', mimeType);
+    assert.match(name, new RegExp(`^shot-\\d+-[a-z0-9]+\\.${ext}$`), `${mimeType} -> .${ext}`);
+  }
+});
+
+test('makeFilename defaults unknown video mime types to mp4 and unknown image types to png', () => {
+  assert.match(makeFilename('clip', 'video/x-matroska'), /\.mp4$/);
+  assert.match(makeFilename('pic', 'application/octet-stream'), /\.png$/);
+});
+
+test('makeFilename falls back to the media-type prefix when none is given', () => {
+  assert.match(makeFilename('', 'video/mp4'), /^video-\d+-[a-z0-9]+\.mp4$/);
+  assert.match(makeFilename('', 'image/png'), /^image-\d+-[a-z0-9]+\.png$/);
+});
+
+test('makeFilename mints distinct names on successive calls', () => {
+  const a = makeFilename('shot', 'image/png');
+  const b = makeFilename('shot', 'image/png');
+  assert.notEqual(a, b);
 });
 
 test('detectMediaType honors an explicit media type first', () => {
@@ -81,4 +137,23 @@ test('getMediaDisplayUrl passes through usable urls and wraps bare base64', () =
   // a bare base64 payload is wrapped using the filename-inferred mime type
   assert.equal(getMediaDisplayUrl('QUJD', 'pic.jpg'), 'data:image/jpeg;base64,QUJD');
   assert.equal(getMediaDisplayUrl('QUJD', 'clip.webm'), 'data:video/webm;base64,QUJD');
+});
+
+test('decodeDataUri decodes payload and preserves the declared mime type', async () => {
+  const blob = decodeDataUri('data:image/png;base64,QUJD');
+  assert.equal(blob.type, 'image/png');
+  assert.equal(await blob.text(), 'ABC');
+});
+
+test('decodeDataUri defaults the mime type when the header omits one', async () => {
+  const blob = decodeDataUri('data:;base64,QUJD');
+  assert.equal(blob.type, 'application/octet-stream');
+  assert.equal(await blob.text(), 'ABC');
+});
+
+test('decodeDataUri throws a clear error on malformed base64', () => {
+  assert.throws(
+    () => decodeDataUri('data:image/png;base64,@@@@'),
+    /Malformed data URI/,
+  );
 });

@@ -902,7 +902,6 @@
   border: 1px solid var(--border-color);
 }
 
-/* button-text-color is the dark on-accent text; on transparent surfaces use the accent instead */
 .theme-tidepool .tab-button.active,
 .theme-tidepool .reset-button {
   color: var(--accent-color);
@@ -936,7 +935,6 @@
   border: 1px solid var(--border-color);
 }
 
-/* button-text-color is the dark on-accent text; on transparent surfaces use the accent instead */
 .theme-ember .tab-button.active,
 .theme-ember .reset-button {
   color: var(--accent-color);
@@ -973,7 +971,6 @@
   background-repeat: no-repeat;
 }
 
-/* button-text-color is the dark on-accent text; on transparent surfaces use the accent instead */
 .theme-aurora .tab-button.active,
 .theme-aurora .reset-button {
   color: var(--accent-color);
@@ -1026,7 +1023,6 @@
     linear-gradient(180deg, #111112, #0c0c0d);
 }
 
-/* button-text-color is the dark on-accent text; on transparent surfaces use the accent instead */
 .theme-noir .tab-button.active,
 .theme-noir .reset-button {
   color: var(--accent-color);
@@ -1092,7 +1088,6 @@
     linear-gradient(165deg, #20180f, #15110c);
 }
 
-/* button-text-color is the dark on-accent text; on transparent surfaces use the accent instead */
 .theme-patina .tab-button.active,
 .theme-patina .reset-button {
   color: var(--accent-color);
@@ -1153,7 +1148,6 @@
     linear-gradient(180deg, #1a1326 0%, #2e1a3e 45%, #5a2740 75%, #7a3a2e 100%);
 }
 
-/* button-text-color is the dark on-accent text; on transparent surfaces use the accent instead */
 .theme-sunset .tab-button.active,
 .theme-sunset .reset-button {
   color: var(--accent-color);
@@ -1207,7 +1201,6 @@
   font-family: Georgia, "Times New Roman", serif;
 }
 
-/* button-text-color is the dark on-accent text; on transparent surfaces use the accent instead */
 .theme-wine .tab-button.active,
 .theme-wine .reset-button {
   color: var(--accent-color);
@@ -1258,7 +1251,6 @@
     linear-gradient(165deg, #2c1d12, #1f1611);
 }
 
-/* button-text-color is the dark on-accent text; on transparent surfaces use the accent instead */
 .theme-autumn .tab-button.active,
 .theme-autumn .reset-button {
   color: var(--accent-color);
@@ -1309,7 +1301,6 @@
   background-size: 200px 200px, 240px 240px, 180px 180px, 220px 220px, 260px 260px, auto, auto, auto;
 }
 
-/* button-text-color is the dark on-accent text; on transparent surfaces use the accent instead */
 .theme-nebula .tab-button.active,
 .theme-nebula .reset-button {
   color: var(--accent-color);
@@ -1377,7 +1368,6 @@
     #160d00;
 }
 
-/* button-text-color is the dark on-accent text; on transparent surfaces use the accent instead */
 .theme-amber-crt .tab-button.active,
 .theme-amber-crt .reset-button {
   color: var(--accent-color);
@@ -1423,7 +1413,6 @@
     linear-gradient(160deg, #0a0e16, #141c30);
 }
 
-/* button-text-color is the dark on-accent text; on transparent surfaces use the accent instead */
 .theme-stained-glass .tab-button.active,
 .theme-stained-glass .reset-button {
   color: var(--accent-color);
@@ -1471,7 +1460,6 @@
     linear-gradient(170deg, #16241a, #0e1810);
 }
 
-/* button-text-color is the dark on-accent text; on transparent surfaces use the accent instead */
 .theme-forest .tab-button.active,
 .theme-forest .reset-button {
   color: var(--accent-color);

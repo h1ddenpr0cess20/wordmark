@@ -7,8 +7,10 @@
  * enabled state and last-known position to localStorage.
  */
 
-import { state } from "../init/state.ts";
+import { createScopedLogger } from "../utils/logger.ts";
 import { STORAGE_KEYS, writeJSON } from "../utils/storage/storage.ts";
+
+const logLocation = createScopedLogger("location");
 
 /**
  * Structural position type covering both a real `GeolocationPosition` and the
@@ -99,9 +101,7 @@ export async function requestLocation(): Promise<LocationResult> {
           const locationString = await formatLocationString(position);
           const result = commitLocation(position, locationString);
 
-          if (state.verboseLogging) {
-            console.info("Location obtained:", locationString);
-          }
+          logLocation("Location obtained");
 
           resolve(result);
         } catch {
@@ -209,9 +209,7 @@ export function disableLocation() {
 
   updateLocationUI();
 
-  if (state.verboseLogging) {
-    console.info("Location services disabled");
-  }
+  logLocation("Location services disabled");
 }
 
 /**
@@ -240,13 +238,9 @@ export function initializeLocationService() {
           timestamp: storedTime,
         };
 
-        if (state.verboseLogging) {
-          console.info("Using stored location:", stored.locationString);
-        }
+        logLocation("Using stored location");
       } else {
-        if (state.verboseLogging) {
-          console.info("Stored location expired, requesting fresh location");
-        }
+        logLocation("Stored location expired, requesting fresh location");
         requestLocation();
       }
     } catch (error) {
@@ -257,9 +251,7 @@ export function initializeLocationService() {
       }
     }
   } else if (locationEnabled) {
-    if (state.verboseLogging) {
-      console.info("Location enabled but no stored data, requesting fresh location");
-    }
+    logLocation("Location enabled but no stored data, requesting fresh location");
     requestLocation();
   }
 

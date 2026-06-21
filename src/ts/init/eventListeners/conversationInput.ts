@@ -7,6 +7,7 @@
  */
 
 import { elements, state } from "../state.ts";
+import { logVerbose } from "../../utils/logger.ts";
 import { loadGalleryModule } from "../../utils/lazyLoader.ts";
 import { sendMessage } from "../../components/interaction.ts";
 
@@ -23,7 +24,7 @@ export function initializeConversationInput() {
       if (!state.activeAbortController && !state.isResponsePending) {
         sendMessage();
       } else {
-        console.info("Message sending prevented - generation in progress");
+        logVerbose("Message sending prevented - generation in progress");
       }
     }
   });

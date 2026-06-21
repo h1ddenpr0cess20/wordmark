@@ -7,6 +7,9 @@
  */
 
 import { openDatabase } from "./idb.ts";
+import { createScopedLogger } from "../logger.ts";
+
+const logImageStore = createScopedLogger("image-storage");
 
 const IMAGE_DB_NAME = "wordmark-images";
 const IMAGE_DB_VERSION = 1;
@@ -53,12 +56,12 @@ export function initImageDb() {
     onUpgrade: (db) => {
       if (!db.objectStoreNames.contains(IMAGE_STORE_NAME)) {
         db.createObjectStore(IMAGE_STORE_NAME, { keyPath: "filename" });
-        console.info("Created image store in IndexedDB");
+        logImageStore("Created image store in IndexedDB");
       }
     },
   }).then((db) => {
     imageDb = db;
-    console.info("IndexedDB initialized for image storage");
+    logImageStore("IndexedDB initialized for image storage");
   });
 }
 
@@ -96,8 +99,13 @@ export function saveImageToDb(base64Data: string | Blob, filename: string, metad
       reject(request.error);
     };
 
-    request.onsuccess = () => {
-      console.info("Image saved to IndexedDB:", filename);
+    transaction.onabort = () => {
+      console.error("Image save transaction aborted:", transaction.error);
+      reject(transaction.error || new Error("Image save transaction aborted"));
+    };
+
+    transaction.oncomplete = () => {
+      logImageStore("Image saved to IndexedDB:", filename);
       resolve(filename);
     };
   });
@@ -129,10 +137,15 @@ export function loadImageFromDb(filename: string): Promise<StoredImage> {
       reject(request.error);
     };
 
+    transaction.onabort = () => {
+      console.error("Image load transaction aborted:", transaction.error);
+      reject(transaction.error || new Error("Image load transaction aborted"));
+    };
+
     request.onsuccess = () => {
       const result = request.result;
       if (result) {
-        console.info("Image loaded from IndexedDB:", filename);
+        logImageStore("Image loaded from IndexedDB:", filename);
         resolve(result);
       } else {
         const error = new Error("Image not found in IndexedDB");
@@ -166,8 +179,13 @@ export function deleteImageFromDb(filename: string): Promise<boolean> {
       reject(request.error);
     };
 
-    request.onsuccess = () => {
-      console.info("Image deleted from IndexedDB:", filename);
+    transaction.onabort = () => {
+      console.error("Image delete transaction aborted:", transaction.error);
+      reject(transaction.error || new Error("Image delete transaction aborted"));
+    };
+
+    transaction.oncomplete = () => {
+      logImageStore("Image deleted from IndexedDB:", filename);
       resolve(true);
     };
   });

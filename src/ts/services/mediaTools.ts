@@ -60,12 +60,21 @@ async function fetchBlob(url: string, options: RequestInit = {}): Promise<Blob> 
   return response.blob();
 }
 
-/** Decodes a base64 `data:` URI into a {@link Blob}, preserving its MIME type. */
-function decodeDataUri(reference: string): Blob {
+/**
+ * Decodes a base64 `data:` URI into a {@link Blob}, preserving its MIME type.
+ *
+ * @throws If `reference` is not a decodable base64 `data:` URI.
+ */
+export function decodeDataUri(reference: string): Blob {
   const [header, encoded] = String(reference).split(",", 2);
   const mimeMatch = /^data:([^;]+)/i.exec(header || "");
   const mimeType = mimeMatch ? mimeMatch[1] : "application/octet-stream";
-  const binary = window.atob(encoded || "");
+  let binary: string;
+  try {
+    binary = window.atob(encoded || "");
+  } catch {
+    throw new Error("Malformed data URI: could not decode base64 payload.");
+  }
   const bytes = new Uint8Array(binary.length);
   for (let index = 0; index < binary.length; index += 1) {
     bytes[index] = binary.charCodeAt(index);
@@ -230,7 +239,8 @@ export async function downloadMediaSource(source: Blob | string, filename?: stri
   } else if (remoteUrl) {
     try {
       blob = await fetchBlob(remoteUrl);
-    } catch {
+    } catch (error) {
+      console.warn("Direct fetch of remote media failed; opening in a new tab:", error);
       const anchor = document.createElement("a");
       anchor.href = remoteUrl;
       anchor.target = "_blank";
@@ -273,6 +283,19 @@ export function getMediaToolInstructions() {
  * record (resolving MIME type, media type, filename, and display URL) and
  * registers it in application state.
  *
+ * @param options - The media source and its metadata.
+ * @param options.mediaType - `"image"` or `"video"`; inferred from the MIME
+ *   type when omitted.
+ * @param options.sourceData - The media payload, as a `Blob` or a string URL /
+ *   data URL.
+ * @param options.prompt - Prompt that produced the media; defaults to `""`.
+ * @param options.tool - Tool that produced the media; defaults to `""`.
+ * @param options.filename - Filename; generated from media/MIME type when omitted.
+ * @param options.mimeType - MIME type; inferred from the blob or filename when omitted.
+ * @param options.associatedMessageId - Id of the message this media belongs to.
+ * @param options.callId - Tool-call id that produced the media, if any.
+ * @param options.model - Model that generated the media, if any.
+ * @param options.uploaded - Whether the media was user-uploaded rather than generated.
  * @returns The created media record.
  */
 export function registerGeneratedMedia({

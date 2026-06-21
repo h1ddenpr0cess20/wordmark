@@ -9,7 +9,9 @@
 import { ttsConfig, ttsRuntime, ttsSvgIcons } from "./config.ts";
 import { ttsAudioResources } from "./resources.ts";
 import { playNextMessageInQueue, playQueuedTtsMessage } from "./queue.ts";
-import { state } from "../../init/state.ts";
+import { createScopedLogger } from "../../utils/logger.ts";
+
+const logTts = createScopedLogger("tts");
 
 /**
  * Stops and resets the active TTS audio, revokes its object URL, and resets all
@@ -125,9 +127,7 @@ export function handleTtsAudioEnded(playPauseButton: HTMLElement, statusText: HT
 
 /** Clears active-audio state and plays the next queued message when autoplaying. */
 export function handleAudioEnded() {
-  if (state.verboseLogging) {
-    console.info("Audio finished, checking for next message in queue");
-  }
+  logTts("Audio finished, checking for next message in queue");
   ttsRuntime.activeTtsAudio = null;
   ttsRuntime.activeTtsAudioUrl = null;
 

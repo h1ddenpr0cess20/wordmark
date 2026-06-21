@@ -36,40 +36,40 @@
 }
 
 .notification.error {
-  --tone-color: var(--error-text, #c33);
-  --tone-surface: var(--error-bg, var(--tone-color));
+  --tone-color: var(--error-text);
+  --tone-surface: var(--error-bg);
   color: var(--tone-color);
   background: var(--tone-surface);
-  background: color-mix(in srgb, var(--tone-surface) 60%, var(--bg-secondary, #f8f9fa) 40%);
+  background: color-mix(in srgb, var(--tone-surface) 60%, var(--bg-secondary) 40%);
   border-color: var(--tone-color);
   border-color: color-mix(in srgb, var(--tone-color) 55%, transparent);
 }
 
 .notification.warning {
-  --tone-color: var(--warning-color, color-mix(in srgb, var(--accent-color, #f4c361) 65%, #f4c361 35%));
+  --tone-color: var(--warning-color);
   color: var(--tone-color);
-  background: var(--warning-bg, var(--tone-color));
-  background: color-mix(in srgb, var(--tone-color) 18%, var(--bg-secondary, #f8f9fa));
+  background: var(--tone-color);
+  background: color-mix(in srgb, var(--tone-color) 18%, var(--bg-secondary));
   border-color: var(--tone-color);
   border-color: color-mix(in srgb, var(--tone-color) 45%, transparent);
 }
 
 .notification.success {
-  --tone-color: var(--success-color, color-mix(in srgb, var(--accent-color, #3dd68c) 70%, #3dd68c 30%));
-  --tone-surface: var(--success-bg, var(--tone-color));
+  --tone-color: var(--success-color);
+  --tone-surface: var(--success-color);
   color: var(--tone-color);
   background: var(--tone-surface);
-  background: color-mix(in srgb, var(--tone-surface) 18%, var(--bg-secondary, #f8f9fa));
+  background: color-mix(in srgb, var(--tone-surface) 18%, var(--bg-secondary));
   border-color: var(--tone-color);
   border-color: color-mix(in srgb, var(--tone-color) 45%, transparent);
 }
 
 .notification.info {
-  --tone-color: var(--info-color, color-mix(in srgb, var(--accent-color, #5bc0eb) 65%, #5bc0eb 35%));
-  --tone-surface: var(--info-bg, var(--tone-color));
+  --tone-color: var(--info-color);
+  --tone-surface: var(--info-color);
   color: var(--tone-color);
   background: var(--tone-surface);
-  background: color-mix(in srgb, var(--tone-surface) 18%, var(--bg-secondary, #f8f9fa));
+  background: color-mix(in srgb, var(--tone-surface) 18%, var(--bg-secondary));
   border-color: var(--tone-color);
   border-color: color-mix(in srgb, var(--tone-color) 45%, transparent);
 }

@@ -7,6 +7,7 @@
  */
 
 import { elements, state } from "./state.ts";
+import { logVerbose } from "../utils/logger.ts";
 import { showError } from "../utils/notifications.ts";
 import { STORAGE_KEYS } from "../utils/storage/storage.ts";
 import { getDataSettingsEnabled, setDataSettingsEnabled, updateFeatureStatus } from "../components/settings.ts";
@@ -25,9 +26,7 @@ import { DEFAULT_SHORT_RESPONSE_GUIDELINE } from "../../config/config.ts";
 
 /** Aggregator that wires every feature area's event listeners during startup. */
 export function setupEventListeners() {
-  if (state.verboseLogging) {
-    console.info("Setting up event listeners...");
-  }
+  logVerbose("Setting up event listeners...");
 
   if (!elements.userInput || !elements.sendButton) {
     console.error("Essential UI elements not found. Check your HTML structure.");

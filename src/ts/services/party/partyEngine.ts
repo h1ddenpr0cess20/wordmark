@@ -20,20 +20,24 @@ import { generateMessageId } from "../../components/messages.ts";
 import { sanitizeInput } from "../../utils/utils.ts";
 import { escapeHtml } from "../../utils/sanitize.ts";
 import { showError } from "../../utils/notifications.ts";
-import { logVerbose } from "../../utils/logger.ts";
+import { createScopedLogger } from "../../utils/logger.ts";
 import { runTurn, buildRequestBody } from "../api/requestClient.ts";
 import { executeNonStreamingRequest } from "../api/requestTransport.ts";
 import { extractOutputText } from "../api/responseNormalization.ts";
 import { getActiveModel } from "../api/clientConfig.ts";
+import { getToolCatalog, getAvailableToolKeys } from "../api/toolManager.ts";
 import {
   buildCharacterSystemPrompt,
   buildFirstTurnPrompt,
   buildTurnPrompt,
   buildDecisionPrompt,
   DEFAULT_USER_NAME,
+  type PartyToolInfo,
 } from "./partyPrompts.ts";
 import type { PartyCharacter, PartyConfig } from "./partyTypes.ts";
 import { uiHooks } from "../../init/uiHooks.ts";
+
+const logParty = createScopedLogger("party");
 
 /** Places the character's name as a label inside the message bubble, keeping the
  * wordmark logo as the sender icon. */
@@ -313,7 +317,7 @@ class PartyEngine {
       result = await runTurn({
         inputMessages: [{ role: "user", content: prompt, id: `party-prompt-${loadingId}` }],
         model: getActiveModel(),
-        systemOverride: buildCharacterSystemPrompt(speaker),
+        systemOverride: buildCharacterSystemPrompt(speaker, this.resolveCharacterTools(speaker)),
         allowedTools: speaker.allowedTools || [],
         temperature: speaker.temperature,
         stream: true,
@@ -355,6 +359,23 @@ class PartyEngine {
     }
   }
 
+  /**
+   * Resolves the descriptors for a character's selected tools, scoped to those
+   * the active provider/model actually supports (the same set that will be sent
+   * with the request). Used to make the character aware of its tools in the
+   * system prompt without promising tools it can't actually call.
+   */
+  private resolveCharacterTools(speaker: PartyCharacter): PartyToolInfo[] {
+    const allowed = speaker.allowedTools || [];
+    if (!allowed.length) {
+      return [];
+    }
+    const availableKeys = new Set(getAvailableToolKeys());
+    return getToolCatalog()
+      .filter((tool) => allowed.includes(tool.key) && availableKeys.has(tool.key))
+      .map((tool) => ({ key: tool.key, displayName: tool.displayName, description: tool.description }));
+  }
+
   /** Chooses the next speaker: alternate for two, AI decision for three or more. */
   private async chooseNextSpeaker(currentSpeaker: PartyCharacter): Promise<PartyCharacter> {
     if (this.characters.length === 2) {
@@ -376,16 +397,16 @@ class PartyEngine {
       const candidate = raw.split("|")[0]?.trim().toLowerCase();
       const match = this.characters.find((c) => c.name.toLowerCase() === candidate);
       if (match) {
-        logVerbose("Party: decision picked next speaker:", match.name, "—", raw);
+        logParty("decision picked next speaker:", match.name, "—", raw);
         return match;
       }
-      logVerbose("Party: decision output didn't match a participant; using random fallback. Raw:", raw);
+      logParty("decision output didn't match a participant; using random fallback. Raw:", raw);
     } catch (error) {
       console.warn("Party: failed to choose next speaker, falling back to random.", error);
     }
 
     const fallback = this.pickRandomSpeaker(currentSpeaker.id);
-    logVerbose("Party: random next speaker:", fallback.name);
+    logParty("random next speaker:", fallback.name);
     return fallback;
   }
 

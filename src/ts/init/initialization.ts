@@ -26,7 +26,7 @@ import { initializeDOMReferences } from "./dom.ts";
 import { initializeAboutTab } from "./aboutTab.ts";
 import { initPartyTab } from "../components/party/partyTab.ts";
 import { initializeMarked } from "./marked.ts";
-import { logVerbose } from "../utils/logger.ts";
+import { createScopedLogger } from "../utils/logger.ts";
 import {
   initializeServicesAndModels,
   initializeConversationName,
@@ -37,6 +37,8 @@ import {
   selectDefaultService,
 } from "./services.ts";
 
+const logInit = createScopedLogger("init");
+
 /**
  * Application entry point invoked once panels are loaded: caches DOM, applies
  * settings/theme, wires event listeners, and initializes services, tools, and
@@ -44,10 +46,10 @@ import {
  */
 export async function initialize() {
   try {
-    logVerbose("Initializing chatbot application...");
+    logInit("Initializing chatbot application...");
 
     initializeDOMReferences();
-    logVerbose("DOM references initialized.");
+    logInit("DOM references initialized.");
 
     initImageUploads();
 
@@ -61,7 +63,7 @@ export async function initialize() {
     initializeDefaultValues();
 
     initializeMarked();
-    logVerbose("Marked (markdown) initialized.");
+    logInit("Marked (markdown) initialized.");
 
     initializeAboutTab();
 
@@ -70,17 +72,17 @@ export async function initialize() {
     initializeConversationName();
 
     setupEventListeners();
-    logVerbose("Event listeners set up.");
+    logInit("Event listeners set up.");
 
     initTabs();
-    logVerbose("Settings panel tabs initialized.");
+    logInit("Settings panel tabs initialized.");
 
     initToolsSettings();
-    logVerbose("Tools settings initialized.");
+    logInit("Tools settings initialized.");
 
     try {
       initPartyTab();
-      logVerbose("Party tab initialized.");
+      logInit("Party tab initialized.");
     } catch (e) {
       console.error("Party tab initialization failed:", e);
     }
@@ -88,7 +90,7 @@ export async function initialize() {
     {
       try {
         initMemorySettings();
-        logVerbose("Memory settings initialized.");
+        logInit("Memory settings initialized.");
         updateFeatureStatus();
 
       } catch (e) {
@@ -98,14 +100,14 @@ export async function initialize() {
 
     try {
       initMCPServers();
-      logVerbose("MCP servers initialized.");
+      logInit("MCP servers initialized.");
     } catch (e) {
       console.error("MCP servers initialization failed:", e);
     }
 
     try {
       loadFromUrl();
-      logVerbose("Loaded chat state from URL (if present).");
+      logInit("Loaded chat state from URL (if present).");
     } catch (e) {
       console.warn("Error loading from URL:", e);
     }
@@ -115,11 +117,11 @@ export async function initialize() {
     initializeTts();
 
     initializeMobileKeyboardHandling();
-    logVerbose("Mobile keyboard handling initialized.");
+    logInit("Mobile keyboard handling initialized.");
     updateParameterControls();
 
     ensureApiKeysLoaded();
-    logVerbose("API keys loaded from localStorage.");
+    logInit("API keys loaded from localStorage.");
 
     const runStandardModelInit = () => {
       initializeServiceModels();
@@ -136,7 +138,7 @@ export async function initialize() {
 
     updateModelSelector();
     updateHeaderInfo();
-    logVerbose("UI controls and selectors initialized.");
+    logInit("UI controls and selectors initialized.");
 
     setupScrollTracking();
 
@@ -145,7 +147,11 @@ export async function initialize() {
     initializeToolCalling();
     updateFeatureStatus();
 
-    try { applyDataSettingsState(); } catch { /* noop */ }
+    try {
+      applyDataSettingsState();
+    } catch (error) {
+      console.warn("Failed to apply data-settings state on init:", error);
+    }
 
     renderChatHistoryList();
 
@@ -160,7 +166,7 @@ export async function initialize() {
       openApiKeysTabIfNeeded();
     }, 2000);
 
-    logVerbose("Chatbot application initialization complete.");
+    logInit("Chatbot application initialization complete.");
 
     document.body.classList.add("loaded");
 

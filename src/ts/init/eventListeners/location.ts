@@ -6,10 +6,13 @@
  * toggle and surfacing an error if the browser denies the request.
  */
 
-import { elements, state } from "../state.ts";
+import { elements } from "../state.ts";
 import { showError } from "../../utils/notifications.ts";
 import { updateFeatureStatus } from "../../components/settings.ts";
 import { requestLocation, disableLocation, updateLocationUI } from "../../services/location.ts";
+import { createScopedLogger } from "../../utils/logger.ts";
+
+const logLocation = createScopedLogger("location");
 
 /** Wires the location toggle to request/disable geolocation and update its UI. */
 export function setupLocationEventListeners() {
@@ -26,9 +29,7 @@ export function setupLocationEventListeners() {
       if (result.success) {
         updateLocationUI();
 
-        if (state.verboseLogging) {
-          console.info("Location enabled:", result.locationString);
-        }
+        logLocation("Location enabled:", result.locationString);
       } else {
         locationToggle.checked = false;
         updateLocationUI();
@@ -42,9 +43,7 @@ export function setupLocationEventListeners() {
 
       updateLocationUI();
 
-      if (state.verboseLogging) {
-        console.info("Location services disabled");
-      }
+      logLocation("Location services disabled");
     }
 
     updateFeatureStatus();

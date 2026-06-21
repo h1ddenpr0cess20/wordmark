@@ -10,6 +10,9 @@ import { elements, state } from "../state.ts";
 import { switchToTab } from "../../components/ui/settingsTabs.ts";
 import { updateHeaderInfo, organizeSettingsLayout } from "../../components/settings.ts";
 import { DEFAULT_PERSONALITY } from "../../../config/config.ts";
+import { createScopedLogger } from "../../utils/logger.ts";
+
+const logOutsideClick = createScopedLogger("outside-click");
 
 /**
  * Snapshot of the prompt fields taken when the panel opens, so the values can be
@@ -168,8 +171,8 @@ function setupQuickAccessTargets(openSettingsAndSwitch: (tabId: string) => void)
  */
 function setupOutsideClickHandler() {
   document.addEventListener("click", (event) => {
-    if (state.verboseLogging && (event.target as Element | null)?.closest(".copy-address")) {
-      console.info("Outside click handler - copy button detected:", {
+    if ((event.target as Element | null)?.closest(".copy-address")) {
+      logOutsideClick("Outside click handler - copy button detected:", {
         target: event.target,
         closest: (event.target as Element | null)?.closest(".copy-address"),
         defaultPrevented: event.defaultPrevented,
@@ -180,16 +183,12 @@ function setupOutsideClickHandler() {
     }
 
     if (event.defaultPrevented || event.cancelBubble || handledEvents.has(event)) {
-      if (state.verboseLogging) {
-        console.info("Outside click handler: event already handled/prevented");
-      }
+      logOutsideClick("Outside click handler: event already handled/prevented");
       return;
     }
 
     if ((event.target as Element | null)?.closest(".copy-address")) {
-      if (state.verboseLogging) {
-        console.info("Outside click handler: ignoring copy button click");
-      }
+      logOutsideClick("Outside click handler: ignoring copy button click");
       return;
     }
 
@@ -210,7 +209,6 @@ function setupOutsideClickHandler() {
       elements.galleryPanel.setAttribute("aria-hidden", "true");
       elements.galleryPanel.setAttribute("inert", "true");
       elements.galleryButton.setAttribute("aria-expanded", "false");
-      elements.galleryButton.focus();
       updatePanelOpenState();
     }
 
@@ -220,7 +218,6 @@ function setupOutsideClickHandler() {
       elements.historyPanel.setAttribute("aria-hidden", "true");
       elements.historyPanel.setAttribute("inert", "true");
       elements.historyButton.setAttribute("aria-expanded", "false");
-      elements.historyButton.focus();
       updatePanelOpenState();
     }
   });
@@ -230,6 +227,7 @@ function setupOutsideClickHandler() {
  * Opens the settings panel and switches to `tabId`, retrying briefly if the
  * panel DOM is not yet ready.
  *
+ * @param tabId - Id of the settings tab to activate.
  * @param attempt - Internal retry counter (gives up after 10 attempts).
  */
 export function openSettingsAndSwitch(tabId: string, attempt = 0) {

@@ -3,6 +3,7 @@
  */
 
 import { state, elements } from "./state.ts";
+import { logVerbose } from "../utils/logger.ts";
 import { config } from "../../config/config.ts";
 import { STORAGE_KEYS } from "../utils/storage/storage.ts";
 import { serviceSupportsReasoning } from "../services/providers.ts";
@@ -226,13 +227,11 @@ export function initializeModelSettings() {
     }
   }
 
-  if (state.verboseLogging) {
-    console.info("Model settings initialized from config with reasoning effort and verbosity:", {
-      reasoning: state.currentReasoningEffort,
-      verbosity: state.currentVerbosity,
-      historyTokenBudget: state.historyTokenBudget,
-    });
-  }
+  logVerbose("Model settings initialized from config with reasoning effort and verbosity:", {
+    reasoning: state.currentReasoningEffort,
+    verbosity: state.currentVerbosity,
+    historyTokenBudget: state.historyTokenBudget,
+  });
 
   updateReasoningAvailability();
 }
