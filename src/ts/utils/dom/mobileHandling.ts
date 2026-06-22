@@ -91,6 +91,46 @@ export function initializeMobileKeyboardHandling() {
   optimizeScrolling();
 
   setupPromptTapExpand();
+
+  preserveScrollOnOrientationChange();
+}
+
+/**
+ * Keeps the chat reading position stable across an orientation change.
+ *
+ * @remarks
+ * Rotating the device reflows the chat box and otherwise discards the scroll
+ * position. This records the current anchor (bottom-pinned or a scroll ratio)
+ * and reapplies it once the new layout has settled.
+ */
+export function preserveScrollOnOrientationChange() {
+  const chatBox = elements.chatBox;
+  if (!chatBox) {
+    return;
+  }
+
+  let atBottom = true;
+  let anchorRatio = 0;
+
+  const record = () => {
+    const maxScroll = chatBox.scrollHeight - chatBox.clientHeight;
+    atBottom = maxScroll - chatBox.scrollTop < 20;
+    anchorRatio = maxScroll > 0 ? chatBox.scrollTop / maxScroll : 0;
+  };
+
+  chatBox.addEventListener("scroll", record, { passive: true });
+  record();
+
+  const restore = () => {
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => {
+        const maxScroll = chatBox.scrollHeight - chatBox.clientHeight;
+        chatBox.scrollTop = atBottom ? maxScroll : anchorRatio * maxScroll;
+      });
+    });
+  };
+
+  window.addEventListener("orientationchange", restore);
 }
 
 /** Registers passive touch listeners so scrolling stays responsive on mobile. */

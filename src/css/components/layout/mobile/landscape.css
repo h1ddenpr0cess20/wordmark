@@ -1,0 +1,87 @@
+/* Phones in landscape: wide but short. Width-based breakpoints don't capture
+   this, so collapse the chrome and give the chat the full viewport here. */
+@media screen and (orientation: landscape) and (max-height: 500px) {
+  #chat-container {
+    width: 100%;
+    height: 100vh;
+    max-height: -webkit-fill-available;
+    border-radius: 0;
+    margin: 0;
+    position: fixed;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    display: flex;
+    flex-direction: column;
+  }
+
+  #chat-box {
+    flex: 1;
+    overflow-y: auto;
+    padding: 8px 16px 12px;
+  }
+
+  #header {
+    padding: 36px 120px 6px 12px;
+    gap: 0;
+  }
+
+  #logo-container {
+    top: calc(env(safe-area-inset-top, 0) + 6px);
+    left: calc(env(safe-area-inset-left, 0) + 8px);
+    transform: none;
+    padding: 2px 8px;
+    gap: 8px;
+    max-width: calc(100vw - 180px);
+    justify-content: flex-start;
+  }
+
+  #wordmark-logo {
+    width: 26px;
+    height: 26px;
+    margin-top: 0;
+  }
+
+  #logo-wordmark {
+    font-size: 0.8rem;
+    letter-spacing: 0.12em;
+  }
+
+  #header #header-title {
+    font-size: 0.9rem;
+  }
+
+  #model-info {
+    max-height: 1.3rem;
+    -webkit-line-clamp: 1;
+    line-clamp: 1;
+    font-size: 0.78rem !important;
+  }
+
+  .feature-status {
+    margin-top: 2px;
+  }
+
+  #settings-button,
+  #history-button,
+  #gallery-button {
+    top: calc(env(safe-area-inset-top, 0) + 8px);
+    width: 34px;
+    height: 34px;
+    font-size: 15px;
+  }
+
+  .input-container {
+    padding: 8px 12px;
+  }
+
+  #user-input {
+    height: 44px;
+    padding: 10px 96px 10px 14px;
+  }
+
+  #send-button {
+    width: 44px;
+    height: 44px;
+  }
+}

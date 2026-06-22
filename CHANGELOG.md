@@ -2,6 +2,14 @@
 
 All notable changes to Wordmark are documented here. Earlier versions didn't follow proper semver — this changelog reflects what actually shipped, not what the version numbers said at the time.
 
+## [3.6.1] - 2026-06-22
+
+Mobile landscape fixes. Backward-compatible.
+
+### Fixed
+- **Landscape layout** — phones in landscape are wide but short, so the width-based mobile breakpoints didn't apply and the desktop floating-card layout was stranded on a ~390px-tall screen (or small phones got the portrait layout with a tall header eating the height). A new `(orientation: landscape) and (max-height: 500px)` stylesheet makes the chat container full-viewport and collapses the header chrome so the conversation gets the room.
+- **Scroll position lost on rotation** — rotating the device reflowed `#chat-box` and discarded the reading position. The current anchor (bottom-pinned or scroll ratio) is now recorded and reapplied on `orientationchange`.
+
 ## [3.6.0] - 2026-06-22
 
 Message-action polish: on-demand TTS for any message, copy feedback, and a retry control for failed or stopped turns. Backward-compatible.
