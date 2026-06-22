@@ -102,8 +102,10 @@ export function initializeMobileKeyboardHandling() {
  *
  * @remarks
  * Rotating the device reflows the chat box and otherwise discards the scroll
- * position. This records the current anchor (bottom-pinned or a scroll ratio)
- * and reapplies it once the new layout has settled.
+ * position. The current anchor (bottom-pinned or a scroll ratio) is tracked from
+ * user scrolls and reapplied once the new layout settles. Recording is frozen
+ * for the duration of the restore so the reflow's own scroll events don't
+ * overwrite the anchor before it is reapplied.
  */
 export function preserveScrollOnOrientationChange() {
   const chatBox = elements.chatBox;
@@ -113,8 +115,13 @@ export function preserveScrollOnOrientationChange() {
 
   let atBottom = true;
   let anchorRatio = 0;
+  let restoring = false;
+  let wasLandscape = window.innerWidth > window.innerHeight;
 
   const record = () => {
+    if (restoring) {
+      return;
+    }
     const maxScroll = chatBox.scrollHeight - chatBox.clientHeight;
     atBottom = maxScroll - chatBox.scrollTop < 20;
     anchorRatio = maxScroll > 0 ? chatBox.scrollTop / maxScroll : 0;
@@ -124,15 +131,31 @@ export function preserveScrollOnOrientationChange() {
   record();
 
   const restore = () => {
-    requestAnimationFrame(() => {
-      requestAnimationFrame(() => {
-        const maxScroll = chatBox.scrollHeight - chatBox.clientHeight;
-        chatBox.scrollTop = atBottom ? maxScroll : anchorRatio * maxScroll;
-      });
-    });
+    restoring = true;
+    let frames = 0;
+    const step = () => {
+      const maxScroll = chatBox.scrollHeight - chatBox.clientHeight;
+      chatBox.scrollTop = atBottom ? maxScroll : anchorRatio * maxScroll;
+      frames += 1;
+      if (frames < 8) {
+        requestAnimationFrame(step);
+      } else {
+        restoring = false;
+      }
+    };
+    requestAnimationFrame(step);
+  };
+
+  const onResize = () => {
+    const isLandscape = window.innerWidth > window.innerHeight;
+    if (isLandscape !== wasLandscape) {
+      wasLandscape = isLandscape;
+      restore();
+    }
   };
 
   window.addEventListener("orientationchange", restore);
+  window.addEventListener("resize", onResize);
 }
 
 /**
