@@ -30,6 +30,8 @@ Messages
 - Syntax highlight: the bundled `highlight.js` library with copy buttons per-code block.
 - Reasoning: Model “thinking” is separated from main text. It supports both `<think>...</think>` and `<|begin_of_thought|>/.../solution` marker styles. A collapsible “Reasoning” block is rendered above the main content.
 - Images: When tools generate images, they are displayed as thumbnails above the answer and saved to IndexedDB. History keeps `[[IMAGE: filename]]` placeholders.
+- Message actions (`components/messageActions.ts`): every message has a copy button. Assistant messages also get a **branch** button — forking the conversation into a new one up to that point — and the most recent assistant message gets a **regenerate** button. Regeneration is limited to the latest message; each regeneration is stored as an additional version and a `‹ 1 / N ›` navigator under the bubble cycles between them. The active version persists with the conversation.
+- Stopping: pressing Stop mid-response keeps the partial assistant message (marked incomplete) rather than discarding the bubble; stopping before any text streams clears the placeholder.
 
 Uploads
 

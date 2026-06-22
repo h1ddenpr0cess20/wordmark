@@ -26,6 +26,9 @@ Purpose: quick orientation to the current project layout, key entry points, and 
     - `initialization.ts`: Startup coordinator, DOMPurify config, sanitizer helpers.
   - `components/`
     - `messages.ts`: Render and stream assistant/user messages; attachment previews.
+    - `messageActions.ts`: Per-message controls — copy/regenerate/branch buttons and response-version (variant) cycling.
+    - `messageVariants.ts`: Pure (DOM-free) helpers for response-version bookkeeping, unit-tested in isolation.
+    - `interaction.ts`: Send/stop lifecycle for a user turn.
     - `settings.ts`: Settings panel logic (API keys, service/model, tools, memory).
     - `theme.ts`: Theme switching and persistence.
     - `attachments/`: Upload ingestion grouped together — `attachments.ts` (menu/drag-drop/paste/validation entry), `attachmentDragDrop.ts`, `attachmentPreviews.ts` (pending previews + removal), `outgoingAttachments.ts` (builds the outgoing message attachment payload).

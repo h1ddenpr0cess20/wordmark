@@ -2,6 +2,21 @@
 
 All notable changes to Wordmark are documented here. Earlier versions didn't follow proper semver — this changelog reflects what actually shipped, not what the version numbers said at the time.
 
+## [3.5.0] - 2026-06-22
+
+Assistant-message controls: regenerate, response-version cycling, and conversation branching, plus a change to how stopping mid-response is handled. Backward-compatible; existing conversations load unchanged.
+
+### Added
+- **Regenerate response** — a regenerate button on the most recent assistant message re-runs the turn from the prior context. It is intentionally limited to the latest message, since regenerating an earlier one would leave the following messages dangling.
+- **Response versions** — each regeneration is kept as an additional version of the message; a `‹ 1 / N ›` navigator under the bubble cycles between them, and the active version persists with the conversation.
+- **Conversation branching** — a branch button on a message forks the conversation into a new one containing every message up to that point, leaving the original untouched.
+
+### Changed
+- **Stopping keeps partial output** — stopping generation mid-response now keeps the partial assistant message (marked incomplete) instead of discarding the bubble; an empty stop still clears the placeholder.
+
+### Fixed
+- **Mobile message padding** — reduced the oversized side padding flanking the message icons. The bubble width is now pinned explicitly (`calc(100vw - 72px)`) so it no longer silently widens and pushes the action buttons off-screen, and the reasoning panel is no longer capped to half the bubble width on phones.
+
 ## [3.4.1] - 2026-06-21
 
 Everything done since the 3.4.0 release (tag `v3.4.0`): a broad error-surfacing and observability pass, accessibility and UI-polish fixes, and a large test-coverage expansion. All backward-compatible.

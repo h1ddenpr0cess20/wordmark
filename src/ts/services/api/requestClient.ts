@@ -251,10 +251,19 @@ export async function runTurn({
       aggregateReasoning += streamedReasoning;
     }
 
+    const wasStopped = (abortController && abortController.signal && abortController.signal.aborted)
+      || state.shouldStopGeneration;
+
+    if (wasStopped) {
+      return {
+        response: responsePayload,
+        outputText: aggregateText,
+        reasoningText: aggregateReasoning,
+        stopped: true,
+      };
+    }
+
     if (!responsePayload) {
-      if ((abortController && abortController.signal && abortController.signal.aborted) || state.shouldStopGeneration) {
-        throw new DOMException("Request aborted", "AbortError");
-      }
       throw new Error("Responses API did not return a final payload.");
     }
 
