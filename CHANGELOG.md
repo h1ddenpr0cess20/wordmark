@@ -2,6 +2,17 @@
 
 All notable changes to Wordmark are documented here. Earlier versions didn't follow proper semver — this changelog reflects what actually shipped, not what the version numbers said at the time.
 
+## [3.6.0] - 2026-06-22
+
+Message-action polish: on-demand TTS for any message, copy feedback, and a retry control for failed or stopped turns. Backward-compatible.
+
+### Added
+- **On-demand TTS for any message** — turning TTS on now adds a voice button to every existing assistant message in the conversation (and removes them when turned off), so messages generated while TTS was off can still be voiced. Per-message TTS buttons are restyled to match the circular copy/branch/regenerate action buttons.
+- **Retry failed/stopped turns** — when a turn fails or is stopped before any content arrives, the empty assistant bubble is removed and a retry button (matching the regenerate button) appears on the user message that triggered it; clicking it re-runs the turn.
+
+### Changed
+- **Copy feedback** — the message copy button now has a tooltip and briefly swaps to a check (or ✗ on failure) icon to confirm the copy, mirroring the code-block copy button.
+
 ## [3.5.0] - 2026-06-22
 
 Assistant-message controls: regenerate, response-version cycling, and conversation branching, plus a change to how stopping mid-response is handled. Backward-compatible; existing conversations load unchanged.

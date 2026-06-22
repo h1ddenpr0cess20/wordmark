@@ -18,6 +18,8 @@ import {
   stopTtsAudio,
   clearTtsAudioResources,
   playNextMessageInQueue,
+  addTtsControlsToConversation,
+  removeAllTtsControls,
 } from "../../services/tts.ts";
 import { config } from "../../../config/config.ts";
 import { ttsSupportsInstructions } from "../../services/providers.ts";
@@ -31,9 +33,11 @@ export function setupTtsEventListeners() {
       if ((event.target as HTMLInputElement).checked) {
         ttsConfig.enabled = true;
         initializeTts();
+        addTtsControlsToConversation();
       } else {
         ttsConfig.enabled = false;
         stopTtsAudio();
+        removeAllTtsControls();
       }
       updateFeatureStatus();
 

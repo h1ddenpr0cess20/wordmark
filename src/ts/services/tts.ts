@@ -28,4 +28,6 @@ export {
   generateTtsForMessage,
   addPlaceholderTtsControls,
   addTtsControlsToMessage,
+  addTtsControlsToConversation,
+  removeAllTtsControls,
 } from "./tts/controls.ts";

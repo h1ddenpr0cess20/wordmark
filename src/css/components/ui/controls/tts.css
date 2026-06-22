@@ -5,41 +5,26 @@
   gap: 8px;
 }
 .tts-play-pause, .tts-stop, .tts-download {
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-color);
+  color: var(--text-primary);
+  border-radius: 50%;
   padding: 6px;
-  border-radius: 6px;
-  border: none;
   cursor: pointer;
+  opacity: 0.7;
+  transition: all 0.2s ease;
   display: flex;
   align-items: center;
   justify-content: center;
-  min-width: 28px;
+  width: 28px;
   height: 28px;
-  transition: background-color 0.2s, transform 0.1s;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
-.tts-play-pause {
-  background-color: var(--accent-color);
-  color: var(--button-text-color);
-}
-.tts-play-pause:hover {
-  background-color: var(--accent-hover, #0056b3);
-  transform: translateY(-1px);
-}
-.tts-stop {
-  background-color: var(--error-color);
-  color: var(--error-color-text);
-}
-.tts-stop:hover {
-  background-color: color-mix(in srgb, var(--error-color) 85%, #000 15%);
-  transform: translateY(-1px);
-}
-.tts-download {
-  background-color: var(--info-color, #3498db);
-  color: var(--info-contrast, white);
-}
-.tts-download:hover {
-  background-color: var(--info-hover, #2980b9);
-  transform: translateY(-1px);
+.tts-play-pause:hover, .tts-stop:hover, .tts-download:hover {
+  opacity: 1;
+  color: var(--accent-color);
+  border-color: var(--accent-color);
+  transform: scale(1.05);
 }
 .tts-status {
   font-size: 0.85em;
@@ -51,9 +36,9 @@
   display: none;
   width: 12px;
   height: 12px;
-  border: 2px solid rgba(255, 255, 255, 0.3);
+  border: 2px solid rgba(127, 127, 127, 0.3);
   border-radius: 50%;
-  border-top-color: white;
+  border-top-color: var(--accent-color);
   animation: tts-spin 1s linear infinite;
   margin-right: 4px;
 }
