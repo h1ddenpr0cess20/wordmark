@@ -92,55 +92,42 @@ export function initializeMobileKeyboardHandling() {
 
   setupPromptTapExpand();
 
-  preserveScrollOnOrientationChange();
+  scrollChatToBottomOnOrientationChange();
 
   suppressPanelTransitionsDuringResize();
 }
 
 /**
- * Keeps the chat reading position stable across an orientation change.
+ * Scrolls the chat to the bottom after an orientation change.
  *
  * @remarks
- * Rotating the device reflows the chat box and otherwise discards the scroll
- * position. The current anchor (bottom-pinned or a scroll ratio) is tracked from
- * user scrolls and reapplied once the new layout settles. Recording is frozen
- * for the duration of the restore so the reflow's own scroll events don't
- * overwrite the anchor before it is reapplied.
+ * Rotating reflows the chat box and loses the scroll position. Re-pins to the
+ * bottom each frame until the chat height settles, since the reflow isn't
+ * complete on the first frame and an early pin would land at the top.
  */
-export function preserveScrollOnOrientationChange() {
+export function scrollChatToBottomOnOrientationChange() {
   const chatBox = elements.chatBox;
   if (!chatBox) {
     return;
   }
 
-  let atBottom = true;
-  let anchorRatio = 0;
-  let restoring = false;
   let wasLandscape = window.innerWidth > window.innerHeight;
 
-  const record = () => {
-    if (restoring) {
-      return;
-    }
-    const maxScroll = chatBox.scrollHeight - chatBox.clientHeight;
-    atBottom = maxScroll - chatBox.scrollTop < 20;
-    anchorRatio = maxScroll > 0 ? chatBox.scrollTop / maxScroll : 0;
-  };
-
-  chatBox.addEventListener("scroll", record, { passive: true });
-  record();
-
-  const restore = () => {
-    restoring = true;
-    let frames = 0;
+  const scrollToBottom = () => {
+    let lastHeight = -1;
+    let stableFrames = 0;
+    let totalFrames = 0;
     const step = () => {
-      const maxScroll = chatBox.scrollHeight - chatBox.clientHeight;
-      chatBox.scrollTop = atBottom ? maxScroll : anchorRatio * maxScroll;
-      frames += 1;
-      if (frames < 8) {
-        requestAnimationFrame(step);
+      chatBox.scrollTop = chatBox.scrollHeight;
+      totalFrames += 1;
+      if (chatBox.scrollHeight === lastHeight) {
+        stableFrames += 1;
       } else {
-        restoring = false;
+        stableFrames = 0;
+        lastHeight = chatBox.scrollHeight;
+      }
+      if (stableFrames < 3 && totalFrames < 60) {
+        requestAnimationFrame(step);
       }
     };
     requestAnimationFrame(step);
@@ -150,11 +137,11 @@ export function preserveScrollOnOrientationChange() {
     const isLandscape = window.innerWidth > window.innerHeight;
     if (isLandscape !== wasLandscape) {
       wasLandscape = isLandscape;
-      restore();
+      scrollToBottom();
     }
   };
 
-  window.addEventListener("orientationchange", restore);
+  window.addEventListener("orientationchange", scrollToBottom);
   window.addEventListener("resize", onResize);
 }
 
