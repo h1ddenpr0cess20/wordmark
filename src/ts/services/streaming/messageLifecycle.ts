@@ -21,6 +21,8 @@ import {
   separateThinkingSegments,
 } from "./thinkingUtils.ts";
 import { highlightAndAddCopyButtons, generateMessageId, addMessageCopyButton } from "../../components/messages.ts";
+import { decorateAssistantMessage, captureVariantImages } from "../../components/messageActions.ts";
+import { recordRegeneratedVariant, applyVariant } from "../../components/messageVariants.ts";
 import { setupImageInteractions } from "../../components/ui/imageInteractions.ts";
 import { createMediaPlaceholderRegex, mediaPlaceholder } from "../../utils/placeholders.ts";
 import type { StreamedMessageContent, ResponseObject } from "../../../types/api.ts";
@@ -98,6 +100,7 @@ export function finalizeStreamedResponse(loadingMessage: HTMLElement | null, con
   const responsePayload: unknown = contentObj && typeof contentObj === "object" ? contentObj.response || null : null;
   let content = contentObj && typeof contentObj === "object" ? (contentObj.content || "") : (contentObj || "");
   let reasoning = contentObj && typeof contentObj === "object" ? (contentObj.reasoning || "") : "";
+  const incomplete = contentObj && typeof contentObj === "object" ? Boolean(contentObj.incomplete) : false;
 
   if (!content) {
     content = extractOutputText(responsePayload);
@@ -179,17 +182,38 @@ export function finalizeStreamedResponse(loadingMessage: HTMLElement | null, con
     }
   }
 
-  state.conversationHistory.push({
-    role: "assistant",
-    content: fullContent,
-    reasoning,
-    id: loadingMessage.id,
-    timestamp: new Date().toISOString(),
-    hasImages: willHaveImages,
-    responseId: isRecord(responsePayload) && typeof responsePayload.id === "string" ? responsePayload.id : undefined,
-    codeInterpreterOutputs,
-    character: contentObj && typeof contentObj === "object" ? contentObj.character : undefined,
-  });
+  const responseId = isRecord(responsePayload) && typeof responsePayload.id === "string"
+    ? responsePayload.id
+    : undefined;
+
+  const existingEntry = state.conversationHistory.find(
+    (entry) => entry.id === loadingMessage.id && entry.role === "assistant",
+  );
+
+  if (existingEntry) {
+    recordRegeneratedVariant(existingEntry, {
+      content: fullContent,
+      reasoning,
+      responseId,
+      codeInterpreterOutputs,
+      hasImages: willHaveImages,
+      incomplete,
+    });
+    applyVariant(existingEntry, existingEntry.variants![existingEntry.activeVariant!]);
+  } else {
+    state.conversationHistory.push({
+      role: "assistant",
+      content: fullContent,
+      reasoning,
+      id: loadingMessage.id,
+      timestamp: new Date().toISOString(),
+      hasImages: willHaveImages,
+      responseId,
+      codeInterpreterOutputs,
+      incomplete,
+      character: contentObj && typeof contentObj === "object" ? contentObj.character : undefined,
+    });
+  }
 
   const existingThinkingContainer = document.getElementById(thinkingId);
   const existingMainContentContainer = contentWrapper.querySelector<HTMLElement>(".main-response-content");
@@ -249,6 +273,10 @@ export function finalizeStreamedResponse(loadingMessage: HTMLElement | null, con
   finalMainContentContainer.innerHTML = processMainContentMarkdown(processedText);
   renderCodeInterpreterOutputs(loadingMessage, codeInterpreterOutputs);
 
+  if (existingEntry) {
+    captureVariantImages(existingEntry);
+  }
+
   updateFinalMessage(loadingMessage);
 
   if (ttsConfig.enabled) {
@@ -287,6 +315,7 @@ export function updateFinalMessage(loadingMessage: HTMLElement | null) {
     loadingMessage.id = `msg-${Date.now()}`;
   }
   addMessageCopyButton(loadingMessage, loadingMessage.id);
+  decorateAssistantMessage(loadingMessage, loadingMessage.id);
 }
 
 /**

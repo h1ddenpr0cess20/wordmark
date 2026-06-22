@@ -201,6 +201,6 @@
 
 @media (max-width: 600px) {
   .message.user, .message.assistant {
-    max-width: 92vw;
+    max-width: calc(100vw - 72px);
   }
 }

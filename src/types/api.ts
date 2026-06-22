@@ -50,7 +50,27 @@ export interface Message {
   timestamp?: string;
   /** Party mode: the character that authored this message. */
   character?: { name: string };
+  /** True when generation was stopped before completing this message. */
+  incomplete?: boolean;
+  /**
+   * Alternate generations for an assistant message. Populated lazily the first
+   * time a message is regenerated; index 0 is the original response.
+   */
+  variants?: MessageVariant[];
+  /** Index into {@link variants} of the version currently displayed. */
+  activeVariant?: number;
   [key: string]: unknown;
+}
+
+/** A single alternate generation of an assistant message. */
+export interface MessageVariant {
+  content: string;
+  reasoning?: string;
+  responseId?: string;
+  codeInterpreterOutputs?: unknown;
+  hasImages?: boolean;
+  /** True when this variant was stopped before completing. */
+  incomplete?: boolean;
 }
 
 /**
@@ -65,6 +85,8 @@ export interface StreamedMessageContent {
   response?: unknown;
   /** Party mode: the character authoring this message. */
   character?: { name: string };
+  /** True when generation was stopped before completing this message. */
+  incomplete?: boolean;
 }
 
 /** A function/tool call as embedded in a provider response. */
@@ -156,4 +178,6 @@ export interface RunTurnResult {
   response: ResponseObject | null;
   outputText: string;
   reasoningText: string;
+  /** True when the turn was halted early by a stop/abort. */
+  stopped?: boolean;
 }

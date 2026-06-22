@@ -16,6 +16,7 @@ import { partyEngine } from "../services/party/partyEngine.ts";
 import { uploadFile, uploadAndAttachFiles, saveVectorStoreMetadata } from "../services/vectorStore.ts";
 import { usesDirectFileUpload } from "../services/providers.ts";
 import { generateMessageId, addMessageCopyButton } from "./messages.ts";
+import { updateRegenerateAvailability } from "./messageActions.ts";
 import { appendMessage } from "./ui/chatMessages.ts";
 import { getVerbosity, getReasoningEffort, getHistoryTokenBudget } from "../init/modelSettings.ts";
 import { buildOutgoingAttachments } from "./attachments/outgoingAttachments.ts";
@@ -208,6 +209,7 @@ export async function sendMessage() {
     attachments: attachmentsForHistory.length > 0 ? attachmentsForHistory : undefined,
   });
   addMessageCopyButton(userElement, userId);
+  updateRegenerateAvailability();
   if (uploads.length > 0) {
     state.generatedImages = state.generatedImages || [];
     for (const up of uploads) {
@@ -302,12 +304,21 @@ export async function sendMessage() {
       historyTokenBudget: getHistoryTokenBudget(),
     });
 
-    if (state.shouldStopGeneration) {
-      return;
-    }
+    const wasStopped = Boolean(result?.stopped) || state.shouldStopGeneration;
 
     const loadingMessage = document.getElementById(loadingId);
     if (!loadingMessage) {
+      return;
+    }
+
+    const hasPendingMedia = Array.isArray(state.currentGeneratedImageHtml)
+      && state.currentGeneratedImageHtml.length > 0;
+
+    if (wasStopped && !(result.outputText || "").trim() && !(result.reasoningText || "").trim() && !hasPendingMedia) {
+      removeLoadingIndicator(loadingId);
+      if (showInfo) {
+        showInfo("Generation stopped");
+      }
       return;
     }
 
@@ -315,7 +326,12 @@ export async function sendMessage() {
       content: result.outputText,
       reasoning: result.reasoningText,
       response: result.response,
+      incomplete: wasStopped,
     });
+
+    if (wasStopped && showInfo) {
+      showInfo("Generation stopped");
+    }
   } catch (error) {
     console.error("Error during message send:", error);
     if (error instanceof Error && error.name === "AbortError") {
@@ -362,12 +378,6 @@ export function stopGeneration() {
       console.warn("Abort controller error:", abortError);
     }
   }
-
-  if (state.activeLoadingMessageId) {
-    removeLoadingIndicator(state.activeLoadingMessageId);
-  }
-
-  resetSendButton();
 
   logInteraction("Response generation cancelled.");
 }
