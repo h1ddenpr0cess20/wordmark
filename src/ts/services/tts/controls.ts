@@ -6,7 +6,7 @@
  * controls, including the placeholder state shown while audio is synthesizing.
  */
 
-import { elements } from "../../init/state.ts";
+import { elements, state } from "../../init/state.ts";
 import { createScopedLogger } from "../../utils/logger.ts";
 import { showError } from "../../utils/notifications.ts";
 import { exportAudioForDownload } from "../../utils/storage/audioStorage.ts";
@@ -447,5 +447,58 @@ export function addTtsControlsToMessage(audioData: ArrayBuffer, messageId: strin
   controlsContainer.appendChild(statusText);
 
   attachTtsControls(messageElement, controlsContainer);
+};
+
+/** Extracts the plain text of a conversation entry for on-demand TTS. */
+function getMessageTextForTts(messageId: string): string {
+  const entry = Array.isArray(state.conversationHistory)
+    ? state.conversationHistory.find((msg) => msg.id === messageId)
+    : null;
+  if (entry) {
+    const content = entry.content;
+    if (typeof content === "string") {
+      return content;
+    }
+    if (Array.isArray(content)) {
+      return content.map((part) => part?.text || "").join("");
+    }
+    if (content && typeof content === "object") {
+      return (content as { text?: string }).text || "";
+    }
+  }
+  const contentElement = document.getElementById(messageId)?.querySelector<HTMLElement>(".message-content");
+  return contentElement?.innerText || contentElement?.textContent || "";
+}
+
+/**
+ * Adds on-demand TTS controls to every assistant message that lacks them. Used
+ * when TTS is switched on after messages already exist so any prior message in
+ * the conversation can still be voiced.
+ */
+export function addTtsControlsToConversation() {
+  if (!ttsConfig.enabled) {
+    return;
+  }
+  document.querySelectorAll<HTMLElement>(".message.assistant").forEach((messageElement) => {
+    if (messageElement.querySelector(".tts-controls")) {
+      return;
+    }
+    const messageId = messageElement.id;
+    if (!messageId) {
+      return;
+    }
+    const text = getMessageTextForTts(messageId);
+    if (!text.trim()) {
+      return;
+    }
+    addPlaceholderTtsControls(messageId, text);
+  });
+};
+
+/** Removes all per-message TTS controls from the conversation. */
+export function removeAllTtsControls() {
+  document.querySelectorAll(".tts-controls").forEach((controls) => {
+    controls.remove();
+  });
 };
 

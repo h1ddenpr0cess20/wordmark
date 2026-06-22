@@ -102,13 +102,26 @@ export function addMessageCopyButton(messageElement: HTMLElement | null, message
   const btn = document.createElement("button");
   btn.className = "message-copy-btn";
   btn.setAttribute("aria-label", "Copy message");
-  btn.innerHTML = icon("copy", { width: 16, height: 16 });
+  btn.title = "Copy message";
+  const copyIcon = icon("copy", { width: 16, height: 16 });
+  btn.innerHTML = copyIcon;
+  let resetTimer: ReturnType<typeof setTimeout> | undefined;
   btn.addEventListener("click", () => {
     const raw = getRawMessageContent(messageId);
     if (!raw) {
       return;
     }
-    copyTextToClipboard(raw);
+    copyTextToClipboard(raw).then((success) => {
+      btn.innerHTML = icon(success ? "check" : "x", { width: 16, height: 16 });
+      btn.title = success ? "Copied" : "Copy failed";
+      if (resetTimer) {
+        clearTimeout(resetTimer);
+      }
+      resetTimer = setTimeout(() => {
+        btn.innerHTML = copyIcon;
+        btn.title = "Copy message";
+      }, 1500);
+    });
   });
   messageElement.appendChild(btn);
 }

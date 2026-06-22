@@ -64,7 +64,8 @@
 }
 
 .message-regen-btn,
-.message-branch-btn {
+.message-branch-btn,
+.message-retry-btn {
   position: absolute;
   background: var(--bg-secondary);
   border: 1px solid var(--border-color);
@@ -84,11 +85,17 @@
 }
 
 .message-regen-btn:hover,
-.message-branch-btn:hover {
+.message-branch-btn:hover,
+.message-retry-btn:hover {
   opacity: 1;
   color: var(--accent-color);
   border-color: var(--accent-color);
   transform: scale(1.05);
+}
+
+.message.user .message-retry-btn {
+  left: -38px;
+  bottom: 44px;
 }
 
 .message.assistant .message-branch-btn {

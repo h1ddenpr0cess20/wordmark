@@ -3,6 +3,7 @@
  */
 
 import { elements, state } from "../init/state.ts";
+import { icon } from "../utils/icons.ts";
 import { createScopedLogger } from "../utils/logger.ts";
 import { showError, showInfo } from "../utils/notifications.ts";
 import { sanitizeInput, stripBase64FromHistory } from "../utils/utils.ts";
@@ -23,6 +24,21 @@ import { buildOutgoingAttachments } from "./attachments/outgoingAttachments.ts";
 import type { PendingDocument } from "../../types/attachments.ts";
 
 const logInteraction = createScopedLogger("interaction");
+
+const LOADING_HTML =
+  "<div class=\"loading-animation\"><div class=\"loading-dot\"></div><div class=\"loading-dot\"></div><div class=\"loading-dot\"></div></div>";
+
+/** Switches the send button into "stop generation" mode for the active turn. */
+function enterStopMode() {
+  const sendButton = elements.sendButton;
+  if (!sendButton) {
+    return;
+  }
+  sendButton.classList.add("stop-mode");
+  sendButton.title = "Stop generation";
+  sendButton.removeEventListener("click", sendMessage);
+  sendButton.addEventListener("click", stopGeneration);
+}
 
 /** Outcome of {@link uploadPendingDocuments}: whether to proceed, plus the (possibly new) vector-store id. */
 interface DocumentUploadResult {
@@ -177,11 +193,7 @@ export async function sendMessage() {
 
   logInteraction("New message send initiated:", message);
 
-  sendButton.classList.add("stop-mode");
-  sendButton.title = "Stop generation";
-
-  sendButton.removeEventListener("click", sendMessage);
-  sendButton.addEventListener("click", stopGeneration);
+  enterStopMode();
 
   const uploads = state.pendingUploads || [];
   const documents = state.pendingDocuments || [];
@@ -252,8 +264,7 @@ export async function sendMessage() {
   userInput.style.height = "56px";
 
   const loadingId = `loading-${Date.now()}`;
-  const loadingHTML = "<div class=\"loading-animation\"><div class=\"loading-dot\"></div><div class=\"loading-dot\"></div><div class=\"loading-dot\"></div></div>";
-  appendMessage("Assistant", loadingHTML, "assistant", true);
+  appendMessage("Assistant", LOADING_HTML, "assistant", true);
   const loadingElement = elements.chatBox ? elements.chatBox.lastElementChild : null;
   if (loadingElement) {
     loadingElement.id = loadingId;
@@ -280,6 +291,25 @@ export async function sendMessage() {
     vectorStoreId = uploadResult.vectorStoreId;
   }
 
+  await executeTurn(loadingId, userId, vectorStoreId, () => {
+    if (uploads.length > 0) {
+      stripBase64FromHistory(userId, placeholders);
+    }
+  });
+}
+
+/**
+ * Runs an assistant turn into the `loadingId` bubble: streams the response and
+ * finalizes it on success, or — when it fails or is stopped before any content
+ * arrives — removes the empty bubble and puts a retry button on the originating
+ * user message (`userId`). Shared by the initial send and the retry path.
+ */
+async function executeTurn(
+  loadingId: string,
+  userId: string,
+  vectorStoreId: string | null,
+  onSettled?: () => void,
+) {
   try {
     if (!responsesClient || typeof responsesClient.runTurn !== "function") {
       throw new Error("Responses client is not available. Check that services/api.js is loaded.");
@@ -316,6 +346,7 @@ export async function sendMessage() {
 
     if (wasStopped && !(result.outputText || "").trim() && !(result.reasoningText || "").trim() && !hasPendingMedia) {
       removeLoadingIndicator(loadingId);
+      addUserRetryButton(userId);
       if (showInfo) {
         showInfo("Generation stopped");
       }
@@ -334,25 +365,73 @@ export async function sendMessage() {
     }
   } catch (error) {
     console.error("Error during message send:", error);
+    removeLoadingIndicator(loadingId);
+    addUserRetryButton(userId);
     if (error instanceof Error && error.name === "AbortError") {
-      removeLoadingIndicator(loadingId);
       if (showInfo) {
         showInfo("Generation stopped");
       }
-    } else {
-      removeLoadingIndicator(loadingId);
-      if (showError) {
-        showError(`Error: ${error instanceof Error ? error.message : ""}`);
-      }
+    } else if (showError) {
+      showError(`Error: ${error instanceof Error ? error.message : ""}`);
     }
-    return;
   } finally {
-    if (uploads.length > 0) {
-      stripBase64FromHistory(userId, placeholders);
+    if (onSettled) {
+      onSettled();
     }
     state.activeAbortController = null;
     resetSendButton();
   }
+}
+
+/**
+ * Adds a retry button to a user message whose turn failed or was stopped before
+ * producing a response. Styled and placed like the assistant regenerate button.
+ */
+function addUserRetryButton(userId: string) {
+  const userElement = document.getElementById(userId);
+  if (!userElement || userElement.querySelector(".message-retry-btn")) {
+    return;
+  }
+  const retryButton = document.createElement("button");
+  retryButton.className = "message-retry-btn";
+  retryButton.type = "button";
+  retryButton.setAttribute("aria-label", "Retry");
+  retryButton.title = "Retry";
+  retryButton.innerHTML = icon("refresh-cw", { width: 16, height: 16 });
+  retryButton.addEventListener("click", () => {
+    retryUserMessage(userId);
+  });
+  userElement.appendChild(retryButton);
+}
+
+/**
+ * Re-runs the turn for a user message after a failure/stop: clears the retry
+ * button, spins up a fresh assistant loading bubble, and streams into it. No-op
+ * while another response is pending.
+ */
+function retryUserMessage(userId: string) {
+  if (state.isResponsePending) {
+    return;
+  }
+  const userElement = document.getElementById(userId);
+  if (!userElement) {
+    return;
+  }
+  userElement.querySelector(".message-retry-btn")?.remove();
+
+  const loadingId = `loading-${Date.now()}`;
+  appendMessage("Assistant", LOADING_HTML, "assistant", true);
+  const loadingElement = elements.chatBox ? elements.chatBox.lastElementChild : null;
+  if (loadingElement) {
+    loadingElement.id = loadingId;
+  }
+
+  state.shouldStopGeneration = false;
+  state.isResponsePending = true;
+  state.activeLoadingMessageId = loadingId;
+  enterStopMode();
+
+  void executeTurn(loadingId, userId, state.activeVectorStore || null);
 }
 
 /**
