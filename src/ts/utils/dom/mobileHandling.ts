@@ -93,6 +93,8 @@ export function initializeMobileKeyboardHandling() {
   setupPromptTapExpand();
 
   preserveScrollOnOrientationChange();
+
+  suppressPanelTransitionsDuringResize();
 }
 
 /**
@@ -131,6 +133,36 @@ export function preserveScrollOnOrientationChange() {
   };
 
   window.addEventListener("orientationchange", restore);
+}
+
+/**
+ * Disables the slide-out panel transitions while the viewport is resizing.
+ *
+ * @remarks
+ * A closed panel sits at `transform: translateX(100%)`, where `100%` is the
+ * panel's own width. Rotating the device changes that width (full-width in
+ * portrait, fixed in landscape), so the off-screen offset recomputes — and the
+ * `transition: transform` would animate it, briefly sliding the closed panel
+ * into view. Toggling `panels-no-transition` during the resize suppresses that,
+ * then restores the transition once the viewport settles so opening/closing
+ * still animates.
+ */
+export function suppressPanelTransitionsDuringResize() {
+  let settleTimer: number | undefined;
+
+  const onResize = () => {
+    document.body.classList.add("panels-no-transition");
+    if (settleTimer !== undefined) {
+      window.clearTimeout(settleTimer);
+    }
+    settleTimer = window.setTimeout(() => {
+      document.body.classList.remove("panels-no-transition");
+      settleTimer = undefined;
+    }, 250);
+  };
+
+  window.addEventListener("resize", onResize);
+  window.addEventListener("orientationchange", onResize);
 }
 
 /** Registers passive touch listeners so scrolling stays responsive on mobile. */

@@ -52,6 +52,14 @@ a {
 a:hover {
   color: var(--accent-hover);
 }
+/* While the viewport is resizing (orientation change), the off-screen panels'
+   translateX(100%) basis shifts with their width, which the transform transition
+   would otherwise animate — briefly sliding a closed panel into view. */
+body.panels-no-transition #settings-panel,
+body.panels-no-transition #history-panel,
+body.panels-no-transition #gallery-panel {
+  transition: none;
+}
 .tab-content-container,
 #chat-box,
 #history-panel,
