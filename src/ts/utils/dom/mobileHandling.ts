@@ -92,45 +92,87 @@ export function initializeMobileKeyboardHandling() {
 
   setupPromptTapExpand();
 
-  preserveScrollOnOrientationChange();
+  scrollChatToBottomOnOrientationChange();
+
+  suppressPanelTransitionsDuringResize();
 }
 
 /**
- * Keeps the chat reading position stable across an orientation change.
+ * Scrolls the chat to the bottom after an orientation change.
  *
  * @remarks
- * Rotating the device reflows the chat box and otherwise discards the scroll
- * position. This records the current anchor (bottom-pinned or a scroll ratio)
- * and reapplies it once the new layout has settled.
+ * Rotating reflows the chat box and loses the scroll position. Re-pins to the
+ * bottom each frame until the chat height settles, since the reflow isn't
+ * complete on the first frame and an early pin would land at the top.
  */
-export function preserveScrollOnOrientationChange() {
+export function scrollChatToBottomOnOrientationChange() {
   const chatBox = elements.chatBox;
   if (!chatBox) {
     return;
   }
 
-  let atBottom = true;
-  let anchorRatio = 0;
+  let wasLandscape = window.innerWidth > window.innerHeight;
 
-  const record = () => {
-    const maxScroll = chatBox.scrollHeight - chatBox.clientHeight;
-    atBottom = maxScroll - chatBox.scrollTop < 20;
-    anchorRatio = maxScroll > 0 ? chatBox.scrollTop / maxScroll : 0;
+  const scrollToBottom = () => {
+    let lastHeight = -1;
+    let stableFrames = 0;
+    let totalFrames = 0;
+    const step = () => {
+      chatBox.scrollTop = chatBox.scrollHeight;
+      totalFrames += 1;
+      if (chatBox.scrollHeight === lastHeight) {
+        stableFrames += 1;
+      } else {
+        stableFrames = 0;
+        lastHeight = chatBox.scrollHeight;
+      }
+      if (stableFrames < 3 && totalFrames < 60) {
+        requestAnimationFrame(step);
+      }
+    };
+    requestAnimationFrame(step);
   };
 
-  chatBox.addEventListener("scroll", record, { passive: true });
-  record();
-
-  const restore = () => {
-    requestAnimationFrame(() => {
-      requestAnimationFrame(() => {
-        const maxScroll = chatBox.scrollHeight - chatBox.clientHeight;
-        chatBox.scrollTop = atBottom ? maxScroll : anchorRatio * maxScroll;
-      });
-    });
+  const onResize = () => {
+    const isLandscape = window.innerWidth > window.innerHeight;
+    if (isLandscape !== wasLandscape) {
+      wasLandscape = isLandscape;
+      scrollToBottom();
+    }
   };
 
-  window.addEventListener("orientationchange", restore);
+  window.addEventListener("orientationchange", scrollToBottom);
+  window.addEventListener("resize", onResize);
+}
+
+/**
+ * Disables the slide-out panel transitions while the viewport is resizing.
+ *
+ * @remarks
+ * A closed panel sits at `transform: translateX(100%)`, where `100%` is the
+ * panel's own width. Rotating the device changes that width (full-width in
+ * portrait, fixed in landscape), so the off-screen offset recomputes — and the
+ * `transition: transform` would animate it, briefly sliding the closed panel
+ * into view. Toggling `panels-no-transition` during the resize suppresses that,
+ * then restores the transition once the viewport settles so opening/closing
+ * still animates.
+ */
+export function suppressPanelTransitionsDuringResize() {
+  let settleTimer: number | undefined;
+
+  const onResize = () => {
+    document.body.classList.add("panels-no-transition");
+    if (settleTimer !== undefined) {
+      window.clearTimeout(settleTimer);
+    }
+    settleTimer = window.setTimeout(() => {
+      document.body.classList.remove("panels-no-transition");
+      settleTimer = undefined;
+    }, 250);
+  };
+
+  window.addEventListener("resize", onResize);
+  window.addEventListener("orientationchange", onResize);
 }
 
 /** Registers passive touch listeners so scrolling stays responsive on mobile. */

@@ -39,6 +39,38 @@ export function loadApiKeysIntoConfig() {
 }
 
 /**
+ * Mirrors the stored LM Studio / Ollama base URLs from localStorage onto their
+ * service `baseUrl` (with a `/v1` suffix).
+ *
+ * @remarks
+ * DOM-free counterpart to the URL loading the settings UI does, so startup
+ * default-service probing targets the user's saved LAN address instead of the
+ * `localhost` default. Without this, a phone/remote client probes its own
+ * `localhost` (nothing there) and falls back to a cloud provider even when a
+ * local server is reachable on the network.
+ */
+export function loadLocalServerUrlsIntoConfig() {
+  if (!config || !config.services || typeof localStorage === "undefined") {
+    return;
+  }
+  const stored: Array<[string, string]> = [
+    ["lmstudio", STORAGE_KEYS.lmStudioServerUrl],
+    ["ollama", STORAGE_KEYS.ollamaServerUrl],
+  ];
+  for (const [serviceKey, storageKey] of stored) {
+    const service = config.services[serviceKey];
+    if (!service || typeof service !== "object") {
+      continue;
+    }
+    const url = localStorage.getItem(storageKey);
+    if (typeof url === "string" && url.trim() !== "") {
+      const trimmed = url.trim();
+      service.baseUrl = trimmed.endsWith("/v1") ? trimmed : `${trimmed}/v1`;
+    }
+  }
+}
+
+/**
  * Returns a service's API key from localStorage, falling back to the config.
  *
  * @param service - The service id (e.g. `"openai"`, `"xai"`).

@@ -40,12 +40,15 @@ export function initializeServicesAndModels() {
 }
 
 /**
- * Choose a sensible default provider at startup when no cloud API keys are set.
+ * Choose a sensible default provider at startup.
  *
- * Order: keep the current cloud default if it has a key; otherwise switch to the
- * other cloud provider if it has a key; otherwise probe LM Studio, then Ollama,
- * and switch to the first one that returns models. If none are reachable, leave
- * the default as-is so the UI shows the usual "Set API key to load models" message.
+ * Order: when the current default is a cloud provider, probe LM Studio then
+ * Ollama and switch to the first one that returns models — a reachable local
+ * server is always preferred on launch, even over a cloud default that has a
+ * key. Otherwise (no local server reachable) keep the current cloud default if
+ * it has a key, else switch to the other cloud provider if it has one. An
+ * explicit local default is left untouched. If nothing is usable, the default is
+ * left as-is so the UI shows the usual "Set API key to load models" message.
  *
  * @returns `true` if this function already fetched models for the selected
  *   service (so the caller can skip its own model fetch).
@@ -60,10 +63,6 @@ export async function selectDefaultService() {
   const current = config?.defaultService;
   const currentIsCloud = isCloudService(current);
 
-  if (!currentIsCloud || hasKey(current)) {
-    return false;
-  }
-
   const applyService = (key: string) => {
     config.defaultService = key;
     if (elements.serviceSelector) {
@@ -74,36 +73,42 @@ export async function selectDefaultService() {
     updateHeaderInfo();
   };
 
-  const cloudFallback = pickCloudFallback(services, current);
-  if (cloudFallback) {
-    applyService(cloudFallback);
-    logServices(`No API key for ${current}; defaulting to ${cloudFallback}.`);
-    return false;
-  }
-
   const isUsableModel = (m: unknown) =>
     typeof m === "string" &&
     !m.startsWith("Error") &&
     !m.startsWith("No models") &&
     !m.startsWith("Set API key");
 
-  for (const local of ["lmstudio", "ollama"]) {
-    const svc = services[local];
-    if (!svc || typeof svc.fetchAndUpdateModels !== "function") {
-      continue;
-    }
-    try {
-      await svc.fetchAndUpdateModels();
-    } catch (error) {
-      console.warn(`Probe of ${local} failed:`, error);
-      continue;
-    }
-    if (Array.isArray(svc.models) && svc.models.some(isUsableModel)) {
-      applyService(local);
+  if (currentIsCloud) {
+    for (const local of ["lmstudio", "ollama"]) {
+      const svc = services[local];
+      if (!svc || typeof svc.fetchAndUpdateModels !== "function") {
+        continue;
+      }
+      try {
+        await svc.fetchAndUpdateModels();
+      } catch (error) {
+        console.warn(`Probe of ${local} failed:`, error);
+        continue;
+      }
+      if (Array.isArray(svc.models) && svc.models.some(isUsableModel)) {
+        applyService(local);
 
-      logServices(`No cloud API keys found; defaulting to ${local}.`);
-      return true;
+        logServices(`Local server ${local} reachable on launch; defaulting to it.`);
+        return true;
+      }
     }
+  }
+
+  if (!currentIsCloud || hasKey(current)) {
+    return false;
+  }
+
+  const cloudFallback = pickCloudFallback(services, current);
+  if (cloudFallback) {
+    applyService(cloudFallback);
+    logServices(`No API key for ${current}; defaulting to ${cloudFallback}.`);
+    return false;
   }
 
   return false;

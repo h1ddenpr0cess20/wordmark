@@ -12,7 +12,7 @@ import { updateFeatureStatus, updateModelSelector } from "../components/settings
 import { refreshToolSettingsUI } from "../components/tools.ts";
 import { config } from "../../config/config.ts";
 import { state } from "../init/state.ts";
-import { API_KEYS_STORAGE_PREFIX, loadApiKeysIntoConfig } from "./apiKeyStorage.ts";
+import { API_KEYS_STORAGE_PREFIX, loadApiKeysIntoConfig, loadLocalServerUrlsIntoConfig } from "./apiKeyStorage.ts";
 import { STORAGE_KEYS } from "../utils/storage/storage.ts";
 import { isLocalService } from "./providers.ts";
 import { normalizeServerBaseUrl } from "../utils/utils.ts";
@@ -366,6 +366,7 @@ function loadApiKeys() {
  */
 function ensureApiKeysLoaded() {
   loadApiKeysIntoConfig();
+  loadLocalServerUrlsIntoConfig();
 
   if (typeof loadApiKeys === "function") {
     loadApiKeys();
