@@ -24,6 +24,40 @@
 </div>
 
 <div class="settings-group">
+  <h3>Skills</h3>
+  <p class="info-text">Skills are named instruction packages the assistant can load on demand. Enable a skill to make it discoverable; the assistant pulls its full instructions only when a request matches.</p>
+
+  <div class="setting-item">
+    <label>Available Skills</label>
+    <p class="info-text">Toggle skills on/off. Changes take effect immediately.</p>
+    <div id="skills-list">
+      <!-- Skill toggles are added here dynamically -->
+    </div>
+  </div>
+
+  <div class="setting-item">
+    <label>Add New Skill</label>
+    <div class="mcp-add-form">
+      <div class="form-row">
+        <label for="skill-name">Name</label>
+        <input type="text" id="skill-name" placeholder="e.g., Concise Writing" autocomplete="off">
+      </div>
+      <div class="form-row">
+        <label for="skill-description">Description</label>
+        <input type="text" id="skill-description" placeholder="One line shown to the assistant for discovery" autocomplete="off">
+      </div>
+      <div class="form-row">
+        <label for="skill-instructions">Instructions</label>
+        <textarea id="skill-instructions" rows="4" placeholder="Full guidance loaded when the skill is activated"></textarea>
+      </div>
+      <div class="action-buttons">
+        <button type="button" id="add-skill" class="primary-button" title="Add Skill">Add Skill</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="settings-group">
   <h3>MCP Servers</h3>
   <p class="info-text">Configure Model Context Protocol servers to provide additional tools and resources. Each server runs as a separate process and can offer custom functionality.</p>
 

@@ -14,6 +14,8 @@ import { getMemoriesForPrompt } from "../../utils/storage/memoryStorage.ts";
 import { getLocationForPrompt } from "../location.ts";
 import { getMediaToolInstructions } from "../mediaTools.ts";
 import { getToolsDescription } from "../../components/tools.ts";
+import { getSkillsDescription } from "../skills/skills.ts";
+import { supportsClientSideTools } from "./toolManager.ts";
 import { DEFAULT_PERSONALITY, DEFAULT_SYSTEM_PROMPT, PERSONALITY_PROMPT_TEMPLATE, config } from "../../../config/config.ts";
 
 /**
@@ -65,6 +67,11 @@ export function buildDeveloperMessage() {
     if (mediaToolInstructions) {
       developerBlock += `\n${mediaToolInstructions.trim()}`;
     }
+  }
+  const skillsCanUseTool = config?.enableFunctionCalling !== false && supportsClientSideTools();
+  const skillsDescription = getSkillsDescription(skillsCanUseTool);
+  if (skillsDescription) {
+    developerBlock += `\n${skillsDescription.trim()}`;
   }
   const memories = getMemoriesForPrompt();
   if (memories) {

@@ -17,6 +17,8 @@ import { getApiKey } from "../apiKeyStorage.ts";
 import { isLocalService, usesServerManagedTools } from "../providers.ts";
 import { MCP_ASSUME_ONLINE, config } from "../../../config/config.ts";
 import { logVerbose } from "../../utils/logger.ts";
+import { activateSkillToolDefinition } from "../skills/skills.ts";
+import { getEnabledSkills } from "../skills/skillsStore.ts";
 import { TOOL_CATALOG, TOOL_DEFINITIONS, cloneDefinition } from "./tools/catalog.ts";
 import { getToolPreference, isToolEnabled, setToolEnabled, setAllToolsEnabled } from "./tools/preferences.ts";
 import {
@@ -295,8 +297,33 @@ export function getEnabledToolDefinitions(serviceKey: string = getActiveServiceK
 
   if (!restrictKeys) {
     appendMemoryTools(defs, serviceKey, modelName);
+    appendSkillTools(defs, serviceKey, modelName);
   }
   return defs;
+}
+
+/**
+ * Appends the `activate_skill` tool definition when at least one skill is
+ * enabled and the service/model supports client-side tool calls. Skipped when
+ * client-side tools are unavailable — in that case the skills' instructions are
+ * inlined into the developer message instead (see `getSkillsDescription`).
+ *
+ * @param defs - The tool-definition list to append to (mutated in place).
+ * @param serviceKey - Target service; defaults to the active service.
+ * @param modelName - Target model; defaults to the active model.
+ */
+function appendSkillTools(defs: ToolDefinition[], serviceKey: string = getActiveServiceKey(), modelName: string = getActiveModel()) {
+  try {
+    if (!supportsClientSideTools(serviceKey, modelName)) {
+      return;
+    }
+    if (!getEnabledSkills().length) {
+      return;
+    }
+    defs.push(cloneDefinition(activateSkillToolDefinition));
+  } catch (error) {
+    console.warn("Unable to append skill tools:", error);
+  }
 }
 
 /**
