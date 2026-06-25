@@ -71,8 +71,9 @@ export interface SkillInput {
 
 /**
  * Built-in skills shipped in code. Intentionally empty: skills are authored as
- * `SKILL.md` files and uploaded by the user. An example lives in the repo at
- * `skills/frontend-dev.md` for users to upload.
+ * `SKILL.md` files. The bundled examples in `skills/*.md` are seeded into
+ * localStorage as user skills on first run (see {@link seedExampleSkills}),
+ * and users can upload their own.
  */
 export const STATIC_SKILLS: SkillDefinition[] = [];
 
