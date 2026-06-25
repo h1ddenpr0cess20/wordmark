@@ -16,7 +16,7 @@ Skills activate **naturally** — there is no keyword matching.
 - **On providers/models that support tool calling** (OpenAI, xAI, most local models), the assistant sees the list of enabled skills (name + description) and calls the `activate_skill` tool when a request matches, loading that skill's full instructions for the turn. If the skill bundles resource files, it can read them on demand with `read_skill_resource`.
 - **On providers/models that cannot call client‑side tools**, every enabled skill's instructions (and any resources) are inlined into the system prompt instead, so skills still work.
 
-When a skill is loaded you'll see a `🧩 Loaded skill: <name>` notification, and the reasoning panel notes the load.
+When a skill is loaded you'll see a `Loaded skill: <name>` notification, and the reasoning panel notes the load.
 
 A loaded skill's full instructions are only present for the turn that used them — they are stripped from the conversation history before the next request, so they never accumulate in context.
 

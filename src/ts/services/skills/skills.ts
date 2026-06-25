@@ -34,7 +34,7 @@ import type { Message } from "../../../types/api.ts";
 function notifySkillLoaded(message: string) {
   try {
     if (typeof document !== "undefined") {
-      showInfo(`🧩 ${message}`);
+      showInfo(message);
     }
   } catch {
     /* notifications are best-effort */
@@ -213,14 +213,14 @@ export function getSkillsDescription(clientSideToolsSupported: boolean): string 
 
   if (clientSideToolsSupported) {
     const list = enabled.map(skill => {
-      const desc = skill.description ? `: ${skill.description}` : "";
+      const desc = skill.description ? ` — ${skill.description}` : "";
       const resourceNote = skill.resources.length ? " (has resources)" : "";
-      return `- [${skill.id}] ${skill.name}${desc}${resourceNote}`;
+      return `- ${skill.name}${desc}\n  id: ${skill.id}${resourceNote}`;
     });
     return `\nAvailable skills, each loadable with the ${ACTIVATE_SKILL_TOOL_NAME} tool:\n${list.join("\n")}\n`
       + `If the user's request matches one of these skills, you MUST call ${ACTIVATE_SKILL_TOOL_NAME} `
-      + "with that skill's id BEFORE you answer, then follow the instructions it returns. Do not rely on the "
-      + "one-line description alone, and do not mention this process to the user.\n";
+      + "with that skill's id (the value after \"id:\") BEFORE you answer, then follow the instructions it "
+      + "returns. Do not rely on the one-line description alone, and do not mention this process to the user.\n";
   }
 
   return "\nActive skills — apply the relevant instructions below when they fit the request:\n\n"

@@ -30,10 +30,10 @@ const logStream = createScopedLogger("stream");
 /** Reasoning-panel header for a tool call, with friendly labels for skill tools. */
 function toolReasoningLabel(name: string): string {
   if (name === ACTIVATE_SKILL_TOOL_NAME) {
-    return "🧩 loading skill";
+    return "loading skill";
   }
   if (name === READ_SKILL_RESOURCE_TOOL_NAME) {
-    return "📄 reading skill resource";
+    return "reading skill resource";
   }
   return `🔧 ${name}`;
 }
@@ -332,7 +332,7 @@ export function createStreamingEventProcessor(runtime: StreamingRuntime) {
           if (exec.name === ACTIVATE_SKILL_TOOL_NAME) {
             const skillName = activatedSkillName(item?.arguments ?? argBuffers.get(itemId));
             if (skillName) {
-              runtime.appendReasoningLine(`  🧩 _loaded skill: ${skillName}_`);
+              runtime.appendReasoningLine(`  _loaded skill: ${skillName}_`);
             }
           }
           const duration = Date.now() - exec.startTime;
