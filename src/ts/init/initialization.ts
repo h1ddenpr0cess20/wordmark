@@ -19,6 +19,7 @@ import { initTabs, openApiKeysTabIfNeeded } from "../components/ui/settingsTabs.
 import { initMemorySettings } from "../components/memory.ts";
 import { updateHeaderInfo, updateModelSelector, updateFeatureStatus, initializePersonalityInput, applyDataSettingsState } from "../components/settings.ts";
 import { initToolsSettings } from "../components/tools.ts";
+import { initSkillsSettings } from "../components/skills.ts";
 import { initImageUploads } from "../components/attachments/attachments.ts";
 import { initializeModelSettings } from "./modelSettings.ts";
 import { setupEventListeners } from "./eventListeners.ts";
@@ -103,6 +104,13 @@ export async function initialize() {
       logInit("MCP servers initialized.");
     } catch (e) {
       console.error("MCP servers initialization failed:", e);
+    }
+
+    try {
+      initSkillsSettings();
+      logInit("Skills settings initialized.");
+    } catch (e) {
+      console.error("Skills settings initialization failed:", e);
     }
 
     try {

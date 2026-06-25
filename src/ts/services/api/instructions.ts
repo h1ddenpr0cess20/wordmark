@@ -14,6 +14,8 @@ import { getMemoriesForPrompt } from "../../utils/storage/memoryStorage.ts";
 import { getLocationForPrompt } from "../location.ts";
 import { getMediaToolInstructions } from "../mediaTools.ts";
 import { getToolsDescription } from "../../components/tools.ts";
+import { getSkillsDescription } from "../skills/skills.ts";
+import { supportsClientSideTools } from "./toolManager.ts";
 import { DEFAULT_PERSONALITY, DEFAULT_SYSTEM_PROMPT, PERSONALITY_PROMPT_TEMPLATE, config } from "../../../config/config.ts";
 
 /**
@@ -44,34 +46,49 @@ export function buildInstructions() {
  */
 export function buildDeveloperMessage() {
   const instructions = buildInstructions();
-  if (!instructions) {
-    return "";
-  }
-  const locationInfo = getLocationForPrompt();
-  const timestamp = buildTimestampString();
   let developerBlock = instructions;
-  if (locationInfo && !developerBlock.includes(locationInfo)) {
-    developerBlock += `\nCurrent location context${locationInfo}`;
-  }
-  if (!developerBlock.includes(timestamp)) {
-    developerBlock += `\n(Generated on ${timestamp})`;
-  }
-  if (config?.enableFunctionCalling) {
-    const toolsDescription = getToolsDescription();
-    if (toolsDescription) {
-      developerBlock += `\n${toolsDescription.trim()}`;
+
+  // The location/timestamp/tool context augments an actual system prompt, so it
+  // is only attached when there is one (e.g. "no prompt" mode stays bare).
+  if (instructions) {
+    const locationInfo = getLocationForPrompt();
+    const timestamp = buildTimestampString();
+    if (locationInfo && !developerBlock.includes(locationInfo)) {
+      developerBlock += `\nCurrent location context${locationInfo}`;
     }
-    const mediaToolInstructions = getMediaToolInstructions();
-    if (mediaToolInstructions) {
-      developerBlock += `\n${mediaToolInstructions.trim()}`;
+    if (!developerBlock.includes(timestamp)) {
+      developerBlock += `\n(Generated on ${timestamp})`;
+    }
+    if (config?.enableFunctionCalling) {
+      const toolsDescription = getToolsDescription();
+      if (toolsDescription) {
+        developerBlock += `\n${toolsDescription.trim()}`;
+      }
+      const mediaToolInstructions = getMediaToolInstructions();
+      if (mediaToolInstructions) {
+        developerBlock += `\n${mediaToolInstructions.trim()}`;
+      }
     }
   }
-  const memories = getMemoriesForPrompt();
-  if (memories) {
-    developerBlock += `\n${memories.trim()}`;
+
+  // Skills must be discoverable whenever they are enabled — even with no base
+  // prompt — otherwise the `activate_skill` tool is offered with no list of
+  // skills (or ids) for the model to act on.
+  const skillsCanUseTool = config?.enableFunctionCalling !== false && supportsClientSideTools();
+  const skillsDescription = getSkillsDescription(skillsCanUseTool);
+  if (skillsDescription) {
+    developerBlock += `\n${skillsDescription.trim()}`;
   }
+
+  if (instructions) {
+    const memories = getMemoriesForPrompt();
+    if (memories) {
+      developerBlock += `\n${memories.trim()}`;
+    }
+  }
+
   const trimmed = developerBlock.trim();
-  return trimmed ? trimmed : null;
+  return trimmed ? trimmed : "";
 }
 
 function buildPersonalityInstruction() {

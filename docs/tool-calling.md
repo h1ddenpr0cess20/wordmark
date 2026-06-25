@@ -37,6 +37,7 @@ Built-in Tools
 - `image_generation` (type: `builtin`) — OpenAI image generation. Outputs processed by `src/ts/services/streaming/imageGeneration.ts`.
 - `file_search` (type: `builtin`) — Vector store search across uploaded documents (OpenAI only). Rendered in reasoning timeline. xAI uses direct `input_file` references instead.
 - MCP connectors (type: `mcp`) — User-supplied servers registered in Settings → Tools. Availability depends on the external MCP server responding to ping checks.
+- `activate_skill` / `read_skill_resource` (type: `function`) — Added automatically when one or more **skills** are enabled, so the model can load a skill's instructions and bundled resources on demand. See docs/skills.md.
 
 Credentials
 

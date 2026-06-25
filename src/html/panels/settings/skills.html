@@ -1,0 +1,18 @@
+<div class="settings-group">
+  <h3>Skills</h3>
+  <p class="info-text">Skills are named instruction packages the assistant can load on demand. Enable a skill to make it discoverable; the assistant sees its name and description and pulls the full instructions itself when a request matches — there are no keywords to set up.</p>
+
+  <div class="setting-item">
+    <div class="skills-list-header">
+      <label>Available Skills</label>
+      <div class="skills-list-actions">
+        <button type="button" id="import-skill" class="primary-button" title="Upload a SKILL.md file">Upload Skill</button>
+        <input type="file" id="import-skill-input" accept=".md,.markdown,text/markdown" multiple hidden>
+      </div>
+    </div>
+    <p class="info-text">Upload a <code>SKILL.md</code> file to add a skill. Toggle skills on/off below — changes take effect immediately. Export any skill to get a <code>SKILL.md</code> you can edit and re-upload.</p>
+    <div id="skills-list">
+      <!-- Skill toggles are added here dynamically -->
+    </div>
+  </div>
+</div>

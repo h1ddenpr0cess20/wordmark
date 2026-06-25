@@ -8,6 +8,7 @@ import panelsHtml from "../../../html/panels.html?raw";
 import personalityHtml from "../../../html/panels/settings/personality.html?raw";
 import modelHtml from "../../../html/panels/settings/model.html?raw";
 import toolsHtml from "../../../html/panels/settings/tools.html?raw";
+import skillsHtml from "../../../html/panels/settings/skills.html?raw";
 import dataHtml from "../../../html/panels/settings/data.html?raw";
 import memoryHtml from "../../../html/panels/settings/memory.html?raw";
 import ttsHtml from "../../../html/panels/settings/tts.html?raw";
@@ -24,6 +25,7 @@ const PANEL_HTML = {
   "src/html/panels/settings/personality.html": personalityHtml,
   "src/html/panels/settings/model.html": modelHtml,
   "src/html/panels/settings/tools.html": toolsHtml,
+  "src/html/panels/settings/skills.html": skillsHtml,
   "src/html/panels/settings/data.html": dataHtml,
   "src/html/panels/settings/memory.html": memoryHtml,
   "src/html/panels/settings/tts.html": ttsHtml,
@@ -72,6 +74,7 @@ const SETTINGS_TAB_PARTIALS = [
   { filePath: "src/html/panels/settings/personality.html", containerId: "content-personality" },
   { filePath: "src/html/panels/settings/model.html", containerId: "content-model" },
   { filePath: "src/html/panels/settings/tools.html", containerId: "content-tools" },
+  { filePath: "src/html/panels/settings/skills.html", containerId: "content-skills" },
   { filePath: "src/html/panels/settings/data.html", containerId: "content-data" },
   { filePath: "src/html/panels/settings/memory.html", containerId: "content-memory" },
   { filePath: "src/html/panels/settings/tts.html", containerId: "content-tts" },

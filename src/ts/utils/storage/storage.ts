@@ -27,6 +27,10 @@ export const STORAGE_KEYS = {
   toolPreferences: "wordmark_tool_preferences",
   mcpServers: "mcp_servers",
 
+  skills: "wordmark_skills",
+  skillPreferences: "wordmark_skill_preferences",
+  skillsSeededExamples: "wordmark_skills_seeded_examples",
+
   vectorStores: "wordmark_vector_stores",
   activeVectorStore: "active_vector_store",
 

@@ -20,10 +20,40 @@ import {
 } from "./eventParsing.ts";
 import { createScopedLogger } from "../../utils/logger.ts";
 import { showWarning } from "../../utils/notifications.ts";
+import { ACTIVATE_SKILL_TOOL_NAME, READ_SKILL_RESOURCE_TOOL_NAME } from "../skills/skills.ts";
+import { getSkillById } from "../skills/skillsStore.ts";
 
 type StreamingRuntime = ReturnType<typeof createStreamingRuntime>;
 
 const logStream = createScopedLogger("stream");
+
+/** Reasoning-panel header for a tool call, with friendly labels for skill tools. */
+function toolReasoningLabel(name: string): string {
+  if (name === ACTIVATE_SKILL_TOOL_NAME) {
+    return "loading skill";
+  }
+  if (name === READ_SKILL_RESOURCE_TOOL_NAME) {
+    return "reading skill resource";
+  }
+  return `🔧 ${name}`;
+}
+
+/** Resolves the display name for an activated skill from a function call's raw arguments. */
+function activatedSkillName(rawArgs: string | undefined): string | null {
+  if (!rawArgs) {
+    return null;
+  }
+  try {
+    const parsed = JSON.parse(rawArgs);
+    const id = typeof parsed?.skill_id === "string" ? parsed.skill_id : "";
+    if (!id) {
+      return null;
+    }
+    return getSkillById(id)?.name || id;
+  } catch {
+    return null;
+  }
+}
 
 /**
  * Creates the SSE event processor for a streaming turn. The returned handler
@@ -234,7 +264,7 @@ export function createStreamingEventProcessor(runtime: StreamingRuntime) {
           status: "started",
           startTime: Date.now(),
         });
-        runtime.appendReasoningLine(`**🔧 ${name}**:`);
+        runtime.appendReasoningLine(`**${toolReasoningLabel(name)}**:`);
       }
       break;
     }
@@ -299,6 +329,12 @@ export function createStreamingEventProcessor(runtime: StreamingRuntime) {
       } else if ((itype.includes("tool") || itype.includes("function")) && !itype.includes("output")) {
         const exec = toolExecutions.get(itemId);
         if (exec) {
+          if (exec.name === ACTIVATE_SKILL_TOOL_NAME) {
+            const skillName = activatedSkillName(item?.arguments ?? argBuffers.get(itemId));
+            if (skillName) {
+              runtime.appendReasoningLine(`  _loaded skill: ${skillName}_`);
+            }
+          }
           const duration = Date.now() - exec.startTime;
           runtime.appendReasoningLine(`✔️ _completed in ${duration}ms_`);
           runtime.appendReasoningLine("");

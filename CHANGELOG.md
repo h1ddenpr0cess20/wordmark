@@ -2,6 +2,22 @@
 
 All notable changes to Wordmark are documented here. Earlier versions didn't follow proper semver — this changelog reflects what actually shipped, not what the version numbers said at the time.
 
+## [3.7.0] - 2026-06-25
+
+Agent skills. Backward-compatible.
+
+### Added
+- **Skills** — named instruction packages the assistant loads on demand to specialize its behavior for a task. Skills are authored as `SKILL.md` files (name/description in frontmatter, instructions in the body) and stored locally in the browser. The model sees only each enabled skill's name and description and loads the full instructions itself via the `activate_skill` tool when a request matches — no keyword matching. On providers/models that can't call client-side tools, enabled skills are inlined into the prompt instead so they still work.
+- **Bundled resources** — a skill can carry reference files, read on demand via `read_skill_resource` (inlined directly on no-tool providers).
+- **Settings → Skills tab** — enable/disable toggles, upload (`SKILL.md`), export, and delete. Three examples ship pre-loaded (Frontend Development, Email Assistant, Brainstorming Partner), seeded individually so newly shipped examples reach existing users without resurrecting deleted ones.
+- **Load indicator** — a `Loaded skill: <name>` notification and a reasoning-panel annotation fire when a skill is loaded.
+
+### Changed
+- **Reasoning panel** now auto-follows the stream only when you're already at the bottom, so you can scroll up to read earlier reasoning mid-stream.
+
+### Fixed
+- **Context hygiene** — a loaded skill's full instructions ride only the turn that used them; prior skill tool call/output pairs are stripped from carried history so they never accumulate in context.
+
 ## [3.6.1] - 2026-06-22
 
 Mobile landscape fixes. Backward-compatible.
