@@ -39,6 +39,14 @@ ps aux --sort=-%mem | head; ss -tulpn                      # who's running / lis
 find . -name '*.log' -print0 | xargs -0 -P"$(nproc)" -n1 gzip   # parallel, NUL-safe
 find . -name '*.bak' -delete                                    # no xargs needed
 ```
+  `find` is a query language, not just a lister — lean on its predicates:
+```bash
+find . -type f -mmin -60                  # changed in the last hour
+find . -type f -size +100M                # the disk hogs
+find . -newer ref.txt                      # newer than a reference file
+find . -name node_modules -prune -o -type f -print   # skip a heavy subtree
+find . -type f -exec grep -l TODO {} +     # batch into few execs (+ not \;)
+```
 - **Brace expansion** for backups and batches: `cp config.yml{,.bak}`,
   `mkdir -p build/{bin,lib,obj}`.
 - **Process substitution** to diff/feed without temp files:
@@ -68,6 +76,42 @@ find . -name '*.bak' -delete                                    # no xargs neede
 - **`comm`/`diff`/`sort -u`** for set operations on line-lists.
 - **`stat -c '%s %n'`**, **`du -sh *`**, **`df -h`** when "why is this slow/full"
   is the real question.
+- **Text plumbing** — reach for these before writing a parser:
+  - `cut -d, -f2,5` (pick columns), `tr -d '\r'` / `tr A-Z a-z` (delete/translate
+    chars — fixes CRLF and case), `paste -d, a b` (join files side by side).
+  - `sed -n '10,20p' f` (print a line range), `sed -i.bak 's/x/y/g' f` (in-place
+    edit with a backup), `grep -o 'pat'` (print only the match), `grep -c`
+    (count), `grep -A3 -B1` (context around hits).
+  - `nl` to number lines, `tac` to reverse, `head`/`tail -n +N` to slice from a
+    point, `tail -f` to follow a growing log.
+
+## Debugging when something misbehaves
+- **Trace the shell itself**: prefix a command with `set -x` (or run a script as
+  `bash -x script.sh`) to see every expansion and exactly what ran.
+- **`strace -f -e trace=open,read,connect -p <pid>`** (or wrapping the command)
+  answers "what file/host is it actually touching?" when a program fails
+  silently. `ltrace` does the same for library calls.
+- **`lsof -p <pid>`** lists a process's open files and sockets; `lsof -i :8080`
+  finds who holds a port. `ss -tulpn` is the lighter built-in for ports.
+- **The `/proc` filesystem is a debugger you already have**: `/proc/<pid>/cmdline`
+  (how it was launched, NUL-separated), `/proc/<pid>/environ`, `/proc/<pid>/cwd`,
+  `/proc/<pid>/fd/` (live file descriptors).
+- **Signals & liveness**: `pidof name` / `pgrep -f pattern` to find it,
+  `kill -0 <pid>` to test if it's alive without touching it, `kill -QUIT`/`-USR1`
+  to nudge daemons that dump state on those.
+
+## Networking & HTTP from the shell
+- **`curl` flags that matter**: `-fsSL` (fail on HTTP errors, silent, follow
+  redirects — the right default for scripts), `--retry 3 --retry-delay 2` for
+  flaky endpoints, `-o /dev/null -s -w '%{http_code} %{time_total}s\n'` to probe
+  status and latency without dumping the body.
+- **Port checks without extra tools**: `nc -z host 5432` if `nc` exists, or pure
+  bash `timeout 2 bash -c '</dev/tcp/host/5432' && echo open`.
+- **DNS without `dig`**: `getent hosts example.com` resolves via the system
+  resolver and is always present; `dig`/`host` give more when installed.
+- Prefer the `fetch_url` tool over `curl` for *reading page content* (it parses
+  and falls back to a real browser) — use `curl` for APIs, health checks, and
+  byte-exact transfers.
 
 ## Long-running & background work
 - A single `execute_command` blocks. For builds, servers, or scrapers,
@@ -78,6 +122,11 @@ tail -n 40 /tmp/job.log; jobs -l               # later calls: poll progress
 ```
 - Capture both streams and the exit code when it matters:
   `./step > out.log 2> err.log; echo "exit=$?"`.
+- **Fan out, then wait**: launch several jobs with `&` and block on all of them
+  with `wait` in the same call — `for h in a b c; do probe "$h" & done; wait`.
+- **Guard against overlapping runs** (easy to trigger when each call is a fresh
+  shell): `flock -n /tmp/job.lock -c './job'` runs the job only if no other
+  holder has the lock, so a re-fired call won't double-start it.
 
 ## Gotchas that quietly bite
 - **`$?` lies about pipelines.** It's only the *last* command's status, so
