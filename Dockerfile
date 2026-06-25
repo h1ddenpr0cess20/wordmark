@@ -12,6 +12,7 @@ RUN npm ci
 COPY vite.config.ts tsconfig.json index.html ./
 COPY src ./src
 COPY public ./public
+COPY skills ./skills
 RUN npm run build
 
 # --- Runtime stage: serve the built static files with Nginx ---
