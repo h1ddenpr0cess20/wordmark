@@ -26,6 +26,7 @@ Modules
 - `components/`: UI behavior
   - `messages.ts`: render messages, code highlighting + copy buttons, reasoning toggle, image thumbnails in messages
   - `settings.ts`: header update, service/model dropdowns, settings panel layout helpers, and UI hooks that model-fetchers call
+  - `skills.ts`: Skills settings tab — upload/export/delete and enable toggles (see [docs/skills.md](./skills.md))
   - `theme.ts`, `attachments/`, `logo.ts`, `aboutPopups.ts`, plus `ui/` helpers: general UI composition, themes, uploads, logo render, small popups
 
 - `services/`: API and feature services
@@ -42,6 +43,7 @@ Modules
   - `tts/`: voice list, autoplay, per-message audio resources, and IndexedDB for audio
   - `location.ts`: optional geolocation + reverse geocode for prompt context
   - `weather.ts`: Open-Meteo tool handler used by the built-in function call
+  - `skills/`: agent skills — `skillsStore.ts` (local storage, `SKILL.md` parse/serialize, example seeding) and `skills.ts` (the `activate_skill`/`read_skill_resource` tools, prompt-section builder, and context stripping). Loaded on demand via tool calling; example skills live in `skills/*.md` (see [docs/skills.md](./skills.md))
   - `party/`: Party mode (autonomous multi-character group chat) — `partyEngine.ts` (the turn-loop singleton: speaker selection, interjections, pause/resume/stop, control bar), `partyPrompts.ts` (system/turn/decision prompt builders), `partyTypes.ts`, and `partyState.ts` (setup-form defaults). Runs on top of `runTurn`; the tab UI is `components/party/partyTab.ts` (see [docs/party-mode.md](./party-mode.md))
 
 - `utils/`: common helpers

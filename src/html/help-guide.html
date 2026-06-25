@@ -125,6 +125,15 @@
         </ul>
         <p><strong>Note:</strong> The built-in helpers do not require extra keys (Grok Imagine needs an xAI key). MCP servers manage their own authentication and may need credentials on their side.</p>
 
+        <h3>Skills</h3>
+        <p>Skills are named instruction packages the assistant loads on demand to specialize for a task. A few examples ship pre-loaded.</p>
+        <ul>
+          <li><strong>Manage:</strong> Open Settings → Skills to enable/disable skills, upload your own, or export and delete them.</li>
+          <li><strong>Upload:</strong> Add a skill by uploading a <code>SKILL.md</code> file (name and description in frontmatter, instructions in the body).</li>
+          <li><strong>Natural activation:</strong> The assistant sees each enabled skill's name and description and loads the full instructions itself when your request matches — no keywords to memorize. You'll see a “Loaded skill” note when it does.</li>
+          <li><strong>Local only:</strong> Skills are stored in your browser. Instructions are sent only to your chosen provider, and a loaded skill does not linger in later messages.</li>
+        </ul>
+
         <h3>Memory</h3>
         <p>Use the Memory feature to let the assistant remember or forget brief details you provide.</p>
         <ul>
