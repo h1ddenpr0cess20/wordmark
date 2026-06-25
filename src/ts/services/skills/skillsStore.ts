@@ -19,7 +19,7 @@
  * pure persistence/serialization — no DOM or request-pipeline concerns.
  */
 
-import { STORAGE_KEYS, readJSON, writeJSON, readString, writeString } from "../../utils/storage/storage.ts";
+import { STORAGE_KEYS, readJSON, writeJSON } from "../../utils/storage/storage.ts";
 import { createScopedLogger } from "../../utils/logger.ts";
 import exampleFrontendSkillMarkdown from "../../../../skills/frontend-dev.md?raw";
 import exampleEmailSkillMarkdown from "../../../../skills/email-writing.md?raw";
@@ -245,24 +245,50 @@ export function getEnabledSkills(): SkillDefinition[] {
 }
 
 /**
- * Seeds the bundled example skill (`skills/frontend-dev.md`) into storage on
- * first run so users start with a skill already listed and enabled. Runs once —
- * tracked by a localStorage flag — so a user who deletes it won't see it return.
+ * Seeds the bundled example skills (`skills/*.md`) into storage so users start
+ * with skills already listed and enabled.
+ *
+ * @remarks
+ * Each example is tracked individually (by name) in a persisted "already seeded"
+ * list, so:
+ *  - a user who deletes a seeded example won't see it return, and
+ *  - examples added in a later release are seeded for existing users too,
+ *    rather than being skipped by a single global "seeded once" flag.
+ *
  * Idempotent and safe to call on every startup.
  */
 export function seedExampleSkills() {
-  if (readString(STORAGE_KEYS.skillsSeeded)) {
-    return;
-  }
+  const stored = readJSON<string[]>(STORAGE_KEYS.skillsSeededExamples, []);
+  const seeded = new Set(Array.isArray(stored) ? stored : []);
+  let changed = false;
+
   EXAMPLE_SKILL_MARKDOWN.forEach(markdown => {
+    let input: SkillInput;
     try {
-      const skill = addUserSkill(parseSkillMarkdown(markdown));
-      setSkillEnabled(skill.id, true);
+      input = parseSkillMarkdown(markdown);
+    } catch (err) {
+      logSkills("Failed to parse example skill:", err);
+      return;
+    }
+    if (seeded.has(input.name)) {
+      return;
+    }
+    try {
+      // Avoid duplicating an example a user (or an earlier seed) already has.
+      if (!getAllSkills().some(skill => skill.name === input.name)) {
+        const skill = addUserSkill(input);
+        setSkillEnabled(skill.id, true);
+      }
+      seeded.add(input.name);
+      changed = true;
     } catch (err) {
       logSkills("Failed to seed example skill:", err);
     }
   });
-  writeString(STORAGE_KEYS.skillsSeeded, "1");
+
+  if (changed) {
+    writeJSON(STORAGE_KEYS.skillsSeededExamples, [...seeded]);
+  }
 }
 
 // --- SKILL.md serialization -----------------------------------------------

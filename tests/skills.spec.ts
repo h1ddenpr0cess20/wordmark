@@ -174,14 +174,30 @@ test('parseSkillMarkdown falls back to a heading when no frontmatter', () => {
 });
 
 // Runs last: seeding persists into the shared mock localStorage for this file.
-test('seedExampleSkills loads the bundled example once, enabled', () => {
+test('seedExampleSkills loads every bundled example, enabled', () => {
   seedExampleSkills();
-  const example = getAllSkills().find(skill => skill.name === 'Frontend Development');
-  assert.ok(example, 'bundled example skill is seeded');
-  assert.ok(isSkillEnabled(example!.id), 'seeded skill is enabled');
-  assert.ok(example!.resources.length >= 1, 'example carries its bundled resource');
+  for (const name of ['Frontend Development', 'Email Assistant', 'Brainstorming Partner']) {
+    const example = getAllSkills().find(skill => skill.name === name);
+    assert.ok(example, `bundled example "${name}" is seeded`);
+    assert.ok(isSkillEnabled(example!.id), `"${name}" is enabled`);
+  }
 
   const countAfter = getAllSkills().length;
   seedExampleSkills();
   assert.equal(getAllSkills().length, countAfter, 'seeding twice does not duplicate');
+});
+
+test('seedExampleSkills tracks examples individually (no resurrection, seeds new ones)', () => {
+  // Existing install that already saw Frontend Development + Brainstorming Partner
+  // and deleted them; Email Assistant did not exist yet at that time.
+  localStorage.removeItem('wordmark_skills');
+  localStorage.removeItem('wordmark_skill_preferences');
+  localStorage.setItem('wordmark_skills_seeded_examples', JSON.stringify(['Frontend Development', 'Brainstorming Partner']));
+
+  seedExampleSkills();
+  const names = getAllSkills().map(skill => skill.name);
+
+  assert.ok(!names.includes('Frontend Development'), 'a deleted seeded example is not resurrected');
+  assert.ok(!names.includes('Brainstorming Partner'), 'a deleted seeded example is not resurrected');
+  assert.ok(names.includes('Email Assistant'), 'a newly-added example is seeded for existing users');
 });
