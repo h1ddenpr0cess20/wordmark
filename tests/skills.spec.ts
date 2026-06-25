@@ -36,6 +36,7 @@ const {
 const {
   getSkillsDescription,
   hasEnabledSkillResources,
+  stripSkillToolMessages,
   activateSkillToolDefinition,
   readSkillResourceToolDefinition,
   ACTIVATE_SKILL_TOOL_NAME,
@@ -111,6 +112,29 @@ test('read_skill_resource returns bundled resource content', async () => {
   assert.equal(missing.ok, false);
 
   removeUserSkill(skill.id);
+});
+
+test('stripSkillToolMessages drops skill tool calls/outputs, keeps real turns', () => {
+  const history = [
+    { role: 'user', content: 'help me write an email' },
+    { type: 'function_call', name: ACTIVATE_SKILL_TOOL_NAME, call_id: 'c1', arguments: '{"skill_id":"user:x"}' },
+    { type: 'function_call_output', call_id: 'c1', output: 'FULL SKILL INSTRUCTIONS...' },
+    { role: 'assistant', content: 'Here is your email.' },
+    // a non-skill tool call must be preserved
+    { type: 'function_call', name: 'open_meteo_forecast', call_id: 'c2', arguments: '{}' },
+    { type: 'function_call_output', call_id: 'c2', output: 'sunny' },
+  ];
+  const cleaned = stripSkillToolMessages(history as never);
+
+  assert.ok(!cleaned.some((m: { name?: string }) => m.name === ACTIVATE_SKILL_TOOL_NAME), 'skill call dropped');
+  assert.ok(!cleaned.some((m: { call_id?: string; type?: string }) => m.type === 'function_call_output' && m.call_id === 'c1'), 'skill output dropped');
+  assert.ok(cleaned.some((m: { name?: string }) => m.name === 'open_meteo_forecast'), 'non-skill tool call kept');
+  assert.ok(cleaned.some((m: { call_id?: string }) => m.call_id === 'c2'), 'non-skill output kept');
+  assert.equal(cleaned.length, 4, 'only the two skill artifacts removed');
+
+  // No skill artifacts -> returns the same array reference (cheap no-op).
+  const plain = [{ role: 'user', content: 'hi' }];
+  assert.equal(stripSkillToolMessages(plain as never), plain);
 });
 
 test('tool definitions are strict function tools', () => {

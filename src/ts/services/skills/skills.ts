@@ -24,6 +24,7 @@ import { toolImplementations } from "../toolImplementations.ts";
 import { getEnabledSkills, getSkillById, type SkillDefinition } from "./skillsStore.ts";
 import { showInfo } from "../../utils/notifications.ts";
 import type { ToolDefinition } from "../../../types/tools.ts";
+import type { Message } from "../../../types/api.ts";
 
 /**
  * Surfaces a deterministic "skill loaded" indicator to the user. Runs from the
@@ -140,6 +141,47 @@ export function hasEnabledSkillResources(): boolean {
   return getEnabledSkills().some(skill => skill.resources.length > 0);
 }
 
+/** The skill tool names whose call/output pairs are stripped from carried history. */
+const SKILL_TOOL_NAMES = new Set([ACTIVATE_SKILL_TOOL_NAME, READ_SKILL_RESOURCE_TOOL_NAME]);
+
+/**
+ * Removes skill tool-call artifacts (the `activate_skill` / `read_skill_resource`
+ * `function_call` entries and their matching `function_call_output` results) from
+ * a message list.
+ *
+ * @remarks
+ * A loaded skill's full instructions ride in the tool result only for the turn
+ * that used it. Stripping any such artifacts from the conversation history before
+ * the next request guarantees those instructions never accumulate in context,
+ * regardless of how upstream flows persist messages. The current turn's freshly
+ * appended tool exchange is unaffected — it is added after this runs.
+ */
+export function stripSkillToolMessages(messages: Message[]): Message[] {
+  const skillCallIds = new Set<string>();
+  for (const message of messages) {
+    if (
+      message?.type === "function_call"
+      && typeof message.name === "string"
+      && SKILL_TOOL_NAMES.has(message.name)
+      && message.call_id
+    ) {
+      skillCallIds.add(message.call_id);
+    }
+  }
+  if (!skillCallIds.size) {
+    return messages;
+  }
+  return messages.filter(message => {
+    if (message?.type === "function_call" && typeof message.name === "string" && SKILL_TOOL_NAMES.has(message.name)) {
+      return false;
+    }
+    if (message?.type === "function_call_output" && message.call_id && skillCallIds.has(message.call_id)) {
+      return false;
+    }
+    return true;
+  });
+}
+
 /**
  * Formats one skill's full instructions for inlining into the developer message.
  * Used only on providers that cannot call tools, so any bundled resources are
@@ -175,8 +217,10 @@ export function getSkillsDescription(clientSideToolsSupported: boolean): string 
       const resourceNote = skill.resources.length ? " (has resources)" : "";
       return `- [${skill.id}] ${skill.name}${desc}${resourceNote}`;
     });
-    return `\nAvailable skills. When a request matches one, call ${ACTIVATE_SKILL_TOOL_NAME} with its id `
-      + `to load its full instructions, then follow them:\n${list.join("\n")}\n`;
+    return `\nAvailable skills, each loadable with the ${ACTIVATE_SKILL_TOOL_NAME} tool:\n${list.join("\n")}\n`
+      + `If the user's request matches one of these skills, you MUST call ${ACTIVATE_SKILL_TOOL_NAME} `
+      + "with that skill's id BEFORE you answer, then follow the instructions it returns. Do not rely on the "
+      + "one-line description alone, and do not mention this process to the user.\n";
   }
 
   return "\nActive skills — apply the relevant instructions below when they fit the request:\n\n"

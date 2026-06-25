@@ -17,6 +17,7 @@ import {
   serializeMessagesForRequest,
 } from "./messageUtils.ts";
 import { buildDeveloperMessage } from "./instructions.ts";
+import { stripSkillToolMessages } from "../skills/skills.ts";
 import { windowMessagesByTokenBudget } from "./tokenBudget.ts";
 import {
   serviceSupportsReasoning,
@@ -158,9 +159,11 @@ export async function runTurn({
   allowedTools,
   temperature,
 }: RunTurnOptions): Promise<RunTurnResult> {
-  const baseMessages = Array.isArray(inputMessages)
-    ? inputMessages.filter(msg => msg && msg.role !== "developer" && msg.role !== "system")
-    : [];
+  const baseMessages = stripSkillToolMessages(
+    Array.isArray(inputMessages)
+      ? inputMessages.filter(msg => msg && msg.role !== "developer" && msg.role !== "system")
+      : [],
+  );
   let previousResponseId: string | null = null;
   let previousAssistantHadImages = false;
   for (let i = baseMessages.length - 1; i >= 0; i -= 1) {
