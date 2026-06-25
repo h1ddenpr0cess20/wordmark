@@ -46,10 +46,17 @@ find . -name '*.bak' -delete                                    # no xargs neede
 - **`xargs` for cartesian work**: `printf '%s\n' a b c | xargs -I{} curl -s host/{}`.
 - **Heredocs** to write multi-line files cleanly (quote the marker to stop
   expansion): `cat >script.sh <<'EOF' … EOF`.
-- **Trap-and-cleanup** in any script you spawn: `trap 'rm -f "$tmp"' EXIT`.
+- **Safe temp files, trap-and-cleanup**: `tmp=$(mktemp)` (or `mktemp -d`) beats
+  guessing a `/tmp` name; pair with `trap 'rm -f "$tmp"' EXIT` so it's gone even
+  on failure.
 - **`timeout`** anything that might hang: `timeout 30 ./flaky --probe`.
 - **Idempotent dir + atomic write**: `mkdir -p` then write to `file.tmp` and
   `mv` into place, so a half-write never leaves a corrupt file.
+- **Parameter expansion beats spawning** `basename`/`dirname`/`sed`:
+  `"${f##*/}"` (basename), `"${f%/*}"` (dirname), `"${f%.*}"` (drop extension),
+  `"${VAR:-default}"` (fallback), `"${VAR:?must be set}"` (fail loud if empty).
+- **Copy a whole tree with perms/symlinks intact** without `rsync` (which may
+  not exist): `tar -C src -cf - . | tar -C dst -xf -`.
 
 ## Inspecting & transforming data
 - **`jq`** for JSON (check it exists first): `jq -r '.items[].name' data.json`.
@@ -72,6 +79,18 @@ tail -n 40 /tmp/job.log; jobs -l               # later calls: poll progress
 - Capture both streams and the exit code when it matters:
   `./step > out.log 2> err.log; echo "exit=$?"`.
 
+## Gotchas that quietly bite
+- **`$?` lies about pipelines.** It's only the *last* command's status, so
+  `make | tee build.log` reports success even when `make` failed. Fix it:
+  run `set -o pipefail` first, or inspect `"${PIPESTATUS[@]}"` after.
+- **Redirect order matters.** `cmd > f 2>&1` sends both streams to `f`;
+  `cmd 2>&1 > f` sends stderr to the *old* stdout (terminal) and only stdout to
+  `f`. The redirection that "captures everything" is `> f 2>&1`, in that order.
+- **Make scripts fail fast.** Open any non-trivial script you write with
+  `set -euo pipefail` so an unset var or a mid-pipe failure stops it instead of
+  charging ahead on bad state.
+- **`tee` to see *and* save** in one shot: `./build 2>&1 | tee build.log`.
+
 ## File moves: use the right channel
 - `read_file`/`write_file`/`list_directory` give structured results and dodge
   shell-quoting traps — prefer them over `cat`/`tee`/`ls` for routine I/O.
@@ -80,6 +99,9 @@ tail -n 40 /tmp/job.log; jobs -l               # later calls: poll progress
 - `fetch_file` serves a sandbox file over local HTTP (port 9712) when you need
   a **URL** instead of a transfer — handy for handing a built artifact to
   something that wants to fetch it.
+- **Smuggle a small binary through the text-only `execute_command`** when SFTP
+  isn't handy: `base64 -w0 file.bin` to read it out, `base64 -d > file.bin` to
+  write it back. Fine for kilobytes; use SFTP for anything large.
 
 ## Web stack, used well
 - `web_search` / `news_search` (SearXNG, multi-engine, filterable) to find;
