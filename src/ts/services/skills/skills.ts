@@ -22,7 +22,23 @@
 
 import { toolImplementations } from "../toolImplementations.ts";
 import { getEnabledSkills, getSkillById, type SkillDefinition } from "./skillsStore.ts";
+import { showInfo } from "../../utils/notifications.ts";
 import type { ToolDefinition } from "../../../types/tools.ts";
+
+/**
+ * Surfaces a deterministic "skill loaded" indicator to the user. Runs from the
+ * tool handler so it fires whenever a skill is actually loaded, independent of
+ * how the provider streams the call. Guarded for non-DOM environments (tests).
+ */
+function notifySkillLoaded(message: string) {
+  try {
+    if (typeof document !== "undefined") {
+      showInfo(`🧩 ${message}`);
+    }
+  } catch {
+    /* notifications are best-effort */
+  }
+}
 
 /** The function-tool name the model calls to load a skill's full instructions. */
 export const ACTIVATE_SKILL_TOOL_NAME = "activate_skill";
@@ -90,6 +106,7 @@ toolImplementations[ACTIVATE_SKILL_TOOL_NAME] = function(args: { skill_id?: stri
   if (!skill) {
     return { ok: false, message: `No skill found with id "${skillId}"` };
   }
+  notifySkillLoaded(`Loaded skill: ${skill.name}`);
   return {
     ok: true,
     id: skill.id,
@@ -114,6 +131,7 @@ toolImplementations[READ_SKILL_RESOURCE_TOOL_NAME] = function(args: { skill_id?:
   if (!resource) {
     return { ok: false, message: `Skill "${skillId}" has no resource named "${resourceName}"` };
   }
+  notifySkillLoaded(`${skill.name}: read ${resource.name}`);
   return { ok: true, id: skill.id, resource_name: resource.name, content: resource.content };
 };
 
