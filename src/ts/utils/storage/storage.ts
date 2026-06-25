@@ -29,6 +29,7 @@ export const STORAGE_KEYS = {
 
   skills: "wordmark_skills",
   skillPreferences: "wordmark_skill_preferences",
+  skillsSeeded: "wordmark_skills_seeded",
 
   vectorStores: "wordmark_vector_stores",
   activeVectorStore: "active_vector_store",

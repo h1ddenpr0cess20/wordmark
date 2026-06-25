@@ -20,8 +20,9 @@
  * pure persistence/serialization — no DOM or request-pipeline concerns.
  */
 
-import { STORAGE_KEYS, readJSON, writeJSON } from "../../utils/storage/storage.ts";
+import { STORAGE_KEYS, readJSON, writeJSON, readString, writeString } from "../../utils/storage/storage.ts";
 import { createScopedLogger } from "../../utils/logger.ts";
+import exampleFrontendSkillMarkdown from "../../../../skills/frontend-dev.md?raw";
 
 const logSkills = createScopedLogger("skills");
 
@@ -238,6 +239,25 @@ export function removeSkillPreference(id: string) {
 /** Returns the enabled skills in catalog order (built-ins first). */
 export function getEnabledSkills(): SkillDefinition[] {
   return getAllSkills().filter(skill => isSkillEnabled(skill.id));
+}
+
+/**
+ * Seeds the bundled example skill (`skills/frontend-dev.md`) into storage on
+ * first run so users start with a skill already listed and enabled. Runs once —
+ * tracked by a localStorage flag — so a user who deletes it won't see it return.
+ * Idempotent and safe to call on every startup.
+ */
+export function seedExampleSkills() {
+  if (readString(STORAGE_KEYS.skillsSeeded)) {
+    return;
+  }
+  try {
+    const skill = addUserSkill(parseSkillMarkdown(exampleFrontendSkillMarkdown));
+    setSkillEnabled(skill.id, true);
+  } catch (err) {
+    logSkills("Failed to seed example skill:", err);
+  }
+  writeString(STORAGE_KEYS.skillsSeeded, "1");
 }
 
 // --- SKILL.md serialization -----------------------------------------------

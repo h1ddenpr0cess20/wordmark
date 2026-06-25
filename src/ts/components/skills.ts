@@ -22,6 +22,7 @@ import {
   setSkillEnabled,
   parseSkillMarkdown,
   serializeSkillMarkdown,
+  seedExampleSkills,
 } from "../services/skills/skillsStore.ts";
 
 /** Renders the configured skills into the settings list. */
@@ -212,6 +213,7 @@ async function handleImportFiles(files: FileList) {
 
 /** Renders the initial skills list and wires the upload control. */
 export function initSkillsSettings() {
+  seedExampleSkills();
   renderSkillsList();
 
   const importButton = document.getElementById("import-skill");

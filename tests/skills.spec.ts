@@ -30,6 +30,7 @@ const {
   getEnabledSkills,
   serializeSkillMarkdown,
   parseSkillMarkdown,
+  seedExampleSkills,
 } = await import('../src/ts/services/skills/skillsStore.js');
 
 const {
@@ -188,4 +189,17 @@ test('parseSkillMarkdown falls back to a heading when no frontmatter', () => {
   assert.equal(parsed.name, 'Heading Name');
   assert.ok(parsed.instructions.includes('some instructions here'));
   assert.throws(() => parseSkillMarkdown('---\nname: Empty\n---\n'), /no instructions/);
+});
+
+// Runs last: seeding persists into the shared mock localStorage for this file.
+test('seedExampleSkills loads the bundled example once, enabled', () => {
+  seedExampleSkills();
+  const example = getAllSkills().find(skill => skill.name === 'Frontend Development');
+  assert.ok(example, 'bundled example skill is seeded');
+  assert.ok(isSkillEnabled(example!.id), 'seeded skill is enabled');
+  assert.ok(example!.resources.length >= 1, 'example carries its bundled resource');
+
+  const countAfter = getAllSkills().length;
+  seedExampleSkills();
+  assert.equal(getAllSkills().length, countAfter, 'seeding twice does not duplicate');
 });
