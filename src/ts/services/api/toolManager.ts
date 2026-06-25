@@ -17,7 +17,7 @@ import { getApiKey } from "../apiKeyStorage.ts";
 import { isLocalService, usesServerManagedTools } from "../providers.ts";
 import { MCP_ASSUME_ONLINE, config } from "../../../config/config.ts";
 import { logVerbose } from "../../utils/logger.ts";
-import { activateSkillToolDefinition } from "../skills/skills.ts";
+import { activateSkillToolDefinition, readSkillResourceToolDefinition, hasEnabledSkillResources } from "../skills/skills.ts";
 import { getEnabledSkills } from "../skills/skillsStore.ts";
 import { TOOL_CATALOG, TOOL_DEFINITIONS, cloneDefinition } from "./tools/catalog.ts";
 import { getToolPreference, isToolEnabled, setToolEnabled, setAllToolsEnabled } from "./tools/preferences.ts";
@@ -321,6 +321,9 @@ function appendSkillTools(defs: ToolDefinition[], serviceKey: string = getActive
       return;
     }
     defs.push(cloneDefinition(activateSkillToolDefinition));
+    if (hasEnabledSkillResources()) {
+      defs.push(cloneDefinition(readSkillResourceToolDefinition));
+    }
   } catch (error) {
     console.warn("Unable to append skill tools:", error);
   }

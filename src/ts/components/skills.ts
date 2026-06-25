@@ -2,21 +2,26 @@
  * Settings UI for agent skills.
  *
  * @remarks
- * Renders the list of available skills with enable toggles (and a delete action
- * for user-authored skills) and wires the add-skill form. Persistence lives in
- * {@link ../services/skills/skillsStore.ts}; this module is the DOM/wiring layer,
- * mirroring the MCP-server settings UI in
- * {@link ../services/mcpServers.ts}.
+ * Skills are authored as `SKILL.md` files and **uploaded**, not typed into a
+ * form. This module renders the list of available skills with enable toggles
+ * (plus export for any skill and delete for uploaded ones) and wires the upload
+ * control, which parses each file via {@link parseSkillMarkdown} and stores it.
+ * Persistence/serialization live in
+ * {@link ../services/skills/skillsStore.ts}; this is the DOM/wiring layer,
+ * mirroring the MCP-server settings UI in {@link ../services/mcpServers.ts}.
  */
 
 import { icon } from "../utils/icons.ts";
 import { showNotification } from "../utils/notifications.ts";
 import {
   getAllSkills,
+  getSkillById,
   addUserSkill,
   removeUserSkill,
   isSkillEnabled,
   setSkillEnabled,
+  parseSkillMarkdown,
+  serializeSkillMarkdown,
 } from "../services/skills/skillsStore.ts";
 
 /** Renders the configured skills into the settings list. */
@@ -30,7 +35,7 @@ function renderSkillsList() {
   container.innerHTML = "";
 
   if (skills.length === 0) {
-    container.innerHTML = "<p class=\"info-text\" style=\"margin: 0;\">No skills configured. Add one below to get started.</p>";
+    container.innerHTML = "<p class=\"info-text\" style=\"margin: 0;\">No skills yet. Upload a SKILL.md file to get started.</p>";
     return;
   }
 
@@ -54,8 +59,15 @@ function renderSkillsList() {
 
     const badge = document.createElement("span");
     badge.className = `tool-badge tool-badge-${skill.source === "builtin" ? "builtin" : "function"}`;
-    badge.textContent = skill.source === "builtin" ? "Built-in" : "Custom";
+    badge.textContent = skill.source === "builtin" ? "Built-in" : "Uploaded";
     titleRow.appendChild(badge);
+
+    if (skill.resources.length) {
+      const resourceBadge = document.createElement("span");
+      resourceBadge.className = "tool-badge tool-badge-mcp";
+      resourceBadge.textContent = skill.resources.length === 1 ? "1 resource" : `${skill.resources.length} resources`;
+      titleRow.appendChild(resourceBadge);
+    }
 
     info.appendChild(titleRow);
 
@@ -66,8 +78,28 @@ function renderSkillsList() {
       info.appendChild(description);
     }
 
+    if (skill.triggers.length) {
+      const triggers = document.createElement("p");
+      triggers.className = "tool-note";
+      triggers.textContent = `Auto-activates on: ${skill.triggers.join(", ")}`;
+      info.appendChild(triggers);
+    }
+
     const control = document.createElement("div");
     control.className = "tool-toggle-control";
+
+    const exportButton = document.createElement("button");
+    exportButton.type = "button";
+    exportButton.className = "tool-action-delete";
+    exportButton.title = `Export ${skill.name} as SKILL.md`;
+    exportButton.setAttribute("aria-label", `Export ${skill.name}`);
+    exportButton.innerHTML = icon("download", { width: 16, height: 16 });
+    exportButton.addEventListener("click", (event) => {
+      event.preventDefault();
+      event.stopPropagation();
+      handleExportSkill(skill.id);
+    });
+    control.appendChild(exportButton);
 
     if (skill.source === "user") {
       const deleteButton = document.createElement("button");
@@ -119,12 +151,10 @@ function handleSkillToggle(event: Event) {
     return;
   }
   setSkillEnabled(skillId, checkbox.checked);
-  if (showNotification) {
-    showNotification(`${checkbox.checked ? "Enabled" : "Disabled"} ${checkbox.dataset.skillName || "skill"}.`, "success");
-  }
+  showNotification?.(`${checkbox.checked ? "Enabled" : "Disabled"} ${checkbox.dataset.skillName || "skill"}.`, "success");
 }
 
-/** Confirms and removes a user-authored skill, then re-renders. */
+/** Confirms and removes an uploaded skill, then re-renders. */
 function handleRemoveSkill(id: string, name: string) {
   if (!confirm(`Are you sure you want to remove the skill "${name}"?`)) {
     return;
@@ -132,61 +162,67 @@ function handleRemoveSkill(id: string, name: string) {
   try {
     removeUserSkill(id);
     renderSkillsList();
-    if (showNotification) {
-      showNotification("Skill removed successfully", "success");
-    }
+    showNotification?.("Skill removed successfully", "success");
   } catch (error) {
-    if (showNotification) {
-      showNotification(`Error removing skill: ${error instanceof Error ? error.message : ""}`, "error");
-    }
+    showNotification?.(`Error removing skill: ${error instanceof Error ? error.message : ""}`, "error");
   }
 }
 
-/** Reads the add-skill form, validates it, and stores the new skill. */
-function handleAddSkill() {
-  const nameInput = document.getElementById("skill-name") as HTMLInputElement | null;
-  const descriptionInput = document.getElementById("skill-description") as HTMLInputElement | null;
-  const instructionsInput = document.getElementById("skill-instructions") as HTMLTextAreaElement | null;
-
-  if (!nameInput || !instructionsInput) {
-    console.error("Required skill form elements not found");
+/** Serializes a skill to SKILL.md and triggers a browser download. */
+function handleExportSkill(id: string) {
+  const skill = getSkillById(id);
+  if (!skill) {
     return;
   }
-
-  const name = nameInput.value.trim();
-  const description = descriptionInput?.value.trim() || "";
-  const instructions = instructionsInput.value.trim();
-
-  if (!name) {
-    showNotification?.("Please enter a skill name", "error");
-    return;
-  }
-  if (!instructions) {
-    showNotification?.("Please enter skill instructions", "error");
-    return;
-  }
-
   try {
-    const skill = addUserSkill({ name, description, instructions });
-    setSkillEnabled(skill.id, true);
-    renderSkillsList();
-
-    nameInput.value = "";
-    if (descriptionInput) descriptionInput.value = "";
-    instructionsInput.value = "";
-
-    showNotification?.("Skill added and enabled.", "success");
+    const markdown = serializeSkillMarkdown(skill);
+    const blob = new Blob([markdown], { type: "text/markdown" });
+    const url = URL.createObjectURL(blob);
+    const anchor = document.createElement("a");
+    anchor.href = url;
+    anchor.download = `${skill.id.replace(/[^a-zA-Z0-9]+/g, "-").toLowerCase()}.SKILL.md`;
+    document.body.appendChild(anchor);
+    anchor.click();
+    anchor.remove();
+    URL.revokeObjectURL(url);
   } catch (error) {
-    showNotification?.(`Error adding skill: ${error instanceof Error ? error.message : ""}`, "error");
+    showNotification?.(`Error exporting skill: ${error instanceof Error ? error.message : ""}`, "error");
   }
 }
 
-/** Renders the initial skills list and wires the add-skill button. */
+/** Reads each chosen SKILL.md file, parses it, and stores it as an enabled skill. */
+async function handleImportFiles(files: FileList) {
+  let added = 0;
+  for (const file of Array.from(files)) {
+    try {
+      const text = await file.text();
+      const input = parseSkillMarkdown(text);
+      const skill = addUserSkill(input);
+      setSkillEnabled(skill.id, true);
+      added += 1;
+    } catch (error) {
+      showNotification?.(`Could not import "${file.name}": ${error instanceof Error ? error.message : "invalid SKILL.md"}`, "error");
+    }
+  }
+  if (added > 0) {
+    renderSkillsList();
+    showNotification?.(added === 1 ? "Skill uploaded and enabled." : `${added} skills uploaded and enabled.`, "success");
+  }
+}
+
+/** Renders the initial skills list and wires the upload control. */
 export function initSkillsSettings() {
   renderSkillsList();
 
-  const addButton = document.getElementById("add-skill");
-  if (addButton) {
-    addButton.addEventListener("click", handleAddSkill);
+  const importButton = document.getElementById("import-skill");
+  const importInput = document.getElementById("import-skill-input") as HTMLInputElement | null;
+  if (importButton && importInput) {
+    importButton.addEventListener("click", () => importInput.click());
+    importInput.addEventListener("change", () => {
+      if (importInput.files && importInput.files.length) {
+        void handleImportFiles(importInput.files);
+      }
+      importInput.value = "";
+    });
   }
 }

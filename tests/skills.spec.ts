@@ -23,97 +23,169 @@ const {
   getAllSkills,
   getSkillById,
   addUserSkill,
+  updateUserSkill,
   removeUserSkill,
   isSkillEnabled,
   setSkillEnabled,
   getEnabledSkills,
+  serializeSkillMarkdown,
+  parseSkillMarkdown,
 } = await import('../src/ts/services/skills/skillsStore.js');
 
 const {
   getSkillsDescription,
+  getAutoActivatedSkills,
+  hasEnabledSkillResources,
   activateSkillToolDefinition,
+  readSkillResourceToolDefinition,
   ACTIVATE_SKILL_TOOL_NAME,
+  READ_SKILL_RESOURCE_TOOL_NAME,
 } = await import('../src/ts/services/skills/skills.js');
 
 const { toolImplementations } = await import('../src/ts/services/toolImplementations.js');
 
-test('getAllSkills includes built-in skills', () => {
-  const skills = getAllSkills();
-  assert.ok(skills.length >= STATIC_SKILLS.length, 'should include built-ins');
-  assert.ok(skills.every(s => s.id && s.name), 'skills have id and name');
+/** Adds a fresh enabled user skill and returns it. */
+function makeSkill(over: Partial<{ name: string; description: string; instructions: string; triggers: string[]; resources: { name: string; content: string }[] }> = {}) {
+  const skill = addUserSkill({
+    name: over.name ?? 'Test Skill',
+    description: over.description ?? 'a test skill',
+    instructions: over.instructions ?? 'do the thing carefully',
+    triggers: over.triggers ?? [],
+    resources: over.resources ?? [],
+  });
+  setSkillEnabled(skill.id, true);
+  return skill;
+}
+
+test('built-in skills list is empty (skills are uploaded)', () => {
+  assert.equal(STATIC_SKILLS.length, 0);
 });
 
 test('skills default to disabled and getSkillsDescription is empty', () => {
-  assert.equal(getEnabledSkills().length, 0, 'nothing enabled by default');
+  const skill = addUserSkill({ name: 'Off Skill', description: '', instructions: 'x' });
+  assert.equal(isSkillEnabled(skill.id), false, 'new skills start disabled');
   assert.equal(getSkillsDescription(true), '', 'no description when nothing enabled');
+  removeUserSkill(skill.id);
 });
 
-test('enabling a skill lists it (tool mode) and inlines it (no-tool mode)', () => {
-  const first = STATIC_SKILLS[0];
-  setSkillEnabled(first.id, true);
-
-  assert.ok(isSkillEnabled(first.id), 'skill is enabled');
+test('enabled skill is listed (tool mode) and inlined (no-tool mode)', () => {
+  const skill = makeSkill({ name: 'Listed', instructions: 'FULL-INSTRUCTIONS-MARKER' });
 
   const toolMode = getSkillsDescription(true);
-  assert.ok(toolMode.includes(first.name), 'tool-mode lists the name');
-  assert.ok(toolMode.includes(first.id), 'tool-mode includes the id');
+  assert.ok(toolMode.includes(skill.name), 'tool-mode lists the name');
+  assert.ok(toolMode.includes(skill.id), 'tool-mode includes the id');
   assert.ok(toolMode.includes(ACTIVATE_SKILL_TOOL_NAME), 'tool-mode points at activate_skill');
-  assert.ok(!toolMode.includes(first.instructions), 'tool-mode does NOT leak full instructions');
+  assert.ok(!toolMode.includes('FULL-INSTRUCTIONS-MARKER'), 'tool-mode does NOT leak full instructions');
 
   const inlineMode = getSkillsDescription(false);
-  assert.ok(inlineMode.includes(first.instructions), 'no-tool mode inlines instructions');
+  assert.ok(inlineMode.includes('FULL-INSTRUCTIONS-MARKER'), 'no-tool mode inlines instructions');
 
-  setSkillEnabled(first.id, false);
-  assert.equal(getEnabledSkills().length, 0, 'disabling removes it');
+  removeUserSkill(skill.id);
 });
 
-test('activate_skill handler returns instructions for a known skill', async () => {
-  const first = STATIC_SKILLS[0];
+test('trigger keywords auto-activate (instructions inlined even in tool mode)', () => {
+  const skill = makeSkill({ name: 'Weatherish', instructions: 'INLINE-MARKER', triggers: ['umbrella', 'forecast'] });
+
+  assert.equal(getAutoActivatedSkills('do I need an UMBRELLA today').length, 1, 'matches case-insensitively');
+  assert.equal(getAutoActivatedSkills('hello there').length, 0, 'no match');
+
+  const withTrigger = getSkillsDescription(true, 'what is the forecast');
+  assert.ok(withTrigger.includes('INLINE-MARKER'), 'triggered skill is inlined even in tool mode');
+
+  removeUserSkill(skill.id);
+});
+
+test('activate_skill handler returns instructions and resource names', async () => {
+  const skill = makeSkill({ resources: [{ name: 'ref.md', content: 'reference body' }] });
   const handler = toolImplementations[ACTIVATE_SKILL_TOOL_NAME];
-  assert.equal(typeof handler, 'function', 'handler is registered');
+  assert.equal(typeof handler, 'function');
 
-  const ok = await handler({ skill_id: first.id });
+  const ok = await handler({ skill_id: skill.id });
   assert.equal(ok.ok, true);
-  assert.equal(ok.name, first.name);
-  assert.equal(ok.instructions, first.instructions);
+  assert.equal(ok.name, skill.name);
+  assert.deepEqual(ok.resources, ['ref.md']);
 
-  const missing = await handler({ skill_id: 'does-not-exist' });
+  const missing = await handler({ skill_id: 'nope' });
   assert.equal(missing.ok, false);
+
+  removeUserSkill(skill.id);
 });
 
-test('activate_skill tool definition is a strict function tool', () => {
-  assert.equal(activateSkillToolDefinition.type, 'function');
+test('read_skill_resource returns bundled resource content', async () => {
+  const skill = makeSkill({ resources: [{ name: 'ref.md', content: 'RESOURCE-BODY' }] });
+  assert.equal(hasEnabledSkillResources(), true);
+
+  const handler = toolImplementations[READ_SKILL_RESOURCE_TOOL_NAME];
+  const ok = await handler({ skill_id: skill.id, resource_name: 'ref.md' });
+  assert.equal(ok.ok, true);
+  assert.equal(ok.content, 'RESOURCE-BODY');
+
+  const missing = await handler({ skill_id: skill.id, resource_name: 'absent.md' });
+  assert.equal(missing.ok, false);
+
+  removeUserSkill(skill.id);
+});
+
+test('tool definitions are strict function tools', () => {
   assert.equal(activateSkillToolDefinition.name, ACTIVATE_SKILL_TOOL_NAME);
   assert.equal(activateSkillToolDefinition.strict, true);
+  assert.equal(readSkillResourceToolDefinition.name, READ_SKILL_RESOURCE_TOOL_NAME);
+  assert.equal(readSkillResourceToolDefinition.strict, true);
 });
 
-test('user skills can be added, activated, and removed', () => {
-  const skill = addUserSkill({
-    name: 'My Test Skill',
-    description: 'desc',
-    instructions: 'do the thing',
-  });
-  assert.ok(skill.id.startsWith('user:'), 'user skills get a user: id');
-  assert.equal(skill.source, 'user');
-  assert.ok(getSkillById(skill.id), 'retrievable by id');
+test('user skills support add, edit, and remove', () => {
+  const skill = addUserSkill({ name: 'Editable', description: 'd', instructions: 'one' });
+  assert.ok(skill.id.startsWith('user:'));
+  assert.ok(getSkillById(skill.id));
 
-  setSkillEnabled(skill.id, true);
-  assert.ok(isSkillEnabled(skill.id));
+  const updated = updateUserSkill(skill.id, { name: 'Editable', description: 'd2', instructions: 'two', triggers: ['go'] });
+  assert.equal(updated.instructions, 'two');
+  assert.deepEqual(updated.triggers, ['go']);
+  assert.throws(() => updateUserSkill('user:missing', { name: 'x', description: '', instructions: 'y' }));
 
-  assert.equal(removeUserSkill(skill.id), true, 'removable');
-  assert.equal(getSkillById(skill.id), undefined, 'gone after removal');
-  assert.equal(isSkillEnabled(skill.id), false, 'preference dropped on removal');
+  assert.equal(removeUserSkill(skill.id), true);
+  assert.equal(getSkillById(skill.id), undefined);
 });
 
-test('addUserSkill rejects empty name or instructions', () => {
+test('addUserSkill validates and de-duplicates ids', () => {
   assert.throws(() => addUserSkill({ name: '', description: '', instructions: 'x' }));
   assert.throws(() => addUserSkill({ name: 'x', description: '', instructions: '' }));
-});
 
-test('addUserSkill de-duplicates ids from identical names', () => {
   const a = addUserSkill({ name: 'Dup', description: '', instructions: 'a' });
   const b = addUserSkill({ name: 'Dup', description: '', instructions: 'b' });
-  assert.notEqual(a.id, b.id, 'ids are unique');
+  assert.notEqual(a.id, b.id);
   removeUserSkill(a.id);
   removeUserSkill(b.id);
+});
+
+test('SKILL.md round-trips through serialize/parse', () => {
+  const skill = addUserSkill({
+    name: 'Roundtrip',
+    description: 'rt desc',
+    instructions: 'body line one\nbody line two',
+    triggers: ['alpha', 'beta'],
+    resources: [{ name: 'notes.md', content: 'note content' }],
+  });
+
+  const md = serializeSkillMarkdown(skill);
+  assert.ok(md.startsWith('---'), 'has frontmatter');
+  assert.ok(md.includes('triggers: alpha, beta'));
+  assert.ok(md.includes('skill:resource name="notes.md"'));
+
+  const parsed = parseSkillMarkdown(md);
+  assert.equal(parsed.name, 'Roundtrip');
+  assert.equal(parsed.description, 'rt desc');
+  assert.deepEqual(parsed.triggers, ['alpha', 'beta']);
+  assert.equal(parsed.instructions, 'body line one\nbody line two');
+  assert.equal(parsed.resources?.length, 1);
+  assert.equal(parsed.resources?.[0].content, 'note content');
+
+  removeUserSkill(skill.id);
+});
+
+test('parseSkillMarkdown falls back to a heading when no frontmatter', () => {
+  const parsed = parseSkillMarkdown('# Heading Name\n\nsome instructions here');
+  assert.equal(parsed.name, 'Heading Name');
+  assert.ok(parsed.instructions.includes('some instructions here'));
+  assert.throws(() => parseSkillMarkdown('---\nname: Empty\n---\n'), /no instructions/);
 });

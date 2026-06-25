@@ -3,16 +3,21 @@
  *
  * @remarks
  * A "skill" is a named instruction package — `{ id, name, description,
- * instructions }` — that the model can activate on demand. The model is shown
- * only each skill's name and description (cheap progressive disclosure); the
- * full `instructions` are loaded when the skill is activated via the
- * `activate_skill` tool (see {@link ./skills.ts}).
+ * instructions }` — that the model can activate on demand, optionally carrying
+ * trigger keywords and bundled resource files:
+ *
+ *  - The model is shown only each enabled skill's name + description (cheap
+ *    progressive disclosure); it loads the full `instructions` via the
+ *    `activate_skill` tool, and any bundled `resources` via `read_skill_resource`
+ *    (see {@link ./skills.ts}).
+ *  - `triggers` let a skill auto-activate (its instructions are inlined) when the
+ *    user's message matches, so skills work even on providers that cannot call
+ *    client-side tools.
  *
  * Built-in skills ship in {@link STATIC_SKILLS}; user-authored skills live in
- * localStorage. Per-skill enable/disable preferences are persisted separately,
- * mirroring the tool-preference pattern in
- * {@link ../api/tools/preferences.ts}. This module is pure persistence — no DOM
- * or request-pipeline concerns.
+ * localStorage and round-trip to/from the `SKILL.md` text format via
+ * {@link serializeSkillMarkdown} / {@link parseSkillMarkdown}. This module is
+ * pure persistence/serialization — no DOM or request-pipeline concerns.
  */
 
 import { STORAGE_KEYS, readJSON, writeJSON } from "../../utils/storage/storage.ts";
@@ -20,8 +25,16 @@ import { createScopedLogger } from "../../utils/logger.ts";
 
 const logSkills = createScopedLogger("skills");
 
-/** Where a skill came from: shipped in code vs. authored by the user. */
+/** Where a skill came from: shipped in code vs. authored/imported by the user. */
 export type SkillSource = "builtin" | "user";
+
+/** A named reference file bundled with a skill, loaded on demand. */
+export interface SkillResource {
+  /** Unique-within-skill name, e.g. `cheatsheet.md`. */
+  name: string;
+  /** The resource's text content. */
+  content: string;
+}
 
 /** A named instruction package the model can activate on demand. */
 export interface SkillDefinition {
@@ -33,52 +46,55 @@ export interface SkillDefinition {
   description: string;
   /** Full guidance injected into context when the skill is activated. */
   instructions: string;
+  /** Keyword triggers that auto-activate the skill when a message matches. */
+  triggers: string[];
+  /** Bundled reference files, loaded on demand via `read_skill_resource`. */
+  resources: SkillResource[];
   /** Origin of the skill; user skills are editable/removable. */
   source: SkillSource;
 }
 
-/** Built-in skills seeded for every user. Edit here to ship more. */
-export const STATIC_SKILLS: SkillDefinition[] = [
-  {
-    id: "builtin:concise-writing",
-    name: "Concise Writing",
-    description: "Tighten prose: cut filler, prefer plain words, keep structure.",
-    source: "builtin",
-    instructions: [
-      "Apply these editing principles to the response:",
-      "- Lead with the point; put the conclusion first.",
-      "- Delete filler (\"in order to\" -> \"to\", \"due to the fact that\" -> \"because\").",
-      "- Prefer short, common words over long or abstract ones.",
-      "- Use active voice and concrete subjects.",
-      "- Keep sentences to one idea; break up runs of clauses.",
-      "- Preserve the user's meaning and any required detail — concise, not lossy.",
-    ].join("\n"),
-  },
-  {
-    id: "builtin:commit-message",
-    name: "Commit Message",
-    description: "Write a clean Conventional-Commits-style git commit message from a change description.",
-    source: "builtin",
-    instructions: [
-      "Produce a git commit message:",
-      "- Subject line: `<type>(<scope>): <summary>` in the imperative mood, <= 50 chars where practical.",
-      "  Types: feat, fix, docs, style, refactor, perf, test, build, ci, chore.",
-      "- Blank line, then a body wrapped at ~72 chars explaining what and why (not how).",
-      "- Reference issues/breaking changes in a footer when relevant.",
-      "- Output only the commit message, no surrounding prose or code fences.",
-    ].join("\n"),
-  },
-];
+/** The user-supplied fields when creating or editing a skill. */
+export interface SkillInput {
+  name: string;
+  description: string;
+  instructions: string;
+  triggers?: string[];
+  resources?: SkillResource[];
+}
+
+/**
+ * Built-in skills shipped in code. Intentionally empty: skills are authored as
+ * `SKILL.md` files and uploaded by the user. An example lives in the repo at
+ * `skills/frontend-dev.md` for users to upload.
+ */
+export const STATIC_SKILLS: SkillDefinition[] = [];
+
+/** Normalizes a partial/legacy stored object into a full {@link SkillDefinition}. */
+function normalizeStored(raw: Partial<SkillDefinition> | null | undefined): SkillDefinition | null {
+  if (!raw || typeof raw.id !== "string" || typeof raw.name !== "string") {
+    return null;
+  }
+  return {
+    id: raw.id,
+    name: raw.name,
+    description: typeof raw.description === "string" ? raw.description : "",
+    instructions: typeof raw.instructions === "string" ? raw.instructions : "",
+    triggers: Array.isArray(raw.triggers) ? raw.triggers.filter((t): t is string => typeof t === "string") : [],
+    resources: Array.isArray(raw.resources)
+      ? raw.resources.filter((r): r is SkillResource => Boolean(r && typeof r.name === "string" && typeof r.content === "string"))
+      : [],
+    source: "user",
+  };
+}
 
 /** Reads user-authored skills from localStorage, or `[]` on failure. */
 function loadUserSkills(): SkillDefinition[] {
-  const parsed = readJSON<SkillDefinition[]>(STORAGE_KEYS.skills, []);
+  const parsed = readJSON<Partial<SkillDefinition>[]>(STORAGE_KEYS.skills, []);
   if (!Array.isArray(parsed)) {
     return [];
   }
-  return parsed
-    .filter((s): s is SkillDefinition => Boolean(s && typeof s.id === "string" && typeof s.name === "string"))
-    .map(s => ({ ...s, source: "user" as const }));
+  return parsed.map(normalizeStored).filter((s): s is SkillDefinition => s !== null);
 }
 
 /** Persists the full list of user-authored skills. Errors are logged, not thrown. */
@@ -105,13 +121,8 @@ function slugify(name: string): string {
   return name.toLowerCase().trim().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "") || "skill";
 }
 
-/**
- * Adds a user skill built from the supplied fields, generating a unique id from
- * the name. Throws when name or instructions are empty.
- *
- * @returns The stored {@link SkillDefinition}.
- */
-export function addUserSkill(input: { name: string; description: string; instructions: string }): SkillDefinition {
+/** Validates and normalizes a {@link SkillInput}, throwing on missing fields. */
+function normalizeInput(input: SkillInput) {
   const name = input.name.trim();
   const instructions = input.instructions.trim();
   if (!name) {
@@ -120,24 +131,55 @@ export function addUserSkill(input: { name: string; description: string; instruc
   if (!instructions) {
     throw new Error("Skill instructions are required");
   }
+  return {
+    name,
+    instructions,
+    description: input.description.trim(),
+    triggers: (input.triggers || []).map(t => t.trim()).filter(Boolean),
+    resources: (input.resources || [])
+      .map(r => ({ name: r.name.trim(), content: r.content }))
+      .filter(r => r.name && r.content.trim()),
+  };
+}
 
+/**
+ * Adds a user skill built from the supplied fields, generating a unique id from
+ * the name. Throws when name or instructions are empty.
+ *
+ * @returns The stored {@link SkillDefinition}.
+ */
+export function addUserSkill(input: SkillInput): SkillDefinition {
+  const fields = normalizeInput(input);
   const existingIds = new Set(getAllSkills().map(skill => skill.id));
-  const base = `user:${slugify(name)}`;
+  const base = `user:${slugify(fields.name)}`;
   let id = base;
   let suffix = 2;
   while (existingIds.has(id)) {
     id = `${base}-${suffix++}`;
   }
 
-  const skill: SkillDefinition = {
-    id,
-    name,
-    description: input.description.trim(),
-    instructions,
-    source: "user",
-  };
+  const skill: SkillDefinition = { id, source: "user", ...fields };
   saveUserSkills([...loadUserSkills(), skill]);
   return skill;
+}
+
+/**
+ * Updates an existing user skill in place. Built-in skills cannot be edited.
+ *
+ * @returns The updated {@link SkillDefinition}.
+ * @throws When the id is unknown or refers to a built-in skill.
+ */
+export function updateUserSkill(id: string, input: SkillInput): SkillDefinition {
+  const userSkills = loadUserSkills();
+  const index = userSkills.findIndex(skill => skill.id === id);
+  if (index === -1) {
+    throw new Error("Only user-authored skills can be edited");
+  }
+  const fields = normalizeInput(input);
+  const updated: SkillDefinition = { id, source: "user", ...fields };
+  userSkills[index] = updated;
+  saveUserSkills(userSkills);
+  return updated;
 }
 
 /**
@@ -196,4 +238,82 @@ export function removeSkillPreference(id: string) {
 /** Returns the enabled skills in catalog order (built-ins first). */
 export function getEnabledSkills(): SkillDefinition[] {
   return getAllSkills().filter(skill => isSkillEnabled(skill.id));
+}
+
+// --- SKILL.md serialization -----------------------------------------------
+
+const RESOURCE_OPEN = /<!--\s*skill:resource\s+name="([^"]+)"\s*-->/;
+const RESOURCE_BLOCK = /<!--\s*skill:resource\s+name="([^"]+)"\s*-->\n([\s\S]*?)\n<!--\s*\/skill:resource\s*-->/g;
+
+/**
+ * Serializes a skill to the `SKILL.md` text format: YAML-style frontmatter
+ * (`name`, `description`, `triggers`) followed by the instructions body and any
+ * bundled resources as HTML-comment-delimited blocks. Round-trips with
+ * {@link parseSkillMarkdown}.
+ */
+export function serializeSkillMarkdown(skill: SkillDefinition): string {
+  const lines = ["---", `name: ${skill.name}`, `description: ${skill.description}`];
+  if (skill.triggers.length) {
+    lines.push(`triggers: ${skill.triggers.join(", ")}`);
+  }
+  lines.push("---", "", skill.instructions.trim(), "");
+  skill.resources.forEach(resource => {
+    lines.push(`<!-- skill:resource name="${resource.name}" -->`, resource.content.trim(), "<!-- /skill:resource -->", "");
+  });
+  return lines.join("\n").trim() + "\n";
+}
+
+/**
+ * Parses `SKILL.md` text into a {@link SkillInput}. Accepts an optional
+ * frontmatter block (`name`, `description`, `triggers`); falls back to the first
+ * Markdown heading or `Imported Skill` for the name when no frontmatter is
+ * present.
+ *
+ * @throws When the resulting instructions body is empty.
+ */
+export function parseSkillMarkdown(text: string): SkillInput {
+  let body = text.replace(/\r\n/g, "\n").trim();
+  let name = "";
+  let description = "";
+  let triggers: string[] = [];
+
+  const fmMatch = body.match(/^---\n([\s\S]*?)\n---\n?/);
+  if (fmMatch) {
+    body = body.slice(fmMatch[0].length);
+    fmMatch[1].split("\n").forEach(line => {
+      const idx = line.indexOf(":");
+      if (idx === -1) {
+        return;
+      }
+      const key = line.slice(0, idx).trim().toLowerCase();
+      const value = line.slice(idx + 1).trim();
+      if (key === "name") {
+        name = value;
+      } else if (key === "description") {
+        description = value;
+      } else if (key === "triggers") {
+        triggers = value.split(",").map(t => t.trim()).filter(Boolean);
+      }
+    });
+  }
+
+  const resources: SkillResource[] = [];
+  let match: RegExpExecArray | null;
+  RESOURCE_BLOCK.lastIndex = 0;
+  while ((match = RESOURCE_BLOCK.exec(body)) !== null) {
+    resources.push({ name: match[1].trim(), content: match[2].trim() });
+  }
+  body = body.replace(RESOURCE_BLOCK, "").trim();
+  // Drop any dangling, unterminated resource opener.
+  body = body.replace(RESOURCE_OPEN, "").trim();
+
+  if (!name) {
+    const heading = body.match(/^#\s+(.+)$/m);
+    name = heading ? heading[1].trim() : "Imported Skill";
+  }
+  if (!body) {
+    throw new Error("SKILL.md has no instructions body");
+  }
+
+  return { name, description, instructions: body, triggers, resources };
 }
