@@ -1,7 +1,6 @@
 ---
 name: Frontend Development
 description: Use when writing or reviewing browser UI code (HTML, CSS, JavaScript/TypeScript, React, Vue, Svelte). Guides toward accessible, performant, maintainable components.
-triggers: frontend, front-end, css, html, react, component, accessibility, a11y, responsive, tailwind, jsx, ui
 ---
 
 You are acting as an experienced frontend engineer. Apply these practices when

@@ -9,11 +9,8 @@
  *    model sees only each enabled skill's name + description (built by
  *    {@link getSkillsDescription}) and calls {@link ACTIVATE_SKILL_TOOL_NAME} to
  *    pull a skill's full instructions, then {@link READ_SKILL_RESOURCE_TOOL_NAME}
- *    for any bundled reference files — both on demand.
- *  - **Auto-activation.** When the user's latest message matches a skill's
- *    trigger keywords, that skill's full instructions are inlined into the
- *    developer message up front (deterministic, and works even where tools
- *    cannot be called).
+ *    for any bundled reference files — both on demand. The model decides when a
+ *    skill is relevant; there is no keyword matching.
  *  - **Fallback.** On providers that cannot call client-side tools, every
  *    enabled skill's instructions are inlined.
  *
@@ -125,80 +122,45 @@ export function hasEnabledSkillResources(): boolean {
   return getEnabledSkills().some(skill => skill.resources.length > 0);
 }
 
-/** Returns the enabled skills whose trigger keywords match `userText`. */
-export function getAutoActivatedSkills(userText: string): SkillDefinition[] {
-  const text = (userText || "").toLowerCase();
-  if (!text.trim()) {
-    return [];
-  }
-  return getEnabledSkills().filter(skill =>
-    skill.triggers.some(trigger => {
-      const needle = trigger.toLowerCase().trim();
-      return needle.length > 0 && text.includes(needle);
-    }),
-  );
-}
-
-/** Formats one skill's full instructions for inlining into the developer message. */
+/**
+ * Formats one skill's full instructions for inlining into the developer message.
+ * Used only on providers that cannot call tools, so any bundled resources are
+ * inlined directly (the model has no `read_skill_resource` to call).
+ */
 function inlineSkillBlock(skill: SkillDefinition): string {
   const header = skill.description ? `## ${skill.name} — ${skill.description}` : `## ${skill.name}`;
   const lines = [header, skill.instructions.trim()];
-  if (skill.resources.length) {
-    lines.push(`(Bundled resources, read with ${READ_SKILL_RESOURCE_TOOL_NAME} using skill id "${skill.id}": `
-      + `${skill.resources.map(resource => resource.name).join(", ")}.)`);
-  }
+  skill.resources.forEach(resource => {
+    lines.push(`\n### Resource: ${resource.name}\n${resource.content.trim()}`);
+  });
   return lines.join("\n");
 }
 
 /**
  * Builds the skills section of the developer message.
  *
- * @param clientSideToolsSupported - When `true`, non-triggered skills are listed
- *   by name/description for the model to load via `activate_skill`; when `false`,
- *   all enabled skills are inlined (no tool call possible).
- * @param userText - The user's latest message, used to auto-activate skills whose
- *   trigger keywords match (their instructions are inlined regardless of tool
- *   support).
+ * @param clientSideToolsSupported - When `true`, skills are listed by
+ *   name/description for the model to load via `activate_skill` when relevant;
+ *   when `false`, all enabled skills are inlined (no tool call possible).
  * @returns The section text (with a leading newline), or `""` when no skills are
  *   enabled.
  */
-export function getSkillsDescription(clientSideToolsSupported: boolean, userText = ""): string {
+export function getSkillsDescription(clientSideToolsSupported: boolean): string {
   const enabled = getEnabledSkills();
   if (!enabled.length) {
     return "";
   }
 
-  const autoIds = new Set(getAutoActivatedSkills(userText).map(skill => skill.id));
-  const autoActivated = enabled.filter(skill => autoIds.has(skill.id));
-  const remaining = enabled.filter(skill => !autoIds.has(skill.id));
-
-  const sections: string[] = [];
-
-  if (autoActivated.length) {
-    sections.push(
-      "Active skills — apply the relevant instructions below when they fit the request:\n\n"
-      + autoActivated.map(inlineSkillBlock).join("\n\n"),
-    );
+  if (clientSideToolsSupported) {
+    const list = enabled.map(skill => {
+      const desc = skill.description ? `: ${skill.description}` : "";
+      const resourceNote = skill.resources.length ? " (has resources)" : "";
+      return `- [${skill.id}] ${skill.name}${desc}${resourceNote}`;
+    });
+    return `\nAvailable skills. When a request matches one, call ${ACTIVATE_SKILL_TOOL_NAME} with its id `
+      + `to load its full instructions, then follow them:\n${list.join("\n")}\n`;
   }
 
-  if (remaining.length) {
-    if (clientSideToolsSupported) {
-      const list = remaining.map(skill => {
-        const desc = skill.description ? `: ${skill.description}` : "";
-        const resourceNote = skill.resources.length ? " (has resources)" : "";
-        return `- [${skill.id}] ${skill.name}${desc}${resourceNote}`;
-      });
-      sections.push(
-        `Available skills. When a request matches one, call ${ACTIVATE_SKILL_TOOL_NAME} with its id `
-        + `to load its full instructions, then follow them:\n${list.join("\n")}`,
-      );
-    } else {
-      sections.push(
-        "Additional available skills — apply the relevant instructions below when they fit the request:\n\n"
-        + remaining.map(inlineSkillBlock).join("\n\n"),
-      );
-    }
-  }
-
-  return `\n${sections.join("\n\n")}\n`;
+  return "\nActive skills — apply the relevant instructions below when they fit the request:\n\n"
+    + `${enabled.map(inlineSkillBlock).join("\n\n")}\n`;
 }

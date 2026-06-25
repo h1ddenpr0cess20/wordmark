@@ -35,7 +35,6 @@ const {
 
 const {
   getSkillsDescription,
-  getAutoActivatedSkills,
   hasEnabledSkillResources,
   activateSkillToolDefinition,
   readSkillResourceToolDefinition,
@@ -46,12 +45,11 @@ const {
 const { toolImplementations } = await import('../src/ts/services/toolImplementations.js');
 
 /** Adds a fresh enabled user skill and returns it. */
-function makeSkill(over: Partial<{ name: string; description: string; instructions: string; triggers: string[]; resources: { name: string; content: string }[] }> = {}) {
+function makeSkill(over: Partial<{ name: string; description: string; instructions: string; resources: { name: string; content: string }[] }> = {}) {
   const skill = addUserSkill({
     name: over.name ?? 'Test Skill',
     description: over.description ?? 'a test skill',
     instructions: over.instructions ?? 'do the thing carefully',
-    triggers: over.triggers ?? [],
     resources: over.resources ?? [],
   });
   setSkillEnabled(skill.id, true);
@@ -80,18 +78,6 @@ test('enabled skill is listed (tool mode) and inlined (no-tool mode)', () => {
 
   const inlineMode = getSkillsDescription(false);
   assert.ok(inlineMode.includes('FULL-INSTRUCTIONS-MARKER'), 'no-tool mode inlines instructions');
-
-  removeUserSkill(skill.id);
-});
-
-test('trigger keywords auto-activate (instructions inlined even in tool mode)', () => {
-  const skill = makeSkill({ name: 'Weatherish', instructions: 'INLINE-MARKER', triggers: ['umbrella', 'forecast'] });
-
-  assert.equal(getAutoActivatedSkills('do I need an UMBRELLA today').length, 1, 'matches case-insensitively');
-  assert.equal(getAutoActivatedSkills('hello there').length, 0, 'no match');
-
-  const withTrigger = getSkillsDescription(true, 'what is the forecast');
-  assert.ok(withTrigger.includes('INLINE-MARKER'), 'triggered skill is inlined even in tool mode');
 
   removeUserSkill(skill.id);
 });
@@ -139,9 +125,8 @@ test('user skills support add, edit, and remove', () => {
   assert.ok(skill.id.startsWith('user:'));
   assert.ok(getSkillById(skill.id));
 
-  const updated = updateUserSkill(skill.id, { name: 'Editable', description: 'd2', instructions: 'two', triggers: ['go'] });
+  const updated = updateUserSkill(skill.id, { name: 'Editable', description: 'd2', instructions: 'two' });
   assert.equal(updated.instructions, 'two');
-  assert.deepEqual(updated.triggers, ['go']);
   assert.throws(() => updateUserSkill('user:missing', { name: 'x', description: '', instructions: 'y' }));
 
   assert.equal(removeUserSkill(skill.id), true);
@@ -164,19 +149,16 @@ test('SKILL.md round-trips through serialize/parse', () => {
     name: 'Roundtrip',
     description: 'rt desc',
     instructions: 'body line one\nbody line two',
-    triggers: ['alpha', 'beta'],
     resources: [{ name: 'notes.md', content: 'note content' }],
   });
 
   const md = serializeSkillMarkdown(skill);
   assert.ok(md.startsWith('---'), 'has frontmatter');
-  assert.ok(md.includes('triggers: alpha, beta'));
   assert.ok(md.includes('skill:resource name="notes.md"'));
 
   const parsed = parseSkillMarkdown(md);
   assert.equal(parsed.name, 'Roundtrip');
   assert.equal(parsed.description, 'rt desc');
-  assert.deepEqual(parsed.triggers, ['alpha', 'beta']);
   assert.equal(parsed.instructions, 'body line one\nbody line two');
   assert.equal(parsed.resources?.length, 1);
   assert.equal(parsed.resources?.[0].content, 'note content');

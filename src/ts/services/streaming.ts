@@ -27,7 +27,7 @@ export { ensureImagesHaveMessageIds };
  * @param loadingId - DOM id of the placeholder message to render into.
  * @returns `{ response, outputText, reasoningText }` for the finished turn.
  */
-export async function handleStreamedResponse(response: Response, loadingId: string, skillNotes: string[] = []) {
+export async function handleStreamedResponse(response: Response, loadingId: string) {
   const loadingMessage = document.getElementById(loadingId);
   if (!loadingMessage) {
     return { response: null, outputText: "", reasoningText: "" };
@@ -81,11 +81,6 @@ export async function handleStreamedResponse(response: Response, loadingId: stri
     existingThinkingContainer: document.getElementById(thinkingId) || null,
   });
   const processor = createStreamingEventProcessor(runtime);
-
-  if (skillNotes.length) {
-    skillNotes.forEach(note => runtime.appendReasoningLine(`🧩 _${note}_`));
-    runtime.appendReasoningLine("");
-  }
 
   state.shouldAutoScroll = true;
   if (elements.chatBox) {

@@ -1,7 +1,6 @@
 ---
 name: Email Assistant
 description: Use when drafting, replying to, or polishing an email or message. Keeps it clear and purposeful and matches the tone the user wants.
-triggers: write an email, draft an email, reply to this, polish this message, rewrite this email, email to, respond to this message, follow up email
 ---
 
 You help the user write effective emails and messages.

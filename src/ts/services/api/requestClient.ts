@@ -17,7 +17,6 @@ import {
   serializeMessagesForRequest,
 } from "./messageUtils.ts";
 import { buildDeveloperMessage } from "./instructions.ts";
-import { getAutoActivatedSkills } from "../skills/skills.ts";
 import { windowMessagesByTokenBudget } from "./tokenBudget.ts";
 import {
   serviceSupportsReasoning,
@@ -40,7 +39,6 @@ import { executeToolCalls, type ActionableCall } from "./toolCallExecution.ts";
 import type {
   BuildRequestOptions,
   CollectedFunctionCall,
-  Message,
   ResponseObject,
   RunTurnOptions,
   RunTurnResult,
@@ -51,34 +49,6 @@ const DEFAULT_INCLUDE_FIELDS = [
   "code_interpreter_call.outputs",
   "web_search_call.action.sources",
 ];
-
-/**
- * Extracts the plain text of the most recent user message, used to auto-activate
- * skills whose trigger keywords match. Returns `""` when none is found.
- */
-function latestUserText(messages: Message[]): string {
-  for (let i = messages.length - 1; i >= 0; i -= 1) {
-    const message = messages[i];
-    if (!message || message.role !== "user") {
-      continue;
-    }
-    const { content } = message;
-    if (typeof content === "string") {
-      return content;
-    }
-    if (Array.isArray(content)) {
-      return content
-        .map(part => (part && typeof part.text === "string" ? part.text : ""))
-        .filter(Boolean)
-        .join(" ");
-    }
-    if (content && typeof content.text === "string") {
-      return content.text;
-    }
-    return "";
-  }
-  return "";
-}
 
 /**
  * Constructs a Responses API request payload from a turn's options, applying
@@ -205,11 +175,7 @@ export async function runTurn({
   const resolvedModel = model || getActiveModel();
   const windowedMessages = windowMessagesByTokenBudget(baseMessages, historyTokenBudget);
   const workingMessages = serializeMessagesForRequest(windowedMessages);
-  const turnUserText = latestUserText(baseMessages);
-  const developerContent = typeof systemOverride === "string" ? systemOverride : buildDeveloperMessage(turnUserText);
-  const autoActivatedSkillNotes = typeof systemOverride === "string"
-    ? []
-    : getAutoActivatedSkills(turnUserText).map(skill => `Skill loaded: ${skill.name}`);
+  const developerContent = typeof systemOverride === "string" ? systemOverride : buildDeveloperMessage();
   if (developerContent) {
     workingMessages.unshift({
       role: instructionMessageRole(serviceKey),
@@ -251,11 +217,7 @@ export async function runTurn({
     try {
       if (stream) {
         const streamResponse = await executeStreamingRequest(body, abortController);
-        const result = await handleStreamedResponse(
-          streamResponse,
-          loadingId || "",
-          toolCallIteration === 1 ? autoActivatedSkillNotes : [],
-        );
+        const result = await handleStreamedResponse(streamResponse, loadingId || "");
         responsePayload = result.response;
         streamedText = result.outputText || "";
         streamedReasoning = result.reasoningText || "";

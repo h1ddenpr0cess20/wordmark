@@ -79,13 +79,6 @@ function renderSkillsList() {
       info.appendChild(description);
     }
 
-    if (skill.triggers.length) {
-      const triggers = document.createElement("p");
-      triggers.className = "tool-note";
-      triggers.textContent = `Auto-activates on: ${skill.triggers.join(", ")}`;
-      info.appendChild(triggers);
-    }
-
     const control = document.createElement("div");
     control.className = "tool-toggle-control";
 

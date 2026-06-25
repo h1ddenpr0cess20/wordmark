@@ -44,7 +44,7 @@ export function buildInstructions() {
  * location context and the current timestamp. Returns `""` when there are no
  * instructions.
  */
-export function buildDeveloperMessage(userText = "") {
+export function buildDeveloperMessage() {
   const instructions = buildInstructions();
   if (!instructions) {
     return "";
@@ -69,7 +69,7 @@ export function buildDeveloperMessage(userText = "") {
     }
   }
   const skillsCanUseTool = config?.enableFunctionCalling !== false && supportsClientSideTools();
-  const skillsDescription = getSkillsDescription(skillsCanUseTool, userText);
+  const skillsDescription = getSkillsDescription(skillsCanUseTool);
   if (skillsDescription) {
     developerBlock += `\n${skillsDescription.trim()}`;
   }

@@ -4,15 +4,14 @@
  * @remarks
  * A "skill" is a named instruction package — `{ id, name, description,
  * instructions }` — that the model can activate on demand, optionally carrying
- * trigger keywords and bundled resource files:
+ * bundled resource files:
  *
  *  - The model is shown only each enabled skill's name + description (cheap
  *    progressive disclosure); it loads the full `instructions` via the
  *    `activate_skill` tool, and any bundled `resources` via `read_skill_resource`
- *    (see {@link ./skills.ts}).
- *  - `triggers` let a skill auto-activate (its instructions are inlined) when the
- *    user's message matches, so skills work even on providers that cannot call
- *    client-side tools.
+ *    (see {@link ./skills.ts}). On providers that cannot call client-side tools,
+ *    enabled skills' instructions are inlined instead. Skills activate naturally
+ *    — there is no keyword matching.
  *
  * Built-in skills ship in {@link STATIC_SKILLS}; user-authored skills live in
  * localStorage and round-trip to/from the `SKILL.md` text format via
@@ -56,8 +55,6 @@ export interface SkillDefinition {
   description: string;
   /** Full guidance injected into context when the skill is activated. */
   instructions: string;
-  /** Keyword triggers that auto-activate the skill when a message matches. */
-  triggers: string[];
   /** Bundled reference files, loaded on demand via `read_skill_resource`. */
   resources: SkillResource[];
   /** Origin of the skill; user skills are editable/removable. */
@@ -69,7 +66,6 @@ export interface SkillInput {
   name: string;
   description: string;
   instructions: string;
-  triggers?: string[];
   resources?: SkillResource[];
 }
 
@@ -90,7 +86,6 @@ function normalizeStored(raw: Partial<SkillDefinition> | null | undefined): Skil
     name: raw.name,
     description: typeof raw.description === "string" ? raw.description : "",
     instructions: typeof raw.instructions === "string" ? raw.instructions : "",
-    triggers: Array.isArray(raw.triggers) ? raw.triggers.filter((t): t is string => typeof t === "string") : [],
     resources: Array.isArray(raw.resources)
       ? raw.resources.filter((r): r is SkillResource => Boolean(r && typeof r.name === "string" && typeof r.content === "string"))
       : [],
@@ -145,7 +140,6 @@ function normalizeInput(input: SkillInput) {
     name,
     instructions,
     description: input.description.trim(),
-    triggers: (input.triggers || []).map(t => t.trim()).filter(Boolean),
     resources: (input.resources || [])
       .map(r => ({ name: r.name.trim(), content: r.content }))
       .filter(r => r.name && r.content.trim()),
@@ -278,16 +272,12 @@ const RESOURCE_BLOCK = /<!--\s*skill:resource\s+name="([^"]+)"\s*-->\n([\s\S]*?)
 
 /**
  * Serializes a skill to the `SKILL.md` text format: YAML-style frontmatter
- * (`name`, `description`, `triggers`) followed by the instructions body and any
- * bundled resources as HTML-comment-delimited blocks. Round-trips with
+ * (`name`, `description`) followed by the instructions body and any bundled
+ * resources as HTML-comment-delimited blocks. Round-trips with
  * {@link parseSkillMarkdown}.
  */
 export function serializeSkillMarkdown(skill: SkillDefinition): string {
-  const lines = ["---", `name: ${skill.name}`, `description: ${skill.description}`];
-  if (skill.triggers.length) {
-    lines.push(`triggers: ${skill.triggers.join(", ")}`);
-  }
-  lines.push("---", "", skill.instructions.trim(), "");
+  const lines = ["---", `name: ${skill.name}`, `description: ${skill.description}`, "---", "", skill.instructions.trim(), ""];
   skill.resources.forEach(resource => {
     lines.push(`<!-- skill:resource name="${resource.name}" -->`, resource.content.trim(), "<!-- /skill:resource -->", "");
   });
@@ -296,9 +286,8 @@ export function serializeSkillMarkdown(skill: SkillDefinition): string {
 
 /**
  * Parses `SKILL.md` text into a {@link SkillInput}. Accepts an optional
- * frontmatter block (`name`, `description`, `triggers`); falls back to the first
- * Markdown heading or `Imported Skill` for the name when no frontmatter is
- * present.
+ * frontmatter block (`name`, `description`); falls back to the first Markdown
+ * heading or `Imported Skill` for the name when no frontmatter is present.
  *
  * @throws When the resulting instructions body is empty.
  */
@@ -306,7 +295,6 @@ export function parseSkillMarkdown(text: string): SkillInput {
   let body = text.replace(/\r\n/g, "\n").trim();
   let name = "";
   let description = "";
-  let triggers: string[] = [];
 
   const fmMatch = body.match(/^---\n([\s\S]*?)\n---\n?/);
   if (fmMatch) {
@@ -322,8 +310,6 @@ export function parseSkillMarkdown(text: string): SkillInput {
         name = value;
       } else if (key === "description") {
         description = value;
-      } else if (key === "triggers") {
-        triggers = value.split(",").map(t => t.trim()).filter(Boolean);
       }
     });
   }
@@ -346,5 +332,5 @@ export function parseSkillMarkdown(text: string): SkillInput {
     throw new Error("SKILL.md has no instructions body");
   }
 
-  return { name, description, instructions: body, triggers, resources };
+  return { name, description, instructions: body, resources };
 }
