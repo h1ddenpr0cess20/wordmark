@@ -23,6 +23,15 @@
 import { STORAGE_KEYS, readJSON, writeJSON, readString, writeString } from "../../utils/storage/storage.ts";
 import { createScopedLogger } from "../../utils/logger.ts";
 import exampleFrontendSkillMarkdown from "../../../../skills/frontend-dev.md?raw";
+import exampleEmailSkillMarkdown from "../../../../skills/email-writing.md?raw";
+import exampleBrainstormSkillMarkdown from "../../../../skills/brainstorming.md?raw";
+
+/** Bundled example skills seeded on first run (see {@link seedExampleSkills}). */
+const EXAMPLE_SKILL_MARKDOWN = [
+  exampleFrontendSkillMarkdown,
+  exampleEmailSkillMarkdown,
+  exampleBrainstormSkillMarkdown,
+];
 
 const logSkills = createScopedLogger("skills");
 
@@ -251,12 +260,14 @@ export function seedExampleSkills() {
   if (readString(STORAGE_KEYS.skillsSeeded)) {
     return;
   }
-  try {
-    const skill = addUserSkill(parseSkillMarkdown(exampleFrontendSkillMarkdown));
-    setSkillEnabled(skill.id, true);
-  } catch (err) {
-    logSkills("Failed to seed example skill:", err);
-  }
+  EXAMPLE_SKILL_MARKDOWN.forEach(markdown => {
+    try {
+      const skill = addUserSkill(parseSkillMarkdown(markdown));
+      setSkillEnabled(skill.id, true);
+    } catch (err) {
+      logSkills("Failed to seed example skill:", err);
+    }
+  });
   writeString(STORAGE_KEYS.skillsSeeded, "1");
 }
 

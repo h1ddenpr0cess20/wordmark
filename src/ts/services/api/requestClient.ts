@@ -17,6 +17,7 @@ import {
   serializeMessagesForRequest,
 } from "./messageUtils.ts";
 import { buildDeveloperMessage } from "./instructions.ts";
+import { getAutoActivatedSkills } from "../skills/skills.ts";
 import { windowMessagesByTokenBudget } from "./tokenBudget.ts";
 import {
   serviceSupportsReasoning,
@@ -204,7 +205,11 @@ export async function runTurn({
   const resolvedModel = model || getActiveModel();
   const windowedMessages = windowMessagesByTokenBudget(baseMessages, historyTokenBudget);
   const workingMessages = serializeMessagesForRequest(windowedMessages);
-  const developerContent = typeof systemOverride === "string" ? systemOverride : buildDeveloperMessage(latestUserText(baseMessages));
+  const turnUserText = latestUserText(baseMessages);
+  const developerContent = typeof systemOverride === "string" ? systemOverride : buildDeveloperMessage(turnUserText);
+  const autoActivatedSkillNotes = typeof systemOverride === "string"
+    ? []
+    : getAutoActivatedSkills(turnUserText).map(skill => `Skill loaded: ${skill.name}`);
   if (developerContent) {
     workingMessages.unshift({
       role: instructionMessageRole(serviceKey),
@@ -246,7 +251,11 @@ export async function runTurn({
     try {
       if (stream) {
         const streamResponse = await executeStreamingRequest(body, abortController);
-        const result = await handleStreamedResponse(streamResponse, loadingId || "");
+        const result = await handleStreamedResponse(
+          streamResponse,
+          loadingId || "",
+          toolCallIteration === 1 ? autoActivatedSkillNotes : [],
+        );
         responsePayload = result.response;
         streamedText = result.outputText || "";
         streamedReasoning = result.reasoningText || "";
