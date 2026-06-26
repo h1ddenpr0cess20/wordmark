@@ -136,7 +136,7 @@
   border-bottom: 2px solid #33ff33 !important;
 }
 
-.theme-terminal pre code,
+.theme-terminal pre,
 .theme-terminal .code-block {
   background-color: #000000;
   color: #33ff33;
@@ -313,7 +313,7 @@
 }
 
 .theme-blueprint pre,
-.theme-blueprint pre code,
+.theme-blueprint pre,
 .theme-blueprint .code-block {
   background-color: rgba(6, 24, 48, 0.92);
   border-radius: 0;
@@ -420,7 +420,7 @@
 }
 
 .theme-parchment pre,
-.theme-parchment pre code,
+.theme-parchment pre,
 .theme-parchment .code-block {
   background-color: rgba(59, 47, 30, 0.06);
   border: 1px solid var(--code-border);
@@ -535,7 +535,7 @@
 }
 
 .theme-eink pre,
-.theme-eink pre code,
+.theme-eink pre,
 .theme-eink .code-block {
   background-color: var(--code-bg);
   border: 1px solid var(--code-border);
@@ -658,7 +658,7 @@
 }
 
 .theme-synthwave pre,
-.theme-synthwave pre code,
+.theme-synthwave pre,
 .theme-synthwave .code-block {
   background-color: rgba(13, 4, 32, 0.9);
   border: 1px solid var(--code-border);
@@ -728,7 +728,7 @@
 }
 
 .theme-solarized pre,
-.theme-solarized pre code,
+.theme-solarized pre,
 .theme-solarized .code-block {
   background-color: #073642;
   border: 1px solid var(--code-border);
@@ -798,7 +798,7 @@
 }
 
 .theme-nord pre,
-.theme-nord pre code,
+.theme-nord pre,
 .theme-nord .code-block {
   background-color: #292e39;
   border: 1px solid var(--code-border);
@@ -868,7 +868,7 @@
 }
 
 .theme-dracula pre,
-.theme-dracula pre code,
+.theme-dracula pre,
 .theme-dracula .code-block {
   background-color: #21222c;
   border: 1px solid var(--code-border);
@@ -896,7 +896,7 @@
 }
 
 .theme-tidepool pre,
-.theme-tidepool pre code,
+.theme-tidepool pre,
 .theme-tidepool .code-block {
   background-color: #0a2228;
   border: 1px solid var(--border-color);
@@ -929,7 +929,7 @@
 }
 
 .theme-ember pre,
-.theme-ember pre code,
+.theme-ember pre,
 .theme-ember .code-block {
   background-color: #1d1410;
   border: 1px solid var(--border-color);
@@ -989,7 +989,7 @@
 }
 
 .theme-aurora pre,
-.theme-aurora pre code,
+.theme-aurora pre,
 .theme-aurora .code-block {
   background-color: #0f1626;
   border: 1px solid var(--border-color);
@@ -1052,7 +1052,7 @@
 }
 
 .theme-noir pre,
-.theme-noir pre code,
+.theme-noir pre,
 .theme-noir .code-block {
   background-color: #141415;
   border: 1px solid var(--border-color);
@@ -1113,7 +1113,7 @@
 }
 
 .theme-patina pre,
-.theme-patina pre code,
+.theme-patina pre,
 .theme-patina .code-block {
   background-color: #181109;
   border: 1px solid var(--border-color);
@@ -1160,7 +1160,7 @@
 }
 
 .theme-sunset pre,
-.theme-sunset pre code,
+.theme-sunset pre,
 .theme-sunset .code-block {
   background-color: #221733;
   border: 1px solid var(--border-color);
@@ -1219,7 +1219,7 @@
 }
 
 .theme-wine pre,
-.theme-wine pre code,
+.theme-wine pre,
 .theme-wine .code-block {
   background-color: #1f0b12;
   border: 1px solid var(--border-color);
@@ -1261,7 +1261,7 @@
 }
 
 .theme-autumn pre,
-.theme-autumn pre code,
+.theme-autumn pre,
 .theme-autumn .code-block {
   background-color: #261a10;
   border: 1px solid var(--border-color);
@@ -1313,7 +1313,7 @@
 }
 
 .theme-nebula pre,
-.theme-nebula pre code,
+.theme-nebula pre,
 .theme-nebula .code-block {
   background-color: #100e26;
   border: 1px solid var(--border-color);
@@ -1379,7 +1379,7 @@
 }
 
 .theme-amber-crt pre,
-.theme-amber-crt pre code,
+.theme-amber-crt pre,
 .theme-amber-crt .code-block {
   background-color: #1a1000;
   border: 1px solid var(--border-color);
@@ -1424,7 +1424,7 @@
 }
 
 .theme-stained-glass pre,
-.theme-stained-glass pre code,
+.theme-stained-glass pre,
 .theme-stained-glass .code-block {
   background-color: #0c1422;
   border: 1px solid var(--border-color);
@@ -1477,7 +1477,7 @@
 }
 
 .theme-forest pre,
-.theme-forest pre code,
+.theme-forest pre,
 .theme-forest .code-block {
   background-color: #101a12;
   border: 1px solid var(--border-color);
@@ -1557,7 +1557,7 @@
 }
 
 .theme-comic pre,
-.theme-comic pre code,
+.theme-comic pre,
 .theme-comic .code-block {
   background-color: #fffdf5;
   border: 2px solid var(--border-color);

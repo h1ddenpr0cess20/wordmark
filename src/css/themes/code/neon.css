@@ -1,4 +1,4 @@
-[class*="theme-neon-"] pre code,
+[class*="theme-neon-"] pre,
 [class*="theme-neon-"] .code-block {
   background-color: rgba(0, 0, 0, 0.8);
   color: var(--accent-color);
@@ -9,6 +9,13 @@
   margin: 12px 0;
   position: relative;
   overflow-x: auto;
+}
+
+[class*="theme-neon-"] pre code {
+  background: transparent;
+  border: none;
+  box-shadow: none;
+  padding: 0;
 }
 [class*="theme-neon-"] .hljs-keyword {
   color: var(--neon-keyword);
