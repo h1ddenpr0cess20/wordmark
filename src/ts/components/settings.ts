@@ -171,9 +171,9 @@ export function updateHeaderInfo() {
 export function getDataSettingsEnabled() {
   try {
     const v = localStorage.getItem(STORAGE_KEYS.dataSettingsEnabled);
-    return v === null ? true : v === "true";
+    return v === null ? false : v === "true";
   } catch {
-    return true;
+    return false;
   }
 }
 
