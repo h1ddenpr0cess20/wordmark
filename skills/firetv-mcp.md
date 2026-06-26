@@ -83,6 +83,22 @@ target (picking a tile in a grid, a row in a list, a button in a dialog).
   by the UI; lean on it for multi-step moves instead of many rapid single
   presses.
 
+## The rest of the toolbox — use it instead of navigating
+The server exposes far more than D-pad movement. Knowing these exist is half the
+battle; models default to long UI journeys for things one tool already does:
+- **Device & state**: `get_device_info` (model/OS/resolution/battery),
+  `get_network_info`, `get_storage_info`, `get_screen_state`, `set_brightness`,
+  `toggle_bluetooth`, `reboot`.
+- **Notifications**: `get_notifications` to read the panel, `dismiss_notifications`
+  to clear it.
+- **App lifecycle**: `list_apps` / `list_app_aliases` to find names,
+  `close_app` to force-stop, `clear_app_data` to reset a misbehaving app,
+  `sideload` to install an APK, `uninstall_app` to remove one.
+- **Capture / media**: `screenshot` (your eyes), `screen_record` for a clip of an
+  interaction, `now_playing` for media state.
+- **Settings**: `open_settings` (optionally a specific section) instead of
+  navigating the settings tree by hand.
+
 ## Escape hatch
 - `shell` runs an arbitrary ADB command when no dedicated tool fits — useful,
   but prefer the purpose-built tools, which handle key codes and formatting for

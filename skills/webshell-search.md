@@ -32,6 +32,20 @@ JavaScript-heavy pages. Your tools are `web_search`, `news_search`, and
   "latest", "as of"). Prefer it over `web_search` for anything where last week's
   page is wrong, and weight the most recent, most authoritative results.
 
+## Use the filters, not just the query
+SearXNG exposes knobs beyond the query string — lean on whatever the tool
+surfaces:
+- **Time range** (day/week/month/year) to force recency, or to dig back to the
+  original/older source instead of recent reposts.
+- **Category / engine** (general, news, science, IT, images, videos, files) to
+  bias toward the right kind of source — IT/science for technical, files for
+  datasets, images/videos when the answer is visual.
+- **Language / region** when the topic is locale-specific.
+- **Pagination** — pull a second page when the first is thin or SEO-spam rather
+  than giving up on the query.
+- If a query is rate-limited or returns nothing, **vary the engine/category and
+  retry** instead of hammering the same one.
+
 ## Read before you conclude — fetch_url
 - After a search, **`fetch_url` the actual page** rather than trusting the
   snippet, which is often stale or out of context. Request `markdown` for
@@ -44,6 +58,10 @@ JavaScript-heavy pages. Your tools are `web_search`, `news_search`, and
 - Go to the **primary source** when one exists — official docs, the spec, the
   release notes, the filing — not a blog summarizing it. Use search to *find*
   the primary source, then read that.
+- **`fetch_url` isn't just for prose pages** — point it at a PDF/spec/RFC to pull
+  the text, or at a raw data/JSON/CSV endpoint (request `text`) to read it
+  directly. Follow links *out* of a fetched page to the doc it references rather
+  than re-searching.
 
 ## Verify and synthesize
 - **Corroborate anything load-bearing** across two independent sources before

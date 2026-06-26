@@ -64,6 +64,18 @@ sleep 1; tail -n 30 /tmp/dev.log        # confirm it actually booted
   exposes it over local HTTP (port 9712); `download_file` pulls a file back to
   the local machine.
 
+## Services, containers & environment
+- The box has **Docker** — spin up test dependencies (Postgres, Redis, etc.)
+  with the repo's `docker compose up -d`, or `docker run -d`, and verify with
+  `docker ps` before assuming a service is listening. Tear them down when done
+  (`docker compose down`) so nothing lingers between tasks.
+- When the host toolchain mismatches what the repo needs, **build/run in the
+  container** the repo ships: `docker build -t app . && docker run --rm app`.
+- Pass config via **env in the same call** (`DATABASE_URL=... npm test`) or a
+  sourced `.env` — remember env doesn't persist across `execute_command` calls.
+  Never bake secrets into files you might commit; keep them in env or an
+  ignored `.env`.
+
 ## Editing code
 - Use `read_file`/`write_file` for whole-file reads and rewrites — structured
   and quote-safe. For surgical in-place edits, `sed -i.bak 's/.../.../'` or a

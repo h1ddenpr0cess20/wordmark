@@ -75,6 +75,30 @@ soffice --headless --convert-to pdf --outdir out report.docx
 - For generated tables in a report, transform CSV → Markdown table in `python3`
   (or `csvkit`'s `csvjson`/templating) and splice it into the source.
 
+## Diagrams, charts & images
+- **Text → diagram** (version-controllable, regenerable): Mermaid
+  (`mmdc -i d.mmd -o d.svg`), Graphviz (`dot -Tpng g.dot -o g.png`), or PlantUML.
+  Render to SVG/PNG and embed in the source. Probe for the tool first.
+- **Charts from data**: `python3` + matplotlib → PNG/SVG, then reference the
+  image from the Markdown/LaTeX. Keep the generating script next to the doc so
+  the figure can be rebuilt.
+- **Image wrangling**: ImageMagick (`magick`/`convert`) to resize, convert
+  format, or compose before embedding; `pdfimages` to extract from a PDF.
+
+## Presentations & ebooks
+- **Slides**: `pandoc -t pptx doc.md -o slides.pptx`, or Markdown → reveal.js
+  (`pandoc -t revealjs -s -o slides.html`), or Marp (`marp deck.md -o deck.pdf`)
+  if present. Slide breaks follow heading level / `---`.
+- **EPUB**: `pandoc doc.md -o book.epub --toc --epub-cover-image=cover.png`.
+
+## Manipulating existing PDFs
+- Merge / split / rotate / stamp with `qpdf` or `pdftk`
+  (`qpdf --empty --pages a.pdf b.pdf -- out.pdf` to concat).
+- Compress a bloated PDF with Ghostscript:
+  `gs -sDEVICE=pdfwrite -dPDFSETTINGS=/ebook -o small.pdf big.pdf`.
+- Extract: `pdftotext` (text), `pdfimages` (images), `pdfinfo` (metadata/pages).
+  Probe for whichever of these is installed.
+
 ## Research and assemble source material
 - Pull facts and quotes with `web_search`/`news_search`, then `fetch_url` the
   page as `markdown` to capture clean, citable text — far better than
