@@ -1,7 +1,7 @@
 {
   "name": "wordmark",
-  "version": "3.7.0",
-  "description": "Client-side, backend-free AI assistant platform for OpenAI and xAI Grok (Responses API) plus local LM Studio/Ollama servers, with tool calling, MCP servers, web/X search, image generation, TTS, and fully local storage.",
+  "version": "3.8.0",
+  "description": "Client-side, backend-free AI assistant platform for OpenAI, xAI Grok, and Hugging Face Inference Providers (Responses API) plus local LM Studio/Ollama servers, with tool calling, MCP servers, web/X search, image generation, TTS, and fully local storage.",
   "main": "index.html",
   "type": "module",
   "scripts": {
@@ -31,6 +31,7 @@
     "openai",
     "xai",
     "grok",
+    "huggingface",
     "responses-api",
     "lmstudio",
     "ollama",

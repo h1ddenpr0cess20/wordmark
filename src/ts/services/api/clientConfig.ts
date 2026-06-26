@@ -104,6 +104,7 @@ export function ensureApiKey(): string | null {
   const friendlyName = (() => {
     if (activeServiceKey === "openai") return "OpenAI";
     if (activeServiceKey === "xai") return "xAI";
+    if (activeServiceKey === "huggingface") return "Hugging Face";
     return activeServiceKey
       ? activeServiceKey.charAt(0).toUpperCase() + activeServiceKey.slice(1)
       : "OpenAI";

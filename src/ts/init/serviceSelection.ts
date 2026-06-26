@@ -27,7 +27,7 @@ export function pickCloudFallback(services: Record<string, ServiceConfig>, curre
   if (!currentIsCloud || serviceHasKey(services, current)) {
     return null;
   }
-  for (const cloud of ["openai", "xai"]) {
+  for (const cloud of ["openai", "xai", "huggingface"]) {
     if (cloud !== current && serviceHasKey(services, cloud)) {
       return cloud;
     }

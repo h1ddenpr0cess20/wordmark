@@ -21,7 +21,7 @@
 const LOCAL_SERVICES = new Set<string>(["lmstudio", "ollama"]);
 
 /** Hosted services that require an API key. */
-const CLOUD_SERVICES = new Set<string>(["openai", "xai"]);
+const CLOUD_SERVICES = new Set<string>(["openai", "xai", "huggingface"]);
 
 /** True for local-server providers (LM Studio, Ollama): no key, no cloud-only request fields. */
 export function isLocalService(serviceKey: string | null | undefined): boolean {
@@ -44,10 +44,15 @@ export function serviceSupportsReasoning(serviceKey: string | null | undefined):
 
 /**
  * Whether the provider accepts the cloud-only `include` response fields.
- * Only hosted, non-xAI providers (i.e. OpenAI) do; local providers and xAI do not.
+ *
+ * @remarks
+ * These fields (`code_interpreter_call.outputs`, `web_search_call.action.sources`)
+ * surface the outputs of OpenAI's hosted tools, so only OpenAI emits them. xAI,
+ * local providers, and Hugging Face (whose OpenAI-compatible router does not run
+ * those hosted tools) all reject or ignore them.
  */
 export function supportsResponseIncludeFields(serviceKey: string | null | undefined): boolean {
-  return serviceSupportsReasoning(serviceKey) && !isLocalService(serviceKey);
+  return serviceKey === "openai";
 }
 
 /**

@@ -23,6 +23,7 @@ const MODEL_STATUS_SERVICE_LABELS: Record<string, string> = {
   ollama: "Ollama",
   openai: "OpenAI",
   xai: "xAI",
+  huggingface: "Hugging Face",
 };
 
 /**
@@ -95,6 +96,7 @@ export function updateHeaderInfo() {
       switch (serviceKey) {
       case "openai": displayName = "OpenAI"; break;
       case "xai": displayName = "xAI (Grok)"; break;
+      case "huggingface": displayName = "Hugging Face"; break;
       case "lmstudio": displayName = "LM Studio (Local)"; break;
       case "ollama": displayName = "Ollama (Local)"; break;
       default: displayName = serviceKey ? (serviceKey.charAt(0).toUpperCase() + serviceKey.slice(1)) : "";
@@ -488,6 +490,9 @@ export function populateServiceSelector() {
       break;
     case "xai":
       displayName = "xAI (Grok)";
+      break;
+    case "huggingface":
+      displayName = "Hugging Face";
       break;
     case "lmstudio":
       displayName = "LM Studio (Local)";

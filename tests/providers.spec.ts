@@ -25,6 +25,7 @@ test("isLocalService is true only for local-server providers", () => {
 test("isCloudService is true only for hosted providers", () => {
   assert.equal(isCloudService("openai"), true);
   assert.equal(isCloudService("xai"), true);
+  assert.equal(isCloudService("huggingface"), true);
   assert.equal(isCloudService("lmstudio"), false);
   assert.equal(isCloudService("ollama"), false);
   assert.equal(isCloudService("unknown"), false);
@@ -33,14 +34,16 @@ test("isCloudService is true only for hosted providers", () => {
 
 test("serviceSupportsReasoning is false only for xai", () => {
   assert.equal(serviceSupportsReasoning("openai"), true);
+  assert.equal(serviceSupportsReasoning("huggingface"), true);
   assert.equal(serviceSupportsReasoning("lmstudio"), true);
   assert.equal(serviceSupportsReasoning("ollama"), true);
   assert.equal(serviceSupportsReasoning("xai"), false);
 });
 
-test("supportsResponseIncludeFields is true only for hosted non-xai (OpenAI)", () => {
+test("supportsResponseIncludeFields is true only for OpenAI", () => {
   assert.equal(supportsResponseIncludeFields("openai"), true);
   assert.equal(supportsResponseIncludeFields("xai"), false);
+  assert.equal(supportsResponseIncludeFields("huggingface"), false);
   assert.equal(supportsResponseIncludeFields("lmstudio"), false);
   assert.equal(supportsResponseIncludeFields("ollama"), false);
 });
@@ -48,6 +51,7 @@ test("supportsResponseIncludeFields is true only for hosted non-xai (OpenAI)", (
 test("usesServerManagedTools is true only for xai", () => {
   assert.equal(usesServerManagedTools("xai"), true);
   assert.equal(usesServerManagedTools("openai"), false);
+  assert.equal(usesServerManagedTools("huggingface"), false);
   assert.equal(usesServerManagedTools("lmstudio"), false);
   assert.equal(usesServerManagedTools("ollama"), false);
 });
@@ -55,6 +59,7 @@ test("usesServerManagedTools is true only for xai", () => {
 test("instructionMessageRole is 'system' for xai and 'developer' otherwise", () => {
   assert.equal(instructionMessageRole("xai"), "system");
   assert.equal(instructionMessageRole("openai"), "developer");
+  assert.equal(instructionMessageRole("huggingface"), "developer");
   assert.equal(instructionMessageRole("lmstudio"), "developer");
   assert.equal(instructionMessageRole("ollama"), "developer");
   assert.equal(instructionMessageRole(null), "developer");
@@ -63,6 +68,7 @@ test("instructionMessageRole is 'system' for xai and 'developer' otherwise", () 
 
 test("ttsSupportsInstructions is false only for xai", () => {
   assert.equal(ttsSupportsInstructions("openai"), true);
+  assert.equal(ttsSupportsInstructions("huggingface"), true);
   assert.equal(ttsSupportsInstructions("xai"), false);
   assert.equal(ttsSupportsInstructions(null), true);
   assert.equal(ttsSupportsInstructions(undefined), true);

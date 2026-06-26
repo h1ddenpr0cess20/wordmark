@@ -4,7 +4,7 @@
  */
 
 /** Identifier for a built-in AI provider. */
-export type ServiceKey = "openai" | "lmstudio" | "ollama" | "xai";
+export type ServiceKey = "openai" | "lmstudio" | "ollama" | "xai" | "huggingface";
 
 /** A model entry as returned by a provider's `/models` (or `/api/tags`) endpoint. */
 export interface ModelListItem {

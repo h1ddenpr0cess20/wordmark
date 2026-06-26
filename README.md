@@ -20,7 +20,7 @@
 
 ## Overview
 
-Wordmark is a client-side AI chat for OpenAI/xAI Responses APIs and local LM Studio or Ollama servers. It supports tool/function calling, TTS, themes, and fully local storage — no backend required.
+Wordmark is a client-side AI chat for OpenAI/xAI/Hugging Face Responses APIs and local LM Studio or Ollama servers. It supports tool/function calling, TTS, themes, and fully local storage — no backend required.
 
 **Docs:**
 - [Getting Started](docs/getting-started.md)
@@ -40,7 +40,7 @@ Wordmark is a client-side AI chat for OpenAI/xAI Responses APIs and local LM Stu
 
 ## Features
 
-- **Providers** — OpenAI Responses (hosted), xAI Grok (Responses-compatible), and local LM Studio or Ollama servers ([Services & Models](docs/services.md))
+- **Providers** — OpenAI Responses (hosted), xAI Grok (Responses-compatible), Hugging Face Inference Providers (Responses API, multi-provider routing to open models), and local LM Studio or Ollama servers ([Services & Models](docs/services.md))
 - **Tool calling** — built-in weather, provider web + X search, Code Interpreter, image generation, file search (OpenAI), direct file attachments (xAI), and custom MCP servers ([Tool Calling](docs/tool-calling.md))
 - **Skills** — uploadable `SKILL.md` instruction packages the assistant loads on demand to specialize for a task; ships with example skills ([Skills](docs/skills.md))
 - **Streaming & reasoning** — dedicated reasoning panel, rich tool timelines, inline code previews, automatic image capture ([Streaming](docs/streaming.md))
@@ -62,7 +62,7 @@ npm run dev          # dev server on http://localhost:3000
 
 Wordmark builds with [Vite](https://vite.dev). Use `npm run dev` for development or `npm run build` to produce a static bundle in `dist/` (serve it with `npm run preview`). Opening `index.html` straight from the filesystem no longer works — the app must be served by the dev server or built first. See [Getting Started](docs/getting-started.md).
 
-1. In **Settings → API Keys**, add your OpenAI/xAI keys. Keys and URLs are stored locally.
+1. In **Settings → API Keys**, add your OpenAI/xAI/Hugging Face keys. Keys and URLs are stored locally.
 2. Choose a provider and model in **Settings → Model**.
 3. Type a message and send.
 

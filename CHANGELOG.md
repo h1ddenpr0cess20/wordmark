@@ -2,6 +2,13 @@
 
 All notable changes to Wordmark are documented here. Earlier versions didn't follow proper semver — this changelog reflects what actually shipped, not what the version numbers said at the time.
 
+## [3.8.0] - 2026-06-26
+
+Hugging Face provider. Backward-compatible.
+
+### Added
+- **Hugging Face Inference Providers** — a new hosted provider that talks to Hugging Face's OpenAI-compatible Responses API (`https://router.huggingface.co/v1/responses`), giving access to open models (e.g. `openai/gpt-oss-120b`, `moonshotai/Kimi-K2-Instruct-0905`) across the inference-provider network. Add a Hugging Face access token in Settings → API Keys, then pick Hugging Face in Settings → Model. Model ids use the `<repo>` or `<repo>:<provider>` form — omitting the provider suffix lets the router pick the fastest provider. Reasoning is forwarded to reasoning-capable models; function tools and Remote MCP work as on OpenAI, while the OpenAI-only `include` fields and provider-managed hosted tools (`web_search`, `code_interpreter`, `image_generation`, `file_search`) are not sent.
+
 ## [3.7.0] - 2026-06-25
 
 Agent skills. Backward-compatible.

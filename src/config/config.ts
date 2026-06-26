@@ -328,6 +328,71 @@ export const config: Config = {
             },
         },
 
+        huggingface: {
+            baseUrl: "https://router.huggingface.co/v1",
+            apiKey: "",
+            models: [],
+            defaultModel: "openai/gpt-oss-120b",
+            modelsFetching: false,
+
+            /**
+             * Fetches the Hugging Face Inference Providers model list and refreshes
+             * the dropdown.
+             *
+             * @remarks
+             * The router exposes an OpenAI-compatible `/v1/models` endpoint
+             * (`{ data: [{ id }] }`). Model ids use the `<repo>` or `<repo>:<provider>`
+             * form (e.g. `openai/gpt-oss-120b`, `moonshotai/Kimi-K2-Instruct-0905:groq`);
+             * omitting the provider suffix lets the router pick the fastest provider.
+             * Embedding models are filtered out.
+             */
+            async fetchAndUpdateModels() {
+                if (!this.apiKey) {
+                    const stored = localStorage.getItem(apiKeyStorageKey("huggingface"));
+                    if (stored) this.apiKey = stored;
+                }
+                if (!this.apiKey) {
+                    this.models = ["Set API key to load models"];
+                    return;
+                }
+                this.modelsFetching = true;
+                const endpoint = `${this.baseUrl.replace(/\/+$/, "")}/models`;
+                console.info(`Fetching Hugging Face models from: ${endpoint}`);
+                const isEmbeddingModel = (id: string) => /embed/i.test(id);
+                try {
+                    const response = await fetch(endpoint, {
+                        headers: { "Authorization": `Bearer ${this.apiKey}` },
+                    });
+                    if (!response.ok) {
+                        console.error(`Error fetching Hugging Face models: ${response.status}`);
+                        this.models = ["Error: Could not fetch models"];
+                    } else {
+                        const data = await response.json();
+                        if (data && Array.isArray(data.data)) {
+                            this.models = data.data
+                                .map((item: ModelListItem) => item.id)
+                                .filter((id: unknown): id is string => typeof id === "string" && !isEmbeddingModel(id))
+                                .sort();
+                        } else {
+                            this.models = ["Error: Invalid response"];
+                        }
+                        if (this.models.length === 0) {
+                            this.models = ["No models found"];
+                        }
+                    }
+                } catch (error) {
+                    console.error("Failed to fetch Hugging Face models:", error);
+                    this.models = ["Error: Failed to connect"];
+                } finally {
+                    this.modelsFetching = false;
+                }
+
+                if (typeof uiHooks.updateModelsDropdown === "function") {
+                    uiHooks.updateModelsDropdown(this.models[0]?.startsWith("Error"));
+                }
+            },
+        },
+
         xai: {
             baseUrl: "https://api.x.ai/v1",
             apiKey: "",

@@ -33,6 +33,11 @@ instead of re-deriving `serviceKey === …` checks at each call site.
   - Requires `text.format` removal when using server-side tools (web/X search, Code Interpreter, MCP connectors)
   - Provider-managed Code Interpreter ignores OpenAI-specific container options
   - File attachments use direct `input_file` references (uploaded via `/v1/files`, referenced by `file_id` in message content) instead of vector stores
+- **Hugging Face** (`huggingface`) - Inference Providers via the OpenAI-compatible Responses API
+  - Base URL `https://router.huggingface.co/v1`; requests hit `<baseUrl>/responses`
+  - Requires a Hugging Face access token (Settings → API Keys)
+  - Models fetched dynamically via `<baseUrl>/models`; ids use the `<repo>` or `<repo>:<provider>` form (e.g. `openai/gpt-oss-120b`, `moonshotai/Kimi-K2-Instruct-0905:groq`). Omitting the provider suffix lets the router pick the fastest provider
+  - Reasoning is forwarded to reasoning-capable models; the OpenAI-only `include` response fields and the provider-managed `web_search`/`code_interpreter`/`image_generation`/`file_search` tools are not sent. Function tools and Remote MCP work as on OpenAI
 - **LM Studio** (`lmstudio`) - Local OpenAI-compatible server
   - Models fetched dynamically via `<baseUrl>/models`
   - No API key required
