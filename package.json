@@ -1,6 +1,6 @@
 {
   "name": "wordmark",
-  "version": "3.7.0",
+  "version": "3.7.1",
   "description": "Client-side, backend-free AI assistant platform for OpenAI and xAI Grok (Responses API) plus local LM Studio/Ollama servers, with tool calling, MCP servers, web/X search, image generation, TTS, and fully local storage.",
   "main": "index.html",
   "type": "module",

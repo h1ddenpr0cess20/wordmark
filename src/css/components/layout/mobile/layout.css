@@ -51,8 +51,9 @@
     font-size: 1rem;
   }
 
-  pre code {
-    font-size: 0.65rem;
+  pre code,
+  .message-content pre code {
+    font-size: 0.8rem;
   }
 
   .theme-terminal .message-content,
@@ -80,7 +81,7 @@
   }
 
   [class*="theme-neon-"] pre code {
-    font-size: 0.75rem !important;
+    font-size: 0.8rem !important;
   }
 
   #chat-container {
@@ -336,13 +337,14 @@
   input:not([type="range"]),
   select,
   option,
+  code,
   .setting-item {
     font-size: 0.9rem;
   }
 
   pre code,
   .message-content pre code {
-    font-size: 0.55rem;
+    font-size: 0.7rem;
     letter-spacing: -0.01em;
   }
 

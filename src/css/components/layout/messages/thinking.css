@@ -99,21 +99,19 @@
   margin-bottom: 0;
 }
 
-.thinking-content code {
+/* Only the reasoning panel's deliberate differences from the shared inline-code
+   rule (base.css `code:not(pre code)`): a smaller, muted variant. Padding,
+   radius, border and color are inherited from the shared rule. */
+.thinking-content code:not(pre code) {
   font-family: 'Menlo', 'Monaco', 'Courier New', monospace;
   font-size: 0.86rem;
   background-color: rgba(var(--text-primary-rgb, 255, 255, 255), 0.05);
-  padding: 0.15em 0.35em;
-  border-radius: 6px;
 }
 
+/* Code blocks lean on the shared `pre`/`pre code` rules (and per-theme `pre`
+   styling); only the panel's tighter vertical spacing differs. */
 .thinking-content pre {
   margin: 12px 0;
-  background-color: var(--code-bg);
-  border: 1px solid var(--code-border);
-  padding: 12px;
-  border-radius: 8px;
-  overflow-x: auto;
 }
 
 @media (max-width: 640px) {
