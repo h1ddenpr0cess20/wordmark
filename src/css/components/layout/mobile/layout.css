@@ -337,6 +337,7 @@
   input:not([type="range"]),
   select,
   option,
+  code,
   .setting-item {
     font-size: 0.9rem;
   }
