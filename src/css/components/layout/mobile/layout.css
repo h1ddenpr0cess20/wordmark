@@ -51,7 +51,8 @@
     font-size: 1rem;
   }
 
-  pre code {
+  pre code,
+  .message-content pre code {
     font-size: 0.65rem;
   }
 
