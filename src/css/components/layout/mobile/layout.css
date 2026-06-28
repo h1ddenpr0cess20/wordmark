@@ -120,7 +120,9 @@
     justify-content: flex-start;
   }
   #header {
-    padding: 58px 16px 10px;
+    /* Left padding matches #chat-box (12px) so the header title aligns with
+       the wordmark logo on assistant chat messages. */
+    padding: 58px 16px 10px 12px;
     gap: 2px;
   }
   #header #header-title {
