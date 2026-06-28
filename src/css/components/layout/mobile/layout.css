@@ -110,9 +110,6 @@
 
   #logo-container {
     top: calc(env(safe-area-inset-top, 0) + 12px);
-    /* Align the logo's left edge with the wordmark logo on chat messages,
-       which sits at #chat-box's 12px left padding. Zero the left padding so the
-       variable horizontal padding doesn't shift it out of alignment. */
     left: calc(env(safe-area-inset-left, 0) + 12px);
     transform: none;
     padding: clamp(4px, 1.4vw, 6px) clamp(8px, 3.2vw, 12px);
