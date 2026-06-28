@@ -110,9 +110,10 @@
 
   #logo-container {
     top: calc(env(safe-area-inset-top, 0) + 12px);
-    left: calc(env(safe-area-inset-left, 0) + 8px);
+    left: calc(env(safe-area-inset-left, 0) + 12px);
     transform: none;
     padding: clamp(4px, 1.4vw, 6px) clamp(8px, 3.2vw, 12px);
+    padding-left: 0;
     gap: clamp(6px, 2.6vw, 10px);
     max-width: calc(100vw - 32px);
     width: auto;
