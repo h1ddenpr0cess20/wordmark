@@ -2,6 +2,20 @@
 
 All notable changes to Wordmark are documented here. Earlier versions didn't follow proper semver — this changelog reflects what actually shipped, not what the version numbers said at the time.
 
+## [3.7.1] - 2026-06-28
+
+Post-3.7.0 polish: mobile code rendering, theme code-block fixes, and a safer data-features default. Backward-compatible.
+
+### Changed
+- **Data features off by default** — the Data settings tab no longer defaults to enabled when no preference is stored; data features stay off until you opt in.
+
+### Fixed
+- **Mobile code sizing** — retuned code-block and inline-code font sizes on phones so code is readable without overflowing, and kept inline code from rendering larger than surrounding body text on small screens.
+- **Reasoning-panel code blocks** — code inside reasoning output now renders in a proper inner box with correct mobile sizing, sharing one set of styles with chat code blocks instead of a divergent copy.
+- **Theme code-block borders** — removed unwanted inner borders on code blocks in several themes, plus a font-size mismatch on colored tokens in the neon theme on mobile.
+- **Mobile logo alignment** — the fixed top wordmark now lines up with the wordmark logos on assistant messages (both 12px from the edge).
+- **Docker skills build** — the top-level `skills/` directory is copied into the build stage so bundled skills ship in container images.
+
 ## [3.7.0] - 2026-06-25
 
 Agent skills. Backward-compatible.
