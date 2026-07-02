@@ -46,6 +46,12 @@ export function updateBrowserHistory() {
 /**
  * Imports a conversation from a `?chat=` URL parameter, rendering its messages,
  * restoring the model selection, and saving the imported conversation.
+ *
+ * @remarks
+ * The URL is attacker-controllable (anyone can send a crafted link), so the
+ * import is gated behind an explicit confirmation, only `user`/`assistant`
+ * messages are accepted (no `system`/`developer` roles), and the imported
+ * conversation never carries a system prompt.
  */
 export function loadFromUrl() {
   if (!window.location.search) {
@@ -62,14 +68,26 @@ export function loadFromUrl() {
     if (!chatData || typeof chatData !== "object") {
       return;
     }
-    const messages: Message[] = Array.isArray(chatData.messages) ? chatData.messages : [];
+    const messages: Message[] = (Array.isArray(chatData.messages) ? chatData.messages : [])
+      .filter((msg: Message) => msg
+        && (msg.role === "user" || msg.role === "assistant")
+        && typeof msg.content === "string");
+
+    if (messages.length === 0) {
+      return;
+    }
+
+    const confirmed = window.confirm(
+      "This link contains a shared conversation. Import it into your chat history?",
+    );
+    if (!confirmed) {
+      return;
+    }
+
     state.conversationHistory = messages;
 
     messages.forEach((msg: Message) => {
-      if (msg.role !== "system") {
-        const content = typeof msg.content === "string" ? msg.content : "";
-        appendMessage(msg.role === "user" ? "You" : "Assistant", content, msg.role || "");
-      }
+      appendMessage(msg.role === "user" ? "You" : "Assistant", msg.content as string, msg.role || "");
     });
 
     if (chatData.model && elements.modelSelector) {
@@ -84,15 +102,21 @@ export function loadFromUrl() {
 
     const now = new Date();
     const conversation = {
-      id: chatData.id || `url-import-${now.getTime()}`,
-      name: chatData.name || `Imported Conversation ${now.toLocaleString()}`,
+      // Always mint a fresh id: honoring an id from the URL would let a
+      // crafted link overwrite an existing stored conversation.
+      id: `url-import-${now.getTime()}`,
+      name: typeof chatData.name === "string" && chatData.name
+        ? chatData.name
+        : `Imported Conversation ${now.toLocaleString()}`,
       created: chatData.created || now.toISOString(),
       updated: now.toISOString(),
       messages: state.conversationHistory,
       images: chatData.images || [],
       model: chatData.model || elements.modelSelector?.value || "Unknown",
       service: chatData.service || config?.defaultService || "Unknown",
-      systemPrompt: chatData.systemPrompt || {
+      // Never accept a system prompt from the URL: it would be applied as the
+      // active instructions whenever this conversation is loaded from history.
+      systemPrompt: {
         type: "none",
         content: "",
       },
