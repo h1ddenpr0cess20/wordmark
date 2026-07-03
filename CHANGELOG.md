@@ -2,6 +2,16 @@
 
 All notable changes to Wordmark are documented here. Earlier versions didn't follow proper semver — this changelog reflects what actually shipped, not what the version numbers said at the time.
 
+## [3.7.2] - 2026-07-03
+
+Security hardening for shared-conversation links. Backward-compatible.
+
+### Fixed
+- **`?chat=` import hardening** — importing a conversation from a `?chat=` link now requires an explicit confirmation, accepts only `user`/`assistant` messages with string content, never honors an imported `systemPrompt`, and always mints a fresh conversation id so a crafted link can't silently render forged messages, apply attacker instructions, or clobber an existing stored conversation.
+
+### Changed
+- **Tightened CSP** — dropped `'unsafe-inline'` from the `script-src` directive so any DOM-XSS that slips past sanitization can't execute inline, giving the sanitizer defenses real defense-in-depth.
+
 ## [3.7.1] - 2026-06-28
 
 Post-3.7.0 polish: mobile code rendering, theme code-block fixes, and a safer data-features default. Backward-compatible.
