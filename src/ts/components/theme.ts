@@ -255,7 +255,7 @@ function updateThemeColorTriplets() {
 /**
  * Populate the theme selector with organized optgroups
  */
-async function populateThemeSelector() {
+function populateThemeSelector() {
   const themeSelector = document.getElementById("theme-selector") as HTMLSelectElement | null;
   if (!themeSelector) {
     console.error("Theme selector not found");
@@ -263,7 +263,7 @@ async function populateThemeSelector() {
   }
 
   if (Object.keys(themeCategories).length === 0) {
-    themeCategories = await extractThemesFromCSS();
+    themeCategories = extractThemesFromCSS();
   }
 
   themeSelector.innerHTML = "";
@@ -290,14 +290,14 @@ async function populateThemeSelector() {
 /**
  * Initialize theme functionality
  */
-export async function initTheme() {
+export function initTheme() {
   // Optional packs must be injected before applying a saved theme that belongs
   // to one, so its styling is present.
   injectInstalledPacks();
 
-  themeCategories = await extractThemesFromCSS();
+  themeCategories = extractThemesFromCSS();
 
-  await populateThemeSelector();
+  populateThemeSelector();
 
   themeSelector = document.getElementById("theme-selector") as HTMLSelectElement | null;
 

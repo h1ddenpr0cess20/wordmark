@@ -141,28 +141,6 @@
   margin-bottom: 22px;
 }
 
-.settings-tab-columns {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 20px;
-}
-
-.settings-column {
-  flex: 1;
-  min-width: 300px;
-}
-
-#model-settings .tab-content {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 20px;
-}
-
-#model-settings .settings-group {
-  flex: 1;
-  min-width: 300px;
-}
-
 .settings-group:not(:first-of-type) {
   margin-top: 20px;
 }

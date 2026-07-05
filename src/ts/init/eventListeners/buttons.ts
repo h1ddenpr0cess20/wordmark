@@ -15,7 +15,6 @@ import { updateBrowserHistory } from "../../services/history/state.ts";
 import { startNewConversation } from "../../services/history/persistence.ts";
 import { updatePromptVisibility } from "../../components/ui/settingsControls.ts";
 import { updateHeaderInfo, updateModelSelector, serviceStatusLabel } from "../../components/settings.ts";
-import { setReasoningEffort, DEFAULT_REASONING_EFFORT } from "../modelSettings.ts";
 import { DEFAULT_PERSONALITY, config } from "../../../config/config.ts";
 
 /**
@@ -148,13 +147,6 @@ export function setupButtonEventListeners(
       if (elements.userInput) {
         elements.userInput.focus();
       }
-    });
-  }
-
-  const resetModelSettingsButton = document.getElementById("reset-model-settings");
-  if (resetModelSettingsButton) {
-    resetModelSettingsButton.addEventListener("click", () => {
-      setReasoningEffort(DEFAULT_REASONING_EFFORT || "medium");
     });
   }
 

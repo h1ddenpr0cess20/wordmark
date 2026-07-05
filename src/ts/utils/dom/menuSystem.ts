@@ -102,7 +102,7 @@ export async function initializeMenus() {
     await HTMLLoader.loadMultiple(SETTINGS_TAB_PARTIALS);
     logVerbose("All menu panels loaded successfully");
     try {
-      await initTheme();
+      initTheme();
     } catch (e) {
       console.warn("initTheme failed:", e);
     }

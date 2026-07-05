@@ -98,7 +98,29 @@ export function createStreamingRuntime({
     return thinkingContainer;
   }
 
+  let renderScheduled = false;
+
+  /**
+   * Coalesces render requests to one DOM update per animation frame. Deltas
+   * often arrive many times per frame, and each render re-parses the full
+   * accumulated markdown and re-highlights code blocks, so rendering per event
+   * makes streaming cost quadratic in response length.
+   */
   function render() {
+    if (renderScheduled) {
+      return;
+    }
+    renderScheduled = true;
+    const schedule = typeof requestAnimationFrame === "function"
+      ? requestAnimationFrame
+      : (cb: () => void) => setTimeout(cb, 16);
+    schedule(() => {
+      renderScheduled = false;
+      performRender();
+    });
+  }
+
+  function performRender() {
     const parsedThinking = separateThinkingSegments(accumulatedContent);
     const processedText = parsedThinking.content;
     let thinkingContent = accumulatedReasoning;
@@ -249,7 +271,7 @@ export function createStreamingRuntime({
     }
     const targetPayload: Record<string, any> = payload || {};
     if (!Array.isArray(targetPayload.output)) {
-      targetPayload.output = Array.isArray(targetPayload.output) ? targetPayload.output : [];
+      targetPayload.output = [];
     }
     accumulatedImageOutputs.forEach((img, index) => {
       const outputEntry: Record<string, unknown> = {
@@ -285,6 +307,6 @@ export function createStreamingRuntime({
     outputEndsWith: (suffix: string) => accumulatedContent.endsWith(suffix),
     hasOutput: () => accumulatedContent.trim().length > 0,
     removePlaceholder,
-    render,
+    render: performRender,
   };
 }

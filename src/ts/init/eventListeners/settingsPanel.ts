@@ -8,7 +8,7 @@
 
 import { elements, state } from "../state.ts";
 import { switchToTab } from "../../components/ui/settingsTabs.ts";
-import { updateHeaderInfo, organizeSettingsLayout } from "../../components/settings.ts";
+import { updateHeaderInfo } from "../../components/settings.ts";
 import { DEFAULT_PERSONALITY } from "../../../config/config.ts";
 import { createScopedLogger } from "../../utils/logger.ts";
 
@@ -243,8 +243,6 @@ export function openSettingsAndSwitch(tabId: string, attempt = 0) {
   storeOriginalValues(panelState);
   showSettingsPanel();
 
-  organizeSettingsLayout();
-
   if (tabId) {
     setTimeout(() => switchToTab(tabId), 0);
   }
@@ -259,8 +257,6 @@ export function initializeSettingsPanelControls() {
     elements.settingsButton.addEventListener("click", () => {
       storeOriginalValues(panelState);
       showSettingsPanel();
-      organizeSettingsLayout();
-
     });
   }
 

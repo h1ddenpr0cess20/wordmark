@@ -316,8 +316,6 @@ function saveApiKeys() {
 
     }
 
-    refreshApiDependentUi();
-
     logApiKeys("API keys saved to localStorage");
   } catch (error) {
     console.error("Error saving API keys:", error);

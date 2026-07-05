@@ -70,31 +70,29 @@ export function appendMessage(sender: string, content: string, type: string, ski
   }
 
   setTimeout(() => {
-    Promise.resolve().then(() => {
-      const parsed = marked.parse(content, { async: false });
-      const sanitized = sanitizeWithMedia(parsed);
-      contentElement.innerHTML = sanitized;
+    const parsed = marked.parse(content, { async: false });
+    const sanitized = sanitizeWithMedia(parsed);
+    contentElement.innerHTML = sanitized;
 
-      try {
-        highlightAndAddCopyButtons(messageElement);
-      } catch (error) {
-        console.error("Error highlighting code:", error);
-      }
+    try {
+      highlightAndAddCopyButtons(messageElement);
+    } catch (error) {
+      console.error("Error highlighting code:", error);
+    }
 
-      try {
-        setupImageInteractions(messageElement);
-      } catch (error) {
-        console.error("Error setting up image interactions:", error);
-      }
+    try {
+      setupImageInteractions(messageElement);
+    } catch (error) {
+      console.error("Error setting up image interactions:", error);
+    }
 
-      if (state.shouldAutoScroll && chatBox) {
-        chatBox.scrollTop = chatBox.scrollHeight;
-      }
+    if (state.shouldAutoScroll && chatBox) {
+      chatBox.scrollTop = chatBox.scrollHeight;
+    }
 
-      if ((type === "user" || type === "system") && !skipHistory) {
-        state.shouldAutoScroll = true;
-      }
-    });
+    if ((type === "user" || type === "system") && !skipHistory) {
+      state.shouldAutoScroll = true;
+    }
   }, 0);
 
   return messageElement;

@@ -2,13 +2,14 @@
  * UI and client wiring for URL-based Model Context Protocol (MCP) servers.
  *
  * @remarks
- * Renders the settings list of user-configured MCP servers (persisted by
+ * Wires the add-server form for user-configured MCP servers (persisted by
  * {@link ./mcpServerStore.ts}) and registers/unregisters them with the
- * {@link responsesClient} so changes take effect without reloading. The storage
- * CRUD helpers are re-exported here so importers keep a single entry point.
+ * {@link responsesClient} so changes take effect without reloading. Configured
+ * servers are listed (and removable) through the tools catalog in settings.
+ * The storage CRUD helpers are re-exported here so importers keep a single
+ * entry point.
  */
 
-import { icon } from "../utils/icons.ts";
 import { showNotification } from "../utils/notifications.ts";
 import { responsesClient } from "./api.ts";
 import { refreshToolSettingsUI } from "../components/tools.ts";
@@ -16,62 +17,6 @@ import { getMCPServers, addMCPServer, removeMCPServer } from "./mcpServerStore.t
 
 export { getMCPServers, addMCPServer, removeMCPServer };
 export type { McpServer } from "./mcpServerStore.ts";
-
-/** Renders the configured MCP servers into the settings list. */
-function renderMCPServersList() {
-  const container = document.getElementById("mcp-servers-list");
-  if (!container) return;
-
-  const servers = getMCPServers();
-
-  if (servers.length === 0) {
-    container.innerHTML = "<p class=\"info-text\" style=\"margin: 0;\">No MCP servers configured. Add one below to get started.</p>";
-    return;
-  }
-
-  container.innerHTML = "";
-
-  servers.forEach((server) => {
-    const item = document.createElement("div");
-    item.className = "mcp-server-item";
-    item.dataset.serverLabel = server.server_label;
-
-    const info = document.createElement("div");
-    info.className = "mcp-server-info";
-
-    const name = document.createElement("strong");
-    name.textContent = server.displayName;
-    info.appendChild(name);
-
-    const details = document.createElement("div");
-    details.className = "mcp-server-details";
-
-    const url = document.createElement("code");
-    url.textContent = server.server_url;
-    details.appendChild(url);
-
-    if (server.description) {
-      const desc = document.createElement("div");
-      desc.className = "mcp-server-description";
-      desc.textContent = server.description;
-      details.appendChild(desc);
-    }
-
-    info.appendChild(details);
-    item.appendChild(info);
-
-    const removeBtn = document.createElement("button");
-    removeBtn.type = "button";
-    removeBtn.className = "mcp-server-remove";
-    removeBtn.dataset.serverLabel = server.server_label;
-    removeBtn.title = "Remove Server";
-    removeBtn.innerHTML = icon("trash", { width: 16, height: 16 });
-    removeBtn.addEventListener("click", handleRemoveServer);
-    item.appendChild(removeBtn);
-
-    container.appendChild(item);
-  });
-}
 
 /**
  * Prompts the user to confirm removing an MCP server, then unregisters it.
@@ -96,7 +41,6 @@ export function requestMcpServerRemoval(serverLabel: string, fallbackDisplayName
 
   try {
     removeMCPServer(serverLabel);
-    renderMCPServersList();
 
     if (responsesClient && typeof responsesClient.unregisterMcpServer === "function") {
       try {
@@ -149,14 +93,6 @@ function refreshToolingState(options: { checkAvailability?: boolean } = {}) {
     } catch (error) {
       console.warn("Unable to refresh MCP availability:", error);
     }
-  }
-}
-
-/** Click handler for a server's remove button. */
-function handleRemoveServer(event: Event) {
-  const serverLabel = (event.currentTarget as HTMLElement).dataset.serverLabel;
-  if (serverLabel) {
-    requestMcpServerRemoval(serverLabel);
   }
 }
 
@@ -213,7 +149,6 @@ function handleAddServer() {
 
   try {
     addMCPServer(server);
-    renderMCPServersList();
 
     if (responsesClient && typeof responsesClient.registerMcpServer === "function") {
       try {
@@ -241,10 +176,8 @@ function handleAddServer() {
   }
 }
 
-/** Renders the initial server list and wires the add-server button. */
+/** Wires the add-server button. */
 export function initMCPServers() {
-  renderMCPServersList();
-
   const addButton = document.getElementById("add-mcp-server");
   if (addButton) {
     addButton.addEventListener("click", handleAddServer);

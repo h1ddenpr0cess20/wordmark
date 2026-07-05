@@ -209,17 +209,6 @@ export function addTtsControlsToMessage(audioData: ArrayBuffer, messageId: strin
   const loadingSpinner = document.createElement("div");
   loadingSpinner.className = "tts-loading-spinner";
 
-  if (!document.getElementById("tts-spinner-style")) {
-    const style = document.createElement("style");
-    style.id = "tts-spinner-style";
-    style.textContent = `
-      @keyframes tts-spin {
-        to { transform: rotate(360deg); }
-      }
-    `;
-    document.head.appendChild(style);
-  }
-
   let isLoading = false;
   let isPlaying = false;
 
