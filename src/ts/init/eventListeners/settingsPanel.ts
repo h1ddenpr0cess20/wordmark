@@ -3,12 +3,17 @@
  *
  * @remarks
  * Owns the single settings panel: opening and closing it, the outside-click
- * dismissal handler, and the header shortcuts that jump straight to a tab.
+ * dismissal handler (shared with the history and gallery panels), and the
+ * header shortcuts that jump straight to a tab. The generic open/close state
+ * machine lives in `utils/dom/panels.ts`; this module adds the
+ * settings-specific extras (hiding the header buttons while open and
+ * restoring unsaved prompt values on dismissal).
  */
 
 import { elements, state } from "../state.ts";
 import { switchToTab } from "../../components/ui/settingsTabs.ts";
 import { updateHeaderInfo } from "../../components/settings.ts";
+import { isPanelOpen, openPanel, closePanel, eventTargetsElement } from "../../utils/dom/panels.ts";
 import { DEFAULT_PERSONALITY } from "../../../config/config.ts";
 import { createScopedLogger } from "../../utils/logger.ts";
 
@@ -36,20 +41,6 @@ const panelState: PanelState = {
  */
 const handledEvents = new WeakSet<Event>();
 
-/**
- * Syncs body-level open/closed classes to reflect whether the settings, history,
- * or gallery panel is currently open.
- */
-export function updatePanelOpenState() {
-  const settingsOpen = Boolean(elements.settingsPanel && elements.settingsPanel.classList.contains("active"));
-  const historyOpen = Boolean(elements.historyPanel && elements.historyPanel.getAttribute("aria-hidden") === "false");
-  const galleryOpen = Boolean(elements.galleryPanel && elements.galleryPanel.getAttribute("aria-hidden") === "false");
-
-  if (typeof document !== "undefined") {
-    document.body.classList.toggle("panel-open", settingsOpen || historyOpen || galleryOpen);
-  }
-}
-
 /** Snapshots the current personality/custom-prompt field values into `panelState`. */
 function storeOriginalValues(panelState: PanelState) {
   panelState.originalPersonalityValue = elements.personalityInput ? elements.personalityInput.value : "";
@@ -74,17 +65,17 @@ function restoreOriginalValues(panelState: PanelState) {
 }
 
 /**
- * Opens the settings panel: marks it active/visible and hides the header
- * settings/history/gallery buttons while it is open.
+ * Opens the settings panel: closes the other panels so they never stack, marks
+ * it visible, and hides the header settings/history/gallery buttons while it
+ * is open.
  */
 function showSettingsPanel() {
   if (!elements.settingsPanel || !elements.settingsButton) {
     return;
   }
-  elements.settingsPanel.classList.add("active");
-  elements.settingsButton.setAttribute("aria-expanded", "true");
-  elements.settingsPanel.setAttribute("aria-hidden", "false");
-  elements.settingsPanel.removeAttribute("inert");
+  closePanel({ panel: elements.historyPanel, button: elements.historyButton });
+  closePanel({ panel: elements.galleryPanel, button: elements.galleryButton });
+  openPanel({ panel: elements.settingsPanel, button: elements.settingsButton });
   elements.settingsButton.style.display = "none";
   if (elements.historyButton) {
     elements.historyButton.style.display = "none";
@@ -92,8 +83,6 @@ function showSettingsPanel() {
   if (elements.galleryButton) {
     elements.galleryButton.style.display = "none";
   }
-
-  updatePanelOpenState();
 }
 
 /**
@@ -105,10 +94,6 @@ function hideSettingsPanel({ focusButton = false } = {}) {
   if (!elements.settingsPanel || !elements.settingsButton) {
     return;
   }
-  elements.settingsPanel.classList.remove("active");
-  elements.settingsButton.setAttribute("aria-expanded", "false");
-  elements.settingsPanel.setAttribute("aria-hidden", "true");
-  elements.settingsPanel.setAttribute("inert", "true");
   elements.settingsButton.style.display = "";
   if (elements.historyButton) {
     elements.historyButton.style.display = "";
@@ -116,11 +101,19 @@ function hideSettingsPanel({ focusButton = false } = {}) {
   if (elements.galleryButton) {
     elements.galleryButton.style.display = "";
   }
-  if (focusButton) {
-    elements.settingsButton.focus();
-  }
+  closePanel({ panel: elements.settingsPanel, button: elements.settingsButton }, { focusButton });
+}
 
-  updatePanelOpenState();
+/**
+ * Closes the settings panel if it is open, keeping the values the user set
+ * (no unsaved-value restore). Used by the prompt/personality "save" actions.
+ *
+ * @param focusButton - When `true`, returns focus to the settings button.
+ */
+export function closeSettingsPanelIfOpen({ focusButton = false } = {}) {
+  if (isPanelOpen(elements.settingsPanel)) {
+    hideSettingsPanel({ focusButton });
+  }
 }
 
 /**
@@ -192,33 +185,24 @@ function setupOutsideClickHandler() {
       return;
     }
 
-    const isSettingsPanelElement = elements.settingsPanel && elements.settingsPanel.contains(event.target as Node);
-    const isSettingsButton = event.target === elements.settingsButton;
-
-    if (elements.settingsPanel && elements.settingsPanel.classList.contains("active") &&
-        !isSettingsPanelElement && !isSettingsButton) {
+    if (isPanelOpen(elements.settingsPanel) &&
+        !eventTargetsElement(event, elements.settingsPanel) &&
+        !eventTargetsElement(event, elements.settingsButton)) {
       restoreOriginalValues(panelState);
       hideSettingsPanel({ focusButton: true });
       updateHeaderInfo();
-
     }
 
-    if (!state.isSlideshowOpen &&
-        elements.galleryPanel && elements.galleryPanel.getAttribute("aria-hidden") === "false" &&
-        !elements.galleryPanel.contains(event.target as Node) && event.target !== elements.galleryButton && elements.galleryButton) {
-      elements.galleryPanel.setAttribute("aria-hidden", "true");
-      elements.galleryPanel.setAttribute("inert", "true");
-      elements.galleryButton.setAttribute("aria-expanded", "false");
-      updatePanelOpenState();
+    if (!state.isSlideshowOpen && isPanelOpen(elements.galleryPanel) &&
+        !eventTargetsElement(event, elements.galleryPanel) &&
+        !eventTargetsElement(event, elements.galleryButton)) {
+      closePanel({ panel: elements.galleryPanel, button: elements.galleryButton });
     }
 
-    if (elements.historyPanel && elements.historyButton &&
-        elements.historyPanel.getAttribute("aria-hidden") === "false" &&
-        !elements.historyPanel.contains(event.target as Node) && event.target !== elements.historyButton) {
-      elements.historyPanel.setAttribute("aria-hidden", "true");
-      elements.historyPanel.setAttribute("inert", "true");
-      elements.historyButton.setAttribute("aria-expanded", "false");
-      updatePanelOpenState();
+    if (isPanelOpen(elements.historyPanel) &&
+        !eventTargetsElement(event, elements.historyPanel) &&
+        !eventTargetsElement(event, elements.historyButton)) {
+      closePanel({ panel: elements.historyPanel, button: elements.historyButton });
     }
   });
 }
@@ -271,8 +255,4 @@ export function initializeSettingsPanelControls() {
 
   setupQuickAccessTargets(openSettingsAndSwitch);
   setupOutsideClickHandler();
-
-  return {
-    closeSettingsPanel: ({ focusButton = false } = {}) => hideSettingsPanel({ focusButton }),
-  };
 }

@@ -8,7 +8,8 @@
 
 import { elements } from "../state.ts";
 import { renderChatHistoryList } from "../../services/history/list.ts";
-import { updatePanelOpenState } from "./settingsPanel.ts";
+import { isPanelOpen, openPanel, closePanel } from "../../utils/dom/panels.ts";
+import { closeSettingsPanelIfOpen } from "./settingsPanel.ts";
 
 /** Wires the history panel toggle button and renders the conversation list. */
 export function setupChatHistoryEventListeners() {
@@ -16,27 +17,20 @@ export function setupChatHistoryEventListeners() {
   const historyPanel = elements.historyPanel;
   if (historyButton && historyPanel) {
     historyButton.addEventListener("click", () => {
-      const isExpanded = historyButton.getAttribute("aria-expanded") === "true";
-      historyButton.setAttribute("aria-expanded", String(!isExpanded));
-      historyPanel.setAttribute("aria-hidden", String(isExpanded));
-      if (!isExpanded) {
-        historyPanel.removeAttribute("inert");
-        renderChatHistoryList();
+      if (isPanelOpen(historyPanel)) {
+        closePanel({ panel: historyPanel, button: historyButton });
       } else {
-        historyPanel.setAttribute("inert", "true");
+        closeSettingsPanelIfOpen();
+        closePanel({ panel: elements.galleryPanel, button: elements.galleryButton });
+        openPanel({ panel: historyPanel, button: historyButton });
+        renderChatHistoryList();
       }
-
-      updatePanelOpenState();
     });
   }
 
   if (elements.closeHistoryButton && historyPanel && historyButton) {
     elements.closeHistoryButton.addEventListener("click", () => {
-      historyPanel.setAttribute("aria-hidden", "true");
-      historyPanel.setAttribute("inert", "true");
-      historyButton.setAttribute("aria-expanded", "false");
-      historyButton.focus();
-      updatePanelOpenState();
+      closePanel({ panel: historyPanel, button: historyButton }, { focusButton: true });
     });
   }
 }

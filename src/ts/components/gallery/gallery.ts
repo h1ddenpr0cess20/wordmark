@@ -5,14 +5,15 @@
  * Displays and manages generated or uploaded images and videos from IndexedDB.
  */
 
-import { state } from "../../init/state.ts";
+import { elements, state } from "../../init/state.ts";
 import { deleteImageFromDb } from "../../utils/storage/imageStorage.ts";
 import { downloadMediaSource } from "../../services/mediaTools.ts";
 import { getAllImagesFromDb } from "./galleryData.ts";
 import { createGalleryItem } from "./galleryItem.ts";
 import { createImageSlideshow } from "../ui/imageInteractions.ts";
 import type { GeneratedImage } from "../../../types/common.ts";
-import { updatePanelOpenState } from "../../init/eventListeners/settingsPanel.ts";
+import { isPanelOpen, openPanel, closePanel } from "../../utils/dom/panels.ts";
+import { closeSettingsPanelIfOpen } from "../../init/eventListeners/settingsPanel.ts";
 
 state.isSlideshowOpen = false;
 
@@ -39,29 +40,21 @@ const initGallery = function() {
 
   state.galleryImagesLoaded = false;
   galleryButton.addEventListener("click", () => {
-    const isExpanded = galleryButton.getAttribute("aria-expanded") === "true";
-    galleryButton.setAttribute("aria-expanded", String(!isExpanded));
-    galleryPanel.setAttribute("aria-hidden", String(isExpanded));
-
-    if (!isExpanded) {
-      galleryPanel.removeAttribute("inert");
+    if (isPanelOpen(galleryPanel)) {
+      closePanel({ panel: galleryPanel, button: galleryButton });
+    } else {
+      closeSettingsPanelIfOpen();
+      closePanel({ panel: elements.historyPanel, button: elements.historyButton });
+      openPanel({ panel: galleryPanel, button: galleryButton });
       showGalleryPlaceholders();
 
       setTimeout(() => {
         loadGalleryImages();
       }, 50);
-    } else {
-      galleryPanel.setAttribute("inert", "true");
     }
-
-    updatePanelOpenState();
   });
   closeGallery.addEventListener("click", () => {
-    galleryPanel.setAttribute("aria-hidden", "true");
-    galleryPanel.setAttribute("inert", "true");
-    galleryButton.setAttribute("aria-expanded", "false");
-    galleryButton.focus();
-    updatePanelOpenState();
+    closePanel({ panel: galleryPanel, button: galleryButton }, { focusButton: true });
   });
 
   if (refreshGalleryBtn) {

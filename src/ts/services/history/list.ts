@@ -13,7 +13,7 @@ import {
 } from "../../utils/storage/conversationStorage.ts";
 import { startNewConversation, loadConversation, renameConversation } from "./persistence.ts";
 import { buildHistoryRowHtml } from "./historyRow.ts";
-import { updatePanelOpenState } from "../../init/eventListeners/settingsPanel.ts";
+import { closePanel } from "../../utils/dom/panels.ts";
 
 let activeHistoryKeydown: ((e: KeyboardEvent) => void) | null = null;
 
@@ -81,10 +81,7 @@ export function renderChatHistoryList() {
       };
 
       const closeHistoryPanel = () => {
-        elements.historyPanel?.setAttribute("aria-hidden", "true");
-        elements.historyPanel?.setAttribute("inert", "true");
-        elements.historyButton?.setAttribute("aria-expanded", "false");
-        updatePanelOpenState();
+        closePanel({ panel: elements.historyPanel, button: elements.historyButton });
       };
 
       const updateButtonStates = () => {

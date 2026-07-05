@@ -81,7 +81,7 @@ function registerHandlerWithGallery(galleryPanel: GalleryPanel) {
   elements.closeSettingsButton = null;
   elements.historyPanel = null;
   elements.historyButton = null;
-  elements.galleryButton = { setAttribute() {}, focus() {} } as unknown as HTMLButtonElement;
+  elements.galleryButton = { setAttribute() {}, focus() {}, contains: () => false } as unknown as HTMLButtonElement;
   elements.galleryPanel = galleryPanel as unknown as HTMLElement;
 
   initializeSettingsPanelControls();
@@ -131,6 +131,7 @@ test("outside click dismissal does not steal focus back to the gallery button", 
   elements.galleryButton = {
     setAttribute() {},
     focus() { focusCalls++; },
+    contains: () => false,
   } as unknown as HTMLButtonElement;
   elements.galleryPanel = galleryPanel as unknown as HTMLElement;
 
