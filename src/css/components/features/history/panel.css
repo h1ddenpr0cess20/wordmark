@@ -49,6 +49,17 @@
   white-space: nowrap;
 }
 
+.history-export-controls .export-include-thinking {
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  white-space: nowrap;
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+  cursor: pointer;
+}
+
 #history-button:hover {
   border-color: var(--accent-color);
 }

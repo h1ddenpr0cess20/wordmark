@@ -201,6 +201,19 @@ export function renderChatHistoryList() {
           return;
         }
 
+        // Never hijack keys the user is typing into a field (e.g. the chat
+        // input or the multi-select checkbox) — Backspace/Enter here must not
+        // delete or load conversations.
+        const target = e.target as HTMLElement | null;
+        if (target && (
+          target.tagName === "INPUT" ||
+          target.tagName === "TEXTAREA" ||
+          target.tagName === "SELECT" ||
+          target.isContentEditable
+        )) {
+          return;
+        }
+
         if ((e.key === "Delete" || e.key === "Backspace")) {
           if (document.querySelectorAll(".history-row.selected").length > 0) {
             deleteButton.click();
