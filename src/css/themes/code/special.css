@@ -155,6 +155,17 @@
   --code-comment: #5a6a88;
 }
 
+.theme-abyss {
+  --code-bg: #080f1a;
+  --code-border: var(--border-color);
+  --code-text: var(--text-primary);
+  --code-number: #6f9dff;
+  --code-accent: #29e0c4;
+  --code-accent-2: #8fb7ff;
+  --code-string: #7ee8c9;
+  --code-comment: #3e5670;
+}
+
 .theme-aurora {
   --code-bg: #0f1626;
   --code-border: var(--border-color);
@@ -197,6 +208,28 @@
   --code-accent-2: #ffb37a;
   --code-string: #e8b86d;
   --code-comment: #8a6a55;
+}
+
+.theme-firefly {
+  --code-bg: #161c10;
+  --code-border: var(--border-color);
+  --code-text: var(--text-primary);
+  --code-number: #ffd166;
+  --code-accent: #d0e35c;
+  --code-accent-2: #a8e06a;
+  --code-string: #e8c97a;
+  --code-comment: #5f6b4a;
+}
+
+.theme-glacier {
+  --code-bg: #101b26;
+  --code-border: var(--border-color);
+  --code-text: var(--text-primary);
+  --code-number: #7ba7ff;
+  --code-accent: #6fd3f2;
+  --code-accent-2: #b7e6f7;
+  --code-string: #7fe3c3;
+  --code-comment: #4e6a7d;
 }
 
 .theme-noir {
