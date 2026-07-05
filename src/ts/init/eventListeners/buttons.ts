@@ -15,35 +15,12 @@ import { updateBrowserHistory } from "../../services/history/state.ts";
 import { startNewConversation } from "../../services/history/persistence.ts";
 import { updatePromptVisibility } from "../../components/ui/settingsControls.ts";
 import { updateHeaderInfo, updateModelSelector, serviceStatusLabel } from "../../components/settings.ts";
+import { closeSettingsPanelIfOpen } from "./settingsPanel.ts";
 import { setReasoningEffort, DEFAULT_REASONING_EFFORT } from "../modelSettings.ts";
 import { DEFAULT_PERSONALITY, config } from "../../../config/config.ts";
 
-/**
- * Closes the settings panel if it is open, using the supplied closer when
- * available and falling back to clearing the panel's open state directly.
- */
-function closePanelIfActive(closeSettingsPanel: (() => void) | undefined) {
-  if (typeof closeSettingsPanel === "function" && elements.settingsPanel && elements.settingsPanel.classList.contains("active")) {
-    closeSettingsPanel();
-  } else if (elements.settingsPanel && elements.settingsButton) {
-    elements.settingsPanel.classList.remove("active");
-    elements.settingsButton.setAttribute("aria-expanded", "false");
-    elements.settingsPanel.setAttribute("aria-hidden", "true");
-    elements.settingsPanel.setAttribute("inert", "true");
-    elements.settingsButton.style.display = "";
-    if (elements.historyButton) {
-      elements.historyButton.style.display = "";
-    }
-    if (elements.galleryButton) {
-      elements.galleryButton.style.display = "";
-    }
-  }
-}
-
 /** Wires header/action button click handlers (new conversation, clear, etc.). */
-export function setupButtonEventListeners(
-  { closeSettingsPanel }: { closeSettingsPanel?: (opts?: { focusButton?: boolean }) => void } = {},
-) {
+export function setupButtonEventListeners() {
   if (elements.clearMemoryButton) {
     elements.clearMemoryButton.addEventListener("click", () => {
       startNewConversation("New Conversation");
@@ -69,7 +46,7 @@ export function setupButtonEventListeners(
 
       updatePromptVisibility();
 
-      closePanelIfActive(closeSettingsPanel);
+      closeSettingsPanelIfOpen();
 
       updateHeaderInfo();
 
@@ -101,7 +78,7 @@ export function setupButtonEventListeners(
       updatePromptVisibility();
       updateHeaderInfo();
 
-      closePanelIfActive(closeSettingsPanel);
+      closeSettingsPanelIfOpen();
 
       updateBrowserHistory();
       focusUserInputSafely();
@@ -120,7 +97,7 @@ export function setupButtonEventListeners(
       }
       updatePromptVisibility();
 
-      closePanelIfActive(closeSettingsPanel);
+      closeSettingsPanelIfOpen();
 
       updateHeaderInfo();
 
@@ -140,7 +117,7 @@ export function setupButtonEventListeners(
       }
       updatePromptVisibility();
 
-      closePanelIfActive(closeSettingsPanel);
+      closeSettingsPanelIfOpen();
 
       updateHeaderInfo();
 
