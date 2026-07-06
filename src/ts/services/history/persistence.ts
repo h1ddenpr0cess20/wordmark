@@ -20,6 +20,7 @@ import { renderChatHistoryList } from "./list.ts";
 import { renderConversationMessages } from "./render.ts";
 import { processImageForStorage, markMessagesWithImages } from "./persistenceImages.ts";
 import { uiHooks } from "../../init/uiHooks.ts";
+import { clearLocalDocIndex } from "../localDocRetrieval.ts";
 import type { ConversationRecord } from "../../../types/common.ts";
 
 const logHistory = createScopedLogger("history");
@@ -112,6 +113,7 @@ function withoutDeveloperMessages<T extends { role?: string }>(messages: T[] | n
  * never ends the open party; it ends only when a new conversation is started.
  */
 function resetConversationState() {
+  clearLocalDocIndex();
   state.conversationHistory = [];
   state.generatedImages = [];
   state.currentConversationId = null;

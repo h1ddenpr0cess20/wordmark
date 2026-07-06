@@ -16,7 +16,11 @@ import { responsesClient } from "../services/api.ts";
 import { partyEngine } from "../services/party/partyEngine.ts";
 import { uploadFile, uploadAndAttachFiles, saveVectorStoreMetadata } from "../services/vectorStore.ts";
 import { usesDirectFileUpload, extractsDocumentsClientSide } from "../services/providers.ts";
-import { extractDocumentText } from "../services/parsers/index.ts";
+import {
+  indexDocuments,
+  retrieveRelevantChunks,
+  localDocIndexSize,
+} from "../services/localDocRetrieval.ts";
 import { generateMessageId, addMessageCopyButton } from "./messages.ts";
 import { updateRegenerateAvailability } from "./messageActions.ts";
 import { appendMessage } from "./ui/chatMessages.ts";
@@ -62,53 +66,83 @@ interface DocumentUploadResult {
  * @returns `{ ok: false }` if an upload failed (the caller should abort the
  * send); otherwise `{ ok: true, vectorStoreId }` with the id to use for the turn.
  */
-async function extractDocumentsToMessage(
-  files: File[],
-  vectorStoreId: string | null,
-): Promise<DocumentUploadResult> {
-  if (showInfo) {
-    showInfo(files.length === 1 ? "Reading document..." : `Reading ${files.length} documents...`);
-  }
-
-  const blocks: string[] = [];
-  const failed: string[] = [];
-
-  for (const file of files) {
-    try {
-      const text = await extractDocumentText(file);
-      if (text.trim()) {
-        blocks.push(`[Document: ${file.name}]\n${text.trim()}\n[End of ${file.name}]`);
-      } else {
-        failed.push(file.name);
-      }
-    } catch (error) {
-      logInteraction("Failed to extract document:", file.name, error);
-      failed.push(file.name);
+/** Flattens pending document/directory entries into their constituent files. */
+function flattenDocumentFiles(documents: PendingDocument[]): File[] {
+  const files: File[] = [];
+  documents.forEach(doc => {
+    if (doc.isDirectory) {
+      (doc.files || []).forEach(f => files.push(f.file));
+    } else if (doc.file) {
+      files.push(doc.file);
     }
-  }
+  });
+  return files;
+}
 
-  if (failed.length > 0 && showInfo) {
-    showInfo(`Could not read: ${failed.slice(0, 3).join(", ")}${failed.length > 3 ? "..." : ""}`);
-  }
-
-  if (blocks.length === 0) {
-    return { ok: true, vectorStoreId };
-  }
-
+/** Appends text to the last user message's content (string or content-part array). */
+function appendToLastUserMessage(text: string): void {
   const lastUserMsg = state.conversationHistory[state.conversationHistory.length - 1];
-  if (lastUserMsg && lastUserMsg.role === "user") {
-    const attachedText = blocks.join("\n\n");
-    if (typeof lastUserMsg.content === "string") {
-      lastUserMsg.content = lastUserMsg.content
-        ? `${lastUserMsg.content}\n\n${attachedText}`
-        : attachedText;
-    } else if (Array.isArray(lastUserMsg.content)) {
-      lastUserMsg.content.push({ type: "input_text", text: attachedText });
-    }
+  if (!lastUserMsg || lastUserMsg.role !== "user") {
+    return;
+  }
+  if (typeof lastUserMsg.content === "string") {
+    lastUserMsg.content = lastUserMsg.content ? `${lastUserMsg.content}\n\n${text}` : text;
+  } else if (Array.isArray(lastUserMsg.content)) {
+    lastUserMsg.content.push({ type: "input_text", text });
+  }
+}
+
+/**
+ * Extracts, chunks, and embeds the pending documents into the local retrieval
+ * index for the active local provider.
+ *
+ * @returns `{ ok: false }` when indexing failed (e.g. no embedding model), so
+ * the caller aborts the send.
+ */
+async function indexDocumentsLocally(documents: PendingDocument[]): Promise<{ ok: boolean }> {
+  const files = flattenDocumentFiles(documents);
+  if (files.length === 0) {
+    return { ok: true };
   }
 
-  logInteraction("Documents extracted client-side:", blocks.length);
-  return { ok: true, vectorStoreId };
+  try {
+    if (showInfo) {
+      showInfo(files.length === 1 ? "Indexing document..." : `Indexing ${files.length} documents...`);
+    }
+    const result = await indexDocuments(files);
+    if (result.failed.length > 0 && showInfo) {
+      showInfo(`Could not read: ${result.failed.slice(0, 3).join(", ")}${result.failed.length > 3 ? "..." : ""}`);
+    }
+    if (result.chunks > 0 && showInfo) {
+      showInfo(`Indexed ${result.indexed} document(s) into ${result.chunks} chunk(s)`);
+    }
+    logInteraction("Documents indexed locally:", result);
+    return { ok: true };
+  } catch (error) {
+    console.error("Failed to index documents:", error);
+    if (showError) {
+      showError(error instanceof Error ? error.message : "Failed to index documents");
+    }
+    return { ok: false };
+  }
+}
+
+/**
+ * Retrieves the chunks most relevant to `query` from the local index and appends
+ * them to the last user message, so only the pertinent passages reach the model.
+ */
+async function injectRetrievedContext(query: string): Promise<void> {
+  try {
+    const chunks = await retrieveRelevantChunks(query);
+    if (chunks.length === 0) {
+      return;
+    }
+    const context = chunks.map(c => `[From ${c.name}]\n${c.text}`).join("\n\n");
+    appendToLastUserMessage(`Relevant context from attached documents:\n\n${context}`);
+    logInteraction("Injected retrieved chunks:", chunks.length);
+  } catch (error) {
+    logInteraction("Retrieval failed:", error);
+  }
 }
 
 async function uploadPendingDocuments(
@@ -118,18 +152,7 @@ async function uploadPendingDocuments(
 ): Promise<DocumentUploadResult> {
   logInteraction("Has documents:", documentsToUpload.length);
 
-  const files: File[] = [];
-  documentsToUpload.forEach(doc => {
-    if (doc.isDirectory) {
-      (doc.files || []).forEach(f => files.push(f.file));
-    } else if (doc.file) {
-      files.push(doc.file);
-    }
-  });
-
-  if (extractsDocumentsClientSide(activeServiceKey)) {
-    return extractDocumentsToMessage(files, vectorStoreId);
-  }
+  const files = flattenDocumentFiles(documentsToUpload);
 
   if (usesDirectFileUpload(activeServiceKey)) {
     try {
@@ -332,14 +355,30 @@ export async function sendMessage() {
 
   let vectorStoreId = state.activeVectorStore || null;
   const activeServiceKey = elements.serviceSelector ? elements.serviceSelector.value : "openai";
-  if (hasDocuments) {
+
+  const abortSend = () => {
+    removeLoadingIndicator(loadingId);
+    if (uploads.length > 0) {
+      stripBase64FromHistory(userId, placeholders);
+    }
+    resetSendButton();
+  };
+
+  if (extractsDocumentsClientSide(activeServiceKey)) {
+    if (hasDocuments) {
+      const indexResult = await indexDocumentsLocally(documentsToUpload);
+      if (!indexResult.ok) {
+        abortSend();
+        return;
+      }
+    }
+    if (localDocIndexSize() > 0) {
+      await injectRetrievedContext(message);
+    }
+  } else if (hasDocuments) {
     const uploadResult = await uploadPendingDocuments(documentsToUpload, activeServiceKey, vectorStoreId);
     if (!uploadResult.ok) {
-      removeLoadingIndicator(loadingId);
-      if (uploads.length > 0) {
-        stripBase64FromHistory(userId, placeholders);
-      }
-      resetSendButton();
+      abortSend();
       return;
     }
     vectorStoreId = uploadResult.vectorStoreId;

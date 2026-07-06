@@ -15,6 +15,7 @@ import { state } from "../init/state.ts";
 import { API_KEYS_STORAGE_PREFIX, loadApiKeysIntoConfig, loadLocalServerUrlsIntoConfig } from "./apiKeyStorage.ts";
 import { STORAGE_KEYS } from "../utils/storage/storage.ts";
 import { isLocalService } from "./providers.ts";
+import { EMBEDDING_MODEL_STORAGE_KEY } from "./embeddings.ts";
 import { normalizeServerBaseUrl } from "../utils/utils.ts";
 import { showInlineStatus } from "../utils/inlineStatus.ts";
 import { createScopedLogger } from "../utils/logger.ts";
@@ -32,6 +33,7 @@ const apiKeyInputs: Record<string, HTMLInputElement | null> = {
 };
 
 let saveApiKeysButton: HTMLElement | null = null;
+let embeddingModelInput: HTMLInputElement | null = null;
 let lmStudioServerUrlInput: HTMLInputElement | null = null;
 let saveLmStudioUrlButton: HTMLElement | null = null;
 let ollamaServerUrlInput: HTMLInputElement | null = null;
@@ -72,6 +74,7 @@ function initApiKeys(retryCount: number = 0) {
   const saveLmStudioButton = document.getElementById("save-lmstudio-url");
   const ollamaUrlInput = document.getElementById("ollama-server-url") as HTMLInputElement | null;
   const saveOllamaButton = document.getElementById("save-ollama-url");
+  const embeddingInput = document.getElementById("embedding-model") as HTMLInputElement | null;
 
   const essentialReady = Boolean(saveKeysButton && (openaiInput || xaiInput || lmStudioUrlInput || ollamaUrlInput));
 
@@ -91,6 +94,7 @@ function initApiKeys(retryCount: number = 0) {
   saveLmStudioUrlButton = saveLmStudioButton;
   ollamaServerUrlInput = ollamaUrlInput;
   saveOllamaUrlButton = saveOllamaButton;
+  embeddingModelInput = embeddingInput;
 
   if (!apiKeysEventHandlersApplied) {
     Object.values(apiKeyInputs).forEach(input => {
@@ -109,6 +113,18 @@ function initApiKeys(retryCount: number = 0) {
     if (ollamaServerUrlInput) {
       ollamaServerUrlInput.addEventListener("click", (event: Event) => {
         event.stopPropagation();
+      });
+    }
+    if (embeddingModelInput) {
+      embeddingModelInput.addEventListener("click", (event: Event) => {
+        event.stopPropagation();
+      });
+      embeddingModelInput.addEventListener("input", () => {
+        try {
+          localStorage.setItem(EMBEDDING_MODEL_STORAGE_KEY, embeddingModelInput!.value.trim());
+        } catch (error) {
+          console.error("Failed to save embedding model:", error);
+        }
       });
     }
 
@@ -348,6 +364,9 @@ function loadApiKeys() {
     }
     loadLocalServerUrl(lmStudioServerUrlInput, LMSTUDIO_SERVER_URL_KEY, "lmstudio", "LM Studio");
     loadLocalServerUrl(ollamaServerUrlInput, OLLAMA_SERVER_URL_KEY, "ollama", "Ollama");
+    if (embeddingModelInput) {
+      embeddingModelInput.value = localStorage.getItem(EMBEDDING_MODEL_STORAGE_KEY) || "";
+    }
     logApiKeys("API keys loaded from localStorage");
 
     refreshApiDependentUi();
