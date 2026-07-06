@@ -3,7 +3,7 @@
  *
  * @remarks
  * Wires the message composer: send button, Enter-to-send, auto-grow sizing,
- * header SVG click forwarding, and lazy gallery initialization on first open.
+ * and lazy gallery initialization on first open.
  */
 
 import { elements, state } from "../state.ts";
@@ -30,17 +30,6 @@ export function initializeConversationInput() {
   });
 
   elements.sendButton.addEventListener("click", sendMessage);
-
-  const svgSelectors = "#settings-button svg, #history-button svg, #gallery-button svg, .close-settings svg, .close-history svg, .close-gallery svg";
-  document.querySelectorAll(svgSelectors).forEach((svg) => {
-    svg.addEventListener("click", (event: Event) => {
-      event.stopPropagation();
-      const parentButton = (event.currentTarget as Element).closest("button");
-      if (parentButton) {
-        parentButton.click();
-      }
-    });
-  });
 
   userInput.addEventListener("input", () => {
     userInput.style.height = "56px";

@@ -71,7 +71,6 @@ export async function uploadFile(file: File) {
     method: "POST",
     headers: {
       "Authorization": `Bearer ${apiKey}`,
-      "Access-Control-Allow-Origin": "*",
     },
     body: formData,
   });
@@ -96,7 +95,6 @@ export async function createVectorStore(name: string) {
     headers: {
       "Authorization": `Bearer ${apiKey}`,
       "Content-Type": "application/json",
-      "Access-Control-Allow-Origin": "*",
     },
     body: JSON.stringify({ name }),
   });
@@ -121,7 +119,6 @@ export async function attachFileToVectorStore(vectorStoreId: string, fileId: str
     headers: {
       "Authorization": `Bearer ${apiKey}`,
       "Content-Type": "application/json",
-      "Access-Control-Allow-Origin": "*",
     },
     body: JSON.stringify({ file_id: fileId }),
   });
@@ -145,7 +142,6 @@ export async function getVectorStoreFileStatus(vectorStoreId: string, fileId: st
     method: "GET",
     headers: {
       "Authorization": `Bearer ${apiKey}`,
-      "Access-Control-Allow-Origin": "*",
     },
   });
 
@@ -256,7 +252,6 @@ export async function getVectorStore(vectorStoreId: string) {
     method: "GET",
     headers: {
       "Authorization": `Bearer ${apiKey}`,
-      "Access-Control-Allow-Origin": "*",
     },
   });
 
@@ -279,7 +274,6 @@ export async function deleteVectorStore(vectorStoreId: string) {
     method: "DELETE",
     headers: {
       "Authorization": `Bearer ${apiKey}`,
-      "Access-Control-Allow-Origin": "*",
     },
   });
 
@@ -302,7 +296,6 @@ export async function listVectorStoreFiles(vectorStoreId: string, limit = 20) {
     method: "GET",
     headers: {
       "Authorization": `Bearer ${apiKey}`,
-      "Access-Control-Allow-Origin": "*",
     },
   });
 

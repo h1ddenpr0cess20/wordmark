@@ -924,8 +924,28 @@
   --button-text-color: #15100d;
 }
 
+/* Ember glow: warm light breathing up from the bottom edge, like a bed of
+   coals beneath the chat. Paint-only (background only, no layout/box
+   properties) so it cannot affect chat sizing. */
+.theme-ember #chat-container {
+  background-color: #15100d;
+  background-image:
+    radial-gradient(85% 50% at 30% 110%, rgba(255, 106, 43, 0.16), transparent 60%),
+    radial-gradient(75% 45% at 75% 108%, rgba(255, 145, 82, 0.10), transparent 62%),
+    radial-gradient(45% 35% at 52% 115%, rgba(255, 60, 30, 0.10), transparent 65%),
+    linear-gradient(0deg, #1d120c, #15100d 70%);
+  background-repeat: no-repeat;
+}
+
+/* Slow smoulder on the wordmark logo (deep orange swelling to bright coal) */
+@keyframes ember-pulse {
+  0%, 100% { filter: drop-shadow(0 0 2px rgba(255, 106, 43, 0.4)); }
+  50% { filter: drop-shadow(0 0 9px rgba(255, 145, 82, 0.65)); }
+}
+
 .theme-ember #wordmark-logo path {
   stroke: var(--accent-color);
+  animation: ember-pulse 7s ease-in-out infinite;
 }
 
 .theme-ember pre,
@@ -938,6 +958,7 @@
 .theme-ember .tab-button.active,
 .theme-ember .reset-button {
   color: var(--accent-color);
+  text-shadow: 0 0 8px rgba(255, 106, 43, 0.45);
 }
 
 .theme-aurora {

@@ -34,11 +34,11 @@ export function setupEventListeners() {
   }
 
   initializeConversationInput();
-  const { closeSettingsPanel } = initializeSettingsPanelControls();
+  initializeSettingsPanelControls();
 
-  setupButtonEventListeners({ closeSettingsPanel });
+  setupButtonEventListeners();
   setupSelectorEventListeners();
-  setupPromptEventListeners({ closeSettingsPanel });
+  setupPromptEventListeners();
   setupTtsEventListeners();
   setupToolCallingEventListeners();
   setupLocationEventListeners();

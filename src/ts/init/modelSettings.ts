@@ -7,6 +7,7 @@ import { logVerbose } from "../utils/logger.ts";
 import { config } from "../../config/config.ts";
 import { STORAGE_KEYS } from "../utils/storage/storage.ts";
 import { serviceSupportsReasoning } from "../services/providers.ts";
+import { supportsReasoningEffort } from "../services/api/clientConfig.ts";
 
 const REASONING_EFFORT_STORAGE_KEY = STORAGE_KEYS.reasoningEffort;
 
@@ -62,19 +63,16 @@ function persistReasoningEffort(value: string) {
   }
 }
 
-/** Reports whether a model supports reasoning effort (GPT-4/4.1 variants do not). */
+/**
+ * Reports whether a model supports reasoning effort.
+ *
+ * @remarks
+ * Delegates to the request builder's {@link supportsReasoningEffort} so the
+ * settings control is disabled exactly when the parameter would be dropped
+ * from the request (GPT-4 variants and non-"fast" Grok models).
+ */
 function modelSupportsReasoning(modelName: string) {
-  if (!modelName) {
-    return true;
-  }
-  const normalized = String(modelName).toLowerCase();
-  if (normalized.startsWith("gpt-4")) {
-    return false;
-  }
-  if (normalized.startsWith("grok-4-fast")) {
-    return true;
-  }
-  return true;
+  return supportsReasoningEffort(modelName);
 }
 
 /**
@@ -247,16 +245,6 @@ export function getReasoningEffort() {
     return null;
   }
   return normalizeReasoningEffort(state.currentReasoningEffort);
-}
-
-/** Normalizes, stores, persists, and reflects the reasoning-effort value in the UI. */
-export function setReasoningEffort(value: string) {
-  const normalized = normalizeReasoningEffort(value);
-  state.currentReasoningEffort = normalized;
-  persistReasoningEffort(normalized);
-  if (elements.reasoningEffortSelector) {
-    elements.reasoningEffortSelector.value = normalized;
-  }
 }
 
 /** Returns the normalized conversation-history token budget. */

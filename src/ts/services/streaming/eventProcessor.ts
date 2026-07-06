@@ -68,8 +68,6 @@ export function createStreamingEventProcessor(runtime: StreamingRuntime) {
   const webSearchById = new Map<string, string>();
   const xSearchQueue: string[] = [];
   const xSearchById = new Map<string, string>();
-  const activeFnArgs = new Set<string>();
-  const activeMcpArgs = new Set<string>();
   const activeCodeStreams = new Set<string>();
   const activeCustomInput = new Set<string>();
   const toolExecutions = new Map<string, { name: string; status: string; startTime: number }>();
@@ -385,7 +383,6 @@ export function createStreamingEventProcessor(runtime: StreamingRuntime) {
         const qs = extractQueriesFromArgs(args || "");
         qs.forEach(q => xSearchQueue.push(q));
       }
-      activeFnArgs.delete(key);
       break;
     }
     case "response.function_call_arguments.failed": {
@@ -412,7 +409,6 @@ export function createStreamingEventProcessor(runtime: StreamingRuntime) {
 
       const qs = extractQueriesFromArgs(args || "");
       qs.forEach(q => webSearchQueue.push(q));
-      activeMcpArgs.delete(itemId);
       break;
     }
     case "response.mcp_call.in_progress": {

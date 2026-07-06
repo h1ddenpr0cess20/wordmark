@@ -13,7 +13,7 @@ import {
 } from "../../utils/storage/conversationStorage.ts";
 import { startNewConversation, loadConversation, renameConversation } from "./persistence.ts";
 import { buildHistoryRowHtml } from "./historyRow.ts";
-import { updatePanelOpenState } from "../../init/eventListeners/settingsPanel.ts";
+import { closePanel } from "../../utils/dom/panels.ts";
 
 let activeHistoryKeydown: ((e: KeyboardEvent) => void) | null = null;
 
@@ -81,10 +81,7 @@ export function renderChatHistoryList() {
       };
 
       const closeHistoryPanel = () => {
-        elements.historyPanel?.setAttribute("aria-hidden", "true");
-        elements.historyPanel?.setAttribute("inert", "true");
-        elements.historyButton?.setAttribute("aria-expanded", "false");
-        updatePanelOpenState();
+        closePanel({ panel: elements.historyPanel, button: elements.historyButton });
       };
 
       const updateButtonStates = () => {
@@ -198,6 +195,19 @@ export function renderChatHistoryList() {
 
       const handleKeydown = (e: KeyboardEvent) => {
         if (elements.historyPanel?.getAttribute("aria-hidden") === "true") {
+          return;
+        }
+
+        // Never hijack keys the user is typing into a field (e.g. the chat
+        // input or the multi-select checkbox) — Backspace/Enter here must not
+        // delete or load conversations.
+        const target = e.target as HTMLElement | null;
+        if (target && (
+          target.tagName === "INPUT" ||
+          target.tagName === "TEXTAREA" ||
+          target.tagName === "SELECT" ||
+          target.isContentEditable
+        )) {
           return;
         }
 

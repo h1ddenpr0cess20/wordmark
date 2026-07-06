@@ -17,6 +17,7 @@ import { setupImageInteractions } from "../../components/ui/imageInteractions.ts
 import { updateHeaderInfo, updateModelSelector } from "../../components/settings.ts";
 import { config } from "../../../config/config.ts";
 import { escapeHtml } from "../../utils/sanitize.ts";
+import { sanitizeInput } from "../../utils/utils.ts";
 import { createImagePlaceholderRegex } from "../../utils/placeholders.ts";
 import {
   createMissingMediaPlaceholder,
@@ -53,10 +54,15 @@ export function extractTextContent(content: Message["content"]): string {
 }
 
 function replaceImagePlaceholders(content: Message["content"], convo: ConversationRecord, imageCache: Map<string, string | Blob>) {
-  const text = extractTextContent(content);
-  if (!text) {
+  const rawText = extractTextContent(content);
+  if (!rawText) {
     return "";
   }
+
+  // Escape user-typed markup before splicing in image HTML, mirroring the
+  // sanitizeInput() applied on the live send path so a reloaded conversation
+  // renders the same as it did when sent.
+  const text = sanitizeInput(rawText);
 
   return text.replace(createImagePlaceholderRegex(), (match: string, filename: string) => {
     const trimmed = filename.trim();

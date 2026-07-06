@@ -13,6 +13,7 @@ import { updateBrowserHistory } from "../../services/history/state.ts";
 import { startNewConversation } from "../../services/history/persistence.ts";
 import { updatePromptVisibility } from "../../components/ui/settingsControls.ts";
 import { updateHeaderInfo } from "../../components/settings.ts";
+import { closeSettingsPanelIfOpen } from "./settingsPanel.ts";
 
 /** Toggles prompt-field visibility when the active prompt-mode radio changes. */
 function setupPromptRadioEventListeners() {
@@ -65,7 +66,7 @@ function setupInputFieldEventListeners() {
 }
 
 /** Wires preset personality buttons to start a conversation with that persona. */
-function setupPersonalityPresetEventListeners(closeSettingsPanel: (() => void) | undefined) {
+function setupPersonalityPresetEventListeners() {
   const presetButtons = document.querySelectorAll<HTMLElement>(".preset-button");
 
   presetButtons.forEach((button) => {
@@ -89,21 +90,7 @@ function setupPersonalityPresetEventListeners(closeSettingsPanel: (() => void) |
 
       updatePromptVisibility();
 
-      if (typeof closeSettingsPanel === "function") {
-        closeSettingsPanel();
-      } else if (elements.settingsPanel && elements.settingsButton && elements.settingsPanel.classList.contains("active")) {
-        elements.settingsPanel.classList.remove("active");
-        elements.settingsButton.setAttribute("aria-expanded", "false");
-        elements.settingsPanel.setAttribute("aria-hidden", "true");
-        elements.settingsPanel.setAttribute("inert", "true");
-        elements.settingsButton.style.display = "";
-        if (elements.historyButton) {
-          elements.historyButton.style.display = "";
-        }
-        if (elements.galleryButton) {
-          elements.galleryButton.style.display = "";
-        }
-      }
+      closeSettingsPanelIfOpen();
 
       updateHeaderInfo();
 
@@ -116,11 +103,9 @@ function setupPersonalityPresetEventListeners(closeSettingsPanel: (() => void) |
 }
 
 /** Wires the system-prompt radios and personality/custom-prompt input fields. */
-export function setupPromptEventListeners(
-  { closeSettingsPanel }: { closeSettingsPanel?: (opts?: { focusButton?: boolean }) => void } = {},
-) {
+export function setupPromptEventListeners() {
   setupPromptRadioEventListeners();
   setupInputFieldEventListeners();
-  setupPersonalityPresetEventListeners(closeSettingsPanel);
+  setupPersonalityPresetEventListeners();
 }
 
