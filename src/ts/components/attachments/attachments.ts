@@ -5,6 +5,7 @@
 import { state } from "../../init/state.ts";
 import { showInfo } from "../../utils/notifications.ts";
 import { filterSupportedFiles } from "../../services/vectorStore.ts";
+import { isExtractableDocument } from "../../services/parsers/index.ts";
 import type { DirectoryFile, FileWithRelativePath } from "../../../types/attachments.ts";
 import { showPendingUploadPreviews } from "./attachmentPreviews.ts";
 import { setupDragAndDrop, setupPasteHandler } from "./attachmentDragDrop.ts";
@@ -144,20 +145,11 @@ function readFileAsDataURL(file: File): Promise<string> {
 }
 
 /**
- * Supported document extensions for OpenAI file uploads
- */
-const SUPPORTED_DOCUMENT_EXTENSIONS = [
-  ".c", ".cpp", ".cs", ".css", ".doc", ".docx", ".go", ".html",
-  ".java", ".js", ".json", ".md", ".pdf", ".php", ".pptx", ".py",
-  ".rb", ".sh", ".tex", ".ts", ".txt",
-];
-
-/**
- * Check if a file is a supported document type
+ * Check if a file is a supported document type: a known document format or any
+ * non-binary (text/code/data) file.
  */
 function isSupportedDocument(file: File) {
-  const fileName = file.name.toLowerCase();
-  return SUPPORTED_DOCUMENT_EXTENSIONS.some(ext => fileName.endsWith(ext));
+  return isExtractableDocument(file.name);
 }
 
 /**

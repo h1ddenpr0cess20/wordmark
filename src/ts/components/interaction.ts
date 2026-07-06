@@ -15,7 +15,8 @@ import { saveCurrentConversation } from "../services/history/persistence.ts";
 import { responsesClient } from "../services/api.ts";
 import { partyEngine } from "../services/party/partyEngine.ts";
 import { uploadFile, uploadAndAttachFiles, saveVectorStoreMetadata } from "../services/vectorStore.ts";
-import { usesDirectFileUpload } from "../services/providers.ts";
+import { usesDirectFileUpload, extractsDocumentsClientSide } from "../services/providers.ts";
+import { extractDocumentText } from "../services/parsers/index.ts";
 import { generateMessageId, addMessageCopyButton } from "./messages.ts";
 import { updateRegenerateAvailability } from "./messageActions.ts";
 import { appendMessage } from "./ui/chatMessages.ts";
@@ -61,6 +62,55 @@ interface DocumentUploadResult {
  * @returns `{ ok: false }` if an upload failed (the caller should abort the
  * send); otherwise `{ ok: true, vectorStoreId }` with the id to use for the turn.
  */
+async function extractDocumentsToMessage(
+  files: File[],
+  vectorStoreId: string | null,
+): Promise<DocumentUploadResult> {
+  if (showInfo) {
+    showInfo(files.length === 1 ? "Reading document..." : `Reading ${files.length} documents...`);
+  }
+
+  const blocks: string[] = [];
+  const failed: string[] = [];
+
+  for (const file of files) {
+    try {
+      const text = await extractDocumentText(file);
+      if (text.trim()) {
+        blocks.push(`[Document: ${file.name}]\n${text.trim()}\n[End of ${file.name}]`);
+      } else {
+        failed.push(file.name);
+      }
+    } catch (error) {
+      logInteraction("Failed to extract document:", file.name, error);
+      failed.push(file.name);
+    }
+  }
+
+  if (failed.length > 0 && showInfo) {
+    showInfo(`Could not read: ${failed.slice(0, 3).join(", ")}${failed.length > 3 ? "..." : ""}`);
+  }
+
+  if (blocks.length === 0) {
+    return { ok: true, vectorStoreId };
+  }
+
+  const lastUserMsg = state.conversationHistory[state.conversationHistory.length - 1];
+  if (lastUserMsg && lastUserMsg.role === "user") {
+    const attachedText = blocks.join("\n\n");
+    if (typeof lastUserMsg.content === "string") {
+      lastUserMsg.content = lastUserMsg.content
+        ? `${lastUserMsg.content}\n\n${attachedText}`
+        : attachedText;
+    } else if (Array.isArray(lastUserMsg.content)) {
+      lastUserMsg.content.push({ type: "input_text", text: attachedText });
+    }
+  }
+
+  logInteraction("Documents extracted client-side:", blocks.length);
+  return { ok: true, vectorStoreId };
+}
+
 async function uploadPendingDocuments(
   documentsToUpload: PendingDocument[],
   activeServiceKey: string,
@@ -76,6 +126,10 @@ async function uploadPendingDocuments(
       files.push(doc.file);
     }
   });
+
+  if (extractsDocumentsClientSide(activeServiceKey)) {
+    return extractDocumentsToMessage(files, vectorStoreId);
+  }
 
   if (usesDirectFileUpload(activeServiceKey)) {
     try {

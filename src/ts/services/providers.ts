@@ -83,3 +83,12 @@ export function ttsSupportsInstructions(serviceKey: string | null | undefined): 
 export function usesDirectFileUpload(serviceKey: string | null | undefined): boolean {
   return serviceKey === "xai";
 }
+
+/**
+ * Whether document attachments must be extracted to text in the browser because
+ * the provider has no server-side file ingestion. Local servers (LM Studio,
+ * Ollama) offer neither direct uploads nor vector stores.
+ */
+export function extractsDocumentsClientSide(serviceKey: string | null | undefined): boolean {
+  return isLocalService(serviceKey);
+}
