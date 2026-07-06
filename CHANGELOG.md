@@ -2,7 +2,7 @@
 
 All notable changes to Wordmark are documented here. Earlier versions didn't follow proper semver — this changelog reflects what actually shipped, not what the version numbers said at the time.
 
-## [Unreleased]
+## [3.8.0] - 2026-07-06
 
 Client-side document processing for local providers. Backward-compatible.
 
