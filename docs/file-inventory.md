@@ -41,6 +41,9 @@ Purpose: quick orientation to the current project layout, key entry points, and 
   - `services/`
     - `api.ts`: Aggregates Responses helpers so UI modules can run turns and manage tools.
     - `providers.ts`: Provider capability registry — pure predicates centralizing per-provider quirks.
+    - `embeddings.ts`: Local embedding utilities — `chunkText`, `cosineSim`, `fetchEmbeddings`, `resolveEmbeddingModel` (see `docs/documents.md`).
+    - `localDocRetrieval.ts`: In-browser vector index over attached documents for local providers (index, retrieve top-K, clear on reset).
+    - `parsers/`: Dependency-free document text extraction (`index.ts` dispatcher + per-format parsers: pdf, doc/docx, xls/xlsx, ppt/pptx, odf, rtf, epub, mobi, zip).
     - `api/`: Modular request handling for the Responses API
       - `requestClient.ts`: Network layer for streaming/non-streaming requests; orchestrates tool execution loops
       - `requestTransport.ts`: HTTP transport primitives — header building and streaming/non-streaming `fetch` execution

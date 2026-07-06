@@ -2,6 +2,15 @@
 
 All notable changes to Wordmark are documented here. Earlier versions didn't follow proper semver — this changelog reflects what actually shipped, not what the version numbers said at the time.
 
+## [Unreleased]
+
+Client-side document processing for local providers. Backward-compatible.
+
+### Added
+- **Document attachments for local providers** — LM Studio and Ollama can now use attached files and folders. Documents are extracted to text and searched in the browser with embeddings, so nothing is uploaded to a cloud service. A whole folder no longer overflows local context: only the passages relevant to each question are sent. ([Documents & Attachments](docs/documents.md))
+- **Broad format support** — dependency-free parsers for PDF, `.doc`/`.docx`, `.xls`/`.xlsx`, `.ppt`/`.pptx`, OpenDocument (`.odt`/`.ods`/`.odp`/`.odg`), `.rtf`, ebooks (`.epub`/`.mobi`/`.azw`), and `.zip`; every other non-binary file is read as text, so any code/config/data format works.
+- **Embedding model auto-detection** — embedding models are detected from the local server's model list (kept out of the chat dropdown) and default to a nomic model, with an optional override in Settings → Local Server Configuration.
+
 ## [3.7.2] - 2026-07-03
 
 Security hardening for shared-conversation links. Backward-compatible.

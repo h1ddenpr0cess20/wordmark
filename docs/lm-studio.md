@@ -38,6 +38,15 @@ Then use `https://<your-hostname>:1235` as the Server URL in Wordmark.
 - Model list fetched from: `<baseUrl>/models` (expects `{ data: [ { id: 'model-id', ... }, ... ] }`)
 - On success, Wordmark updates the model dropdown automatically.
 
+## Documents & Embeddings
+Attached documents are extracted and searched in the browser, so nothing is uploaded to a cloud service. This needs an embedding model:
+
+1. Download and load an embedding model in LM Studio (for example `text-embedding-nomic-embed-text-v1.5`).
+2. Refresh models in Wordmark. Embedding models are detected automatically and kept out of the chat dropdown.
+3. Attach files or a folder and ask about them — Wordmark embeds the chunks and sends only the relevant passages.
+
+By default Wordmark prefers a nomic embedding model, then other known embedding models, then any available one. To pin a specific model, set it in Settings → Local Server Configuration → Embedding Model. See [Documents & Attachments](documents.md).
+
 ## Troubleshooting
 - Models don’t appear:
   - Verify the Local Server is enabled in LM Studio (port 1234 by default).
