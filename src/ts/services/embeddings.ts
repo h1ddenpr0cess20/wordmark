@@ -81,12 +81,7 @@ export function cosineSim(a: number[], b: number[]): number {
   return dot / (Math.sqrt(na) * Math.sqrt(nb) || 1);
 }
 
-/**
- * Resolves the embedding model to use for the active provider: the user-set
- * value if present, otherwise a model whose id looks like an embedding model.
- *
- * @returns The model id, or `null` if none can be determined.
- */
+/** Reads the user-set embedding model from localStorage, or `null` if unset. */
 function readStoredEmbeddingModel(): string | null {
   try {
     return localStorage.getItem(EMBEDDING_MODEL_STORAGE_KEY)?.trim() || null;
@@ -95,6 +90,16 @@ function readStoredEmbeddingModel(): string | null {
   }
 }
 
+const EMBEDDING_NAME_RE =
+  /embed|bge|nomic|gte|e5|minilm|mxbai|jina|snowflake|arctic|sentence|instructor|multilingual-e5|granite-embedding/i;
+
+/**
+ * Resolves the embedding model for the active provider: the user-set value if
+ * present, otherwise the first available model whose id looks like an embedding
+ * model.
+ *
+ * @returns The model id, or `null` if none can be determined.
+ */
 export function resolveEmbeddingModel(): string | null {
   const stored = readStoredEmbeddingModel();
   if (stored) return stored;
@@ -102,8 +107,7 @@ export function resolveEmbeddingModel(): string | null {
   const serviceKey = getActiveServiceKey();
   const models = config?.services?.[serviceKey]?.models;
   if (Array.isArray(models)) {
-    const match = models.find((m) => /embed|bge|nomic|gte|e5|minilm/i.test(m));
-    if (match) return match;
+    return models.find((m) => EMBEDDING_NAME_RE.test(m)) ?? null;
   }
   return null;
 }

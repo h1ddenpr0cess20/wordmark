@@ -65,6 +65,9 @@ test("resolveEmbeddingModel prefers the stored value, then auto-detects", () => 
   store.clear();
   assert.equal(resolveEmbeddingModel(), "text-embedding-nomic-embed-text-v1.5");
 
+  configObj.services.lmstudio.models = ["llama-3-8b", "mxbai-embed-large", "nomic-embed-text"];
+  assert.equal(resolveEmbeddingModel(), "mxbai-embed-large", "picks the first available embedding model");
+
   configObj.services.lmstudio.models = ["llama-3-8b", "qwen2.5"];
   assert.equal(resolveEmbeddingModel(), null);
 

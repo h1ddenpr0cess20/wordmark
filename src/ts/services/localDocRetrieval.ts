@@ -44,7 +44,7 @@ export async function indexDocuments(
   const model = resolveEmbeddingModel();
   if (!model) {
     throw new Error(
-      "No embedding model set. Choose one in Settings → Local Server Configuration, or load an embedding model in your local server.",
+      "No embedding model found. Load an embedding model in your local server (LM Studio / Ollama) and reconnect.",
     );
   }
 
