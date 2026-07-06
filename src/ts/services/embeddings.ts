@@ -93,10 +93,32 @@ function readStoredEmbeddingModel(): string | null {
 const EMBEDDING_NAME_RE =
   /embed|bge|nomic|gte|e5|minilm|mxbai|jina|snowflake|arctic|sentence|instructor|multilingual-e5|granite-embedding/i;
 
+/** Preferred embedding models in priority order; nomic is the default. */
+const PREFERRED_EMBEDDING_PATTERNS = [
+  /nomic/i,
+  /mxbai/i,
+  /bge/i,
+  /gte/i,
+  /(^|[^a-z])e5([^a-z]|$)|multilingual-e5/i,
+  /embeddinggemma|gemma-embed/i,
+  /snowflake|arctic/i,
+  /jina/i,
+];
+
+/** Picks the highest-priority known embedding model, else the first one given. */
+function pickPreferred(models: string[]): string | null {
+  if (models.length === 0) return null;
+  for (const pattern of PREFERRED_EMBEDDING_PATTERNS) {
+    const match = models.find((m) => pattern.test(m));
+    if (match) return match;
+  }
+  return models[0];
+}
+
 /**
  * Resolves the embedding model for the active provider: the user-set value if
- * present, otherwise the first available model whose id looks like an embedding
- * model.
+ * present, otherwise a preferred embedding model (nomic first, then known
+ * alternatives, then any available) from the provider's embedding-model list.
  *
  * @returns The model id, or `null` if none can be determined.
  */
@@ -104,10 +126,16 @@ export function resolveEmbeddingModel(): string | null {
   const stored = readStoredEmbeddingModel();
   if (stored) return stored;
 
-  const serviceKey = getActiveServiceKey();
-  const models = config?.services?.[serviceKey]?.models;
+  const service = config?.services?.[getActiveServiceKey()];
+
+  const embeddingModels = service?.embeddingModels;
+  if (Array.isArray(embeddingModels) && embeddingModels.length > 0) {
+    return pickPreferred(embeddingModels);
+  }
+
+  const models = service?.models;
   if (Array.isArray(models)) {
-    return models.find((m) => EMBEDDING_NAME_RE.test(m)) ?? null;
+    return pickPreferred(models.filter((m) => EMBEDDING_NAME_RE.test(m)));
   }
   return null;
 }

@@ -8,7 +8,12 @@ import assert from "node:assert/strict";
  */
 
 const configObj = {
-  services: { lmstudio: { models: ["llama-3-8b", "text-embedding-nomic-embed-text-v1.5"] } },
+  services: {
+    lmstudio: {
+      models: ["llama-3-8b"] as string[],
+      embeddingModels: [] as string[],
+    },
+  },
 };
 
 mock.module(new URL("../src/config/config.ts", import.meta.url).href, {
@@ -61,12 +66,28 @@ test("cosineSim is 1 for identical, 0 for orthogonal, and ranks by direction", (
   assert.ok(cosineSim([1, 1], [1, 0.9]) > cosineSim([1, 1], [1, 0.1]));
 });
 
-test("resolveEmbeddingModel prefers the stored value, then auto-detects", () => {
+test("resolveEmbeddingModel defaults to nomic, falls back to other embedding models, then scans chat models", () => {
   store.clear();
-  assert.equal(resolveEmbeddingModel(), "text-embedding-nomic-embed-text-v1.5");
 
-  configObj.services.lmstudio.models = ["llama-3-8b", "mxbai-embed-large", "nomic-embed-text"];
-  assert.equal(resolveEmbeddingModel(), "mxbai-embed-large", "picks the first available embedding model");
+  configObj.services.lmstudio.embeddingModels = [
+    "text-embedding-mxbai-embed-large-v1",
+    "text-embedding-embeddinggemma-300m-qat",
+    "text-embedding-nomic-embed-text-v1.5",
+  ];
+  assert.equal(resolveEmbeddingModel(), "text-embedding-nomic-embed-text-v1.5", "nomic is the default");
+
+  configObj.services.lmstudio.embeddingModels = [
+    "text-embedding-embeddinggemma-300m-qat",
+    "text-embedding-mxbai-embed-large-v1",
+  ];
+  assert.equal(resolveEmbeddingModel(), "text-embedding-mxbai-embed-large-v1", "backup default when nomic absent");
+
+  configObj.services.lmstudio.embeddingModels = ["some-unknown-embedding"];
+  assert.equal(resolveEmbeddingModel(), "some-unknown-embedding", "any available embedding model as last resort");
+
+  configObj.services.lmstudio.embeddingModels = [];
+  configObj.services.lmstudio.models = ["llama-3-8b", "text-embedding-nomic-embed-text-v1.5"];
+  assert.equal(resolveEmbeddingModel(), "text-embedding-nomic-embed-text-v1.5", "scans chat models when no embedding list");
 
   configObj.services.lmstudio.models = ["llama-3-8b", "qwen2.5"];
   assert.equal(resolveEmbeddingModel(), null);

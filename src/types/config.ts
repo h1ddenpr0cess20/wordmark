@@ -18,6 +18,8 @@ export interface ServiceConfig {
   baseUrl: string;
   apiKey: string;
   models: string[];
+  /** Embedding models exposed by the provider, kept out of the chat `models` list. */
+  embeddingModels?: string[];
   defaultModel: string;
   modelsFetching: boolean;
   /** OpenAI organization id, when applicable. */
