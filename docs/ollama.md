@@ -31,6 +31,9 @@ If you need HTTPS, place Ollama behind a local TLS proxy and use the proxy URL a
 - Model list fetched from: `<baseUrl>/models` (falls back to `/api/tags`)
 - On success, Wordmark updates the model dropdown automatically.
 
+## Documents & Embeddings
+Attached documents are extracted and searched in the browser. Pull an embedding model (for example `ollama pull nomic-embed-text`) and it is detected automatically for document retrieval; nothing is uploaded to a cloud service. See [Documents & Attachments](documents.md).
+
 ## Troubleshooting
 - Models don’t appear:
   - Verify the Ollama server is running and reachable on port 11434.

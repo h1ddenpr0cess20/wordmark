@@ -27,10 +27,10 @@ const HISTORY_TOKEN_BUDGET_STORAGE_KEY = STORAGE_KEYS.historyTokenBudget;
  * Default history token budget.
  *
  * @remarks
- * A balanced ~8k tokens of recent history keeps plenty of context (~10-20
+ * A balanced ~16k tokens of recent history keeps plenty of context (~20-40
  * exchanges) while capping cost on long threads. `0` means no limit.
  */
-export const DEFAULT_HISTORY_TOKEN_BUDGET = 8000;
+export const DEFAULT_HISTORY_TOKEN_BUDGET = 16384;
 
 /** Returns `value` if it is a valid reasoning effort, else {@link DEFAULT_REASONING_EFFORT}. */
 function normalizeReasoningEffort(value: string) {

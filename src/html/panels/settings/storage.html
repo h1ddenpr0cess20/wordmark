@@ -1,0 +1,24 @@
+<div class="settings-group">
+  <h3>Stored Data</h3>
+  <p class="info-text">Everything below is stored locally in this browser. Clearing a category permanently deletes that data.</p>
+  <div class="setting-item">
+    <p id="storage-usage-summary" class="info-text"></p>
+    <div id="storage-category-list" class="memory-list">
+      <div class="loading-text">Calculating storage usage...</div>
+    </div>
+    <div class="action-buttons with-margin">
+      <button type="button" id="refresh-storage-usage" class="tool-action-button" title="Refresh storage usage">Refresh</button>
+      <button type="button" id="clear-all-storage" class="tool-action-button" title="Delete all locally stored data">Clear All Data</button>
+    </div>
+  </div>
+</div>
+
+<div class="settings-group">
+  <h3>Export</h3>
+  <p class="info-text">Download a JSON backup of your conversations, memories, document search index, and settings. API keys and stored image/audio binaries are not included.</p>
+  <div class="setting-item">
+    <div class="action-buttons">
+      <button type="button" id="export-all-data" class="primary-button" title="Download all stored data as JSON">Export Data</button>
+    </div>
+  </div>
+</div>

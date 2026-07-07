@@ -37,10 +37,12 @@ instead of re-deriving `serviceKey === …` checks at each call site.
   - Models fetched dynamically via `<baseUrl>/models`
   - No API key required
   - Base URL configurable in Settings
+  - Documents are extracted and searched in-browser via embeddings, not uploaded ([Documents & Attachments](documents.md))
 - **Ollama** (`ollama`) - Local OpenAI-compatible Responses server
   - Models fetched dynamically via `<baseUrl>/models` (falls back to `/api/tags`)
   - No API key required
   - Base URL configurable in Settings → API Keys (default `http://localhost:11434/v1`)
+  - Documents are extracted and searched in-browser via embeddings, not uploaded ([Documents & Attachments](documents.md))
 
 ## Dynamic Model Fetching
 
@@ -50,6 +52,8 @@ services.lmstudio.fetchAndUpdateModels()
 services.ollama.fetchAndUpdateModels()
 ```
 LM Studio hits `<baseUrl>/models`. Ollama prefers `<baseUrl>/models` and falls back to `/api/tags` if needed. Both update the dropdown via `uiHooks.updateModelsDropdown`.
+
+Embedding models (ids matching `/embed/i`) are kept out of the chat model dropdown and recorded separately in `service.embeddingModels`, where `resolveEmbeddingModel()` finds them for local document retrieval ([Documents & Attachments](documents.md)).
 
 ## Request Handling
 

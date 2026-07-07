@@ -5,6 +5,9 @@
 import { state } from "../../init/state.ts";
 import { showInfo } from "../../utils/notifications.ts";
 import { filterSupportedFiles } from "../../services/vectorStore.ts";
+import { isExtractableDocument } from "../../services/parsers/index.ts";
+import { extractsDocumentsClientSide } from "../../services/providers.ts";
+import { getActiveServiceKey } from "../../services/api/clientConfig.ts";
 import type { DirectoryFile, FileWithRelativePath } from "../../../types/attachments.ts";
 import { showPendingUploadPreviews } from "./attachmentPreviews.ts";
 import { setupDragAndDrop, setupPasteHandler } from "./attachmentDragDrop.ts";
@@ -144,20 +147,15 @@ function readFileAsDataURL(file: File): Promise<string> {
 }
 
 /**
- * Supported document extensions for OpenAI file uploads
- */
-const SUPPORTED_DOCUMENT_EXTENSIONS = [
-  ".c", ".cpp", ".cs", ".css", ".doc", ".docx", ".go", ".html",
-  ".java", ".js", ".json", ".md", ".pdf", ".php", ".pptx", ".py",
-  ".rb", ".sh", ".tex", ".ts", ".txt",
-];
-
-/**
- * Check if a file is a supported document type
+ * Check if a file is a supported document type. Local providers extract text in
+ * the browser and accept any document format or non-binary (text/code/data)
+ * file; cloud providers keep their native upload allowlist.
  */
 function isSupportedDocument(file: File) {
-  const fileName = file.name.toLowerCase();
-  return SUPPORTED_DOCUMENT_EXTENSIONS.some(ext => fileName.endsWith(ext));
+  if (extractsDocumentsClientSide(getActiveServiceKey())) {
+    return isExtractableDocument(file.name);
+  }
+  return filterSupportedFiles([file]).supported.length > 0;
 }
 
 /**
@@ -178,7 +176,11 @@ async function handleFiles(files: File[], options: { isDirectory?: boolean } = {
   state.pendingDocuments = state.pendingDocuments || [];
 
   if (isDirectory) {
-    const { supported, unsupported } = filterSupportedFiles(files);
+    const supported: File[] = [];
+    const unsupported: File[] = [];
+    for (const file of files) {
+      (isSupportedDocument(file) ? supported : unsupported).push(file);
+    }
 
     if (unsupported.length > 0) {
       const unsupportedNames = unsupported.map(f => f.name);

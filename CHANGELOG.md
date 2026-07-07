@@ -2,6 +2,26 @@
 
 All notable changes to Wordmark are documented here. Earlier versions didn't follow proper semver — this changelog reflects what actually shipped, not what the version numbers said at the time.
 
+## [3.8.0] - 2026-07-06
+
+Client-side document processing for local providers. Backward-compatible.
+
+### Added
+- **Document attachments for local providers** — LM Studio and Ollama can now use attached files and folders. Documents are extracted to text and searched in the browser with embeddings, so nothing is uploaded to a cloud service. A whole folder no longer overflows local context: only the passages relevant to each question are sent. ([Documents & Attachments](docs/documents.md))
+- **Broad format support** — dependency-free parsers for PDF, `.doc`/`.docx`, `.xls`/`.xlsx`, `.ppt`/`.pptx`, OpenDocument (`.odt`/`.ods`/`.odp`/`.odg`), `.rtf`, ebooks (`.epub`/`.mobi`/`.azw`), and `.zip`; every other non-binary file is read as text, so any code/config/data format works.
+- **Embedding model auto-detection** — embedding models are detected from the local server's model list (kept out of the chat dropdown) and default to a nomic model, with an optional override in Settings → Local Server Configuration.
+- **Document index persistence** — the retrieval index is stored in IndexedDB per conversation and restored on load, so attached documents survive reloads without re-uploading. Embeddings are cached by file content hash: re-attaching the same file in any conversation skips extraction and embedding, and each file's chunks are stored once (conversations hold references, not copies).
+- **Storage settings tab** — shows everything stored locally (conversations, images, TTS audio, document index, memories, settings, API keys) with per-category clear buttons, a clear-all, and a JSON export of your data (credentials, binaries, and vectors excluded).
+
+### Fixed
+- **PDF extraction on compressed PDFs** — FlateDecode streams followed by an end-of-line before `endstream` (i.e. most real-world PDFs) failed to decompress and yielded no text.
+- **Stored ZIP entries** — uncompressed entries inside ZIP archives returned the entire archive's bytes instead of the entry, producing garbage text.
+- **MOBI trailing data entries** — trailing-entry sizes were decoded with an inverted varint, truncating or corrupting text from PalmDOC-compressed ebooks.
+
+### Changed
+- **Default history token budget raised to 16384** (was 8000).
+- **Embedding requests are batched** (64 inputs per request) so large documents don't produce one oversized request; switching embedding models re-embeds the index from stored text instead of returning stale matches.
+
 ## [3.7.2] - 2026-07-03
 
 Security hardening for shared-conversation links. Backward-compatible.

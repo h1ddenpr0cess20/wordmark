@@ -162,6 +162,7 @@ export const config: Config = {
             baseUrl: "http://localhost:1234/v1",
             apiKey: "",
             models: [],
+            embeddingModels: [],
             defaultModel: "google/gemma-4-12b-qat",
             modelsFetching: false,
 
@@ -188,12 +189,17 @@ export const config: Config = {
                     } else {
                         const data = await response.json();
                         const isEmbeddingModel = (id: string) => /embed/i.test(id);
+                        let allIds: string[] | null = null;
                         if (data && Array.isArray(data.data)) {
-                            this.models = data.data.map((item: ModelListItem) => item.id).filter((id: unknown): id is string => typeof id === "string" && !isEmbeddingModel(id)).sort();
+                            allIds = data.data.map((item: ModelListItem) => item.id).filter((id: unknown): id is string => typeof id === "string");
                         } else if (Array.isArray(data)) {
-                            this.models = data.filter((id: string) => !isEmbeddingModel(id)).sort();
+                            allIds = data.filter((id: unknown): id is string => typeof id === "string");
                         } else if (Array.isArray(data.models)) {
-                            this.models = data.models.filter((id: string) => !isEmbeddingModel(id)).sort();
+                            allIds = data.models.filter((id: unknown): id is string => typeof id === "string");
+                        }
+                        if (allIds) {
+                            this.models = allIds.filter(id => !isEmbeddingModel(id)).sort();
+                            this.embeddingModels = allIds.filter(isEmbeddingModel).sort();
                         } else {
                             console.error("Unexpected LM Studio /models response format:", data);
                             this.models = ["Error: Invalid server response"];
@@ -230,6 +236,7 @@ export const config: Config = {
             baseUrl: "http://localhost:11434/v1",
             apiKey: "",
             models: [],
+            embeddingModels: [],
             defaultModel: "qwen3",
             modelsFetching: false,
 
@@ -251,10 +258,10 @@ export const config: Config = {
                 const isEmbeddingModel = (id: string) => /embed/i.test(id);
                 const parseModels = (data: any): string[] | null => {
                     if (data && Array.isArray(data.data)) {
-                        return data.data.map((item: ModelListItem) => item.id).filter((id: unknown): id is string => typeof id === "string" && !isEmbeddingModel(id)).sort();
+                        return data.data.map((item: ModelListItem) => item.id).filter((id: unknown): id is string => typeof id === "string").sort();
                     }
                     if (Array.isArray(data)) {
-                        return data.filter((id: string) => !isEmbeddingModel(id)).sort();
+                        return data.filter((id: unknown): id is string => typeof id === "string").sort();
                     }
                     if (data && Array.isArray(data.models)) {
                         return data.models
@@ -263,7 +270,7 @@ export const config: Config = {
                                 if (item && typeof item === "object") return item.id || item.name || item.model;
                                 return null;
                             })
-                            .filter((id: unknown): id is string => typeof id === "string" && !isEmbeddingModel(id))
+                            .filter((id: unknown): id is string => typeof id === "string")
                             .sort();
                     }
                     return null;
@@ -308,13 +315,17 @@ export const config: Config = {
                 if (!Array.isArray(models)) {
                     this.models = ["Error: Could not fetch models"];
                     fetchError = true;
-                } else if (models.length === 0) {
-                    this.models = ["No models found on server"];
                 } else {
-                    this.models = models;
-                    const validModels = this.models.filter(m => !m.startsWith("Error:") && !m.startsWith("No models"));
-                    if (validModels.length > 0 && !this.models.includes(this.defaultModel)) {
-                        console.info(`Default model '${this.defaultModel}' not found in fetched Ollama models. Available models:`, validModels);
+                    this.embeddingModels = models.filter(isEmbeddingModel);
+                    const chatModels = models.filter(id => !isEmbeddingModel(id));
+                    if (chatModels.length === 0) {
+                        this.models = ["No models found on server"];
+                    } else {
+                        this.models = chatModels;
+                        const validModels = this.models.filter(m => !m.startsWith("Error:") && !m.startsWith("No models"));
+                        if (validModels.length > 0 && !this.models.includes(this.defaultModel)) {
+                            console.info(`Default model '${this.defaultModel}' not found in fetched Ollama models. Available models:`, validModels);
+                        }
                     }
                 }
 

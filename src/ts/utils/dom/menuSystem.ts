@@ -15,6 +15,7 @@ import ttsHtml from "../../../html/panels/settings/tts.html?raw";
 import themeHtml from "../../../html/panels/settings/theme.html?raw";
 import apiKeysHtml from "../../../html/panels/settings/apiKeys.html?raw";
 import locationHtml from "../../../html/panels/settings/location.html?raw";
+import storageHtml from "../../../html/panels/settings/storage.html?raw";
 import { initTheme } from "../../components/theme.ts";
 import aboutHtml from "../../../html/panels/settings/about.html?raw";
 import { logVerbose } from "../logger.ts";
@@ -32,6 +33,7 @@ const PANEL_HTML = {
   "src/html/panels/settings/theme.html": themeHtml,
   "src/html/panels/settings/apiKeys.html": apiKeysHtml,
   "src/html/panels/settings/location.html": locationHtml,
+  "src/html/panels/settings/storage.html": storageHtml,
   "src/html/panels/settings/about.html": aboutHtml,
 };
 
@@ -81,6 +83,7 @@ const SETTINGS_TAB_PARTIALS = [
   { filePath: "src/html/panels/settings/theme.html", containerId: "content-theme" },
   { filePath: "src/html/panels/settings/apiKeys.html", containerId: "content-apikeys" },
   { filePath: "src/html/panels/settings/location.html", containerId: "content-location" },
+  { filePath: "src/html/panels/settings/storage.html", containerId: "content-storage" },
   { filePath: "src/html/panels/settings/about.html", containerId: "content-about" },
 ];
 

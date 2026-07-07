@@ -293,3 +293,35 @@ export async function getImageDataForUpload(imageId: string): Promise<string | A
     throw error;
   }
 }
+
+/** Counts the stored image records. */
+export function countImagesInDb(): Promise<number> {
+  return new Promise<number>((resolve, reject) => {
+    const run = () => {
+      const request = imageDb!.transaction([IMAGE_STORE_NAME], "readonly")
+        .objectStore(IMAGE_STORE_NAME)
+        .count();
+      request.onerror = () => reject(request.error);
+      request.onsuccess = () => resolve(request.result);
+    };
+    if (imageDb) run();
+    else initImageDb().then(run).catch(reject);
+  });
+}
+
+/** Deletes every stored image record. */
+export function clearAllImagesFromDb(): Promise<void> {
+  return new Promise<void>((resolve, reject) => {
+    const run = () => {
+      const transaction = imageDb!.transaction([IMAGE_STORE_NAME], "readwrite");
+      transaction.objectStore(IMAGE_STORE_NAME).clear();
+      transaction.onabort = () => reject(transaction.error || new Error("Image clear aborted"));
+      transaction.oncomplete = () => {
+        logImageStore("Cleared all images from IndexedDB");
+        resolve();
+      };
+    };
+    if (imageDb) run();
+    else initImageDb().then(run).catch(reject);
+  });
+}

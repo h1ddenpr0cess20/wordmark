@@ -213,6 +213,38 @@ export function renameConversationInDb(id: string, newName: string): Promise<boo
   });
 }
 
+/** Counts the stored conversation records. */
+export function countConversationsInDb(): Promise<number> {
+  return new Promise<number>((resolve, reject) => {
+    const run = () => {
+      const request = conversationDb!.transaction([CONVO_STORE_NAME], "readonly")
+        .objectStore(CONVO_STORE_NAME)
+        .count();
+      request.onerror = () => reject(request.error);
+      request.onsuccess = () => resolve(request.result);
+    };
+    if (conversationDb) run();
+    else initConversationDb().then(run).catch(reject);
+  });
+}
+
+/** Deletes every stored conversation record. */
+export function clearAllConversationsFromDb(): Promise<void> {
+  return new Promise<void>((resolve, reject) => {
+    const run = () => {
+      const transaction = conversationDb!.transaction([CONVO_STORE_NAME], "readwrite");
+      transaction.objectStore(CONVO_STORE_NAME).clear();
+      transaction.onabort = () => reject(transaction.error || new Error("Conversation clear aborted"));
+      transaction.oncomplete = () => {
+        logConvoStore("Cleared all conversations from IndexedDB");
+        resolve();
+      };
+    };
+    if (conversationDb) run();
+    else initConversationDb().then(run).catch(reject);
+  });
+}
+
 if (typeof window !== "undefined" && typeof window.addEventListener === "function") {
   window.addEventListener("DOMContentLoaded", () => {
     initConversationDb().catch(err => {

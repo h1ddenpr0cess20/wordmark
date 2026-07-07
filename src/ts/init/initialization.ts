@@ -17,6 +17,7 @@ import { initializeTts, initializeMobileKeyboardHandling } from "./ttsInitializa
 import { updateParameterControls } from "../components/ui/settingsControls.ts";
 import { initTabs, openApiKeysTabIfNeeded } from "../components/ui/settingsTabs.ts";
 import { initMemorySettings } from "../components/memory.ts";
+import { initStorageSettings } from "../components/storageManager.ts";
 import { updateHeaderInfo, updateModelSelector, updateFeatureStatus, initializePersonalityInput, applyDataSettingsState } from "../components/settings.ts";
 import { initToolsSettings } from "../components/tools.ts";
 import { initSkillsSettings } from "../components/skills.ts";
@@ -97,6 +98,13 @@ export async function initialize() {
       } catch (e) {
         console.error("Memory settings initialization failed:", e);
       }
+    }
+
+    try {
+      initStorageSettings();
+      logInit("Storage settings initialized.");
+    } catch (e) {
+      console.error("Storage settings initialization failed:", e);
     }
 
     try {

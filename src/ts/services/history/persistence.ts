@@ -20,6 +20,7 @@ import { renderChatHistoryList } from "./list.ts";
 import { renderConversationMessages } from "./render.ts";
 import { processImageForStorage, markMessagesWithImages } from "./persistenceImages.ts";
 import { uiHooks } from "../../init/uiHooks.ts";
+import { clearLocalDocIndex, persistLocalDocIndex, restoreLocalDocIndex } from "../localDocRetrieval.ts";
 import type { ConversationRecord } from "../../../types/common.ts";
 
 const logHistory = createScopedLogger("history");
@@ -112,6 +113,7 @@ function withoutDeveloperMessages<T extends { role?: string }>(messages: T[] | n
  * never ends the open party; it ends only when a new conversation is started.
  */
 function resetConversationState() {
+  clearLocalDocIndex();
   state.conversationHistory = [];
   state.generatedImages = [];
   state.currentConversationId = null;
@@ -175,6 +177,10 @@ export function saveCurrentConversation(meta: { name?: string; created?: string 
 
   state.currentConversationId = conversation.id ?? null;
   state.currentConversationName = conversation.name ?? null;
+
+  if (conversation.id) {
+    persistLocalDocIndex(conversation.id);
+  }
 
   Promise.all(savePromises)
     .then((results) => {
@@ -273,6 +279,11 @@ function loadConversationIntoUI(convo: ConversationRecord, imageCache: Map<strin
   state.currentConversationName = convo.name || null;
   state.loadedSystemPrompt = convo.systemPrompt || null;
   state.userThinkingState = {};
+
+  clearLocalDocIndex();
+  if (convo.id) {
+    restoreLocalDocIndex(convo.id);
+  }
 
   if (convo.mode === "party" && Array.isArray(convo.characters)) {
     state.partyMode = true;
