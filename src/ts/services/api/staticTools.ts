@@ -4,7 +4,7 @@
  * Pure data extracted from toolManager.ts so the catalog contents live in one
  * place, separate from catalog mutation, preference, and MCP-availability logic.
  */
-import type { ToolEntry } from "../../../types/tools.ts";
+import type { ToolDefinition, ToolEntry } from "../../../types/tools.ts";
 
 /** The built-in and function tool entries seeded into the catalog at load. */
 export const STATIC_TOOLS: ToolEntry[] = [
@@ -66,9 +66,8 @@ export const STATIC_TOOLS: ToolEntry[] = [
     key: "builtin:image_generation",
     type: "builtin",
     displayName: "OpenAI Images",
-    description: "Generate or edit images using the OpenAI image tool.",
+    description: "Generate or edit images with OpenAI. Uses the built-in image tool on OpenAI and the gpt-image-2 API (OpenAI API key required) on other services.",
     defaultEnabled: true,
-    onlyServices: ["openai"],
     definition: {
       type: "image_generation",
     },
@@ -199,5 +198,91 @@ export const STATIC_TOOLS: ToolEntry[] = [
       },
     },
     requiresApiKeyService: "xai",
+  },
+];
+
+/**
+ * Client-side function definitions emitted for `builtin:image_generation` when
+ * a non-OpenAI service is active. On OpenAI itself the provider-managed
+ * `image_generation` tool is sent instead, so these never appear there. The
+ * handlers live in `../openaiImageTool.ts`.
+ */
+export const OPENAI_IMAGE_FUNCTION_TOOLS: ToolDefinition[] = [
+  {
+    type: "function",
+    name: "openai_generate_image",
+    description: "Generate an image with OpenAI gpt-image-2.",
+    parameters: {
+      type: "object",
+      properties: {
+        prompt: {
+          type: "string",
+          description: "A detailed description of the image to generate.",
+        },
+        size: {
+          type: "string",
+          description: "Requested image size.",
+          enum: ["1024x1024", "1536x1024", "1024x1536", "auto"],
+        },
+        quality: {
+          type: "string",
+          description: "Output quality.",
+          enum: ["low", "medium", "high", "auto"],
+        },
+        n: {
+          type: "integer",
+          description: "Number of images to generate.",
+          minimum: 1,
+          maximum: 10,
+        },
+      },
+      required: ["prompt"],
+      additionalProperties: false,
+    },
+  },
+  {
+    type: "function",
+    name: "openai_edit_image",
+    description: "Edit one or more images with OpenAI gpt-image-2. If no image URL is provided, the most recent uploaded or generated image is used.",
+    parameters: {
+      type: "object",
+      properties: {
+        prompt: {
+          type: "string",
+          description: "A detailed description of the requested image edit.",
+        },
+        image_url: {
+          type: "string",
+          description: "Optional data URI or public URL for a single source image.",
+        },
+        image_urls: {
+          type: "array",
+          description: "Optional list of source image URLs or data URIs.",
+          items: {
+            type: "string",
+          },
+          minItems: 1,
+          maxItems: 10,
+        },
+        size: {
+          type: "string",
+          description: "Requested image size.",
+          enum: ["1024x1024", "1536x1024", "1024x1536", "auto"],
+        },
+        quality: {
+          type: "string",
+          description: "Output quality.",
+          enum: ["low", "medium", "high", "auto"],
+        },
+        n: {
+          type: "integer",
+          description: "Number of edited images to return.",
+          minimum: 1,
+          maximum: 10,
+        },
+      },
+      required: ["prompt"],
+      additionalProperties: false,
+    },
   },
 ];

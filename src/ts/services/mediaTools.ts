@@ -273,7 +273,7 @@ export async function downloadMediaSource(source: Blob | string, filename?: stri
 /** Returns the prompt guidance describing implicit "latest image" handling for media tools. */
 export function getMediaToolInstructions() {
   return [
-    "For Grok image edits, if the user refers to the most recent uploaded or generated image, you may omit image_url or image_urls.",
+    "For image edits (Grok or OpenAI), if the user refers to the most recent uploaded or generated image, you may omit image_url or image_urls.",
     "The runtime will automatically supply the latest available local image when an image edit tool is called without an explicit image URL.",
   ].join(" ");
 }
