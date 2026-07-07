@@ -231,7 +231,6 @@ test('getEnabledToolDefinitions omits image tool for Codex models', () => {
 test('image tool becomes client-side OpenAI image functions on non-OpenAI services', () => {
   setToolEnabled('builtin:image_generation', true);
 
-  // Without an OpenAI key the client-side path is unavailable entirely.
   localStorage.removeItem('wordmark_api_key_openai');
   let xaiTools = getEnabledToolDefinitions('xai', 'grok-4-fast');
   assert.equal(xaiTools.some(tool => tool.type === 'image_generation'), false, 'non-OpenAI services should not get the builtin image tool');
@@ -243,11 +242,9 @@ test('image tool becomes client-side OpenAI image functions on non-OpenAI servic
   assert.equal(xaiTools.some(tool => tool.type === 'function' && tool.name === 'openai_generate_image'), true, 'should include openai_generate_image');
   assert.equal(xaiTools.some(tool => tool.type === 'function' && tool.name === 'openai_edit_image'), true, 'should include openai_edit_image');
 
-  // Models that disallow client-side tools cannot use the function fallback.
   const multiAgentTools = getEnabledToolDefinitions('xai', 'grok-4-multi-agent');
   assert.equal(multiAgentTools.some(tool => tool.name === 'openai_generate_image'), false, 'multi-agent models should not get client-side image functions');
 
-  // On OpenAI the builtin tool is still used, not the function pair.
   const openaiTools = getEnabledToolDefinitions('openai', 'gpt-5.1');
   assert.equal(openaiTools.some(tool => tool.type === 'image_generation'), true, 'OpenAI keeps the builtin image tool');
   assert.equal(openaiTools.some(tool => tool.name === 'openai_generate_image'), false, 'OpenAI should not get the function fallback');

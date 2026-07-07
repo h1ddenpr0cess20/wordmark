@@ -176,8 +176,6 @@ async function generateOpenAiImage(args: unknown, mode: string): Promise<OpenAiI
       imageUrls = [latestImage];
     }
 
-    // The OpenAI edits endpoint only accepts multipart file uploads, so every
-    // reference has to be materialised into a blob first.
     const blobs = await Promise.all(imageUrls.slice(0, 10).map(url => referenceToBlob(url)));
     const formData = new FormData();
     formData.append("model", OPENAI_IMAGE_MODEL);

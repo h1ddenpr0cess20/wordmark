@@ -194,8 +194,6 @@ function isToolAvailableForProvider(
         return false;
       }
     } else {
-      // Non-OpenAI services run the tool as client-side openai_generate_image /
-      // openai_edit_image functions, which need OpenAI credentials.
       if (!clientSideToolsSupported) {
         return false;
       }
