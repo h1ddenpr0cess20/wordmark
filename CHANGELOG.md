@@ -2,6 +2,19 @@
 
 All notable changes to Wordmark are documented here. Earlier versions didn't follow proper semver — this changelog reflects what actually shipped, not what the version numbers said at the time.
 
+## [3.9.0] - 2026-07-07
+
+OpenAI image generation on every service. Backward-compatible.
+
+### Added
+- **Image generation and editing on all services** — the builtin `image_generation` tool now works everywhere, not just on OpenAI. On OpenAI it uses the provider-managed tool; on other services (e.g. xAI) it emits client-side `openai_generate_image` and `openai_edit_image` function tools that call OpenAI's `/images/generations` and `/images/edits` endpoints directly. Requires an OpenAI API key in Settings → API Keys; the client-side tools are only offered when that key is present and the service supports client-side tools.
+
+### Fixed
+- **Media placeholders rendering as literal text or code blocks** — `[[MEDIA: ...]]` placeholders stored in history showed as raw text on variant switch/regenerate, and history load pre-wrapped placeholders so markdown parsed them as an indented code block of raw HTML. Both forms are now hidden by the renderer.
+- **Generated images orphaned from saved conversations** — the placeholder gate was all-or-nothing, so any placeholder-looking text in a reply suppressed the real placeholders and images vanished on reload. Placeholders are now inserted per missing filename, and placeholders referencing nonexistent media are dropped.
+- **Placeholder syntax leaking to models** — assistant placeholders were sent verbatim in requests, teaching models (especially small local ones) to imitate the syntax; they are now stripped before sending.
+- **Retrieved document context corrupting saved history** — local RAG appended retrieved chunks directly onto the stored user message, persisting them into saved conversations and rendering them in the user's bubble on reload. The context now lives on a transient field spliced into the request at serialization time, and loading a conversation strips legacy blocks baked into older saves.
+
 ## [3.8.0] - 2026-07-06
 
 Client-side document processing for local providers. Backward-compatible.
