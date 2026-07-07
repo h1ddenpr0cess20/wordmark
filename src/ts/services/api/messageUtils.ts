@@ -260,6 +260,17 @@ export function serializeMessagesForRequest(messages: Message[] = []): Message[]
       } else if (msg.content && typeof msg.content === "object") {
         payload.content = { ...msg.content };
       }
+      if (msg.role === "user" && typeof msg.retrievedContext === "string" && msg.retrievedContext.trim()) {
+        if (typeof payload.content === "string") {
+          payload.content = payload.content
+            ? `${payload.content}\n\n${msg.retrievedContext}`
+            : msg.retrievedContext;
+        } else if (Array.isArray(payload.content)) {
+          payload.content.push({ type: "input_text", text: msg.retrievedContext });
+        } else if (payload.content === undefined) {
+          payload.content = msg.retrievedContext;
+        }
+      }
       if (msg.arguments) {
         payload.arguments = msg.arguments;
       }

@@ -94,6 +94,18 @@ test('serializeMessagesForRequest strips media placeholders from assistant conte
   assert.equal(result[1].content, '(generated media attached)');
 });
 
+test('serializeMessagesForRequest splices retrievedContext into user messages at request time', () => {
+  const result = serializeMessagesForRequest([
+    { role: 'user', content: 'summarize the doc', retrievedContext: 'Relevant context from attached documents:\n\n[From a.pdf]\nchunk' },
+    { role: 'user', content: [{ type: 'input_text', text: 'hi' }], retrievedContext: 'ctx' },
+  ]);
+  assert.equal(result[0].content, 'summarize the doc\n\nRelevant context from attached documents:\n\n[From a.pdf]\nchunk');
+  assert.deepEqual(result[1].content, [
+    { type: 'input_text', text: 'hi' },
+    { type: 'input_text', text: 'ctx' },
+  ]);
+});
+
 test('serializeMessagesForRequest passes through tool-call fields', () => {
   const result = serializeMessagesForRequest([
     {
