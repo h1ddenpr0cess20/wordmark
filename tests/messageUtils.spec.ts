@@ -85,6 +85,15 @@ test('serializeMessagesForRequest preserves envelope fields and passes assistant
   assert.deepEqual(result[0], { role: 'assistant', type: 'message', name: 'bot', content: 'plain reply' });
 });
 
+test('serializeMessagesForRequest strips media placeholders from assistant content', () => {
+  const result = serializeMessagesForRequest([
+    { role: 'assistant', content: '[[MEDIA: generated-1.png]]\n[[IMAGE: generated-2.png]]\n\nHere is your image.' },
+    { role: 'assistant', content: '[[MEDIA: generated-3.png]]' },
+  ]);
+  assert.equal(result[0].content, 'Here is your image.');
+  assert.equal(result[1].content, '(generated media attached)');
+});
+
 test('serializeMessagesForRequest passes through tool-call fields', () => {
   const result = serializeMessagesForRequest([
     {

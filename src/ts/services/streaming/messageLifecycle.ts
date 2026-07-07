@@ -164,22 +164,31 @@ export function finalizeStreamedResponse(loadingMessage: HTMLElement | null, con
   }
 
   let fullContent = content;
-  const hasExistingImagePlaceholders = createMediaPlaceholderRegex().test(fullContent);
-  const willHaveImages = !hasExistingImagePlaceholders &&
-                         state.currentGeneratedImageHtml &&
-                         state.currentGeneratedImageHtml.length > 0;
+  const generatedFilenames = (state.currentGeneratedImageHtml || [])
+    .map(html => {
+      const match = html.match(/data-filename="([^"]+)"/);
+      return match ? match[1] : null;
+    })
+    .filter((filename): filename is string => Boolean(filename));
 
-  if (willHaveImages) {
-    const imageList = state.currentGeneratedImageHtml
-      .map(html => {
-        const match = html.match(/data-filename="([^"]+)"/);
-        return match ? mediaPlaceholder(match[1]) : null;
-      })
-      .filter(Boolean)
-      .join("\n");
-    if (imageList) {
-      fullContent = `${imageList}\n\n${fullContent}`;
-    }
+  const knownFilenames = new Set(generatedFilenames);
+  if (Array.isArray(state.generatedImages)) {
+    state.generatedImages.forEach(img => {
+      if (img && img.filename) {
+        knownFilenames.add(img.filename);
+      }
+    });
+  }
+  fullContent = fullContent.replace(createMediaPlaceholderRegex(), (match, filename) => {
+    return knownFilenames.has(String(filename || "").trim()) ? match : "";
+  });
+
+  const missingPlaceholders = generatedFilenames.filter(filename => !fullContent.includes(filename));
+  const willHaveImages = generatedFilenames.length > 0;
+
+  if (missingPlaceholders.length) {
+    const imageList = missingPlaceholders.map(mediaPlaceholder).join("\n");
+    fullContent = fullContent.trim() ? `${imageList}\n\n${fullContent}` : imageList;
   }
 
   const responseId = isRecord(responsePayload) && typeof responsePayload.id === "string"

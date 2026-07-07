@@ -49,6 +49,14 @@ test('processMainContentMarkdown hides image placeholders', () => {
   assert.ok(result.includes('[[IMAGE: test.png]]'), 'should preserve placeholder text');
 });
 
+test('processMainContentMarkdown hides media placeholders', () => {
+  const input = '[[MEDIA: generated-1.png]]\n\nHere is your image';
+  const result = processMainContentMarkdown(input);
+
+  assert.ok(result.includes('hidden-image-placeholder'), 'should hide media placeholders');
+  assert.ok(result.includes('[[MEDIA: generated-1.png]]'), 'should preserve placeholder text');
+});
+
 test('processMainContentMarkdown handles multiple image placeholders', () => {
   const input = '[[IMAGE: first.png]] and [[IMAGE: second.png]]';
   const result = processMainContentMarkdown(input);

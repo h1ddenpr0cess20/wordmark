@@ -4,12 +4,12 @@
 
 import { marked } from "marked";
 import { sanitizeWithMedia } from "../../utils/sanitize.ts";
-import { createImagePlaceholderRegex } from "../../utils/placeholders.ts";
+import { createMediaPlaceholderRegex } from "../../utils/placeholders.ts";
 
 /**
  * Renders streamed markdown to sanitized HTML: closes any dangling code
- * fence/inline-code so partial streams parse, then hides `[[IMAGE: ...]]`
- * placeholders behind a CSS class.
+ * fence/inline-code so partial streams parse, then hides `[[IMAGE: ...]]` and
+ * `[[MEDIA: ...]]` placeholders behind a CSS class.
  */
 export function processMainContentMarkdown(mainText: string) {
   let html = mainText;
@@ -25,7 +25,7 @@ export function processMainContentMarkdown(mainText: string) {
 
   let parsedContent = sanitizeWithMedia(marked.parse(html, { async: false }));
 
-  parsedContent = parsedContent.replace(createImagePlaceholderRegex(), (match) => {
+  parsedContent = parsedContent.replace(createMediaPlaceholderRegex(), (match) => {
     return `<span class="hidden-image-placeholder">${match}</span>`;
   });
 
