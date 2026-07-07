@@ -103,7 +103,9 @@ function ascii85Decode(data: Uint8Array): Uint8Array<ArrayBuffer> {
 }
 
 async function decompressFlate(data: Uint8Array<ArrayBuffer>): Promise<string> {
-  for (const format of ["deflate-raw", "deflate"] as const) {
+  for (const format of ["deflate", "deflate-raw"] as const) {
+    const chunks: Uint8Array[] = [];
+    let totalLen = 0;
     try {
       const ds = new DecompressionStream(format);
       const writer = ds.writable.getWriter();
@@ -111,8 +113,6 @@ async function decompressFlate(data: Uint8Array<ArrayBuffer>): Promise<string> {
 
       const writeDone = writer.write(data).then(() => writer.close()).catch(() => {});
 
-      const chunks: Uint8Array[] = [];
-      let totalLen = 0;
       for (;;) {
         const { done, value } = await reader.read();
         if (done) break;
@@ -121,17 +121,17 @@ async function decompressFlate(data: Uint8Array<ArrayBuffer>): Promise<string> {
       }
 
       await writeDone;
+    } catch {}
 
-      const result = new Uint8Array(totalLen);
-      let pos = 0;
-      for (const chunk of chunks) {
-        result.set(chunk, pos);
-        pos += chunk.length;
-      }
-      return new TextDecoder("latin1").decode(result);
-    } catch {
-      continue;
+    if (totalLen === 0) continue;
+
+    const result = new Uint8Array(totalLen);
+    let pos = 0;
+    for (const chunk of chunks) {
+      result.set(chunk, pos);
+      pos += chunk.length;
     }
+    return new TextDecoder("latin1").decode(result);
   }
 
   return new TextDecoder("latin1").decode(data);

@@ -11,6 +11,7 @@ import {
   getAllConversationsFromDb,
   deleteConversationFromDb,
 } from "../../utils/storage/conversationStorage.ts";
+import { deleteDocChunks } from "../../utils/storage/docChunkStorage.ts";
 import { startNewConversation, loadConversation, renameConversation } from "./persistence.ts";
 import { buildHistoryRowHtml } from "./historyRow.ts";
 import { updatePanelOpenState } from "../../init/eventListeners/settingsPanel.ts";
@@ -178,7 +179,10 @@ export function renderChatHistoryList() {
           return;
         }
 
-        Promise.all(conversationIds.map(id => deleteConversationFromDb?.(id)))
+        Promise.all(conversationIds.map(id => Promise.all([
+          deleteConversationFromDb?.(id),
+          deleteDocChunks(id).catch(() => undefined),
+        ])))
           .then(() => {
             conversationIds.forEach((id) => {
               if (state.currentConversationId === id) {

@@ -29,13 +29,31 @@ mock.module(new URL("../src/ts/services/embeddings.ts", import.meta.url).href, {
       for (let i = 0; i < a.length; i++) { dot += a[i] * b[i]; na += a[i] * a[i]; nb += b[i] * b[i]; }
       return dot / (Math.sqrt(na) * Math.sqrt(nb) || 1);
     },
-    fetchEmbeddings: async (texts: string[]) => texts.map(fakeEmbed),
+    fetchEmbeddings: async (texts: string[]) => {
+      embedCalls.push(texts);
+      return texts.map(fakeEmbed);
+    },
   },
 });
+
+const embedCalls: string[][] = [];
 
 mock.module(new URL("../src/ts/services/parsers/index.ts", import.meta.url).href, {
   namedExports: {
     extractDocumentText: async (file: { text: () => Promise<string> }) => file.text(),
+  },
+});
+
+const chunkStore = new Map<string, unknown[]>();
+const fileCache = new Map<string, unknown[]>();
+
+mock.module(new URL("../src/ts/utils/storage/docChunkStorage.ts", import.meta.url).href, {
+  namedExports: {
+    saveDocChunks: async (id: string, chunks: unknown[]) => void chunkStore.set(id, [...chunks]),
+    loadDocChunks: async (id: string) => chunkStore.get(id) ?? [],
+    deleteDocChunks: async (id: string) => void chunkStore.delete(id),
+    getCachedFileChunks: async (key: string) => fileCache.get(key) ?? null,
+    saveCachedFileChunks: async (key: string, _name: string, chunks: unknown[]) => void fileCache.set(key, [...chunks]),
   },
 });
 
@@ -44,6 +62,8 @@ const {
   retrieveRelevantChunks,
   localDocIndexSize,
   clearLocalDocIndex,
+  persistLocalDocIndex,
+  restoreLocalDocIndex,
 } = await import("../src/ts/services/localDocRetrieval.ts");
 
 function fakeFile(name: string, text: string): File {
@@ -97,4 +117,58 @@ test("indexDocuments reports files that yield no text", async () => {
   const result = await indexDocuments([fakeFile("empty.txt", "   ")]);
   assert.equal(result.chunks, 0);
   assert.deepEqual(result.failed, ["empty.txt"]);
+});
+
+test("retrieveRelevantChunks re-embeds stored text when the model changes", async () => {
+  clearLocalDocIndex();
+  await indexDocuments([fakeFile("cats.txt", "cats are furry animals that purr")]);
+  embedModel = "another-model";
+  const hits = await retrieveRelevantChunks("tell me about cats");
+  assert.equal(hits.length, 1);
+  assert.equal(hits[0].name, "cats.txt");
+  embedModel = "fake-embed";
+});
+
+test("persistLocalDocIndex and restoreLocalDocIndex round-trip the index", async () => {
+  clearLocalDocIndex();
+  await indexDocuments([fakeFile("cats.txt", "cats are furry animals that purr")]);
+  await persistLocalDocIndex("convo-1");
+
+  clearLocalDocIndex();
+  assert.equal(localDocIndexSize(), 0);
+
+  const restored = await restoreLocalDocIndex("convo-1");
+  assert.equal(restored, 1);
+  const hits = await retrieveRelevantChunks("tell me about cats");
+  assert.equal(hits[0].name, "cats.txt");
+});
+
+test("indexDocuments reuses cached embeddings for identical file content", async () => {
+  clearLocalDocIndex();
+  const content = "penguins waddle across the ice";
+  const asFile = (name: string) => ({
+    name,
+    text: async () => content,
+    arrayBuffer: async () => new TextEncoder().encode(content).buffer,
+  } as unknown as File);
+
+  const first = await indexDocuments([asFile("penguins.txt")]);
+  assert.equal(first.indexed, 1);
+  const embedCallsAfterFirst = embedCalls.length;
+
+  clearLocalDocIndex();
+  const second = await indexDocuments([asFile("penguins-copy.txt")]);
+  assert.equal(second.indexed, 1);
+  assert.equal(second.chunks, 1);
+  assert.equal(embedCalls.length, embedCallsAfterFirst, "cached file must not be re-embedded");
+  assert.equal(localDocIndexSize(), 1);
+
+  const hits = await retrieveRelevantChunks("penguins waddle across the ice");
+  assert.equal(hits[0].name, "penguins-copy.txt");
+});
+
+test("persistLocalDocIndex with an empty index never wipes stored chunks", async () => {
+  clearLocalDocIndex();
+  await persistLocalDocIndex("convo-1");
+  assert.equal(await restoreLocalDocIndex("convo-1"), 1);
 });

@@ -6,6 +6,8 @@ import { state } from "../../init/state.ts";
 import { showInfo } from "../../utils/notifications.ts";
 import { filterSupportedFiles } from "../../services/vectorStore.ts";
 import { isExtractableDocument } from "../../services/parsers/index.ts";
+import { extractsDocumentsClientSide } from "../../services/providers.ts";
+import { getActiveServiceKey } from "../../services/api/clientConfig.ts";
 import type { DirectoryFile, FileWithRelativePath } from "../../../types/attachments.ts";
 import { showPendingUploadPreviews } from "./attachmentPreviews.ts";
 import { setupDragAndDrop, setupPasteHandler } from "./attachmentDragDrop.ts";
@@ -145,11 +147,15 @@ function readFileAsDataURL(file: File): Promise<string> {
 }
 
 /**
- * Check if a file is a supported document type: a known document format or any
- * non-binary (text/code/data) file.
+ * Check if a file is a supported document type. Local providers extract text in
+ * the browser and accept any document format or non-binary (text/code/data)
+ * file; cloud providers keep their native upload allowlist.
  */
 function isSupportedDocument(file: File) {
-  return isExtractableDocument(file.name);
+  if (extractsDocumentsClientSide(getActiveServiceKey())) {
+    return isExtractableDocument(file.name);
+  }
+  return filterSupportedFiles([file]).supported.length > 0;
 }
 
 /**
@@ -170,7 +176,11 @@ async function handleFiles(files: File[], options: { isDirectory?: boolean } = {
   state.pendingDocuments = state.pendingDocuments || [];
 
   if (isDirectory) {
-    const { supported, unsupported } = filterSupportedFiles(files);
+    const supported: File[] = [];
+    const unsupported: File[] = [];
+    for (const file of files) {
+      (isSupportedDocument(file) ? supported : unsupported).push(file);
+    }
 
     if (unsupported.length > 0) {
       const unsupportedNames = unsupported.map(f => f.name);

@@ -250,6 +250,38 @@ export function exportAudioForDownload(audioData: ArrayBuffer, filename: string)
   }
 }
 
+/** Counts the stored audio clip records. */
+export function countAudioInDb(): Promise<number> {
+  return new Promise<number>((resolve, reject) => {
+    const run = () => {
+      const request = audioDb!.transaction([AUDIO_STORE_NAME], "readonly")
+        .objectStore(AUDIO_STORE_NAME)
+        .count();
+      request.onerror = () => reject(request.error);
+      request.onsuccess = () => resolve(request.result);
+    };
+    if (audioDb) run();
+    else initAudioDb().then(run).catch(reject);
+  });
+}
+
+/** Deletes every stored audio clip record. */
+export function clearAllAudioFromDb(): Promise<void> {
+  return new Promise<void>((resolve, reject) => {
+    const run = () => {
+      const transaction = audioDb!.transaction([AUDIO_STORE_NAME], "readwrite");
+      transaction.objectStore(AUDIO_STORE_NAME).clear();
+      transaction.onabort = () => reject(transaction.error || new Error("Audio clear aborted"));
+      transaction.oncomplete = () => {
+        logAudioStore("Cleared all TTS audio from IndexedDB");
+        resolve();
+      };
+    };
+    if (audioDb) run();
+    else initAudioDb().then(run).catch(reject);
+  });
+}
+
 if (typeof window !== "undefined" && typeof window.addEventListener === "function") {
   window.addEventListener("DOMContentLoaded", () => {
     initAudioDb().catch(err => {

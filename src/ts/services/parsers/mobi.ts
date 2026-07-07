@@ -55,11 +55,13 @@ function stripTrailingEntries(data: Uint8Array<ArrayBuffer>, numEntries: number,
 
   for (let e = 0; e < numEntries; e++) {
     let size = 0;
+    let shift = 0;
     let i = end - 1;
-    while (i >= 0) {
+    while (i >= 0 && shift < 28) {
       const b = data[i--];
-      size = (size << 7) | (b & 0x7f);
-      if ((b & 0x80) === 0) break;
+      size |= (b & 0x7f) << shift;
+      shift += 7;
+      if (b & 0x80) break;
     }
     end -= size;
     if (end < 0) { end = 0; break; }

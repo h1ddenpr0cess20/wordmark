@@ -31,7 +31,7 @@ mock.module(new URL("../src/ts/services/api/requestTransport.ts", import.meta.ur
   namedExports: { buildHeaders: () => ({ "Content-Type": "application/json" }) },
 });
 
-const { chunkText, cosineSim, resolveEmbeddingModel, fetchEmbeddings, EMBEDDING_MODEL_STORAGE_KEY } =
+const { chunkText, cosineSim, resolveEmbeddingModel, fetchEmbeddings, EMBEDDING_MODEL_STORAGE_KEY, EMBEDDING_BATCH_SIZE } =
   await import("../src/ts/services/embeddings.ts");
 
 const store = new Map<string, string>();
@@ -113,6 +113,26 @@ test("fetchEmbeddings posts to /embeddings and returns vectors in input order", 
   assert.equal(calls[0].url, "http://localhost:1234/v1/embeddings");
   assert.deepEqual((calls[0].body as { input: string[] }).input, ["a", "b"]);
   assert.deepEqual(vectors, [[1, 0], [0, 1]]);
+});
+
+test("fetchEmbeddings splits large inputs into batches and keeps input order", async () => {
+  const batchSizes: number[] = [];
+  globalThis.fetch = (async (_url: string, init: RequestInit) => {
+    const { input } = JSON.parse(String(init.body)) as { input: string[] };
+    batchSizes.push(input.length);
+    return {
+      ok: true,
+      json: async () => ({
+        data: input.map((t, i) => ({ index: i, embedding: [Number(t)] })).reverse(),
+      }),
+    };
+  }) as unknown as typeof fetch;
+
+  const texts = Array.from({ length: EMBEDDING_BATCH_SIZE * 2 + 2 }, (_, i) => String(i));
+  const vectors = await fetchEmbeddings(texts, "embed-model");
+  assert.deepEqual(batchSizes, [EMBEDDING_BATCH_SIZE, EMBEDDING_BATCH_SIZE, 2]);
+  assert.equal(vectors.length, texts.length);
+  assert.deepEqual(vectors.map((v) => v[0]), texts.map(Number));
 });
 
 test("fetchEmbeddings throws on a non-ok response", async () => {

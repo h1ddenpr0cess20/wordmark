@@ -16,6 +16,9 @@ import { config } from "../../config/config.ts";
 /** localStorage key for the user-set embedding model (blank = auto-detect). */
 export const EMBEDDING_MODEL_STORAGE_KEY = "wordmark:embeddingModel";
 
+/** Maximum inputs per `/embeddings` request. */
+export const EMBEDDING_BATCH_SIZE = 64;
+
 /**
  * Splits text into chunks of about `size` characters, preferring paragraph,
  * then line, sentence, and word boundaries so chunks stay coherent.
@@ -142,13 +145,15 @@ export function resolveEmbeddingModel(): string | null {
 
 /**
  * Fetches embedding vectors for a batch of texts from the active provider's
- * OpenAI-compatible `/embeddings` endpoint.
+ * OpenAI-compatible `/embeddings` endpoint. Inputs are sent in batches of
+ * {@link EMBEDDING_BATCH_SIZE} so a large document doesn't produce one request
+ * the local server rejects or times out on.
  *
  * @param texts - The input texts.
  * @param model - The embedding model id.
  * @param signal - Optional abort signal.
  * @returns One vector per input, in input order.
- * @throws If the request fails.
+ * @throws If a request fails.
  */
 export async function fetchEmbeddings(
   texts: string[],
@@ -156,19 +161,24 @@ export async function fetchEmbeddings(
   signal?: AbortSignal,
 ): Promise<number[][]> {
   const base = getBaseUrl();
-  const res = await fetch(`${base}/embeddings`, {
-    method: "POST",
-    headers: { ...buildHeaders(), Accept: "application/json" },
-    body: JSON.stringify({ model, input: texts }),
-    signal,
-  });
-  if (!res.ok) {
-    const err = await res.text();
-    throw new Error(`Embeddings request failed: HTTP ${res.status} — ${err.slice(0, 200)}`);
+  const vectors: number[][] = [];
+  for (let start = 0; start < texts.length; start += EMBEDDING_BATCH_SIZE) {
+    const batch = texts.slice(start, start + EMBEDDING_BATCH_SIZE);
+    const res = await fetch(`${base}/embeddings`, {
+      method: "POST",
+      headers: { ...buildHeaders(), Accept: "application/json" },
+      body: JSON.stringify({ model, input: batch }),
+      signal,
+    });
+    if (!res.ok) {
+      const err = await res.text();
+      throw new Error(`Embeddings request failed: HTTP ${res.status} — ${err.slice(0, 200)}`);
+    }
+    const data = await res.json();
+    vectors.push(...(data.data as { index: number; embedding: number[] }[])
+      .slice()
+      .sort((a, b) => a.index - b.index)
+      .map((d) => d.embedding));
   }
-  const data = await res.json();
-  return (data.data as { index: number; embedding: number[] }[])
-    .slice()
-    .sort((a, b) => a.index - b.index)
-    .map((d) => d.embedding);
+  return vectors;
 }

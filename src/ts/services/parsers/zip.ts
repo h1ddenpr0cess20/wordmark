@@ -80,7 +80,9 @@ export function readZip(arrayBuffer: ArrayBuffer): ZipArchive {
         async async(type: "string" | "arraybuffer" | "uint8array"): Promise<never> {
           const data = await extractEntry(entry);
           if (type === "string") return new TextDecoder().decode(data) as never;
-          if (type === "arraybuffer") return data.buffer as never;
+          if (type === "arraybuffer") {
+            return data.buffer.slice(data.byteOffset, data.byteOffset + data.byteLength) as never;
+          }
           return data as never;
         },
       };

@@ -20,6 +20,7 @@ import {
   indexDocuments,
   retrieveRelevantChunks,
   localDocIndexSize,
+  persistLocalDocIndex,
 } from "../services/localDocRetrieval.ts";
 import { generateMessageId, addMessageCopyButton } from "./messages.ts";
 import { updateRegenerateAvailability } from "./messageActions.ts";
@@ -114,7 +115,12 @@ async function indexDocumentsLocally(documents: PendingDocument[]): Promise<{ ok
       showInfo(`Could not read: ${result.failed.slice(0, 3).join(", ")}${result.failed.length > 3 ? "..." : ""}`);
     }
     if (result.chunks > 0 && showInfo) {
-      showInfo(`Indexed ${result.indexed} document(s) into ${result.chunks} chunk(s)`);
+      showInfo(result.cached === result.indexed
+        ? `Loaded ${result.cached} document(s) from cache`
+        : `Indexed ${result.indexed} document(s) into ${result.chunks} chunk(s)${result.cached > 0 ? ` (${result.cached} from cache)` : ""}`);
+    }
+    if (state.currentConversationId) {
+      persistLocalDocIndex(state.currentConversationId);
     }
     logInteraction("Documents indexed locally:", result);
     return { ok: true };

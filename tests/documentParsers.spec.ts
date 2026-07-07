@@ -3,6 +3,7 @@ import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { dirname, join } from "node:path";
+import { deflateSync } from "node:zlib";
 import { JSDOM } from "jsdom";
 
 const dom = new JSDOM("<!DOCTYPE html><body></body>", { url: "http://localhost" });
@@ -93,4 +94,81 @@ test("extractDocumentText extracts every readable entry from a zip archive", asy
   assert.match(text, /\[src\/main\.rs\]/);
   assert.match(text, /\[docs\/report\.docx\]/);
   assert.match(text, /fn main/);
+});
+
+test("extractDocumentText reads FlateDecode PDF streams with an EOL before endstream", async () => {
+  const content = `BT /F1 12 Tf 72 720 Td (${NEEDLE}) Tj ET`;
+  const compressed = deflateSync(Buffer.from(content, "latin1"));
+  const pdf = Buffer.concat([
+    Buffer.from(`%PDF-1.4\n4 0 obj\n<< /Length ${compressed.length} /Filter /FlateDecode >>\nstream\n`, "latin1"),
+    compressed,
+    Buffer.from("\r\nendstream\nendobj\n%%EOF", "latin1"),
+  ]);
+  const text = await extractDocumentText(new File([new Uint8Array(pdf)], "compressed.pdf"));
+  assert.match(text, new RegExp(NEEDLE));
+});
+
+/** Builds a single-entry ZIP whose entry is Stored (method 0), not Deflated. */
+function storedZip(name: string, data: Buffer): Buffer {
+  const nameBuf = Buffer.from(name);
+  const local = Buffer.alloc(30);
+  local.writeUInt32LE(0x04034b50, 0);
+  local.writeUInt16LE(20, 4);
+  local.writeUInt32LE(data.length, 18);
+  local.writeUInt32LE(data.length, 22);
+  local.writeUInt16LE(nameBuf.length, 26);
+
+  const central = Buffer.alloc(46);
+  central.writeUInt32LE(0x02014b50, 0);
+  central.writeUInt32LE(data.length, 20);
+  central.writeUInt32LE(data.length, 24);
+  central.writeUInt16LE(nameBuf.length, 28);
+
+  const localRec = Buffer.concat([local, nameBuf, data]);
+  const eocd = Buffer.alloc(22);
+  eocd.writeUInt32LE(0x06054b50, 0);
+  eocd.writeUInt16LE(1, 8);
+  eocd.writeUInt16LE(1, 10);
+  eocd.writeUInt32LE(46 + nameBuf.length, 12);
+  eocd.writeUInt32LE(localRec.length, 16);
+
+  return Buffer.concat([localRec, central, nameBuf, eocd]);
+}
+
+test("extractDocumentText reads Stored (uncompressed) zip entries", async () => {
+  const zip = storedZip("notes.txt", Buffer.from(NEEDLE));
+  const text = await extractDocumentText(new File([new Uint8Array(zip)], "archive.zip"));
+  assert.match(text, /\[notes\.txt\]/);
+  assert.match(text, new RegExp(NEEDLE));
+});
+
+/** Builds a minimal PalmDOC-compressed MOBI whose text record has one trailing data entry. */
+function mobiWithTrailingEntry(text: string): Buffer {
+  const record0 = Buffer.alloc(216);
+  record0.writeUInt16BE(2, 0);
+  record0.writeUInt16BE(1, 8);
+  record0.write("MOBI", 16);
+  record0.writeUInt32BE(200, 20);
+  record0.writeUInt32BE(65001, 28);
+  record0.writeUInt16BE(0x0002, 16 + 0xc0);
+
+  const record1 = Buffer.concat([
+    Buffer.from(text, "latin1"),
+    Buffer.from([0xaa, 0xbb, 0xcc, 0x84]),
+  ]);
+
+  const header = Buffer.alloc(78 + 2 * 8);
+  header.write("BOOK", 60);
+  header.write("MOBI", 64);
+  header.writeUInt16BE(2, 76);
+  header.writeUInt32BE(header.length, 78);
+  header.writeUInt32BE(header.length + record0.length, 86);
+
+  return Buffer.concat([header, record0, record1]);
+}
+
+test("extractDocumentText strips MOBI trailing data entries from text records", async () => {
+  const mobi = mobiWithTrailingEntry(NEEDLE);
+  const text = await extractDocumentText(new File([new Uint8Array(mobi)], "book.mobi"));
+  assert.equal(text, NEEDLE);
 });
