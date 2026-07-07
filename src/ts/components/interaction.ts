@@ -28,6 +28,7 @@ import { appendMessage } from "./ui/chatMessages.ts";
 import { getVerbosity, getReasoningEffort, getHistoryTokenBudget } from "../init/modelSettings.ts";
 import { buildOutgoingAttachments } from "./attachments/outgoingAttachments.ts";
 import type { PendingDocument } from "../../types/attachments.ts";
+import { RETRIEVED_CONTEXT_MARKER } from "../utils/retrievedContext.ts";
 
 const logInteraction = createScopedLogger("interaction");
 
@@ -80,17 +81,20 @@ function flattenDocumentFiles(documents: PendingDocument[]): File[] {
   return files;
 }
 
-/** Appends text to the last user message's content (string or content-part array). */
-function appendToLastUserMessage(text: string): void {
+/**
+ * Attaches retrieval context to the last user message via its transient
+ * `retrievedContext` field, keeping the message `content` (what renders and
+ * persists) untouched; the context is spliced in at request time by
+ * `serializeMessagesForRequest`.
+ */
+function attachRetrievedContext(text: string): void {
   const lastUserMsg = state.conversationHistory[state.conversationHistory.length - 1];
   if (!lastUserMsg || lastUserMsg.role !== "user") {
     return;
   }
-  if (typeof lastUserMsg.content === "string") {
-    lastUserMsg.content = lastUserMsg.content ? `${lastUserMsg.content}\n\n${text}` : text;
-  } else if (Array.isArray(lastUserMsg.content)) {
-    lastUserMsg.content.push({ type: "input_text", text });
-  }
+  lastUserMsg.retrievedContext = lastUserMsg.retrievedContext
+    ? `${lastUserMsg.retrievedContext}\n\n${text}`
+    : text;
 }
 
 /**
@@ -144,7 +148,7 @@ async function injectRetrievedContext(query: string): Promise<void> {
       return;
     }
     const context = chunks.map(c => `[From ${c.name}]\n${c.text}`).join("\n\n");
-    appendToLastUserMessage(`Relevant context from attached documents:\n\n${context}`);
+    attachRetrievedContext(`${RETRIEVED_CONTEXT_MARKER}\n\n${context}`);
     logInteraction("Injected retrieved chunks:", chunks.length);
   } catch (error) {
     logInteraction("Retrieval failed:", error);

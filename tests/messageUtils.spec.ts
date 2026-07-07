@@ -85,6 +85,27 @@ test('serializeMessagesForRequest preserves envelope fields and passes assistant
   assert.deepEqual(result[0], { role: 'assistant', type: 'message', name: 'bot', content: 'plain reply' });
 });
 
+test('serializeMessagesForRequest strips media placeholders from assistant content', () => {
+  const result = serializeMessagesForRequest([
+    { role: 'assistant', content: '[[MEDIA: generated-1.png]]\n[[IMAGE: generated-2.png]]\n\nHere is your image.' },
+    { role: 'assistant', content: '[[MEDIA: generated-3.png]]' },
+  ]);
+  assert.equal(result[0].content, 'Here is your image.');
+  assert.equal(result[1].content, '(generated media attached)');
+});
+
+test('serializeMessagesForRequest splices retrievedContext into user messages at request time', () => {
+  const result = serializeMessagesForRequest([
+    { role: 'user', content: 'summarize the doc', retrievedContext: 'Relevant context from attached documents:\n\n[From a.pdf]\nchunk' },
+    { role: 'user', content: [{ type: 'input_text', text: 'hi' }], retrievedContext: 'ctx' },
+  ]);
+  assert.equal(result[0].content, 'summarize the doc\n\nRelevant context from attached documents:\n\n[From a.pdf]\nchunk');
+  assert.deepEqual(result[1].content, [
+    { type: 'input_text', text: 'hi' },
+    { type: 'input_text', text: 'ctx' },
+  ]);
+});
+
 test('serializeMessagesForRequest passes through tool-call fields', () => {
   const result = serializeMessagesForRequest([
     {

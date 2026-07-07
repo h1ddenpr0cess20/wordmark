@@ -155,10 +155,6 @@ export function renderConversationMessages(convo: ConversationRecord, imageCache
       }
     }
 
-    displayContent = displayContent.replace(new RegExp("\\[\\[(?:MEDIA|IMAGE): ([^\\]]+)\\]\\]", "g"), (placeholder: string) => `
-      <span class="hidden-image-placeholder">${escapeHtml(placeholder)}</span>
-    `);
-
     if (imageFilenames.length > 0) {
       const imagesContainer = document.createElement("div");
       imagesContainer.className = "generated-images";

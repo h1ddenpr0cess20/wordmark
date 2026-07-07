@@ -18,6 +18,7 @@ import { config } from "../../config/config.ts";
 import type { ToolCatalogEntry } from "../../types/tools.ts";
 import { isLocalService } from "../services/providers.ts";
 import { isLocalNetworkUrl } from "../services/api/tools/mcpProbe.ts";
+import { getApiKey } from "../services/apiKeyStorage.ts";
 
 let initToolsSettings: () => void;
 let updateMasterToolCallingStatus: (enabled: boolean) => void;
@@ -89,6 +90,25 @@ let getToolsDescription: () => string;
     return tool.type === "function" || tool.type === "mcp";
   }
 
+  /**
+   * Returns the reason the OpenAI Images tool is unavailable for the current
+   * service/model, or `null` when it is usable. On OpenAI only Codex models
+   * exclude it; elsewhere it runs as client-side function tools, which need
+   * client-side tool support and an OpenAI API key.
+   */
+  function openAiImageUnavailableReason(serviceKey: string, codexModelActive: boolean, clientSideToolsSupported: boolean): string | null {
+    if (serviceKey === "openai") {
+      return codexModelActive ? "Image generation is unavailable for Codex models." : null;
+    }
+    if (!clientSideToolsSupported) {
+      return "This xAI multi-agent model does not support client-side tools.";
+    }
+    if (!(getApiKey("openai") || "").trim()) {
+      return "Add your OpenAI API key in Settings → API Keys to use OpenAI Images with this service.";
+    }
+    return null;
+  }
+
   function createBadge(tool: ToolCatalogEntry): HTMLSpanElement {
     const badge = document.createElement("span");
     badge.className = `tool-badge tool-badge-${tool.type}`;
@@ -116,9 +136,12 @@ let getToolsDescription: () => string;
     if (!isAvailable) {
       const note = document.createElement("div");
       note.className = "tool-note";
-      if (tool.key === "builtin:image_generation" && serviceKey === "openai" && codexModelActive) {
-        note.textContent = "Image generation is unavailable for Codex models.";
-        return note;
+      if (tool.key === "builtin:image_generation") {
+        const reason = openAiImageUnavailableReason(serviceKey, codexModelActive, clientSideToolsSupported);
+        if (reason) {
+          note.textContent = reason;
+          return note;
+        }
       }
       if (!clientSideToolsSupported && isClientSideTool(tool)) {
         note.textContent = "This xAI multi-agent model does not support client-side tools.";
@@ -220,7 +243,7 @@ let getToolsDescription: () => string;
       if (tool.requiresApiKeyService && tool.hasRequiredApiKey === false) {
         isAvailable = false;
       }
-      if (tool.key === "builtin:image_generation" && serviceKey === "openai" && codexModelActive) {
+      if (tool.key === "builtin:image_generation" && openAiImageUnavailableReason(serviceKey, codexModelActive, clientSideToolsSupported)) {
         isAvailable = false;
       }
       if (!clientSideToolsSupported && isClientSideTool(tool)) {
@@ -465,7 +488,7 @@ let getToolsDescription: () => string;
       if (tool.type === "mcp" && tool.isOnline === false) {
         return;
       }
-      if (tool.key === "builtin:image_generation" && serviceKey === "openai" && codexModelActive) {
+      if (tool.key === "builtin:image_generation" && openAiImageUnavailableReason(serviceKey, codexModelActive, clientSideToolsSupported)) {
         return;
       }
       if (!clientSideToolsSupported && isClientSideTool(tool)) {

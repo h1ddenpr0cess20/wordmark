@@ -53,6 +53,12 @@ export interface Message {
   /** True when generation was stopped before completing this message. */
   incomplete?: boolean;
   /**
+   * Document chunks retrieved for this user message by local RAG. Kept out of
+   * `content` so it never renders or pollutes saved history; spliced into the
+   * outgoing request by `serializeMessagesForRequest`.
+   */
+  retrievedContext?: string;
+  /**
    * Alternate generations for an assistant message. Populated lazily the first
    * time a message is regenerated; index 0 is the original response.
    */

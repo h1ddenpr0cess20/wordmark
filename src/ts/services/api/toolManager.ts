@@ -20,6 +20,7 @@ import { logVerbose } from "../../utils/logger.ts";
 import { activateSkillToolDefinition, readSkillResourceToolDefinition, hasEnabledSkillResources } from "../skills/skills.ts";
 import { getEnabledSkills } from "../skills/skillsStore.ts";
 import { TOOL_CATALOG, TOOL_DEFINITIONS, cloneDefinition } from "./tools/catalog.ts";
+import { OPENAI_IMAGE_FUNCTION_TOOLS } from "./staticTools.ts";
 import { getToolPreference, isToolEnabled, setToolEnabled, setAllToolsEnabled } from "./tools/preferences.ts";
 import {
   getCachedMcpStatus,
@@ -187,8 +188,20 @@ function isToolAvailableForProvider(
       return false;
     }
   }
-  if (tool.key === "builtin:image_generation" && serviceKey === "openai" && modelIsCodex) {
-    return false;
+  if (tool.key === "builtin:image_generation") {
+    if (serviceKey === "openai") {
+      if (modelIsCodex) {
+        return false;
+      }
+    } else {
+      if (!clientSideToolsSupported) {
+        return false;
+      }
+      const openAiKey = getApiKey("openai");
+      if (!openAiKey || !openAiKey.trim()) {
+        return false;
+      }
+    }
   }
   return true;
 }
@@ -270,6 +283,17 @@ export function getEnabledToolDefinitions(serviceKey: string = getActiveServiceK
         });
       } else {
         defs.push(cloneDefinition(tool.definition));
+      }
+      return;
+    }
+
+    if (tool.key === "builtin:image_generation") {
+      if (serviceKey === "openai") {
+        defs.push(cloneDefinition(tool.definition));
+      } else {
+        OPENAI_IMAGE_FUNCTION_TOOLS.forEach(definition => {
+          defs.push(cloneDefinition(definition));
+        });
       }
       return;
     }

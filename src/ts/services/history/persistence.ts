@@ -21,6 +21,7 @@ import { renderConversationMessages } from "./render.ts";
 import { processImageForStorage, markMessagesWithImages } from "./persistenceImages.ts";
 import { uiHooks } from "../../init/uiHooks.ts";
 import { clearLocalDocIndex, persistLocalDocIndex, restoreLocalDocIndex } from "../localDocRetrieval.ts";
+import { stripRetrievedContextFromMessages } from "../../utils/retrievedContext.ts";
 import type { ConversationRecord } from "../../../types/common.ts";
 
 const logHistory = createScopedLogger("history");
@@ -271,7 +272,8 @@ export function loadConversation(id: string) {
  * @param imageCache - Preloaded `filename -> data` map from {@link preloadImages}.
  */
 function loadConversationIntoUI(convo: ConversationRecord, imageCache: Map<string, string | Blob>) {
-  const filteredMessages = withoutDeveloperMessages(convo.messages);
+  const filteredMessages = stripRetrievedContextFromMessages(withoutDeveloperMessages(convo.messages));
+  convo.messages = filteredMessages;
 
   state.conversationHistory = filteredMessages;
   state.generatedImages = Array.isArray(convo.images) ? convo.images : [];

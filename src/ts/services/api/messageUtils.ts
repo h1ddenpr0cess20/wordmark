@@ -8,7 +8,7 @@
  */
 
 import { state } from "../../init/state.ts";
-import { createImagePlaceholderRegex } from "../../utils/placeholders.ts";
+import { createImagePlaceholderRegex, createMediaPlaceholderRegex } from "../../utils/placeholders.ts";
 import type {
   Attachment,
   CollectedFunctionCall,
@@ -199,9 +199,24 @@ function buildUserContentFromString(message: Message): string | ContentPart[] {
 }
 
 /**
+ * Strips `[[IMAGE: ...]]`/`[[MEDIA: ...]]` placeholders from assistant text
+ * before it is sent to the model. The placeholders are local bookkeeping for
+ * history rendering; models that see them in context start imitating the
+ * syntax in their own replies.
+ */
+function stripMediaPlaceholders(content: string): string {
+  if (!createMediaPlaceholderRegex().test(content)) {
+    return content;
+  }
+  const stripped = content.replace(createMediaPlaceholderRegex(), "").replace(/^\s+/, "").trimEnd();
+  return stripped || "(generated media attached)";
+}
+
+/**
  * Converts conversation messages into Responses API input format, expanding
  * `[[IMAGE: ...]]` placeholders and inline attachments into multimodal content
- * parts. Invalid entries are dropped.
+ * parts (user messages) and stripping media placeholders from assistant text.
+ * Invalid entries are dropped.
  */
 export function serializeMessagesForRequest(messages: Message[] = []): Message[] {
   if (!Array.isArray(messages)) {
@@ -225,6 +240,8 @@ export function serializeMessagesForRequest(messages: Message[] = []): Message[]
       if (typeof msg.content === "string") {
         if (msg.role === "user") {
           payload.content = buildUserContentFromString(msg);
+        } else if (msg.role === "assistant") {
+          payload.content = stripMediaPlaceholders(msg.content);
         } else {
           payload.content = msg.content;
         }
@@ -242,6 +259,17 @@ export function serializeMessagesForRequest(messages: Message[] = []): Message[]
           .filter((part): part is ContentPart => part !== null);
       } else if (msg.content && typeof msg.content === "object") {
         payload.content = { ...msg.content };
+      }
+      if (msg.role === "user" && typeof msg.retrievedContext === "string" && msg.retrievedContext.trim()) {
+        if (typeof payload.content === "string") {
+          payload.content = payload.content
+            ? `${payload.content}\n\n${msg.retrievedContext}`
+            : msg.retrievedContext;
+        } else if (Array.isArray(payload.content)) {
+          payload.content.push({ type: "input_text", text: msg.retrievedContext });
+        } else if (payload.content === undefined) {
+          payload.content = msg.retrievedContext;
+        }
       }
       if (msg.arguments) {
         payload.arguments = msg.arguments;
