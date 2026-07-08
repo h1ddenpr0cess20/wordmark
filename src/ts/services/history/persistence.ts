@@ -174,6 +174,7 @@ export function saveCurrentConversation(meta: { name?: string; created?: string 
     conversation.characters = state.activePartyConfig.characters;
     conversation.scenario = state.activePartyConfig.scenario;
     conversation.userName = state.activePartyConfig.userName;
+    conversation.documents = state.activePartyConfig.documents;
   }
 
   state.currentConversationId = conversation.id ?? null;
@@ -293,6 +294,7 @@ function loadConversationIntoUI(convo: ConversationRecord, imageCache: Map<strin
       characters: convo.characters,
       scenario: convo.scenario || { topic: "", setting: "", mood: "friendly", conversationType: "conversation" },
       userName: convo.userName,
+      documents: Array.isArray(convo.documents) ? convo.documents : [],
     };
   } else {
     state.partyMode = false;

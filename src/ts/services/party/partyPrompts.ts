@@ -6,7 +6,7 @@
  * prompt used when three or more characters are present.
  */
 
-import type { PartyCharacter, PartyScenario } from "./partyTypes.ts";
+import type { PartyCharacter, PartyDocument, PartyScenario } from "./partyTypes.ts";
 
 /** Fallback display name for the user when none is configured. */
 export const DEFAULT_USER_NAME = "Observer";
@@ -58,6 +58,43 @@ export function buildCharacterSystemPrompt(character: PartyCharacter, tools: Par
   return lines.join(" ");
 }
 
+/**
+ * Appends a shared-document context block to a character's system prompt so the
+ * character can draw on documents the observer added to the conversation. Returns
+ * the base prompt unchanged when there are no documents.
+ */
+export function appendPartyDocumentContext(systemPrompt: string, documents: PartyDocument[]): string {
+  if (!documents.length) {
+    return systemPrompt;
+  }
+  const blocks = documents.map((doc) => `--- ${doc.name} ---\n${doc.text}`).join("\n\n");
+  return `${systemPrompt}\n\nThe observer has shared the following document(s) for everyone in this conversation. Draw on them when they are relevant:\n\n${blocks}`;
+}
+
+/**
+ * Returns the participant a message directly addresses, when it names exactly one
+ * participant (other than `excludeName`). Used to hand the next turn to whoever
+ * was called on by name. Returns null when no participant, or more than one, is
+ * named, since that address is ambiguous.
+ */
+export function findAddressedParticipant(
+  text: string,
+  participantNames: string[],
+  excludeName?: string,
+): string | null {
+  const lower = text.toLowerCase();
+  const excluded = excludeName?.trim().toLowerCase();
+  const matches = participantNames.filter((name) => {
+    const candidate = name.trim().toLowerCase();
+    if (!candidate || candidate === excluded) {
+      return false;
+    }
+    const escaped = candidate.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+    return new RegExp(`\\b${escaped}\\b`).test(lower);
+  });
+  return matches.length === 1 ? matches[0] : null;
+}
+
 /** Builds the opening-turn user prompt for the first speaker. */
 export function buildFirstTurnPrompt(
   speaker: PartyCharacter,
@@ -104,7 +141,7 @@ export function buildDecisionPrompt(
   characters: PartyCharacter[],
   history: string[],
 ): string {
-  return `Based on this ${scenario.conversationType} history, reply with the name of the most likely next speaker (matching the participant name exactly) followed by a pipe and your reasoning. Format: <name>|<reason>. Avoid round-robin patterns.\n\nParticipants: ${characters
+  return `Based on this ${scenario.conversationType} history, reply with the name of the most likely next speaker (matching the participant name exactly) followed by a pipe and your reasoning. Format: <name>|<reason>. If the most recent message directly addresses a participant by name (for example asking them a question), that participant should usually speak next. Otherwise avoid round-robin patterns.\n\nParticipants: ${characters
     .map((c) => c.name)
     .join(", ")}\n\nHistory:\n${history.join("\n")}`;
 }

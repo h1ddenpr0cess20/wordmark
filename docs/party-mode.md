@@ -28,12 +28,16 @@ The engine ([`services/party/partyEngine.ts`](../src/ts/services/party/partyEngi
 
 1. An initial speaker is picked at random and produces the opening turn.
 2. Each subsequent turn streams into its own chat bubble, labeled with the speaker's name from the moment generation begins.
-3. **Speaker selection**: with exactly two characters, turns simply alternate. With three or more, a lightweight non-streaming "decision" request asks the model to name the most likely next speaker (`<name>|<reason>` format, avoiding round-robin), falling back to a random non-repeating choice if the pick can't be parsed.
-4. A short delay separates turns; a rolling window of the recent transcript (the last several lines) is embedded into each turn's prompt for context.
+3. **Speaker selection**: with exactly two characters, turns simply alternate. With three or more, a lightweight non-streaming "decision" request asks the model to name the most likely next speaker (`<name>|<reason>` format, avoiding round-robin), falling back to a random non-repeating choice if the pick can't be parsed. A message that addresses a participant by name biases the decision toward that participant, and when you address a character by name in an interjection they are handed the next turn directly.
+4. A short pause (~1.5s) separates turns so the exchange reads at a human pace. The pause is interruptible: pausing, stopping, or interjecting takes effect promptly instead of waiting it out. A rolling window of the recent transcript (the last several lines) is embedded into each turn's prompt for context.
 
 ### Joining in
 
-Type into the normal input bar while a party runs and your message is queued as an interjection — no pause required. Your bubble renders and is saved immediately, and the loop weaves the interjection into the prompt history at the next safe checkpoint. When your message is the most recent entry, the next speaker is instructed to address you directly by name before continuing.
+Type into the normal input bar while a party runs and your message is queued as an interjection — no pause required. Your bubble renders and is saved immediately, and the loop weaves the interjection into the prompt history at the next safe checkpoint. When your message is the most recent entry, the next speaker is instructed to address you directly by name before continuing. Name a specific character in your message and that character takes the next turn.
+
+### Sharing documents
+
+Attach files with the normal document button while a party is active and send. Their text is extracted in the browser and added to every character's context, so the whole cast can draw on the same material; shared documents are saved with the conversation and restored on load. While a document is being read the loop is held so no turn fires before the cast can see it — the first turn after the upload is the document-aware one. Send a message with the upload (for example "summarize this") and the cast responds to it; address a character by name to direct the question.
 
 ### Control bar
 
@@ -47,11 +51,11 @@ Loading a saved party conversation re-selects the **Party Mode** prompt mode aut
 
 ## Modules
 
-- [`services/party/partyTypes.ts`](../src/ts/services/party/partyTypes.ts) — `PartyCharacter`, `PartyScenario`, and `PartyConfig` types.
+- [`services/party/partyTypes.ts`](../src/ts/services/party/partyTypes.ts) — `PartyCharacter`, `PartyScenario`, `PartyDocument`, and `PartyConfig` types.
 - [`services/party/partyPrompts.ts`](../src/ts/services/party/partyPrompts.ts) — prompt builders: per-character system prompt, first-turn and subsequent-turn user prompts, and the speaker-decision prompt. Adapted from the grokparty-web engine.
 - [`services/party/partyState.ts`](../src/ts/services/party/partyState.ts) — default (empty) scenario and config for the setup form.
 - [`services/party/partyEngine.ts`](../src/ts/services/party/partyEngine.ts) — the `partyEngine` singleton: turn loop, speaker selection, interjection handling, pause/resume/stop, and the control bar.
 - [`components/party/partyTab.ts`](../src/ts/components/party/partyTab.ts) — the Settings → Personality "Party Mode" tab UI.
 - `src/css/components/features/party/party.css` — control bar, name labels, and setup-form styling.
 
-Tests live in [`tests/partyPrompts.spec.ts`](../tests/partyPrompts.spec.ts), [`tests/partyState.spec.ts`](../tests/partyState.spec.ts), and [`tests/partyEngine.spec.ts`](../tests/partyEngine.spec.ts) — the last covering engine control flow (restart-after-stop, pause mid-turn, and aborted-but-already-generated turns) with the DOM/network dependencies faked via module mocks.
+Tests live in [`tests/partyPrompts.spec.ts`](../tests/partyPrompts.spec.ts), [`tests/partyState.spec.ts`](../tests/partyState.spec.ts), and [`tests/partyEngine.spec.ts`](../tests/partyEngine.spec.ts) — the last covering engine control flow (restart-after-stop, pause mid-turn, aborted-but-already-generated turns, shared-document injection, and observer-addressed speaker selection) with the DOM/network dependencies faked via module mocks.

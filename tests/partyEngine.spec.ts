@@ -251,6 +251,101 @@ test("typing while paused resumes the loop and weaves in the message", async () 
   await loop;
 });
 
+test("documents in the config are injected into every character's system prompt", async () => {
+  await resetEngine();
+
+  const config = structuredClone(CONFIG) as typeof CONFIG & {
+    documents?: { name: string; text: string }[];
+  };
+  config.documents = [{ name: "brief.txt", text: "ship it friday" }];
+
+  const loop = partyEngine.start(config);
+  await delay(120);
+  partyEngine.stop();
+  await loop;
+
+  assert.ok(runTurnCalls.length >= 1, "the opening turn should have run");
+  assert.match(
+    runTurnCalls[0].systemOverride ?? "",
+    /--- brief\.txt ---\nship it friday/,
+    "the shared document must reach the character's system prompt",
+  );
+});
+
+test("addDocuments adds observer files to the active config and later turns", async () => {
+  await resetEngine();
+
+  const loop = partyEngine.start(structuredClone(CONFIG));
+  await delay(80);
+  const turnsBefore = runTurnCalls.length;
+
+  partyEngine.addDocuments([{ name: "spec.md", text: "the secret is 42" }]);
+
+  const config = fakeState.activePartyConfig as { documents?: { name: string }[] };
+  assert.equal(config.documents?.[0]?.name, "spec.md", "the document must be stored on the active config");
+
+  partyEngine.queueInterjection("what's the secret?");
+  await delay(900);
+
+  partyEngine.stop();
+  await loop;
+
+  const newTurn = runTurnCalls.slice(turnsBefore).find((c) => /the secret is 42/.test(c.systemOverride ?? ""));
+  assert.ok(newTurn, "documents added mid-party must appear in subsequent turns' system prompts");
+});
+
+test("resume cancels a pause requested but not yet applied", async () => {
+  await resetEngine();
+  openGate();
+
+  const loop = partyEngine.start(structuredClone(CONFIG));
+  await delay(80);
+  partyEngine.pause();
+  partyEngine.resume();
+  gate?.resolve();
+  await delay(300);
+
+  assert.equal(partyEngine.isPaused(), false, "resume must cancel a pause that had not yet applied");
+  assert.ok(partyEngine.isRunning(), "the party keeps running after the cancelled pause");
+
+  partyEngine.stop();
+  await loop;
+});
+
+test("an observer who names a character hands them the next turn", async () => {
+  await resetEngine();
+  openGate();
+
+  const config = structuredClone(CONFIG);
+  config.characters = [
+    { id: "a", name: "Ada", persona: "a curious engineer", allowedTools: [] },
+    { id: "b", name: "Boole", persona: "a strict logician", allowedTools: [] },
+    { id: "c", name: "Cleo", persona: "a wandering poet", allowedTools: [] },
+  ];
+
+  const loop = partyEngine.start(config);
+  await delay(80);
+  partyEngine.pause();
+  gate?.resolve();
+  await delay(400);
+  assert.ok(partyEngine.isPaused(), "engine should be paused before the interjection");
+
+  const before = runTurnCalls.length;
+  partyEngine.queueInterjection("Cleo, what do you make of this?");
+  await delay(400);
+
+  const next = runTurnCalls[before];
+  assert.ok(next, "the interjection must produce a turn");
+  assert.match(
+    next.systemOverride ?? "",
+    /a wandering poet/,
+    "the addressed character (Cleo) must be chosen to speak next, bypassing the speaker-decision",
+  );
+
+  partyEngine.stop();
+  await loop;
+});
+
 test("an aborted turn that already produced tokens is recorded, never discarded", async () => {
   await resetEngine();
   // Simulate the abort path where runTurn throws AbortError but tokens had
