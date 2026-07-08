@@ -22,6 +22,28 @@
 
 Wordmark is a client-side AI chat for OpenAI/xAI Responses APIs and local LM Studio or Ollama servers. It supports tool/function calling, TTS, themes, and fully local storage — no backend required.
 
+## Screenshots
+
+<div align="center">
+
+![Desktop chat in the Aurora theme](docs/assets/screenshots/desktop-aurora-chat.png)
+
+*Desktop chat with streaming replies, a collapsible reasoning panel, and inline code — Aurora theme, running locally on `google/gemma-4-12b-qat` via LM Studio.*
+
+</div>
+
+Configure everything from the settings panel — provider and model, tool calling, personality, and themes:
+
+| Model | Tools | Theme |
+| :---: | :---: | :---: |
+| ![Model settings](docs/assets/screenshots/settings-model.png) | ![Tools settings](docs/assets/screenshots/settings-tools.png) | ![Theme settings](docs/assets/screenshots/settings-theme.png) |
+
+Fully responsive on mobile, with a range of built-in color schemes:
+
+| Nebula | Ember | Forest |
+| :---: | :---: | :---: |
+| ![Nebula theme on mobile](docs/assets/screenshots/mobile-nebula-chat.png) | ![Ember theme on mobile](docs/assets/screenshots/mobile-ember-chat.png) | ![Forest theme on mobile](docs/assets/screenshots/mobile-forest-chat.png) |
+
 **Docs:**
 - [Getting Started](docs/getting-started.md)
 - [Overview](docs/overview.md)
