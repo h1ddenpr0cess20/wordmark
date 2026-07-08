@@ -294,6 +294,24 @@ test("addDocuments adds observer files to the active config and later turns", as
   assert.ok(newTurn, "documents added mid-party must appear in subsequent turns' system prompts");
 });
 
+test("resume cancels a pause requested but not yet applied", async () => {
+  await resetEngine();
+  openGate();
+
+  const loop = partyEngine.start(structuredClone(CONFIG));
+  await delay(80);
+  partyEngine.pause();
+  partyEngine.resume();
+  gate?.resolve();
+  await delay(300);
+
+  assert.equal(partyEngine.isPaused(), false, "resume must cancel a pause that had not yet applied");
+  assert.ok(partyEngine.isRunning(), "the party keeps running after the cancelled pause");
+
+  partyEngine.stop();
+  await loop;
+});
+
 test("an observer who names a character hands them the next turn", async () => {
   await resetEngine();
   openGate();

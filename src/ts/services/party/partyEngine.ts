@@ -226,9 +226,11 @@ class PartyEngine {
     this.refreshControlBar();
   }
 
-  /** Resumes a paused loop. */
+  /** Resumes a paused loop, also cancelling a pause that was requested but not
+   * yet in effect (so a resume can't be lost to a race with the pause taking
+   * hold at the next checkpoint). */
   resume(): void {
-    if (!this.running || !this.paused) {
+    if (!this.running || (!this.paused && !this.pauseRequested)) {
       return;
     }
     this.paused = false;

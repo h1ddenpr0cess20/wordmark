@@ -288,6 +288,10 @@ async function extractPartyDocuments(documents: PendingDocument[]): Promise<Part
  * observer bubble (alongside any typed message), and lets the party respond.
  */
 async function addDocumentsToParty(documents: PendingDocument[], message: string): Promise<void> {
+  const wasRunning = partyEngine.isRunning();
+  if (wasRunning) {
+    partyEngine.pause();
+  }
   if (showInfo) {
     showInfo(documents.length === 1 ? "Reading document..." : "Reading documents...");
   }
@@ -303,6 +307,9 @@ async function addDocumentsToParty(documents: PendingDocument[], message: string
     historyContent: message,
     attachments: attachmentsForHistory,
   });
+  if (wasRunning) {
+    partyEngine.resume();
+  }
 
   if (partyDocuments.length > 0 && showInfo) {
     showInfo(`Added ${partyDocuments.length} document(s) to the party context`);
