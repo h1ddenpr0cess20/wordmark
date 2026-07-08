@@ -2,6 +2,21 @@
 
 All notable changes to Wordmark are documented here. Earlier versions didn't follow proper semver — this changelog reflects what actually shipped, not what the version numbers said at the time.
 
+## [3.10.0] - 2026-07-07
+
+Shared documents in Party mode and xAI's flagship TTS voices. Backward-compatible.
+
+### Added
+- **Shared documents in Party mode** — attach files while a party is active and their text is extracted in the browser and added to every character's context, so the whole cast can draw on the same material. Shared documents are saved with the conversation and restored on load. ([Party Mode](docs/party-mode.md))
+- **xAI flagship TTS voices** — the 21 flagship voices xAI shipped on 2026-07-06 (Altair, Atlas, Carina, … Zenith) join the original five, grouped under an **Other** category since xAI's `/v1/tts/voices` endpoint doesn't classify built-in voices by gender.
+
+### Changed
+- **Party turns pause between responses** — a short (~1.5s) interruptible delay separates turns so the conversation reads at a human pace; pausing, stopping, or interjecting still takes effect promptly.
+- **Directly addressed characters speak next in Party mode** — naming a character in an interjection hands them the next turn, and the speaker-decision prompt now favors a participant addressed by name.
+
+### Fixed
+- **Party didn't wait for a shared document to load** — the running loop kept emitting turns while a document was still being read, so the turn shown on upload ignored both the file and the observer's message. The loop is now held while the document is read, so the first turn after upload is the document-aware one.
+
 ## [3.9.0] - 2026-07-07
 
 OpenAI image generation on every service. Backward-compatible.
