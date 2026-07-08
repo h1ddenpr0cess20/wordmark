@@ -4,9 +4,11 @@ import assert from "node:assert/strict";
 const {
   DEFAULT_USER_NAME,
   buildCharacterSystemPrompt,
+  appendPartyDocumentContext,
   buildFirstTurnPrompt,
   buildTurnPrompt,
   buildDecisionPrompt,
+  findAddressedParticipant,
 } = await import("../src/ts/services/party/partyPrompts.js");
 
 type Character = Parameters<typeof buildCharacterSystemPrompt>[0];
@@ -67,6 +69,46 @@ test("buildCharacterSystemPrompt only nudges web search when web search is prese
   ]);
   assert.match(prompt, /You have access to these tools/);
   assert.doesNotMatch(prompt, /search the web before answering/);
+});
+
+test("appendPartyDocumentContext returns the prompt unchanged when there are no documents", () => {
+  const base = buildCharacterSystemPrompt(character());
+  assert.equal(appendPartyDocumentContext(base, []), base);
+});
+
+test("appendPartyDocumentContext appends every document's name and text", () => {
+  const base = buildCharacterSystemPrompt(character());
+  const prompt = appendPartyDocumentContext(base, [
+    { name: "notes.txt", text: "meet at noon" },
+    { name: "budget.csv", text: "rent,1200" },
+  ]);
+  assert.ok(prompt.startsWith(base));
+  assert.match(prompt, /The observer has shared the following document\(s\)/);
+  assert.match(prompt, /--- notes\.txt ---\nmeet at noon/);
+  assert.match(prompt, /--- budget\.csv ---\nrent,1200/);
+});
+
+test("buildDecisionPrompt tells the model to favor a directly addressed participant", () => {
+  const prompt = buildDecisionPrompt(scenario(), [character({ name: "Ada" }), character({ id: "b", name: "Babbage" })], []);
+  assert.match(prompt, /directly addresses a participant by name/);
+});
+
+test("findAddressedParticipant returns the sole named participant", () => {
+  assert.equal(findAddressedParticipant("Ada, what do you think?", ["Ada", "Babbage", "Lovelace"]), "Ada");
+});
+
+test("findAddressedParticipant matches on whole words and ignores case", () => {
+  assert.equal(findAddressedParticipant("what say you, BABBAGE?", ["Ada", "Babbage"]), "Babbage");
+  assert.equal(findAddressedParticipant("adamant about this", ["Ada", "Babbage"]), null);
+});
+
+test("findAddressedParticipant returns null when no one, or more than one, is named", () => {
+  assert.equal(findAddressedParticipant("what do you all think?", ["Ada", "Babbage"]), null);
+  assert.equal(findAddressedParticipant("Ada and Babbage, weigh in", ["Ada", "Babbage"]), null);
+});
+
+test("findAddressedParticipant can exclude the current speaker", () => {
+  assert.equal(findAddressedParticipant("Ada makes a good point", ["Ada", "Babbage"], "Ada"), null);
 });
 
 test("buildFirstTurnPrompt names the other participants and embeds the scenario", () => {

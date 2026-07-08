@@ -27,7 +27,9 @@ import { updateRegenerateAvailability } from "./messageActions.ts";
 import { appendMessage } from "./ui/chatMessages.ts";
 import { getVerbosity, getReasoningEffort, getHistoryTokenBudget } from "../init/modelSettings.ts";
 import { buildOutgoingAttachments } from "./attachments/outgoingAttachments.ts";
+import { extractDocumentText, isExtractableDocument } from "../services/parsers/index.ts";
 import type { PendingDocument } from "../../types/attachments.ts";
+import type { PartyDocument } from "../services/party/partyTypes.ts";
 import { RETRIEVED_CONTEXT_MARKER } from "../utils/retrievedContext.ts";
 
 const logInteraction = createScopedLogger("interaction");
@@ -250,6 +252,64 @@ async function uploadPendingDocuments(
 }
 
 /**
+ * Extracts plain text from the observer's pending documents so party characters
+ * can reference them. Files whose text can't be read (images, media, binaries)
+ * are reported and skipped.
+ */
+async function extractPartyDocuments(documents: PendingDocument[]): Promise<PartyDocument[]> {
+  const files = flattenDocumentFiles(documents);
+  const extracted: PartyDocument[] = [];
+  const failed: string[] = [];
+  for (const file of files) {
+    if (!isExtractableDocument(file.name)) {
+      failed.push(file.name);
+      continue;
+    }
+    try {
+      const text = (await extractDocumentText(file)).trim();
+      if (text) {
+        extracted.push({ name: file.name, text });
+      } else {
+        failed.push(file.name);
+      }
+    } catch (error) {
+      logInteraction("Failed to extract party document:", file.name, error);
+      failed.push(file.name);
+    }
+  }
+  if (failed.length > 0 && showInfo) {
+    showInfo(`Could not read: ${failed.slice(0, 3).join(", ")}${failed.length > 3 ? "..." : ""}`);
+  }
+  return extracted;
+}
+
+/**
+ * Adds the observer's uploaded documents to the party context, renders them in an
+ * observer bubble (alongside any typed message), and lets the party respond.
+ */
+async function addDocumentsToParty(documents: PendingDocument[], message: string): Promise<void> {
+  if (showInfo) {
+    showInfo(documents.length === 1 ? "Reading document..." : "Reading documents...");
+  }
+  const partyDocuments = await extractPartyDocuments(documents);
+  partyEngine.addDocuments(partyDocuments);
+
+  const { documentsHtml, attachmentsForHistory } = buildOutgoingAttachments([], documents);
+  const messageHtml = message ? sanitizeInput(message) : "";
+  const bubbleHtml = `<div class="attached-documents">${documentsHtml}</div>${messageHtml}`;
+
+  partyEngine.queueInterjection(message, {
+    bubbleHtml,
+    historyContent: message,
+    attachments: attachmentsForHistory,
+  });
+
+  if (partyDocuments.length > 0 && showInfo) {
+    showInfo(`Added ${partyDocuments.length} document(s) to the party context`);
+  }
+}
+
+/**
  * Sends a message to the API and handles the response
  */
 export async function sendMessage() {
@@ -268,11 +328,19 @@ export async function sendMessage() {
   }
 
   if (state.partyMode && state.activePartyConfig) {
-    if (message) {
-      partyEngine.queueInterjection(message);
-    }
     userInput.value = "";
     userInput.style.height = "56px";
+    if (hasDocuments) {
+      const documents = state.pendingDocuments || [];
+      state.pendingDocuments = [];
+      const preview = document.querySelector(".upload-previews");
+      if (preview) {
+        preview.innerHTML = "";
+      }
+      await addDocumentsToParty(documents, message);
+    } else if (message) {
+      partyEngine.queueInterjection(message);
+    }
     return;
   }
 

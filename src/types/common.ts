@@ -3,7 +3,7 @@
  */
 
 import type { Message } from "./api.ts";
-import type { PartyCharacter, PartyScenario } from "../ts/services/party/partyTypes.ts";
+import type { PartyCharacter, PartyDocument, PartyScenario } from "../ts/services/party/partyTypes.ts";
 
 /** A conversation as persisted in IndexedDB. */
 export interface ConversationRecord {
@@ -24,6 +24,8 @@ export interface ConversationRecord {
   scenario?: PartyScenario;
   /** Party mode: what the characters called the user. */
   userName?: string;
+  /** Party mode: documents the observer shared into the conversation's context. */
+  documents?: PartyDocument[];
   [key: string]: unknown;
 }
 

@@ -28,14 +28,27 @@ import { getActiveModel } from "../api/clientConfig.ts";
 import { getToolCatalog, getAvailableToolKeys } from "../api/toolManager.ts";
 import {
   buildCharacterSystemPrompt,
+  appendPartyDocumentContext,
+  findAddressedParticipant,
   buildFirstTurnPrompt,
   buildTurnPrompt,
   buildDecisionPrompt,
   DEFAULT_USER_NAME,
   type PartyToolInfo,
 } from "./partyPrompts.ts";
-import type { PartyCharacter, PartyConfig } from "./partyTypes.ts";
+import type { PartyCharacter, PartyConfig, PartyDocument } from "./partyTypes.ts";
+import type { Attachment } from "../../../types/api.ts";
 import { uiHooks } from "../../init/uiHooks.ts";
+
+/** Optional presentation overrides for an observer interjection bubble. */
+interface InterjectionOptions {
+  /** Full inner HTML for the bubble; overrides the sanitized message text. */
+  bubbleHtml?: string;
+  /** Content stored in conversation history (defaults to the message text). */
+  historyContent?: string;
+  /** Attachment records to persist on the recorded user message. */
+  attachments?: Attachment[];
+}
 
 const logParty = createScopedLogger("party");
 
@@ -56,7 +69,7 @@ export function applyPartyNameLabel(messageElement: HTMLElement, name: string): 
   label.textContent = name;
 }
 
-const TURN_DELAY_MS = 600;
+const TURN_DELAY_MS = 1500;
 const PAUSE_POLL_MS = 150;
 const HISTORY_BUFFER_LIMIT = 12;
 
@@ -93,6 +106,7 @@ class PartyEngine {
   private characters: PartyCharacter[] = [];
   private scenario: PartyConfig["scenario"] = { topic: "", setting: "", mood: "friendly", conversationType: "conversation" };
   private userName = DEFAULT_USER_NAME;
+  private documents: PartyDocument[] = [];
 
   /** Whether the loop is actively running. */
   isRunning(): boolean {
@@ -129,8 +143,9 @@ class PartyEngine {
     this.characters = config.characters;
     this.scenario = config.scenario;
     this.userName = config.userName?.trim() || DEFAULT_USER_NAME;
+    this.documents = Array.isArray(config.documents) ? [...config.documents] : [];
     state.partyMode = true;
-    state.activePartyConfig = { characters: config.characters, scenario: config.scenario, userName: this.userName };
+    state.activePartyConfig = { characters: config.characters, scenario: config.scenario, userName: this.userName, documents: this.documents };
 
     this.abort = false;
     this.paused = false;
@@ -151,7 +166,7 @@ class PartyEngine {
         if (this.skipDelayNextTurn) {
           this.skipDelayNextTurn = false;
         } else {
-          await waitFor(TURN_DELAY_MS);
+          await this.delayBetweenTurns();
         }
 
         await this.waitIfPaused();
@@ -247,12 +262,15 @@ class PartyEngine {
    * resumed, and a stopped party is restarted with the message already in the
    * transcript. Never falls through to regular chat.
    */
-  queueInterjection(message: string): void {
+  queueInterjection(message: string, options: InterjectionOptions = {}): void {
     const trimmed = message.trim();
-    if (!trimmed || !state.activePartyConfig) {
+    if ((!trimmed && !options.bubbleHtml) || !state.activePartyConfig) {
       return;
     }
-    this.recordUserBubble(trimmed);
+    this.recordUserBubble(trimmed, options);
+    if (!trimmed) {
+      return;
+    }
     if (this.running) {
       this.pendingInterjections.push(trimmed);
       this.skipDelayNextTurn = true;
@@ -264,15 +282,31 @@ class PartyEngine {
     void this.start(state.activePartyConfig);
   }
 
+  /**
+   * Adds observer-shared documents to the context every character sees, updates
+   * the active config, and persists so they survive reload and party restarts.
+   */
+  addDocuments(documents: PartyDocument[]): void {
+    if (!documents.length) {
+      return;
+    }
+    this.documents.push(...documents);
+    if (state.activePartyConfig) {
+      state.activePartyConfig.documents = this.documents;
+    }
+    saveCurrentConversation();
+  }
+
   /** Renders the user's interjection bubble and records it in conversation history. */
-  private recordUserBubble(message: string): void {
-    const userElement = appendMessage("You", sanitizeInput(message), "user", true);
+  private recordUserBubble(message: string, options: InterjectionOptions = {}): void {
+    const userElement = appendMessage("You", options.bubbleHtml ?? sanitizeInput(message), "user", true);
     const userId = userElement ? userElement.id : generateMessageId();
     state.conversationHistory.push({
       role: "user",
-      content: message,
+      content: options.historyContent ?? message,
       id: userId,
       timestamp: new Date().toISOString(),
+      attachments: options.attachments && options.attachments.length ? options.attachments : undefined,
     });
     saveCurrentConversation();
   }
@@ -317,7 +351,10 @@ class PartyEngine {
       result = await runTurn({
         inputMessages: [{ role: "user", content: prompt, id: `party-prompt-${loadingId}` }],
         model: getActiveModel(),
-        systemOverride: buildCharacterSystemPrompt(speaker, this.resolveCharacterTools(speaker)),
+        systemOverride: appendPartyDocumentContext(
+          buildCharacterSystemPrompt(speaker, this.resolveCharacterTools(speaker)),
+          this.documents,
+        ),
         allowedTools: speaker.allowedTools || [],
         temperature: speaker.temperature,
         stream: true,
@@ -376,8 +413,37 @@ class PartyEngine {
       .map((tool) => ({ key: tool.key, displayName: tool.displayName, description: tool.description }));
   }
 
-  /** Chooses the next speaker: alternate for two, AI decision for three or more. */
+  /**
+   * When the most recent transcript entry is an observer interjection that names
+   * exactly one character, returns that character so they answer next. Returns
+   * null when the latest entry is a character turn or the address is ambiguous.
+   */
+  private observerAddressedSpeaker(): PartyCharacter | null {
+    const latest = this.history[this.history.length - 1] ?? "";
+    const separator = latest.indexOf(":");
+    if (separator < 0) {
+      return null;
+    }
+    const speaker = latest.slice(0, separator).trim();
+    if (speaker !== this.userName.trim()) {
+      return null;
+    }
+    const addressed = findAddressedParticipant(latest.slice(separator + 1), this.characters.map((c) => c.name));
+    return addressed ? this.characters.find((c) => c.name === addressed) ?? null : null;
+  }
+
+  /**
+   * Chooses the next speaker. An observer who addresses a character by name in
+   * their latest interjection hands that character the turn directly; otherwise
+   * the party alternates for two and asks the model to decide for three or more.
+   */
   private async chooseNextSpeaker(currentSpeaker: PartyCharacter): Promise<PartyCharacter> {
+    const addressed = this.observerAddressedSpeaker();
+    if (addressed) {
+      logParty("observer addressed next speaker:", addressed.name);
+      return addressed;
+    }
+
     if (this.characters.length === 2) {
       return this.characters.find((c) => c.id !== currentSpeaker.id) ?? currentSpeaker;
     }
@@ -410,6 +476,24 @@ class PartyEngine {
     return fallback;
   }
 
+  /**
+   * Waits `TURN_DELAY_MS` between responses so the conversation reads at a human
+   * pace, polling so a pause or stop requested during the gap takes effect
+   * promptly instead of blocking for the full delay.
+   */
+  private async delayBetweenTurns(): Promise<void> {
+    let remaining = TURN_DELAY_MS;
+    while (remaining > 0 && !this.abort && !this.pauseRequested && !this.paused) {
+      if (this.skipDelayNextTurn) {
+        this.skipDelayNextTurn = false;
+        return;
+      }
+      const step = Math.min(PAUSE_POLL_MS, remaining);
+      await waitFor(step);
+      remaining -= step;
+    }
+  }
+
   private async waitIfPaused(): Promise<void> {
     if (this.pauseRequested && !this.paused) {
       this.paused = true;
@@ -429,7 +513,6 @@ class PartyEngine {
       this.recordHistoryEntry(this.userName, message);
     }
     this.pendingInterjections = [];
-    this.skipDelayNextTurn = true;
     return true;
   }
 

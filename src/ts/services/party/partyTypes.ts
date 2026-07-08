@@ -23,6 +23,17 @@ export interface PartyCharacter {
   allowedTools: string[];
 }
 
+/**
+ * A document the observer shared into the party. Its extracted text is injected
+ * into every character's system prompt so all characters can draw on it.
+ */
+export interface PartyDocument {
+  /** Original file name, shown to the characters as the document's heading. */
+  name: string;
+  /** Plain text extracted from the file client-side. */
+  text: string;
+}
+
 /** The shared scenario framing the conversation. */
 export interface PartyScenario {
   topic: string;
@@ -38,4 +49,6 @@ export interface PartyConfig {
   scenario: PartyScenario;
   /** What the characters call the user (defaults to `DEFAULT_USER_NAME`, "Observer"). */
   userName?: string;
+  /** Documents the observer has shared into the conversation's context. */
+  documents?: PartyDocument[];
 }
