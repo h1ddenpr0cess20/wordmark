@@ -58,8 +58,8 @@ export function populateTtsVoiceSelector() {
     const voices = (availableTtsVoices as Record<string, Record<string, TtsVoice[]>>)[provider];
     if (!voices) return;
 
-    const categories = ["neutral", "male", "female", "other"];
-    const labels: Record<string, string> = { neutral: "Neutral", male: "Male", female: "Female", other: "Other" };
+    const categories = ["neutral", "male", "female"];
+    const labels: Record<string, string> = { neutral: "Neutral", male: "Male", female: "Female" };
 
     for (const category of categories) {
       if (voices[category] && voices[category].length > 0) {

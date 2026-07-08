@@ -8,7 +8,7 @@ Shared documents in Party mode and xAI's flagship TTS voices. Backward-compatibl
 
 ### Added
 - **Shared documents in Party mode** — attach files while a party is active and their text is extracted in the browser and added to every character's context, so the whole cast can draw on the same material. Shared documents are saved with the conversation and restored on load. ([Party Mode](docs/party-mode.md))
-- **xAI flagship TTS voices** — the 21 flagship voices xAI shipped on 2026-07-06 (Altair, Atlas, Carina, … Zenith) join the original five, grouped under an **Other** category since xAI's `/v1/tts/voices` endpoint doesn't classify built-in voices by gender.
+- **xAI flagship TTS voices** — the 21 flagship voices xAI shipped on 2026-07-06 (Altair, Atlas, Carina, … Zenith) join the original five, sorted into the selector's male/female/neutral groups. xAI's `/v1/tts/voices` endpoint doesn't report voice gender, so these groupings are inferred from the voice names and may not match how each voice sounds.
 
 ### Changed
 - **Party turns pause between responses** — a short (~1.5s) interruptible delay separates turns so the conversation reads at a human pace; pausing, stopping, or interjecting still takes effect promptly.
