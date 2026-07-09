@@ -27,7 +27,8 @@ Add if they help reviewers understand the change.
 
 ## Manual Test
 How you validated locally:
-- [ ] Opened `index.html` or served locally (HTTPS recommended)
+- [ ] Served with `npm run dev` (or `npm run dev:https` for APIs needing a secure context)
+- [ ] Ran `npm test`, `npm run lint`, `npm run typecheck`, and `npm run build`
 - [ ] Verified message send/receive
 - [ ] Triggered a tool call
 - [ ] Switched themes
@@ -36,7 +37,7 @@ How you validated locally:
 ## Checklist
 - [ ] Technical and on-topic; no political/ideological content
 - [ ] Minimal, focused change; no drive-by refactors
-- [ ] Matches coding style (ES6+, 2-space, semicolons, single quotes)
+- [ ] Matches coding style (TypeScript strict, 2-space, semicolons, double quotes — enforced by ESLint)
 - [ ] No new dependencies; no secrets committed
 - [ ] Features/tools gated behind settings; rendered content sanitized
 - [ ] Updated docs/config if the change affects behavior
