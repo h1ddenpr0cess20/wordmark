@@ -94,7 +94,7 @@ export const config: Config = {
             baseUrl: "https://api.openai.com/v1",
             apiKey: "",
             models: [],
-            defaultModel: "gpt-5.4",
+            defaultModel: "gpt-5.5",
             organization: null,
             modelsFetching: false,
 
@@ -237,7 +237,7 @@ export const config: Config = {
             apiKey: "",
             models: [],
             embeddingModels: [],
-            defaultModel: "qwen3",
+            defaultModel: "gemma4",
             modelsFetching: false,
 
             /**
@@ -343,7 +343,7 @@ export const config: Config = {
             baseUrl: "https://api.x.ai/v1",
             apiKey: "",
             models: [],
-            defaultModel: "grok-4-1-fast-non-reasoning",
+            defaultModel: "grok-4.5",
             modelsFetching: false,
 
             /** Keeps only Grok chat models, excluding image/video/voice variants. */
