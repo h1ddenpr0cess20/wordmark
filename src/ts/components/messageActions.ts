@@ -10,6 +10,7 @@ import { responsesClient } from "../services/api.ts";
 import { updateBrowserHistory } from "../services/history/state.ts";
 import { saveCurrentConversation } from "../services/history/persistence.ts";
 import { getVerbosity, getReasoningEffort, getHistoryTokenBudget } from "../init/modelSettings.ts";
+import { isSelectableModelId } from "../services/api/clientConfig.ts";
 import { sendMessage, stopGeneration, resetSendButton } from "./interaction.ts";
 import { finalizeStreamedResponse, updateMessageContent } from "../services/streaming/messageLifecycle.ts";
 import { renderChatHistoryList } from "../services/history/list.ts";
@@ -191,7 +192,7 @@ export async function regenerateMessage(messageId: string): Promise<void> {
   try {
     const result = await responsesClient.runTurn({
       inputMessages: requestMessages,
-      model: elements.modelSelector ? elements.modelSelector.value : undefined,
+      model: isSelectableModelId(elements.modelSelector?.value) ? elements.modelSelector?.value : undefined,
       verbosity: getVerbosity(),
       reasoningEffort: getReasoningEffort() ?? undefined,
       stream: true,

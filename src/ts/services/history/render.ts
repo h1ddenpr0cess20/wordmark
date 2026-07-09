@@ -8,7 +8,7 @@
 
 import { elements, state } from "../../init/state.ts";
 import { updateMessageContent } from "../streaming/messageLifecycle.ts";
-import { updatePromptVisibility } from "../../components/ui/settingsControls.ts";
+import { updatePromptVisibility, updateParameterControls } from "../../components/ui/settingsControls.ts";
 import { highlightAndAddCopyButtons, addMessageCopyButton, generateMessageId } from "../../components/messages.ts";
 import { appendMessage } from "../../components/ui/chatMessages.ts";
 import { partyEngine, applyPartyNameLabel } from "../party/partyEngine.ts";
@@ -25,8 +25,18 @@ import {
   resolveMediaSource,
   createMediaElement,
 } from "./renderMedia.ts";
+import { refreshToolSettingsUI } from "../../components/tools.ts";
+import { updateReasoningAvailability } from "../../init/modelSettings.ts";
 import type { ConversationRecord } from "../../../types/common.ts";
 import type { Message } from "../../../types/api.ts";
+
+/**
+ * Monotonic id for service/model restores. Each render bumps it; a pending
+ * model fetch from an earlier conversation load compares its captured value
+ * against the current one and bails out when superseded, so a slow fetch can't
+ * apply a stale conversation's model over a newer load's selection.
+ */
+let modelRestoreEpoch = 0;
 
 /**
  * Pulls the plain-text body out of a message's `content`.
@@ -248,14 +258,24 @@ export function renderConversationMessages(convo: ConversationRecord, imageCache
     updatePromptVisibility();
   }
 
+  const restoreEpoch = ++modelRestoreEpoch;
+
+  // Applies the conversation's model when it exists in the dropdown, then
+  // refreshes everything that depends on the service/model selection — the
+  // same set the manual service-change listener refreshes, so a history load
+  // can't leave reasoning, parameter, or tool controls reflecting the
+  // previous selection.
   const applySelectedModel = () => {
     if (convo.model && elements.modelSelector) {
       const modelOption = Array.from(elements.modelSelector.options || []).find(option => option.value === convo.model);
       if (modelOption) {
         elements.modelSelector.value = convo.model;
-        updateHeaderInfo?.();
       }
     }
+    updateHeaderInfo?.();
+    updateReasoningAvailability();
+    updateParameterControls();
+    refreshToolSettingsUI();
   };
 
   if (convo.service && elements.serviceSelector && config) {
@@ -268,6 +288,10 @@ export function renderConversationMessages(convo: ConversationRecord, imageCache
       elements.serviceSelector.value = convo.service;
 
       const refreshModelsThenApply = () => {
+        // Superseded by a newer conversation load or a manual service switch.
+        if (restoreEpoch !== modelRestoreEpoch || config.defaultService !== convo.service) {
+          return;
+        }
         updateModelSelector?.();
         applySelectedModel();
       };
@@ -285,6 +309,12 @@ export function renderConversationMessages(convo: ConversationRecord, imageCache
             console.error(`Failed to refresh ${serviceLabel} models:`, err);
             refreshModelsThenApply();
           });
+        // Re-render the dropdown now, while the fetch is in flight, so it
+        // shows the loading placeholder instead of the previous service's
+        // models. A send during this window then falls back to the restored
+        // service's default model rather than pairing the new service with
+        // the old service's model.
+        updateModelSelector?.();
       } else {
         refreshModelsThenApply();
       }
@@ -293,7 +323,6 @@ export function renderConversationMessages(convo: ConversationRecord, imageCache
 
   applySelectedModel();
 
-  updateHeaderInfo?.();
   partyEngine.refreshControlBar();
 
   if (!convo.id) {

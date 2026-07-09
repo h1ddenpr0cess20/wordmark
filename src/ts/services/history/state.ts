@@ -15,8 +15,14 @@ import { config } from "../../../config/config.ts";
 import type { Message } from "../../../types/api.ts";
 
 /**
- * Pushes the current conversation, model/service selection, and prompt settings
- * onto the browser history stack so back/forward navigation restores them.
+ * Mirrors the current model/service selection and prompt settings onto the
+ * browser history entry.
+ *
+ * @remarks
+ * Uses `replaceState`, not `pushState`: nothing listens for `popstate`, so
+ * pushing an entry per selection change or message only grew the history stack
+ * and trapped the back button. The conversation itself is persisted to
+ * IndexedDB, never to history state.
  */
 export function updateBrowserHistory() {
   let systemPromptValue = "";
@@ -31,7 +37,6 @@ export function updateBrowserHistory() {
   }
 
   const newHistoryState = {
-    conversationHistory: [...(state.conversationHistory || [])],
     historyStateId: Date.now(),
     modelSelection: elements.modelSelector?.value,
     serviceSelection: elements.serviceSelector?.value,
@@ -40,7 +45,7 @@ export function updateBrowserHistory() {
     systemPrompt: systemPromptValue,
   };
 
-  window.history.pushState(newHistoryState, "Chat");
+  window.history.replaceState(newHistoryState, "Chat");
 };
 
 /**
