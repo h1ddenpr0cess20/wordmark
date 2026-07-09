@@ -260,11 +260,6 @@ export function renderConversationMessages(convo: ConversationRecord, imageCache
 
   const restoreEpoch = ++modelRestoreEpoch;
 
-  // Applies the conversation's model when it exists in the dropdown, then
-  // refreshes everything that depends on the service/model selection — the
-  // same set the manual service-change listener refreshes, so a history load
-  // can't leave reasoning, parameter, or tool controls reflecting the
-  // previous selection.
   const applySelectedModel = () => {
     if (convo.model && elements.modelSelector) {
       const modelOption = Array.from(elements.modelSelector.options || []).find(option => option.value === convo.model);
@@ -288,7 +283,6 @@ export function renderConversationMessages(convo: ConversationRecord, imageCache
       elements.serviceSelector.value = convo.service;
 
       const refreshModelsThenApply = () => {
-        // Superseded by a newer conversation load or a manual service switch.
         if (restoreEpoch !== modelRestoreEpoch || config.defaultService !== convo.service) {
           return;
         }
@@ -309,11 +303,6 @@ export function renderConversationMessages(convo: ConversationRecord, imageCache
             console.error(`Failed to refresh ${serviceLabel} models:`, err);
             refreshModelsThenApply();
           });
-        // Re-render the dropdown now, while the fetch is in flight, so it
-        // shows the loading placeholder instead of the previous service's
-        // models. A send during this window then falls back to the restored
-        // service's default model rather than pairing the new service with
-        // the old service's model.
         updateModelSelector?.();
       } else {
         refreshModelsThenApply();

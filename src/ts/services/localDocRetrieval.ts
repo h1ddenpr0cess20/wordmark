@@ -238,10 +238,6 @@ export async function retrieveRelevantChunks(
 
   let scorable = index.filter((chunk) => chunk.model === model);
   if (scorable.length < index.length) {
-    // Some (or all) chunks carry vectors from a different embedding model —
-    // documents attached before a provider or model switch. Re-embed the whole
-    // index so every document stays searchable; on failure fall back to the
-    // chunks that already match rather than silently dropping the rest forever.
     const reembedded = await reembedIndex(model);
     if (reembedded.length > 0) {
       scorable = reembedded;
