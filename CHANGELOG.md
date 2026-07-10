@@ -2,6 +2,25 @@
 
 All notable changes to Wordmark are documented here. Earlier versions didn't follow proper semver — this changelog reflects what actually shipped, not what the version numbers said at the time.
 
+## [3.10.1] - 2026-07-10
+
+Bug fixes for model fetching, history loads, notification theming, and local RAG. Backward-compatible.
+
+### Changed
+- **Updated default models** — OpenAI defaults to `gpt-5.5`, xAI to `grok-4.5`, and Ollama to `gemma4`.
+- **Notifications follow the active theme** — success/info/warning toasts derive their tone from the theme's accent color instead of fixed green/blue/orange hues that clashed with most themes. Error toasts keep the per-theme error colors.
+- **Typecheck runs on TypeScript 7** — the native compiler is used for `typecheck` and `typecheck:tests`, with TypeScript 6 kept installed alongside it for tooling that still needs it.
+
+### Fixed
+- **Stale "Failed to fetch models" errors** — background model fetches for non-active services (the LM Studio/Ollama probes at startup, base-URL saves) unconditionally refreshed the dropdown, so a failed probe surfaced an error labeled with the *currently selected* service even though its models loaded fine. Providers now only refresh the dropdown when the fetched service is still the active one.
+- **Wrong model sent after loading a conversation** — restoring a conversation saved under another provider could send the old provider's model while the new provider's model list was still fetching. The dropdown now enters its loading state immediately and sends fall back to the restored service's default model during the fetch window.
+- **Slow model fetches overwriting a newer conversation load** — restores are now epoch-guarded and skip themselves when superseded by a newer load or a manual service switch.
+- **History loads leaving stale controls** — reasoning availability, parameter controls, and tool settings now refresh on load the same way they do on a manual service switch.
+- **Placeholder values treated as model ids** — dropdown placeholders (`loading`, `no-models`, "Error: …", "Set API key…") are no longer sent as model ids or persisted as a conversation's model.
+- **Back button trapped by the chat** — browser history used `pushState` and copied the entire message history into history state, growing the stack on every selection change. It now uses `replaceState` and stores only the selection.
+- **Documents silently excluded from local RAG retrieval** — chunks embedded before a provider/model switch were skipped unless *every* chunk was stale, so a partially re-indexed conversation lost documents. Retrieval now re-embeds whenever any chunk is stale.
+- **Document chunks leaking between conversations** — rapidly loading one conversation then another could leave the first one's chunks in the second's index, and the next save persisted them under the wrong id. Restores now bail out when superseded.
+
 ## [3.10.0] - 2026-07-07
 
 Shared documents in Party mode and xAI's flagship TTS voices. Backward-compatible.
