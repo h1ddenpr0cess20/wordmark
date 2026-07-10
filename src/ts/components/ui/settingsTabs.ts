@@ -7,6 +7,8 @@ import { isLocalService } from "../../services/providers.ts";
 import { openSettingsAndSwitch } from "../../init/eventListeners/settingsPanel.ts";
 import { config } from "../../../config/config.ts";
 import { logVerbose } from "../../utils/logger.ts";
+import { elements } from "../../init/state.ts";
+import { isPanelOpen } from "../../utils/dom/panels.ts";
 
 /** Wires settings tab buttons so clicking one activates its tab and content panel. */
 export function initTabs() {
@@ -83,6 +85,10 @@ function checkApiKeysMissing() {
 /** Opens settings on the API Keys tab when the active cloud service lacks a key. */
 export function openApiKeysTabIfNeeded() {
   if (!checkApiKeysMissing()) {
+    return;
+  }
+
+  if (isPanelOpen(elements.settingsPanel) || isPanelOpen(elements.historyPanel) || isPanelOpen(elements.galleryPanel)) {
     return;
   }
 
