@@ -81,6 +81,27 @@ export const LOGO_STYLE = "wordmark";
 state.shortResponseGuideline = DEFAULT_SHORT_RESPONSE_GUIDELINE;
 
 /**
+ * Refreshes the models dropdown after a provider fetch, but only when the
+ * fetched service is still the active one.
+ *
+ * @remarks
+ * Model fetches also run in the background for non-active services (the local
+ * server probes at startup, base-URL saves). Without this guard a failed
+ * background fetch would flash "Failed to fetch … models" labeled with the
+ * currently selected service, whose models loaded fine.
+ */
+function notifyModelsUpdated(service: unknown, fetchError?: boolean): void {
+    if (config.services[config.defaultService] !== service) {
+        return;
+    }
+    if (typeof uiHooks.updateModelsDropdown === "function") {
+        uiHooks.updateModelsDropdown(fetchError);
+    } else {
+        console.warn("uiHooks.updateModelsDropdown not registered. UI will not be updated with new models.");
+    }
+}
+
+/**
  * The application configuration: provider definitions plus the helper methods
  * that resolve the currently active service.
  */
@@ -152,9 +173,7 @@ export const config: Config = {
                     this.modelsFetching = false;
                 }
 
-                if (typeof uiHooks.updateModelsDropdown === "function") {
-                    uiHooks.updateModelsDropdown(this.models[0]?.startsWith("Error"));
-                }
+                notifyModelsUpdated(this, this.models[0]?.startsWith("Error"));
             },
         },
 
@@ -224,11 +243,7 @@ export const config: Config = {
                     this.modelsFetching = false;
                 }
 
-                if (typeof uiHooks.updateModelsDropdown === "function") {
-                    uiHooks.updateModelsDropdown(fetchError);
-                } else {
-                    console.warn("uiHooks.updateModelsDropdown not registered. UI will not be updated with new LM Studio models.");
-                }
+                notifyModelsUpdated(this, fetchError);
             },
         },
 
@@ -331,11 +346,7 @@ export const config: Config = {
 
                 this.modelsFetching = false;
 
-                if (typeof uiHooks.updateModelsDropdown === "function") {
-                    uiHooks.updateModelsDropdown(fetchError);
-                } else {
-                    console.warn("uiHooks.updateModelsDropdown not registered. UI will not be updated with new Ollama models.");
-                }
+                notifyModelsUpdated(this, fetchError);
             },
         },
 
@@ -395,9 +406,7 @@ export const config: Config = {
                     this.modelsFetching = false;
                 }
 
-                if (typeof uiHooks.updateModelsDropdown === "function") {
-                    uiHooks.updateModelsDropdown(this.models[0]?.startsWith("Error"));
-                }
+                notifyModelsUpdated(this, this.models[0]?.startsWith("Error"));
             },
         },
     },

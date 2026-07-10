@@ -28,6 +28,14 @@ type IndexedChunk = StoredDocChunk;
 
 const index: IndexedChunk[] = [];
 
+/**
+ * Monotonic token for index restores. A restore captures it before awaiting
+ * IndexedDB and bails out if it changed, so a slow load for a previously
+ * opened conversation can't dump its chunks into the conversation that is now
+ * active (which the next save would then persist under the wrong id).
+ */
+let restoreToken = 0;
+
 /** Number of indexed chunks currently held. */
 export function localDocIndexSize(): number {
   return index.length;
@@ -35,6 +43,7 @@ export function localDocIndexSize(): number {
 
 /** Drops all indexed chunks (called when a conversation is reset or loaded). */
 export function clearLocalDocIndex(): void {
+  restoreToken++;
   index.length = 0;
 }
 
@@ -61,11 +70,15 @@ export async function persistLocalDocIndex(conversationId: string): Promise<void
  * @returns The number of restored chunks.
  */
 export async function restoreLocalDocIndex(conversationId: string): Promise<number> {
+  const token = ++restoreToken;
   let chunks: StoredDocChunk[] = [];
   try {
     chunks = await loadDocChunks(conversationId);
   } catch (error) {
     console.error("Failed to restore document index:", error);
+  }
+  if (token !== restoreToken) {
+    return index.length;
   }
   index.length = 0;
   index.push(...chunks);
@@ -224,8 +237,11 @@ export async function retrieveRelevantChunks(
   if (!model) return [];
 
   let scorable = index.filter((chunk) => chunk.model === model);
-  if (scorable.length === 0) {
-    scorable = await reembedIndex(model);
+  if (scorable.length < index.length) {
+    const reembedded = await reembedIndex(model);
+    if (reembedded.length > 0) {
+      scorable = reembedded;
+    }
     if (scorable.length === 0) return [];
   }
 

@@ -13,6 +13,7 @@ import {
   renameConversationInDb,
 } from "../../utils/storage/conversationStorage.ts";
 import { config } from "../../../config/config.ts";
+import { isSelectableModelId } from "../../services/api/clientConfig.ts";
 import { createScopedLogger } from "../../utils/logger.ts";
 import { loadImageFromDb } from "../../utils/storage/imageStorage.ts";
 import { ensureImagesHaveMessageIds } from "../streaming/imageGeneration.ts";
@@ -161,7 +162,7 @@ export function saveCurrentConversation(meta: { name?: string; created?: string 
     updated: now.toISOString(),
     messages: markedMessages,
     images: processedImages,
-    model: elements.modelSelector?.value || "Unknown",
+    model: isSelectableModelId(elements.modelSelector?.value) ? elements.modelSelector!.value : "Unknown",
     service: config?.defaultService || "Unknown",
     systemPrompt: {
       type: promptType,

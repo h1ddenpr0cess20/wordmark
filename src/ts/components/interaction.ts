@@ -26,6 +26,7 @@ import { generateMessageId, addMessageCopyButton } from "./messages.ts";
 import { updateRegenerateAvailability } from "./messageActions.ts";
 import { appendMessage } from "./ui/chatMessages.ts";
 import { getVerbosity, getReasoningEffort, getHistoryTokenBudget } from "../init/modelSettings.ts";
+import { isSelectableModelId } from "../services/api/clientConfig.ts";
 import { buildOutgoingAttachments } from "./attachments/outgoingAttachments.ts";
 import { extractDocumentText, isExtractableDocument } from "../services/parsers/index.ts";
 import type { PendingDocument } from "../../types/attachments.ts";
@@ -121,9 +122,7 @@ async function indexDocumentsLocally(documents: PendingDocument[]): Promise<{ ok
       showInfo(`Could not read: ${result.failed.slice(0, 3).join(", ")}${result.failed.length > 3 ? "..." : ""}`);
     }
     if (result.chunks > 0 && showInfo) {
-      showInfo(result.cached === result.indexed
-        ? `Loaded ${result.cached} document(s) from cache`
-        : `Indexed ${result.indexed} document(s) into ${result.chunks} chunk(s)${result.cached > 0 ? ` (${result.cached} from cache)` : ""}`);
+      showInfo(result.indexed === 1 ? "Document ready" : `${result.indexed} documents ready`);
     }
     if (state.currentConversationId) {
       persistLocalDocIndex(state.currentConversationId);
@@ -502,7 +501,7 @@ async function executeTurn(
 
     const result = await responsesClient.runTurn({
       inputMessages: requestMessages,
-      model: elements.modelSelector ? elements.modelSelector.value : undefined,
+      model: isSelectableModelId(elements.modelSelector?.value) ? elements.modelSelector?.value : undefined,
       verbosity: getVerbosity(),
       reasoningEffort: getReasoningEffort() ?? undefined,
       stream: true,

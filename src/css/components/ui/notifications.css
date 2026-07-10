@@ -45,31 +45,13 @@
   border-color: color-mix(in srgb, var(--tone-color) 55%, transparent);
 }
 
-.notification.warning {
-  --tone-color: var(--warning-color);
-  color: var(--tone-color);
-  background: var(--tone-color);
-  background: color-mix(in srgb, var(--tone-color) 18%, var(--bg-secondary));
-  border-color: var(--tone-color);
-  border-color: color-mix(in srgb, var(--tone-color) 45%, transparent);
-}
-
-.notification.success {
-  --tone-color: var(--success-color);
-  --tone-surface: var(--success-color);
-  color: var(--tone-color);
-  background: var(--tone-surface);
-  background: color-mix(in srgb, var(--tone-surface) 18%, var(--bg-secondary));
-  border-color: var(--tone-color);
-  border-color: color-mix(in srgb, var(--tone-color) 45%, transparent);
-}
-
+.notification.warning,
+.notification.success,
 .notification.info {
-  --tone-color: var(--info-color);
-  --tone-surface: var(--info-color);
-  color: var(--tone-color);
-  background: var(--tone-surface);
-  background: color-mix(in srgb, var(--tone-surface) 18%, var(--bg-secondary));
+  --tone-color: var(--accent-color);
+  color: var(--text-primary, #333);
+  background: var(--bg-secondary, #f8f9fa);
+  background: color-mix(in srgb, var(--tone-color) 14%, var(--bg-secondary, #f8f9fa));
   border-color: var(--tone-color);
   border-color: color-mix(in srgb, var(--tone-color) 45%, transparent);
 }

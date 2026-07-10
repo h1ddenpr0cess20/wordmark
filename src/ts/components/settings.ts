@@ -12,6 +12,7 @@ import { getMemoryConfig, setMemoryEnabled } from "../utils/storage/memoryStorag
 import { locationState, requestLocation, disableLocation } from "../services/location.ts";
 import { ttsConfig } from "../services/tts.ts";
 import { updateReasoningAvailability } from "../init/modelSettings.ts";
+import { isSelectableModelId } from "../services/api/clientConfig.ts";
 import { openSettingsAndSwitch } from "../init/eventListeners/settingsPanel.ts";
 
 /** Form controls that share a `disabled` property, toggled when enabling/disabling tab UI. */
@@ -82,7 +83,7 @@ export function updateHeaderInfo() {
   const model = elements.modelSelector.value;
 
   try {
-    if (model && model !== "error" && model !== "no-models") {
+    if (isSelectableModelId(model)) {
       headerTitle.textContent = `${model}`;
       elements.modelSelector.setAttribute("data-last-selected", model);
     } else {

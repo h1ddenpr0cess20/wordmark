@@ -51,11 +51,28 @@ function getFallbackServiceKey(): string {
 }
 
 /**
+ * Reports whether a model-selector value is a real model id rather than one of
+ * the placeholder entries the dropdown can hold: the option sentinels written
+ * by `updateModelSelector` ("loading", "no-models", "error") and the
+ * placeholder strings providers store in their model lists while a fetch is
+ * pending or failed ("Error: …", "No models…", "Set API key…").
+ */
+export function isSelectableModelId(value: unknown): value is string {
+  if (typeof value !== "string" || value.trim() === "") {
+    return false;
+  }
+  if (value === "loading" || value === "no-models" || value === "error") {
+    return false;
+  }
+  return !value.startsWith("Error") && !value.startsWith("No models") && !value.startsWith("Set API key");
+}
+
+/**
  * Returns the currently selected model, falling back to the configured
  * default model and finally {@link DEFAULT_MODEL}.
  */
 export function getActiveModel(): string {
-  if (elements.modelSelector && elements.modelSelector.value) {
+  if (elements.modelSelector && isSelectableModelId(elements.modelSelector.value)) {
     return elements.modelSelector.value;
   }
   if (config && typeof config.getDefaultModel === "function") {
