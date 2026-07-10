@@ -10,7 +10,6 @@
 /** Theme ids whose display name does not follow the title-case-from-slug rule. */
 const themeNameOverrides: Record<string, string> = {
   "theme-usa": "USA",
-  "theme-uk": "United Kingdom",
 };
 
 /**

@@ -1583,3 +1583,73 @@
   background-color: #fffdf5;
   border: 2px solid var(--border-color);
 }
+
+.theme-usa {
+  --bg-primary: #10152c;
+  --bg-secondary: #192048;
+  --text-primary: #ffffff;
+  --text-secondary: #c0c4d8;
+  --accent-color: #b31942;
+  --accent-hover: #d62450;
+  --border-color: #2c3e71;
+  --user-bg: #b31942;
+  --assistant-bg: #0a3161;
+  --error-bg: #4a2d2d;
+  --error-text: #ff6b6b;
+  --body-bg-color-1: #0a0e1e;
+  --body-bg-color-2: #131b3d;
+  --button-text-color: #ffffff;
+}
+
+body.theme-usa {
+  background-color: var(--bg-primary);
+  background-image:
+    linear-gradient(135deg, rgba(8, 11, 30, 0.45) 40%, rgba(15, 21, 48, 0.55) 100%),
+    url("/us-flag.svg");
+  background-repeat: no-repeat;
+  background-position: center center;
+  background-size: cover;
+  background-attachment: scroll;
+}
+
+@media (max-width: 640px) {
+  body.theme-usa {
+    background-image: none;
+  }
+
+  body.theme-usa::before {
+    content: "";
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    width: 100vh;
+    height: 100vw;
+    transform: translate(-50%, -50%) rotate(90deg);
+    z-index: -1;
+    background-color: var(--bg-primary);
+    background-image:
+      linear-gradient(135deg, rgba(8, 11, 30, 0.45) 40%, rgba(15, 21, 48, 0.55) 100%),
+      url("/us-flag.svg");
+    background-repeat: no-repeat;
+    background-position: center center;
+    background-size: cover;
+  }
+}
+
+.theme-usa #chat-container {
+  background-color: rgba(25, 32, 72, 0.55);
+  backdrop-filter: blur(3px);
+  -webkit-backdrop-filter: blur(3px);
+}
+
+.theme-usa #header {
+  background-color: rgba(16, 21, 44, 0.6);
+}
+
+.theme-usa .input-container {
+  background-color: rgba(16, 21, 44, 0.6);
+}
+
+.theme-usa #user-input {
+  background-color: rgba(25, 32, 72, 0.55);
+}
