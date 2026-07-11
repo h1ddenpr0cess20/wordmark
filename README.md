@@ -58,6 +58,7 @@ Fully responsive on mobile, with a range of built-in color schemes:
 - [UI & UX](docs/ui-and-ux.md)
 - [Docker](docs/docker.md)
 - [Android App](docs/android.md)
+- [Electron App](docs/electron.md)
 - [Troubleshooting](docs/troubleshooting.md)
 
 ## Features
