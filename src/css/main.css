@@ -8,9 +8,6 @@
 @import url('./themes/code/dark.css');
 @import url('./themes/code/light.css');
 @import url('./themes/code/special.css');
-/* Metal / Neon / Country theme packs are NOT bundled here — they are optional
-   and injected at runtime by components/theme.ts only when the user installs
-   them (see THEME_PACKS / injectPackStyles). */
 @import url('./global.css');
 @import url('./components/layout/layout.css');
 @import url('./components/layout/messages/bubbles.css');

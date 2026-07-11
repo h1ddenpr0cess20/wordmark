@@ -175,6 +175,7 @@ function flush() {
 const STATE_KEYS = new Set([
   "conversationHistory", "generatedImages", "currentConversationId",
   "currentConversationName", "loadedSystemPrompt", "activePartyConfig", "partyMode",
+  "lastUsedModel", "lastUsedService",
 ]);
 const ELEMENT_KEYS = new Set([
   "chatBox", "modelSelector", "personalityPromptRadio", "personalityInput",
@@ -192,6 +193,8 @@ async function resetDb(extra: Record<string, unknown> = {}) {
     generatedImages: [],
     currentConversationId: null,
     currentConversationName: null,
+    lastUsedModel: null,
+    lastUsedService: null,
     loadedSystemPrompt: null,
     activePartyConfig: null,
     partyMode: false,
@@ -267,6 +270,53 @@ test("saveCurrentConversation filters metadata, persists images, and marks messa
   assert.equal(storedImage!.prompt, "sunset");
   assert.equal(storedImage!.associatedMessageId, "m-assistant");
   assert.equal(state.currentConversationName, "Manual Title");
+});
+
+test("saveCurrentConversation keeps the model/service actually used, not a dropdown change", async () => {
+  await resetDb({
+    conversationHistory: [
+      { id: "m-user", role: "user", content: "Hello" },
+      { id: "m-assistant", role: "assistant", content: "Hi there!" },
+    ],
+    currentConversationId: "convo-1",
+    currentConversationName: "Chat",
+    lastUsedModel: "gemma4",
+    lastUsedService: "ollama",
+    ensureImagesHaveMessageIds() { return 0; },
+    // The user flipped the selectors after the last exchange without sending.
+    modelSelector: { value: "gpt-5.5" },
+    config: { defaultService: "openai" },
+    personalityPromptRadio: { checked: false },
+    customPromptRadio: { checked: false },
+  });
+
+  saveCurrentConversation();
+  await flush();
+  await flush();
+
+  const all = await getAllConversationsFromDb();
+  const convo = all[0] as { model: string; service: string };
+  assert.equal(convo.model, "gemma4");
+  assert.equal(convo.service, "ollama");
+});
+
+test("loadConversation seeds lastUsedModel/lastUsedService from the stored record", async () => {
+  await resetDb({
+    chatBox: { innerHTML: "", appendChild: () => {} },
+  });
+  await saveConversationToDb({
+    id: "convo-2",
+    name: "Old chat",
+    model: "grok-4.5",
+    service: "xai",
+    messages: [{ id: "a", role: "assistant", content: "Hi" }],
+    images: [],
+  });
+
+  await loadConversation("convo-2");
+
+  assert.equal(state.lastUsedModel, "grok-4.5");
+  assert.equal(state.lastUsedService, "xai");
 });
 
 test("loadConversation hydrates UI, preloads images, and filters developer messages", async () => {

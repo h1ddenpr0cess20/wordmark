@@ -380,6 +380,8 @@ export function updateFeatureStatus() {
  * Updates model selector with available models for the current service
  */
 export function updateModelSelector() {
+  uiHooks.refreshEmbeddingModelUI?.();
+
   if (!elements.modelSelector) {
     console.warn("Model selector not found, skipping updateModelSelector");
     return;

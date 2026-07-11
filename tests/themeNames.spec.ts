@@ -47,5 +47,4 @@ test('getThemeDisplayName title-cases the slug', () => {
 
 test('getThemeDisplayName honors the override map', () => {
   assert.equal(getThemeDisplayName('theme-usa'), 'USA');
-  assert.equal(getThemeDisplayName('theme-uk'), 'United Kingdom');
 });

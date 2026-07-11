@@ -25,6 +25,8 @@ export interface AppState {
 
   currentConversationId: string | null;
   currentConversationName: string | null;
+  lastUsedModel: string | null;
+  lastUsedService: string | null;
   generatedImages: GeneratedImage[];
   currentGeneratedImageHtml: string[];
   loadedSystemPrompt: SystemPrompt | null;

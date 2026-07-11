@@ -85,6 +85,8 @@ export function buildRequestBody({
   const targetModel = model || getActiveModel();
   const allowReasoning = supportsReasoningEffort(targetModel);
   const serviceKey = getActiveServiceKey();
+  state.lastUsedModel = targetModel;
+  state.lastUsedService = serviceKey;
   const payload: Record<string, unknown> = {
     model: targetModel,
     text: {

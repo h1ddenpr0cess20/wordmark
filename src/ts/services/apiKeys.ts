@@ -16,6 +16,7 @@ import { API_KEYS_STORAGE_PREFIX, loadApiKeysIntoConfig, loadLocalServerUrlsInto
 import { STORAGE_KEYS } from "../utils/storage/storage.ts";
 import { isLocalService } from "./providers.ts";
 import { EMBEDDING_MODEL_STORAGE_KEY } from "./embeddings.ts";
+import { uiHooks } from "../init/uiHooks.ts";
 import { normalizeServerBaseUrl } from "../utils/utils.ts";
 import { showInlineStatus } from "../utils/inlineStatus.ts";
 import { createScopedLogger } from "../utils/logger.ts";
@@ -33,7 +34,7 @@ const apiKeyInputs: Record<string, HTMLInputElement | null> = {
 };
 
 let saveApiKeysButton: HTMLElement | null = null;
-let embeddingModelInput: HTMLInputElement | null = null;
+let embeddingModelSelect: HTMLSelectElement | null = null;
 let lmStudioServerUrlInput: HTMLInputElement | null = null;
 let saveLmStudioUrlButton: HTMLElement | null = null;
 let ollamaServerUrlInput: HTMLInputElement | null = null;
@@ -74,7 +75,7 @@ function initApiKeys(retryCount: number = 0) {
   const saveLmStudioButton = document.getElementById("save-lmstudio-url");
   const ollamaUrlInput = document.getElementById("ollama-server-url") as HTMLInputElement | null;
   const saveOllamaButton = document.getElementById("save-ollama-url");
-  const embeddingInput = document.getElementById("embedding-model") as HTMLInputElement | null;
+  const embeddingSelect = document.getElementById("embedding-model") as HTMLSelectElement | null;
 
   const essentialReady = Boolean(saveKeysButton && (openaiInput || xaiInput || lmStudioUrlInput || ollamaUrlInput));
 
@@ -94,7 +95,7 @@ function initApiKeys(retryCount: number = 0) {
   saveLmStudioUrlButton = saveLmStudioButton;
   ollamaServerUrlInput = ollamaUrlInput;
   saveOllamaUrlButton = saveOllamaButton;
-  embeddingModelInput = embeddingInput;
+  embeddingModelSelect = embeddingSelect;
 
   if (!apiKeysEventHandlersApplied) {
     Object.values(apiKeyInputs).forEach(input => {
@@ -115,13 +116,13 @@ function initApiKeys(retryCount: number = 0) {
         event.stopPropagation();
       });
     }
-    if (embeddingModelInput) {
-      embeddingModelInput.addEventListener("click", (event: Event) => {
+    if (embeddingModelSelect) {
+      embeddingModelSelect.addEventListener("click", (event: Event) => {
         event.stopPropagation();
       });
-      embeddingModelInput.addEventListener("input", () => {
+      embeddingModelSelect.addEventListener("change", () => {
         try {
-          localStorage.setItem(EMBEDDING_MODEL_STORAGE_KEY, embeddingModelInput!.value.trim());
+          localStorage.setItem(EMBEDDING_MODEL_STORAGE_KEY, embeddingModelSelect!.value);
         } catch (error) {
           console.error("Failed to save embedding model:", error);
         }
@@ -288,6 +289,58 @@ function saveOllamaServerUrl() {
 };
 
 /**
+ * Rebuilds the embedding-model dropdown for the active provider.
+ *
+ * @remarks
+ * Enabled only when the active service is a local provider (LM Studio /
+ * Ollama) that reported at least one embedding model; otherwise it is grayed
+ * out. Options are an auto-detect default plus every embedding model the
+ * provider listed; a stored model missing from the list is kept as an option
+ * since it is still the one {@link resolveEmbeddingModel} will use.
+ */
+function refreshEmbeddingModelUI() {
+  const select = embeddingModelSelect
+    || (document.getElementById("embedding-model") as HTMLSelectElement | null);
+  if (!select) {
+    return;
+  }
+
+  const serviceKey = config?.defaultService;
+  const service = serviceKey ? config?.services?.[serviceKey] : null;
+  const local = isLocalService(serviceKey);
+  const embeddingModels = local && Array.isArray(service?.embeddingModels)
+    ? service.embeddingModels.filter((m): m is string => typeof m === "string" && m.length > 0)
+    : [];
+
+  let stored = "";
+  try {
+    stored = localStorage.getItem(EMBEDDING_MODEL_STORAGE_KEY)?.trim() || "";
+  } catch {
+    stored = "";
+  }
+
+  const options = local && stored && !embeddingModels.includes(stored)
+    ? [stored, ...embeddingModels]
+    : embeddingModels;
+
+  select.innerHTML = "";
+  const autoOption = document.createElement("option");
+  autoOption.value = "";
+  autoOption.textContent = "Auto-detect";
+  select.appendChild(autoOption);
+  for (const model of options) {
+    const option = document.createElement("option");
+    option.value = model;
+    option.textContent = model;
+    select.appendChild(option);
+  }
+  select.value = local ? stored : "";
+  select.disabled = options.length === 0;
+}
+
+uiHooks.refreshEmbeddingModelUI = refreshEmbeddingModelUI;
+
+/**
  * Persists the entered API keys, mirrors them onto the config, refreshes
  * dependent UI, and fetches models for the active service.
  */
@@ -362,9 +415,7 @@ function loadApiKeys() {
     }
     loadLocalServerUrl(lmStudioServerUrlInput, LMSTUDIO_SERVER_URL_KEY, "lmstudio", "LM Studio");
     loadLocalServerUrl(ollamaServerUrlInput, OLLAMA_SERVER_URL_KEY, "ollama", "Ollama");
-    if (embeddingModelInput) {
-      embeddingModelInput.value = localStorage.getItem(EMBEDDING_MODEL_STORAGE_KEY) || "";
-    }
+    refreshEmbeddingModelUI();
     logApiKeys("API keys loaded from localStorage");
 
     refreshApiDependentUi();
@@ -420,6 +471,7 @@ export {
   loadApiKeys,
   ensureApiKeysLoaded,
   showApiKeyStatus,
+  refreshEmbeddingModelUI,
 };
 
 if (typeof document !== "undefined") {

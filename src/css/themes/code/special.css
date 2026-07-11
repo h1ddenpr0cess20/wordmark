@@ -298,3 +298,63 @@
   --code-comment: #8a7a55;
 }
 
+.theme-usa pre {
+  background-color: #0a1640 !important;
+  border: 1px solid #2c3e71 !important;
+}
+
+.theme-usa pre code {
+  color: #e0e6f5 !important;
+}
+
+.theme-usa {
+  --code-number: #dce4ff;
+}
+
+.theme-usa .hljs-keyword,
+.theme-usa .hljs-meta,
+.theme-usa .hljs-selector-tag,
+.theme-usa .hljs-title {
+  color: #e63946 !important;
+}
+
+.theme-usa .hljs-type,
+.theme-usa .hljs-built_in,
+.theme-usa .hljs-title.function_ {
+  color: #5a85ed !important;
+}
+
+.theme-usa .hljs-string,
+.theme-usa .hljs-doctag,
+.theme-usa .hljs-addition,
+.theme-usa .hljs-regexp,
+.theme-usa .hljs-symbol {
+  color: #f0f0f0 !important;
+}
+
+.theme-usa .hljs-attr {
+  color: #8caeff !important;
+}
+
+.theme-usa .hljs-comment,
+.theme-usa .hljs-quote {
+  color: #9eaee6 !important;
+  font-style: italic;
+}
+
+.theme-usa .hljs-name,
+.theme-usa .hljs-deletion,
+.theme-usa .hljs-tag {
+  color: #f27d85 !important;
+}
+
+.theme-usa .hljs-variable,
+.theme-usa .hljs-template-variable {
+  color: #c13042 !important;
+}
+
+.theme-usa .hljs-property,
+.theme-usa .hljs-params {
+  color: #3355b8 !important;
+}
+

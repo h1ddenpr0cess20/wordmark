@@ -67,23 +67,6 @@
   .theme-terminal code {
     font-size: 0.85rem !important;
   }
-  [class*="theme-neon-"] .message-content,
-  [class*="theme-neon-"] p,
-  [class*="theme-neon-"] div:not(#header-title):not(.settings-group h3),
-  [class*="theme-neon-"] span:not(.tab-button):not(.label):not([class*="hljs"]),
-  [class*="theme-neon-"] button:not(#send-button),
-  [class*="theme-neon-"] input:not([type="range"]),
-  [class*="theme-neon-"] select,
-  [class*="theme-neon-"] option,
-  [class*="theme-neon-"] .setting-item,
-  [class*="theme-neon-"] code {
-    font-size: 0.8rem !important;
-  }
-
-  [class*="theme-neon-"] pre code {
-    font-size: 0.8rem !important;
-  }
-
   #chat-container {
     width: 100%;
     height: 100vh;

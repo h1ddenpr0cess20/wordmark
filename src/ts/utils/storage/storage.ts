@@ -46,7 +46,6 @@ export const STORAGE_KEYS = {
   historyTokenBudget: "historyTokenBudget",
 
   selectedTheme: "selectedTheme",
-  installedThemePacks: "installedThemePacks",
   enableLogging: "enableLogging",
   enableFunctionCalling: "enableFunctionCalling",
   verboseModeEnabled: "verboseModeEnabled",
