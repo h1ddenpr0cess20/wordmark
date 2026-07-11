@@ -24,8 +24,8 @@
     "docker:build": "docker build -t wordmark .",
     "docker:run": "docker run --rm -p 8080:80 wordmark:latest",
     "electron": "electron electron/main.cjs",
-    "electron:pack": "electron-builder --dir",
-    "electron:dist": "electron-builder"
+    "electron:pack": "npm run build && electron-builder --dir",
+    "electron:dist": "npm run build && electron-builder"
   },
   "keywords": [
     "ai",

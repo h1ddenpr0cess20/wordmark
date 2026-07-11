@@ -4,9 +4,11 @@ All notable changes to Wordmark are documented here. Earlier versions didn't fol
 
 ## [3.11.1] - 2026-07-11
 
-Fix electron-builder failing to package the desktop app. Backward-compatible.
+Fix the desktop app failing to build and launch. Backward-compatible.
 
 ### Fixed
+- **Packaged app showing "Build not found"** — `main.cjs` looked for the built web app at `resources/dist` when packaged, but `dist` is bundled inside `app.asar`, so the path never existed and the window closed on launch. It now resolves relative to `__dirname`, which lands inside the asar in both dev and packaged builds.
+- **Packaging skipping the build step** — `electron:pack` and `electron:dist` ran `electron-builder` directly without building the web app first, so packaging a clean checkout produced an app with no `dist`. Both scripts now run `npm run build` first.
 - **electron-builder refusing to run** — a leftover root-level `directories` field (unrelated to electron-builder, an old `npm init` artifact) collided with `build.directories.output` and made every packaging run fail with `"directories" in the root is deprecated`. Removed.
 
 ## [3.11.0] - 2026-07-11

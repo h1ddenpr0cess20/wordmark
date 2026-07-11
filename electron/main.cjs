@@ -3,9 +3,7 @@ const path = require("node:path");
 const fs = require("node:fs");
 const http = require("node:http");
 
-const DIST_DIR = app.isPackaged
-  ? path.join(process.resourcesPath, "dist")
-  : path.join(__dirname, "..", "dist");
+const DIST_DIR = path.join(__dirname, "..", "dist");
 
 const MIME_TYPES = {
   ".html": "text/html",
