@@ -4,9 +4,10 @@ All notable changes to Wordmark are documented here. Earlier versions didn't fol
 
 ## [3.12.0] - 2026-07-11
 
-Custom desktop title bar and an app icon fix. Backward-compatible.
+An Android first-run server picker, a custom desktop title bar, and an app icon fix. Backward-compatible.
 
 ### Added
+- **Android first-run server picker** — the Android WebView wrapper now asks on first launch whether to load the hosted version (`wordmark-chatbot.vercel.app`) or a custom server URL for a self-hosted instance, and persists the choice (clear the app's data to pick again). Bumps the Android app to versionName 1.1.0 / versionCode 2.
 - **Custom desktop title bar** — the Electron window is now frameless and draws its own slim title bar that follows the active theme (background, border, and accent-colored mini logo all come from the theme's CSS variables). The bar is the window drag region, and on Windows/Linux the native minimize/maximize/close overlay is recolored to match whenever the theme changes; macOS keeps its traffic lights. Browsers are unaffected — the bar only appears inside the desktop shell.
 
 ### Fixed
