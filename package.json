@@ -23,7 +23,8 @@
     "deps:update": "npx npm-check-updates -u && npm install",
     "docker:build": "docker build -t wordmark .",
     "docker:run": "docker run --rm -p 8080:80 wordmark:latest",
-    "electron": "electron electron/main.cjs",
+    "electron": "npm run build && electron electron/main.cjs",
+    "electron:run": "electron electron/main.cjs",
     "electron:pack": "npm run build && electron-builder --dir",
     "electron:dist": "npm run build && electron-builder"
   },

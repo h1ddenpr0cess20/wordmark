@@ -39,9 +39,12 @@ session. There is no backend.
 
 ```bash
 npm install
-npm run build      # produce dist/
-npm run electron   # launch the desktop app
+npm run electron   # build dist/ and launch the desktop app
 ```
+
+`npm run electron` rebuilds the web app on every launch so the window always
+reflects the current source. Use `npm run electron:run` to skip the build and
+relaunch the existing `dist/` quickly.
 
 ## Package a distributable
 

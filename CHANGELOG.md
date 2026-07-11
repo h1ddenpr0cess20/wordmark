@@ -10,6 +10,7 @@ Custom desktop title bar and an app icon fix. Backward-compatible.
 - **Custom desktop title bar** — the Electron window is now frameless and draws its own slim title bar that follows the active theme (background, border, and accent-colored mini logo all come from the theme's CSS variables). The bar is the window drag region, and on Windows/Linux the native minimize/maximize/close overlay is recolored to match whenever the theme changes; macOS keeps its traffic lights. Browsers are unaffected — the bar only appears inside the desktop shell.
 
 ### Fixed
+- **`npm run electron` launching a stale app** — the script served whatever `dist/` happened to contain, silently launching an outdated build (or failing outright on a clean checkout). It now rebuilds the web app first, matching the packaging scripts; `npm run electron:run` keeps the old skip-the-build behavior for quick relaunches.
 - **Desktop app showing the default Electron logo** — packaged builds had no icon configured in electron-builder, so installers and the packaged app shipped with Electron's stock logo, and the runtime window icon pointed at the 64px web favicon. A 512×512 rendering of the Wordmark circled-W logo with a transparent background now lives at `electron/icon.png` and is used for the window icon and the mac/win/linux packaging targets.
 
 ## [3.11.1] - 2026-07-11
