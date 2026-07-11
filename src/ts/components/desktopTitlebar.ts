@@ -91,11 +91,14 @@ export function syncDesktopTitlebarColors() {
  */
 export function initDesktopTitlebar() {
   const bridge = window.wordmarkDesktop;
-  if (!bridge) {
+  if (!bridge && !navigator.userAgent.includes("Electron")) {
     return;
   }
 
-  document.body.classList.add("desktop-app", `platform-${bridge.platform}`);
+  document.body.classList.add("desktop-app");
+  if (bridge) {
+    document.body.classList.add(`platform-${bridge.platform}`);
+  }
   document.getElementById("desktop-titlebar")?.removeAttribute("hidden");
 
   syncDesktopTitlebarColors();
