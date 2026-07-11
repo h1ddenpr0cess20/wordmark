@@ -22,7 +22,10 @@
     "deps:check": "npx npm-check-updates",
     "deps:update": "npx npm-check-updates -u && npm install",
     "docker:build": "docker build -t wordmark .",
-    "docker:run": "docker run --rm -p 8080:80 wordmark:latest"
+    "docker:run": "docker run --rm -p 8080:80 wordmark:latest",
+    "electron": "electron electron/main.cjs",
+    "electron:pack": "electron-builder --dir",
+    "electron:dist": "electron-builder"
   },
   "keywords": [
     "ai",
@@ -78,6 +81,8 @@
     "@types/node": "^25.9.3",
     "@typescript-eslint/eslint-plugin": "^8.61.0",
     "@typescript-eslint/parser": "^8.61.0",
+    "electron": "^33.0.0",
+    "electron-builder": "^25.1.8",
     "eslint": "^10.5.0",
     "globals": "^17.6.0",
     "html-validate": "^11.4.0",
@@ -107,5 +112,32 @@
     "dompurify": "^3.4.10",
     "highlight.js": "^11.11.1",
     "marked": "^18.0.5"
+  },
+  "build": {
+    "appId": "com.h1ddenpr0cess20.wordmark",
+    "productName": "Wordmark",
+    "extraMetadata": {
+      "main": "electron/main.cjs"
+    },
+    "directories": {
+      "output": "release"
+    },
+    "files": [
+      "electron/main.cjs",
+      "dist/**/*",
+      "public/favicon.ico",
+      "package.json"
+    ],
+    "mac": {
+      "category": "public.app-category.productivity",
+      "target": ["dmg", "zip"]
+    },
+    "linux": {
+      "category": "Utility",
+      "target": ["AppImage"]
+    },
+    "win": {
+      "target": ["nsis"]
+    }
   }
 }

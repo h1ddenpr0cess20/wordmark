@@ -3,5 +3,6 @@ key.pem
 .vscode/launch.json
 node_modules
 dist
+release
 CLAUDE.md
 .claude/
