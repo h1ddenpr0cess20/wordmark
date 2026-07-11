@@ -11,6 +11,7 @@ import hljs from "highlight.js";
 import { STORAGE_KEYS } from "../utils/storage/storage.ts";
 import { logVerbose } from "../utils/logger.ts";
 import { parseThemeClassNames, getThemeDisplayName } from "./themeNames.ts";
+import { syncDesktopTitlebarColors } from "./desktopTitlebar.ts";
 import darkThemeCss from "../../css/themes/base/dark.css?raw";
 import lightThemeCss from "../../css/themes/base/light.css?raw";
 import specialThemeCss from "../../css/themes/base/special.css?raw";
@@ -189,6 +190,8 @@ export function applyTheme(themeName: string) {
   document.body.classList.add(themeName);
 
   updateThemeColorTriplets();
+
+  syncDesktopTitlebarColors();
 
   localStorage.setItem(STORAGE_KEYS.selectedTheme, themeName);
 

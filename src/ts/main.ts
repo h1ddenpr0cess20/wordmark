@@ -28,6 +28,7 @@ import "./components/messages.ts";
 import "./components/settings.ts";
 import "./components/ui.ts";
 import "./components/theme.ts";
+import "./components/desktopTitlebar.ts";
 import "./components/interaction.ts";
 import "./components/attachments/attachments.ts";
 import "./components/tools.ts";

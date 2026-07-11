@@ -1,9 +1,12 @@
-const { app, BrowserWindow, shell } = require("electron");
+const { app, BrowserWindow, ipcMain, shell } = require("electron");
 const path = require("node:path");
 const fs = require("node:fs");
 const http = require("node:http");
 
 const DIST_DIR = path.join(__dirname, "..", "dist");
+
+const TITLEBAR_HEIGHT = 36;
+const HEX_COLOR = /^#[0-9a-f]{6}$/i;
 
 const MIME_TYPES = {
   ".html": "text/html",
@@ -71,10 +74,17 @@ async function createWindow() {
     height: 860,
     minWidth: 420,
     minHeight: 500,
-    icon: path.join(__dirname, "..", "public", "favicon.ico"),
+    icon: path.join(__dirname, "icon.png"),
     backgroundColor: "#1a1a1a",
     autoHideMenuBar: true,
+    titleBarStyle: "hidden",
+    titleBarOverlay: {
+      color: "#1a1a1a",
+      symbolColor: "#ffffff",
+      height: TITLEBAR_HEIGHT,
+    },
     webPreferences: {
+      preload: path.join(__dirname, "preload.cjs"),
       contextIsolation: true,
       nodeIntegration: false,
       sandbox: true,
@@ -122,6 +132,21 @@ if (!gotLock) {
       if (mainWindow.isMinimized()) mainWindow.restore();
       mainWindow.focus();
     }
+  });
+
+  ipcMain.handle("titlebar:set-colors", (event, colors) => {
+    if (process.platform === "darwin") return;
+    const win = BrowserWindow.fromWebContents(event.sender);
+    if (!win || !colors || !HEX_COLOR.test(colors.color) || !HEX_COLOR.test(colors.symbolColor)) {
+      return;
+    }
+    try {
+      win.setTitleBarOverlay({
+        color: colors.color,
+        symbolColor: colors.symbolColor,
+        height: TITLEBAR_HEIGHT,
+      });
+    } catch {}
   });
 
   app.whenReady().then(async () => {

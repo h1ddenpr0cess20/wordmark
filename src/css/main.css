@@ -21,6 +21,7 @@
 @import url('./components/layout/mobile/device.css');
 @import url('./components/layout/mobile/panels.css');
 @import url('./components/layout/mobile/landscape.css');
+@import url('./components/layout/desktop.css');
 @import url('./components/ui/controls/input.css');
 @import url('./components/ui/controls/header-buttons.css');
 @import url('./components/ui/controls/toggles.css');

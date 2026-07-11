@@ -1,0 +1,71 @@
+#desktop-titlebar {
+  display: none;
+}
+
+body.desktop-app {
+  --titlebar-height: 36px;
+}
+
+body.desktop-app #desktop-titlebar {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: var(--titlebar-height);
+  padding-left: clamp(14px, calc(env(titlebar-area-x, 0px) + 14px), 110px);
+  padding-right: clamp(14px, calc(100vw - env(titlebar-area-x, 0px) - env(titlebar-area-width, 100vw) + 14px), 190px);
+  background-color: var(--bg-primary);
+  border-bottom: 1px solid var(--border-color);
+  color: var(--text-secondary);
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  z-index: 1000;
+  -webkit-user-select: none;
+  user-select: none;
+  -webkit-app-region: drag;
+  transition: background-color 0.5s ease, color 0.5s ease;
+}
+
+body.desktop-app #desktop-titlebar svg {
+  flex: none;
+}
+
+body.desktop-app #desktop-titlebar span {
+  white-space: nowrap;
+}
+
+body.desktop-app #logo-container {
+  top: calc(24px + var(--titlebar-height));
+}
+
+body.desktop-app #chat-container {
+  top: max(calc(10vh + var(--titlebar-height)), calc(104px + var(--titlebar-height)));
+}
+
+body.desktop-app .notification-container,
+body.desktop-app .debug-toggle-notification {
+  top: calc(20px + var(--titlebar-height));
+}
+
+@media screen and (max-width: 768px) {
+  body.desktop-app #chat-container {
+    top: var(--titlebar-height);
+    height: auto;
+  }
+
+  body.desktop-app #logo-container {
+    top: calc(12px + var(--titlebar-height));
+  }
+}
+
+@media screen and (orientation: landscape) and (max-height: 500px) {
+  body.desktop-app #chat-container {
+    top: var(--titlebar-height);
+    height: auto;
+  }
+}
