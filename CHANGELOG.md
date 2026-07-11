@@ -2,6 +2,13 @@
 
 All notable changes to Wordmark are documented here. Earlier versions didn't follow proper semver — this changelog reflects what actually shipped, not what the version numbers said at the time.
 
+## [3.11.1] - 2026-07-11
+
+Fix electron-builder failing to package the desktop app. Backward-compatible.
+
+### Fixed
+- **electron-builder refusing to run** — a leftover root-level `directories` field (unrelated to electron-builder, an old `npm init` artifact) collided with `build.directories.output` and made every packaging run fail with `"directories" in the root is deprecated`. Removed.
+
 ## [3.11.0] - 2026-07-11
 
 Electron desktop wrapper, a theme cleanup, a long-standing panel bug fix, a provider-aware embedding-model dropdown, and a conversation-model stamping fix. Backward-compatible.
