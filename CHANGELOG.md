@@ -2,6 +2,22 @@
 
 All notable changes to Wordmark are documented here. Earlier versions didn't follow proper semver — this changelog reflects what actually shipped, not what the version numbers said at the time.
 
+## [3.11.0] - 2026-07-11
+
+Electron desktop wrapper, a theme cleanup, a long-standing panel bug fix, a provider-aware embedding-model dropdown, and a conversation-model stamping fix. Backward-compatible.
+
+### Added
+- **Electron desktop wrapper** — the built web app can now run as a desktop app, served from a local HTTP server and loaded in a BrowserWindow. External links open in the system browser and downloads save straight to disk. Wired into the existing `electron`/`electron:pack`/`electron:dist` npm scripts.
+- **Provider-aware embedding-model dropdown** — the embedding model field moved from the API Keys tab to the Model tab as a dropdown, populated with the active provider's embedding models (plus an auto-detect default) when LM Studio or Ollama is active, and grayed out otherwise. Fixes the startup race where a local server auto-selected before its model probe finished left the dropdown empty until a manual refresh.
+
+### Changed
+- **Optional theme packs removed** — the Metal, Neon, and Country theme packs and the whole install/uninstall mechanism are gone. The USA theme survives, now bundled directly under Special Themes. Users with a removed pack's theme saved fall back to Aurora on next load.
+
+### Fixed
+- **Closed panels appearing on screen next to the open one** — clicking or focusing a control during a panel's 250ms slide-in transition could scroll `#chat-container` sideways to reveal the focused element, and the scroll stuck, dragging "hidden" panels into view. Switching the container to `overflow: clip` makes it unscrollable so the reveal can't happen.
+- **API-keys auto-open clobbering an already-open panel** — the delayed prompt to open the API Keys tab now skips itself if any panel is already open.
+- **Wrong model persisted after switching without sending** — conversations recorded the model dropdown's current value at save time instead of the model actually used in the last request, so changing the model or service mid-conversation without sending rewrote the stored record on the next save. Saves now persist the model and service actually dispatched.
+
 ## [3.10.1] - 2026-07-10
 
 Bug fixes for model fetching, history loads, notification theming, and local RAG. Backward-compatible.
