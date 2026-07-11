@@ -20,6 +20,8 @@ export const state: AppState = {
 
   currentConversationId: null,
   currentConversationName: null,
+  lastUsedModel: null,
+  lastUsedService: null,
   generatedImages: [],
   currentGeneratedImageHtml: [],
   loadedSystemPrompt: null,

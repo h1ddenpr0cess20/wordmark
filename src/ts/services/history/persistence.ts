@@ -120,6 +120,8 @@ function resetConversationState() {
   state.generatedImages = [];
   state.currentConversationId = null;
   state.currentConversationName = null;
+  state.lastUsedModel = null;
+  state.lastUsedService = null;
   state.loadedSystemPrompt = null;
   state.userThinkingState = {};
 
@@ -162,8 +164,9 @@ export function saveCurrentConversation(meta: { name?: string; created?: string 
     updated: now.toISOString(),
     messages: markedMessages,
     images: processedImages,
-    model: isSelectableModelId(elements.modelSelector?.value) ? elements.modelSelector!.value : "Unknown",
-    service: config?.defaultService || "Unknown",
+    model: state.lastUsedModel
+      || (isSelectableModelId(elements.modelSelector?.value) ? elements.modelSelector!.value : "Unknown"),
+    service: state.lastUsedService || config?.defaultService || "Unknown",
     systemPrompt: {
       type: promptType,
       content: promptContent,
@@ -281,6 +284,8 @@ function loadConversationIntoUI(convo: ConversationRecord, imageCache: Map<strin
   state.generatedImages = Array.isArray(convo.images) ? convo.images : [];
   state.currentConversationId = convo.id || null;
   state.currentConversationName = convo.name || null;
+  state.lastUsedModel = convo.model && convo.model !== "Unknown" ? convo.model : null;
+  state.lastUsedService = convo.service && convo.service !== "Unknown" ? convo.service : null;
   state.loadedSystemPrompt = convo.systemPrompt || null;
   state.userThinkingState = {};
 
