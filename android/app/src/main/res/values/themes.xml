@@ -14,4 +14,12 @@
         <item name="android:windowTranslucentStatus">true</item>
         <!-- Customize your theme here. -->
     </style>
+
+    <!-- The app theme's transparent colorPrimary/colorSecondary would make
+         dialog button text invisible, so dialogs use visible colors. -->
+    <style name="ThemeOverlay.Wordmark.Dialog" parent="ThemeOverlay.MaterialComponents.Dialog.Alert">
+        <item name="colorPrimary">@color/dialog_accent</item>
+        <item name="colorSecondary">@color/dialog_accent</item>
+        <item name="colorAccent">@color/dialog_accent</item>
+    </style>
 </resources>
