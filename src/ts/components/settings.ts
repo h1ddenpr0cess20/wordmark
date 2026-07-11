@@ -56,6 +56,8 @@ export function updateModelsDropdown(fetchError?: boolean) {
 
   updateModelSelector();
 
+  uiHooks.refreshEmbeddingModelUI?.();
+
   if (fetchError) {
     showInlineStatus(
       "service-status",
