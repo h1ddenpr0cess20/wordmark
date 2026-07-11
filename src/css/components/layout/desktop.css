@@ -1,0 +1,74 @@
+/* Custom title bar for the Electron desktop shell.
+   body.desktop-app is set by desktopTitlebar.ts when the preload bridge is
+   present; in a browser everything here is inert. The desktop window is
+   frameless (titleBarStyle: "hidden"), so the bar is the drag region, and the
+   env(titlebar-area-*) variables keep its content clear of the native window
+   controls (right-side overlay on Windows/Linux, traffic lights on macOS).
+   Fixed viewport chrome below shifts down by --titlebar-height. */
+
+#desktop-titlebar {
+  display: none;
+}
+
+body.desktop-app {
+  /* Keep in sync with TITLEBAR_HEIGHT in electron/main.cjs. */
+  --titlebar-height: 36px;
+}
+
+body.desktop-app #desktop-titlebar {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: var(--titlebar-height);
+  padding-left: calc(env(titlebar-area-x, 0px) + 14px);
+  padding-right: calc(100vw - env(titlebar-area-x, 0px) - env(titlebar-area-width, 100vw) + 14px);
+  background-color: var(--bg-primary);
+  border-bottom: 1px solid var(--border-color);
+  color: var(--text-secondary);
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  z-index: 1000;
+  -webkit-user-select: none;
+  user-select: none;
+  -webkit-app-region: drag;
+  transition: background-color 0.5s ease, color 0.5s ease;
+}
+
+body.desktop-app #logo-container {
+  top: calc(24px + var(--titlebar-height));
+}
+
+body.desktop-app #chat-container {
+  top: max(calc(10vh + var(--titlebar-height)), calc(104px + var(--titlebar-height)));
+}
+
+body.desktop-app .notification-container,
+body.desktop-app .debug-toggle-notification {
+  top: calc(20px + var(--titlebar-height));
+}
+
+/* Narrow/short windows: the mobile layouts pin #chat-container to the full
+   viewport and dock the logo top-left, so re-open room for the title bar. */
+@media screen and (max-width: 768px) {
+  body.desktop-app #chat-container {
+    top: var(--titlebar-height);
+    height: auto;
+  }
+
+  body.desktop-app #logo-container {
+    top: calc(12px + var(--titlebar-height));
+  }
+}
+
+@media screen and (orientation: landscape) and (max-height: 500px) {
+  body.desktop-app #chat-container {
+    top: var(--titlebar-height);
+    height: auto;
+  }
+}

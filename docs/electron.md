@@ -14,6 +14,13 @@ session. There is no backend.
 
 ## What the desktop shell adds
 
+- **Custom title bar** — the window is frameless (`titleBarStyle: "hidden"`)
+  and the web app renders its own title bar (`#desktop-titlebar`), themed with
+  the active theme's CSS variables and doubling as the window drag region. On
+  Windows/Linux, `src/ts/components/desktopTitlebar.ts` recolors the native
+  window-control overlay through the `electron/preload.cjs` bridge whenever
+  the theme changes; macOS keeps its standard traffic lights. In a browser the
+  bridge is absent, so the bar never appears.
 - **Local static server** — `electron/main.cjs` serves `dist/` over
   `http://127.0.0.1` on an OS-assigned port with an `index.html` SPA
   fallback, since Vite's root-relative asset paths (`/assets/...`) don't

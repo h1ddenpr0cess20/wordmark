@@ -1,9 +1,13 @@
-const { app, BrowserWindow, shell } = require("electron");
+const { app, BrowserWindow, ipcMain, shell } = require("electron");
 const path = require("node:path");
 const fs = require("node:fs");
 const http = require("node:http");
 
 const DIST_DIR = path.join(__dirname, "..", "dist");
+
+// Keep in sync with --titlebar-height in src/css/components/layout/desktop.css.
+const TITLEBAR_HEIGHT = 36;
+const HEX_COLOR = /^#[0-9a-f]{6}$/i;
 
 const MIME_TYPES = {
   ".html": "text/html",
@@ -74,7 +78,17 @@ async function createWindow() {
     icon: path.join(__dirname, "icon.png"),
     backgroundColor: "#1a1a1a",
     autoHideMenuBar: true,
+    // Frameless window: the web app renders its own title bar (a drag strip
+    // themed with the app's CSS variables) and only the native window
+    // controls remain, drawn by the OS in the overlay area.
+    titleBarStyle: "hidden",
+    titleBarOverlay: {
+      color: "#1a1a1a",
+      symbolColor: "#ffffff",
+      height: TITLEBAR_HEIGHT,
+    },
     webPreferences: {
+      preload: path.join(__dirname, "preload.cjs"),
       contextIsolation: true,
       nodeIntegration: false,
       sandbox: true,
@@ -121,6 +135,25 @@ if (!gotLock) {
     if (mainWindow) {
       if (mainWindow.isMinimized()) mainWindow.restore();
       mainWindow.focus();
+    }
+  });
+
+  // The web app calls this on theme change so the native window controls
+  // match the active theme. macOS traffic lights are not recolorable.
+  ipcMain.handle("titlebar:set-colors", (event, colors) => {
+    if (process.platform === "darwin") return;
+    const win = BrowserWindow.fromWebContents(event.sender);
+    if (!win || !colors || !HEX_COLOR.test(colors.color) || !HEX_COLOR.test(colors.symbolColor)) {
+      return;
+    }
+    try {
+      win.setTitleBarOverlay({
+        color: colors.color,
+        symbolColor: colors.symbolColor,
+        height: TITLEBAR_HEIGHT,
+      });
+    } catch {
+      // Not supported on some Linux window managers; the bar itself is still themed.
     }
   });
 
