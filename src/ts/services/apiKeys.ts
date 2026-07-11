@@ -292,31 +292,25 @@ function saveOllamaServerUrl() {
  * Rebuilds the embedding-model dropdown for the active provider.
  *
  * @remarks
- * The block is shown only when the active service is a local provider
- * (LM Studio / Ollama) that reported at least one embedding model. Options are
- * an auto-detect default plus every embedding model the provider listed; a
- * stored model missing from the list is kept as an option since it is still
- * the one {@link resolveEmbeddingModel} will use.
+ * Enabled only when the active service is a local provider (LM Studio /
+ * Ollama) that reported at least one embedding model; otherwise it is grayed
+ * out. Options are an auto-detect default plus every embedding model the
+ * provider listed; a stored model missing from the list is kept as an option
+ * since it is still the one {@link resolveEmbeddingModel} will use.
  */
 function refreshEmbeddingModelUI() {
-  const block = document.getElementById("embedding-model-block");
   const select = embeddingModelSelect
     || (document.getElementById("embedding-model") as HTMLSelectElement | null);
-  if (!block || !select) {
+  if (!select) {
     return;
   }
 
   const serviceKey = config?.defaultService;
   const service = serviceKey ? config?.services?.[serviceKey] : null;
-  const embeddingModels = isLocalService(serviceKey) && Array.isArray(service?.embeddingModels)
+  const local = isLocalService(serviceKey);
+  const embeddingModels = local && Array.isArray(service?.embeddingModels)
     ? service.embeddingModels.filter((m): m is string => typeof m === "string" && m.length > 0)
     : [];
-
-  if (embeddingModels.length === 0) {
-    block.hidden = true;
-    return;
-  }
-  block.hidden = false;
 
   let stored = "";
   try {
@@ -325,7 +319,7 @@ function refreshEmbeddingModelUI() {
     stored = "";
   }
 
-  const options = stored && !embeddingModels.includes(stored)
+  const options = local && stored && !embeddingModels.includes(stored)
     ? [stored, ...embeddingModels]
     : embeddingModels;
 
@@ -340,7 +334,8 @@ function refreshEmbeddingModelUI() {
     option.textContent = model;
     select.appendChild(option);
   }
-  select.value = stored;
+  select.value = local ? stored : "";
+  select.disabled = options.length === 0;
 }
 
 uiHooks.refreshEmbeddingModelUI = refreshEmbeddingModelUI;
