@@ -1,9 +1,13 @@
 # Wordmark Android (WebView wrapper)
 
-A thin native Android shell that loads the Wordmark web app
-(`https://wordmark-chatbot.vercel.app/`) in a full-screen `WebView`, adding
-native download handling, file uploads, geolocation prompts, and image
-long-press "Save image". All app logic still lives in the web app.
+A thin native Android shell that loads the Wordmark web app in a full-screen
+`WebView`, adding native download handling, file uploads, geolocation prompts,
+and image long-press "Save image". All app logic still lives in the web app.
+
+On first launch the app asks whether to use the hosted version
+(`https://wordmark-chatbot.vercel.app/`) or a server URL you provide (for
+self-hosted instances, e.g. `http://192.168.1.100:5173`). The choice is
+persisted; to pick again, clear the app's data in Android settings.
 
 - **Package / applicationId:** `com.h1ddenpr0cess20.wordmark`
 - **minSdk 24 · targetSdk 36**

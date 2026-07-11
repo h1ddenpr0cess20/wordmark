@@ -5,6 +5,7 @@ import android.app.Activity
 import android.app.DownloadManager
 import android.content.Context
 import android.content.Intent
+import android.content.SharedPreferences
 import android.content.pm.PackageManager
 import android.media.MediaScannerConnection
 import android.net.Uri
@@ -25,9 +26,11 @@ import android.webkit.WebChromeClient
 import android.webkit.WebView
 import android.webkit.WebResourceRequest
 import android.webkit.WebViewClient
+import android.widget.EditText
 import android.widget.Toast
 import androidx.activity.OnBackPressedCallback
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
@@ -41,6 +44,8 @@ import java.io.FileOutputStream
 
 class MainActivity : AppCompatActivity() {
     private lateinit var webView: WebView
+    private lateinit var prefs: SharedPreferences
+    private var appHost: String = DEFAULT_APP_HOST
     private val permissionRequestCode = 1001
     private val locationPermissionRequestCode = 1002
     private val mediaPermissionRequestCode = 1003
@@ -211,7 +216,7 @@ class MainActivity : AppCompatActivity() {
                     val host = url.host.orEmpty()
                     // The Wordmark web app (and any subdomain) stays in-app; all API/fetch
                     // calls to OpenAI/xAI/local servers are XHR and never reach this method.
-                    if (host == APP_HOST || host.endsWith(".$APP_HOST")) {
+                    if (host == appHost || host.endsWith(".$appHost")) {
                         return false
                     }
                 }
@@ -300,8 +305,15 @@ class MainActivity : AppCompatActivity() {
             }
         }
 
-        // Load the URL
-        webView.loadUrl(APP_URL)
+        // On first run, ask whether to use the hosted version or a self-hosted
+        // server; afterwards, load whichever server was chosen.
+        prefs = getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+        val savedUrl = prefs.getString(KEY_SERVER_URL, null)
+        if (savedUrl != null) {
+            loadServer(savedUrl)
+        } else {
+            showFirstRunServerPrompt()
+        }
 
         // Handle back press
         ViewCompat.setOnApplyWindowInsetsListener(mainContainer) { view, windowInsets ->
@@ -325,6 +337,75 @@ class MainActivity : AppCompatActivity() {
                 }
             }
         })
+    }
+
+    /**
+     * First-run choice between the hosted Wordmark instance and a
+     * self-hosted server. The answer is persisted, so the prompt only
+     * appears again if app data is cleared.
+     */
+    private fun showFirstRunServerPrompt() {
+        AlertDialog.Builder(this, R.style.ThemeOverlay_Wordmark_Dialog)
+            .setTitle(R.string.server_choice_title)
+            .setMessage(R.string.server_choice_message)
+            .setCancelable(false)
+            .setPositiveButton(R.string.server_choice_hosted) { _, _ ->
+                saveAndLoadServer(DEFAULT_APP_URL)
+            }
+            .setNegativeButton(R.string.server_choice_custom) { _, _ ->
+                showCustomServerDialog()
+            }
+            .show()
+    }
+
+    private fun showCustomServerDialog() {
+        val view = layoutInflater.inflate(R.layout.dialog_server_url, null)
+        val input = view.findViewById<EditText>(R.id.server_url_input)
+        val dialog = AlertDialog.Builder(this, R.style.ThemeOverlay_Wordmark_Dialog)
+            .setTitle(R.string.server_url_title)
+            .setMessage(R.string.server_url_message)
+            .setView(view)
+            .setCancelable(false)
+            .setPositiveButton(R.string.server_url_connect, null) // Overridden below to validate first
+            .setNegativeButton(R.string.server_url_back) { _, _ -> showFirstRunServerPrompt() }
+            .create()
+        dialog.setOnShowListener {
+            dialog.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener {
+                val normalized = normalizeServerUrl(input.text.toString())
+                if (normalized == null) {
+                    input.error = getString(R.string.server_url_invalid)
+                } else {
+                    dialog.dismiss()
+                    saveAndLoadServer(normalized)
+                }
+            }
+        }
+        dialog.show()
+    }
+
+    /**
+     * Accepts host, host:port, or full http(s) URLs; a missing scheme
+     * defaults to https. Returns null if no usable http(s) URL results.
+     */
+    private fun normalizeServerUrl(raw: String): String? {
+        val trimmed = raw.trim()
+        if (trimmed.isEmpty()) return null
+        val withScheme = if (trimmed.contains("://")) trimmed else "https://$trimmed"
+        val uri = runCatching { withScheme.toUri() }.getOrNull() ?: return null
+        val scheme = uri.scheme?.lowercase()
+        if (scheme != "http" && scheme != "https") return null
+        if (uri.host.isNullOrEmpty()) return null
+        return withScheme
+    }
+
+    private fun saveAndLoadServer(url: String) {
+        prefs.edit().putString(KEY_SERVER_URL, url).apply()
+        loadServer(url)
+    }
+
+    private fun loadServer(url: String) {
+        appHost = url.toUri().host.orEmpty().ifEmpty { DEFAULT_APP_HOST }
+        webView.loadUrl(url)
     }
 
     private fun injectDownloadScript() {
@@ -668,8 +749,10 @@ class MainActivity : AppCompatActivity() {
     }
 
     companion object {
-        private const val APP_URL = "https://wordmark-chatbot.vercel.app/"
-        private const val APP_HOST = "wordmark-chatbot.vercel.app"
+        private const val DEFAULT_APP_URL = "https://wordmark-chatbot.vercel.app/"
+        private const val DEFAULT_APP_HOST = "wordmark-chatbot.vercel.app"
+        private const val PREFS_NAME = "wordmark_prefs"
+        private const val KEY_SERVER_URL = "server_url"
         private const val TAG = "WordmarkApp"
     }
 }
