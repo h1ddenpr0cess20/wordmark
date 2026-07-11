@@ -1,5 +1,18 @@
+/**
+ * Custom title bar for the Electron desktop shell.
+ *
+ * @remarks
+ * The desktop window is frameless (`titleBarStyle: "hidden"` in
+ * `electron/main.cjs`), so the web app renders its own drag strip
+ * (`#desktop-titlebar`) themed with the app's CSS variables, and pushes the
+ * active theme's colors to the native window-control overlay on Windows and
+ * Linux. In a regular browser the preload bridge is absent and this module
+ * does nothing.
+ */
+
 declare global {
   interface Window {
+    /** Bridge exposed by `electron/preload.cjs` when running in the desktop app. */
     wordmarkDesktop?: {
       platform: string;
       setTitleBarColors: (colors: { color: string; symbolColor: string }) => Promise<void>;
@@ -9,6 +22,13 @@ declare global {
 
 let colorParsingContext: CanvasRenderingContext2D | null = null;
 
+/**
+ * Normalizes any CSS color string to `#rrggbb`, which is the only format the
+ * native title bar overlay accepts.
+ *
+ * @param colorValue - The CSS color string to convert.
+ * @returns The hex color, or `null` if it cannot be parsed.
+ */
 function toHexColor(colorValue: string) {
   if (!colorValue) {
     return null;
@@ -41,6 +61,11 @@ function toHexColor(colorValue: string) {
   return null;
 }
 
+/**
+ * Pushes the active theme's colors to the native window-control overlay so
+ * the minimize/maximize/close buttons match the custom title bar. No-op
+ * outside the desktop app.
+ */
 export function syncDesktopTitlebarColors() {
   const bridge = window.wordmarkDesktop;
   if (!bridge || !document.body) {
@@ -59,6 +84,11 @@ export function syncDesktopTitlebarColors() {
   });
 }
 
+/**
+ * Shows the custom title bar and tags `body` with `desktop-app` (plus a
+ * `platform-*` class) when running inside the Electron shell, so the CSS in
+ * `components/layout/desktop.css` activates.
+ */
 export function initDesktopTitlebar() {
   const bridge = window.wordmarkDesktop;
   if (!bridge) {
