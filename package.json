@@ -1,6 +1,6 @@
 {
   "name": "wordmark",
-  "version": "3.11.1",
+  "version": "3.11.2",
   "description": "Client-side, backend-free AI assistant platform for OpenAI and xAI Grok (Responses API) plus local LM Studio/Ollama servers, with tool calling, MCP servers, web/X search, image generation, TTS, and fully local storage.",
   "main": "index.html",
   "type": "module",
@@ -121,20 +121,24 @@
     },
     "files": [
       "electron/main.cjs",
+      "electron/icon.png",
       "dist/**/*",
       "public/favicon.ico",
       "package.json"
     ],
     "mac": {
       "category": "public.app-category.productivity",
-      "target": ["dmg", "zip"]
+      "target": ["dmg", "zip"],
+      "icon": "electron/icon.png"
     },
     "linux": {
       "category": "Utility",
-      "target": ["AppImage"]
+      "target": ["AppImage"],
+      "icon": "electron/icon.png"
     },
     "win": {
-      "target": ["nsis"]
+      "target": ["nsis"],
+      "icon": "electron/icon.png"
     }
   }
 }

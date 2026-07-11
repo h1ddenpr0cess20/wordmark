@@ -2,6 +2,13 @@
 
 All notable changes to Wordmark are documented here. Earlier versions didn't follow proper semver — this changelog reflects what actually shipped, not what the version numbers said at the time.
 
+## [3.11.2] - 2026-07-11
+
+Desktop app icon fix. Backward-compatible.
+
+### Fixed
+- **Desktop app showing the default Electron logo** — packaged builds had no icon configured in electron-builder, so installers and the packaged app shipped with Electron's stock logo, and the runtime window icon pointed at the 64px web favicon. A 512×512 rendering of the Wordmark circled-W logo with a transparent background now lives at `electron/icon.png` and is used for the window icon and the mac/win/linux packaging targets.
+
 ## [3.11.1] - 2026-07-11
 
 Fix the desktop app failing to build and launch. Backward-compatible.
