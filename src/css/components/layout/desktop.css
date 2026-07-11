@@ -1,17 +1,8 @@
-/* Custom title bar for the Electron desktop shell.
-   body.desktop-app is set by desktopTitlebar.ts when the preload bridge is
-   present; in a browser everything here is inert. The desktop window is
-   frameless (titleBarStyle: "hidden"), so the bar is the drag region, and the
-   env(titlebar-area-*) variables keep its content clear of the native window
-   controls (right-side overlay on Windows/Linux, traffic lights on macOS).
-   Fixed viewport chrome below shifts down by --titlebar-height. */
-
 #desktop-titlebar {
   display: none;
 }
 
 body.desktop-app {
-  /* Keep in sync with TITLEBAR_HEIGHT in electron/main.cjs. */
   --titlebar-height: 36px;
 }
 
@@ -53,8 +44,6 @@ body.desktop-app .debug-toggle-notification {
   top: calc(20px + var(--titlebar-height));
 }
 
-/* Narrow/short windows: the mobile layouts pin #chat-container to the full
-   viewport and dock the logo top-left, so re-open room for the title bar. */
 @media screen and (max-width: 768px) {
   body.desktop-app #chat-container {
     top: var(--titlebar-height);
