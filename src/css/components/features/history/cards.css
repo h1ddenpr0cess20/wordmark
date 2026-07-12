@@ -69,6 +69,23 @@
   word-break: break-word;
 }
 
+.history-rename-input {
+  flex: 1;
+  min-width: 0;
+  font: inherit;
+  font-weight: 500;
+  font-size: 0.9rem;
+  color: var(--text-primary);
+  background-color: var(--bg-primary);
+  border: 1px solid var(--accent-color);
+  border-radius: 6px;
+  padding: 2px 8px;
+}
+
+.history-rename-input:focus {
+  outline: none;
+}
+
 .history-row-actions {
   display: flex;
   gap: 4px;

@@ -32,12 +32,18 @@ function messageText(message: ConversationMessage): string {
 }
 
 /**
- * Derives a conversation's list title. Party conversations are titled by their
- * scenario topic (falling back to the opening line, then the cast), since they
- * often open on an AI turn rather than a user message; other conversations use
- * their first user message.
+ * Derives a conversation's list title. A user-assigned name wins; the
+ * auto-generated `Conversation <timestamp>` and `Personality: <persona>` names
+ * from {@link ./persistence.ts} don't count as user-assigned. Party
+ * conversations are titled by their scenario topic (falling back to the
+ * opening line, then the cast), since they often open on an AI turn rather
+ * than a user message; other conversations use their first user message.
  */
 export function extractConversationTitle(convo: ConversationRecord): string {
+  const name = convo.name?.trim();
+  if (name && !/^(Conversation \d|Personality: )/.test(name)) {
+    return truncate(name, DISPLAY_MAX);
+  }
   if (convo.mode === "party") {
     const topic = convo.scenario?.topic?.trim();
     if (topic) {

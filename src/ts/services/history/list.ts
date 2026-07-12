@@ -251,11 +251,46 @@ export function renderChatHistoryList() {
 
         renameAction.onclick = (e) => {
           e.stopPropagation();
-          const currentTitle = row.querySelector(".history-title")?.textContent || "";
-          const newName = prompt("Rename conversation:", currentTitle);
-          if (convo.id && newName && newName.trim()) {
-            renameConversation(convo.id, newName.trim());
+          const titleEl = row.querySelector(".history-title") as HTMLElement | null;
+          if (!titleEl || row.querySelector(".history-rename-input")) {
+            return;
           }
+
+          const currentTitle = titleEl.textContent || "";
+          const input = document.createElement("input");
+          input.type = "text";
+          input.className = "history-rename-input";
+          input.value = currentTitle;
+          input.setAttribute("aria-label", "Conversation name");
+          titleEl.replaceWith(input);
+
+          let finished = false;
+          const finish = (commit: boolean) => {
+            if (finished) {
+              return;
+            }
+            finished = true;
+            const newName = input.value.trim();
+            if (commit && convo.id && newName && newName !== currentTitle) {
+              titleEl.textContent = newName;
+              renameConversation(convo.id, newName);
+            }
+            input.replaceWith(titleEl);
+          };
+
+          input.onclick = (event) => event.stopPropagation();
+          input.onkeydown = (event) => {
+            event.stopPropagation();
+            if (event.key === "Enter") {
+              finish(true);
+            } else if (event.key === "Escape") {
+              finish(false);
+            }
+          };
+          input.onblur = () => finish(true);
+
+          input.focus();
+          input.select();
         };
 
         deleteAction.onclick = (e) => {
