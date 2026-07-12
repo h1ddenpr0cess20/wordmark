@@ -115,28 +115,10 @@
 }
 
 .prompt-type {
-  padding: 2px 8px;
-  border-radius: 10px;
-  font-size: 0.7rem;
-  font-weight: 600;
-  line-height: 1.5;
+  font-size: 0.72rem;
+  color: var(--text-secondary);
+  line-height: 1.4;
   overflow-wrap: anywhere;
-}
-
-.prompt-type.personality,
-.prompt-type.party {
-  background-color: rgba(var(--accent-color-rgb), 0.15);
-  color: var(--accent-color);
-}
-
-.prompt-type.custom {
-  background-color: color-mix(in srgb, var(--warning-color) 15%, transparent);
-  color: var(--warning-color);
-}
-
-.prompt-type.none {
-  background-color: color-mix(in srgb, var(--neutral-color) 15%, transparent);
-  color: var(--neutral-color);
 }
 
 .history-card-meta {
