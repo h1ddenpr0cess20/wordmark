@@ -3,7 +3,7 @@
  *
  * @remarks
  * Pure, DOM-free helpers that derive a saved conversation's display fields
- * (title, relative date, prompt summary) and build its table-row inner HTML for
+ * (title, relative date, prompt summary) and build its card inner HTML for
  * {@link ./list.ts}. Kept separate from the list controller so the row content
  * logic stays free of the selection/event wiring and is independently testable.
  */
@@ -91,7 +91,7 @@ export function resolveConversationPrompt(convo: ConversationRecord): { info: st
   return { info: "None", cssClass: "none" };
 }
 
-/** Builds the `<td>` inner HTML for a conversation's history-list row. */
+/** Builds the inner HTML for a conversation's history-list card. */
 export function buildHistoryRowHtml(convo: ConversationRecord): string {
   const title = extractConversationTitle(convo);
   const formatted = formatConversationDate(convo.updated);
@@ -103,26 +103,20 @@ export function buildHistoryRowHtml(convo: ConversationRecord): string {
   const imageCount = (convo.images || []).length;
 
   return `
-          <td class="col-title">
+          <div class="history-card-top">
             <div class="history-title">${escapeHtml(title)}</div>
-          </td>
-          <td class="col-prompt">
-            <span class="prompt-type ${promptClass}">${escapeHtml(promptInfo)}</span>
-          </td>
-          <td class="col-model">
-            <div class="model-info">
-              <div class="model-name">${escapeHtml(modelInfo)}</div>
-              <div class="service-name">${escapeHtml(serviceInfo)}</div>
-            </div>
-          </td>
-          <td class="col-stats">
-            <div class="stats-info">
+            <span class="date-info">${formatted}</span>
+          </div>
+          <div class="history-card-meta">
+            ${promptInfo ? `<span class="prompt-type ${promptClass}">${escapeHtml(promptInfo)}</span>` : ""}
+            <span class="model-info">
+              <span class="model-name">${escapeHtml(modelInfo)}</span>
+              <span class="service-name">${escapeHtml(serviceInfo)}</span>
+            </span>
+            <span class="stats-info">
               <span class="message-count">${messageCount} msg</span>
               ${imageCount > 0 ? `<span class="image-count">${imageCount} media</span>` : ""}
-            </div>
-          </td>
-          <td class="col-date">
-            <span class="date-info">${formatted}</span>
-          </td>
+            </span>
+          </div>
         `;
 }

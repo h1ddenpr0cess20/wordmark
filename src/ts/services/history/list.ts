@@ -116,9 +116,9 @@ export function renderChatHistoryList() {
 
         deselectAllRows();
 
-        const table = document.querySelector(".history-table");
-        if (table) {
-          table.classList.toggle("multi-select-mode", isMultiSelect);
+        const cards = document.querySelector(".history-cards");
+        if (cards) {
+          cards.classList.toggle("multi-select-mode", isMultiSelect);
         }
 
         updateButtonStates();
@@ -239,30 +239,13 @@ export function renderChatHistoryList() {
       activeHistoryKeydown = handleKeydown;
       document.addEventListener("keydown", handleKeydown);
 
-      const tableContainer = document.createElement("div");
-      tableContainer.className = "history-table-container";
-
-      const table = document.createElement("table");
-      table.className = "history-table";
-
-      const thead = document.createElement("thead");
-      thead.innerHTML = `
-        <tr>
-          <th class="col-title">Conversation</th>
-          <th class="col-prompt">Prompt</th>
-          <th class="col-model">Model</th>
-          <th class="col-stats">Stats</th>
-          <th class="col-date">Updated</th>
-        </tr>
-      `;
-      table.appendChild(thead);
-
-      const tbody = document.createElement("tbody");
+      const cardList = document.createElement("div");
+      cardList.className = "history-cards";
 
       let anchorRow: Element | null = null;
 
       convos.forEach((convo) => {
-        const row = document.createElement("tr");
+        const row = document.createElement("div");
         row.className = "history-row";
         row.dataset.conversationId = convo.id || "";
 
@@ -306,12 +289,10 @@ export function renderChatHistoryList() {
           updateButtonStates();
         };
 
-        tbody.appendChild(row);
+        cardList.appendChild(row);
       });
 
-      table.appendChild(tbody);
-      tableContainer.appendChild(table);
-      historyList.appendChild(tableContainer);
+      historyList.appendChild(cardList);
     })
     .catch((err) => {
       console.error("Error loading conversations for history list:", err);

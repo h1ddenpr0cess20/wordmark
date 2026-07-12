@@ -56,50 +56,22 @@
     flex-wrap: wrap;
   }
 
-  .history-table-container {
-    max-height: calc(100vh - 250px);
-  }
-
-  .history-table {
-    font-size: 0.8rem;
-  }
-
-  .history-table th,
-  .history-table td {
-    padding: 8px 4px;
-  }
-  .history-table .col-title {
-    width: 34%;
-  }
-
-  .history-table .col-prompt {
-    width: 21%;
-  }
-
-  .history-table .col-model {
-    width: 22%;
-  }
-
-  .history-table .col-stats {
-    width: 11%;
-  }
-
-  .history-table .col-date {
-    width: 12%;
+  .history-row {
+    padding: 10px 12px;
   }
 
   .history-title {
     font-size: 0.85rem;
-    line-height: 1.2;
+    line-height: 1.3;
   }
 
   .prompt-type {
     font-size: 0.65rem;
-    padding: 1px 4px;
+    padding: 1px 6px;
   }
 
   .model-name {
-    font-size: 0.75rem;
+    font-size: 0.7rem;
   }
 
   .service-name {
@@ -112,7 +84,7 @@
   }
 
   .date-info {
-    font-size: 0.65rem;
+    font-size: 0.7rem;
   }
   .history-load-btn,
   .history-rename-btn,
@@ -135,25 +107,6 @@
     min-height: 44px;
   }
 }
-@media screen and (max-width: 480px) {
-  .history-table .col-stats,
-  .history-table .col-date {
-    display: none;
-  }
-
-  .history-table .col-title {
-    width: 50%;
-  }
-
-  .history-table .col-prompt {
-    width: 25%;
-  }
-
-  .history-table .col-model {
-    width: 25%;
-  }
-}
-
 @media screen and (max-width: 390px) {
   .tab-button {
     padding: 8px 4px;

@@ -1,0 +1,141 @@
+/* Saved-conversation cards. Each .history-row is a stacked card: title + date
+   on top, then a wrapping meta row (prompt pill, model/service, counts), so
+   long content wraps instead of being clipped by fixed columns. */
+.history-cards {
+  flex: 1;
+  overflow-y: auto;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding-right: 2px;
+  scrollbar-width: thin;
+  scrollbar-color: var(--accent-color) var(--bg-secondary);
+}
+
+.history-row {
+  background-color: var(--bg-secondary);
+  border: 1px solid var(--border-color);
+  border-left: 3px solid transparent;
+  border-radius: 10px;
+  padding: 12px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  cursor: pointer;
+  transition: background-color 0.15s, border-color 0.15s;
+}
+
+.history-row:hover {
+  border-color: var(--accent-color);
+}
+
+.history-row.selected {
+  border-color: var(--accent-color);
+  border-left-color: var(--accent-color);
+  background-color: var(--accent-hover-light, rgba(var(--accent-color-rgb), 0.1));
+}
+
+.history-cards.multi-select-mode .history-row.selected {
+  background-color: var(--accent-hover-light, rgba(var(--accent-color-rgb), 0.15));
+}
+
+.history-row.current-conversation {
+  border-left-color: var(--accent-color);
+  background-color: var(--accent-hover-light, rgba(var(--accent-color-rgb), 0.15));
+}
+
+.history-card-top {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.history-title {
+  flex: 1;
+  min-width: 0;
+  font-weight: 500;
+  color: var(--text-primary);
+  font-size: 0.9rem;
+  line-height: 1.4;
+  word-break: break-word;
+}
+
+.date-info {
+  flex-shrink: 0;
+  font-size: 0.75rem;
+  color: var(--text-secondary);
+  white-space: nowrap;
+}
+
+.history-card-meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px 12px;
+  min-width: 0;
+}
+
+.prompt-type {
+  padding: 2px 8px;
+  border-radius: 12px;
+  font-size: 0.7rem;
+  font-weight: 600;
+  line-height: 1.5;
+  max-width: 100%;
+  overflow-wrap: anywhere;
+}
+
+.prompt-type.personality,
+.prompt-type.party {
+  background-color: rgba(var(--accent-color-rgb), 0.15);
+  color: var(--accent-color);
+}
+
+.prompt-type.custom {
+  background-color: color-mix(in srgb, var(--warning-color) 15%, transparent);
+  color: var(--warning-color);
+}
+
+.prompt-type.none {
+  background-color: color-mix(in srgb, var(--neutral-color) 15%, transparent);
+  color: var(--neutral-color);
+}
+
+.model-info {
+  display: inline-flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: 6px;
+  min-width: 0;
+  max-width: 100%;
+}
+
+.model-name {
+  font-weight: 500;
+  color: var(--text-primary);
+  font-size: 0.75rem;
+  overflow-wrap: anywhere;
+}
+
+.service-name {
+  font-size: 0.7rem;
+  color: var(--text-secondary);
+  opacity: 0.8;
+  overflow-wrap: anywhere;
+}
+
+.stats-info {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 8px;
+  margin-left: auto;
+}
+
+.message-count,
+.image-count {
+  font-size: 0.7rem;
+  color: var(--text-secondary);
+  white-space: nowrap;
+}
