@@ -18,7 +18,6 @@ body.desktop-app #desktop-titlebar {
   padding-left: clamp(14px, calc(env(titlebar-area-x, 0px) + 14px), 110px);
   padding-right: clamp(14px, calc(100vw - env(titlebar-area-x, 0px) - env(titlebar-area-width, 100vw) + 14px), 190px);
   background-color: var(--bg-primary);
-  border-bottom: 1px solid var(--border-color);
   color: var(--text-secondary);
   font-size: 0.72rem;
   font-weight: 600;
