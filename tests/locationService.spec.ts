@@ -25,6 +25,7 @@ globalThis.localStorage = createLocalStorage();
 const {
   locationState,
   requestLocation,
+  requestIpLocation,
   formatLocationString,
   initializeLocationService,
   disableLocation,
@@ -107,6 +108,73 @@ test('requestLocation maps geolocation errors to friendly message', async () => 
 
   const result = await requestLocation();
   assert.equal(result.error, 'Location access denied by user');
+  assert.equal(locationState.enabled, false);
+  assert.equal(storage.getItem('locationEnabled'), 'false');
+});
+
+test('requestLocation falls back to IP geolocation in the desktop shell', async () => {
+  resetLocationState();
+  const storage = createLocalStorage();
+  globalThis.localStorage = storage;
+  globalThis.document = nullDocument;
+  (globalThis.window as unknown as Record<string, unknown>).wordmarkDesktop = {};
+  const errorObj = { code: 2, PERMISSION_DENIED: 1, POSITION_UNAVAILABLE: 2, TIMEOUT: 3 };
+  globalThis.navigator = asNavigator({
+    geolocation: { getCurrentPosition(_success: unknown, failure: (err: typeof errorObj) => void) { setImmediate(() => failure(errorObj)); } },
+  });
+  const fetchCalls: string[] = [];
+  globalThis.fetch = (async (url: string) => {
+    fetchCalls.push(url);
+    return {
+      ok: true,
+      json: async () => ({ latitude: 41.88, longitude: -87.63, city: 'Chicago', region: 'Illinois', country_name: 'United States' }),
+    };
+  }) as unknown as typeof fetch;
+
+  try {
+    const result = await requestLocation();
+    assert.equal(result.success, true);
+    assert.ok(fetchCalls[0].includes('ipapi.co'));
+    assert.ok(result.locationString!.includes('Chicago'));
+    assert.equal(locationState.enabled, true);
+    assert.equal(storage.getItem('locationEnabled'), 'true');
+  } finally {
+    delete (globalThis.window as unknown as Record<string, unknown>).wordmarkDesktop;
+  }
+});
+
+test('requestLocation does not fall back to IP geolocation when permission denied in desktop shell', async () => {
+  resetLocationState();
+  const storage = createLocalStorage();
+  globalThis.localStorage = storage;
+  globalThis.document = nullDocument;
+  (globalThis.window as unknown as Record<string, unknown>).wordmarkDesktop = {};
+  const errorObj = { code: 1, PERMISSION_DENIED: 1, POSITION_UNAVAILABLE: 2, TIMEOUT: 3 };
+  globalThis.navigator = asNavigator({
+    geolocation: { getCurrentPosition(_success: unknown, failure: (err: typeof errorObj) => void) { setImmediate(() => failure(errorObj)); } },
+  });
+  let fetchCalls = 0;
+  globalThis.fetch = (async () => { fetchCalls += 1; throw new Error('should not be called'); }) as unknown as typeof fetch;
+
+  try {
+    const result = await requestLocation();
+    assert.equal(result.error, 'Location access denied by user');
+    assert.equal(fetchCalls, 0);
+    assert.equal(locationState.enabled, false);
+  } finally {
+    delete (globalThis.window as unknown as Record<string, unknown>).wordmarkDesktop;
+  }
+});
+
+test('requestIpLocation reports an error when the lookup fails', async () => {
+  resetLocationState();
+  const storage = createLocalStorage();
+  globalThis.localStorage = storage;
+  globalThis.document = nullDocument;
+  globalThis.fetch = (async () => { throw new Error('network down'); }) as unknown as typeof fetch;
+
+  const result = await requestIpLocation();
+  assert.equal(result.error, 'Location information unavailable');
   assert.equal(locationState.enabled, false);
   assert.equal(storage.getItem('locationEnabled'), 'false');
 });
