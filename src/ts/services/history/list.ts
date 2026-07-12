@@ -178,9 +178,6 @@ export function renderChatHistoryList() {
           return;
         }
 
-        // Never hijack keys the user is typing into a field (e.g. the chat
-        // input or the search box) — Backspace/Enter here must not delete or
-        // load conversations.
         const target = e.target as HTMLElement | null;
         if (target && (
           target.tagName === "INPUT" ||

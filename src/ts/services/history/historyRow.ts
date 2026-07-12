@@ -15,8 +15,6 @@ import type { ConversationRecord } from "../../../types/common.ts";
 
 type ConversationMessage = NonNullable<ConversationRecord["messages"]>[number];
 
-/** Display cap for derived titles/prompt summaries. Cards wrap text, so this
-    only guards against pasted walls of text, not normal-length content. */
 const DISPLAY_MAX = 160;
 
 /** Extracts displayable text from a message's content (plain string or structured parts). */
