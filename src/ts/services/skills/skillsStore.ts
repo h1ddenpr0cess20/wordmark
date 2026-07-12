@@ -203,7 +203,6 @@ export function removeUserSkill(id: string): boolean {
   return true;
 }
 
-
 let skillPreferences = loadSkillPreferences();
 
 /** Reads the persisted enable/disable map, or `{}`. */
@@ -289,7 +288,6 @@ export function seedExampleSkills() {
     writeJSON(STORAGE_KEYS.skillsSeededExamples, [...seeded]);
   }
 }
-
 
 const RESOURCE_OPEN = /<!--\s*skill:resource\s+name="([^"]+)"\s*-->/;
 const RESOURCE_BLOCK = /<!--\s*skill:resource\s+name="([^"]+)"\s*-->\n([\s\S]*?)\n<!--\s*\/skill:resource\s*-->/g;
