@@ -4,49 +4,59 @@
   min-height: 0;
   display: flex;
   flex-direction: column;
-  gap: 10px;
   padding-right: 2px;
   scrollbar-width: thin;
   scrollbar-color: var(--accent-color) var(--bg-secondary);
 }
 
-.history-row {
-  background-color: var(--bg-secondary);
-  border: 1px solid var(--border-color);
-  border-left: 3px solid transparent;
-  border-radius: 10px;
-  padding: 12px 14px;
+.history-group {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 2px;
+}
+
+.history-group-label {
+  font-size: 0.7rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--text-secondary);
+  padding: 14px 12px 6px;
+}
+
+.history-group:first-child .history-group-label {
+  padding-top: 2px;
+}
+
+.history-row {
+  border-radius: 10px;
+  border-left: 3px solid transparent;
+  padding: 10px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
   cursor: pointer;
-  transition: background-color 0.15s, border-color 0.15s;
+  transition: background-color 0.15s;
 }
 
 .history-row:hover {
-  border-color: var(--accent-color);
-}
-
-.history-row.selected {
-  border-color: var(--accent-color);
-  border-left-color: var(--accent-color);
-  background-color: var(--accent-hover-light, rgba(var(--accent-color-rgb), 0.1));
-}
-
-.history-cards.multi-select-mode .history-row.selected {
-  background-color: var(--accent-hover-light, rgba(var(--accent-color-rgb), 0.15));
+  background-color: var(--bg-secondary);
 }
 
 .history-row.current-conversation {
+  border-left-color: var(--accent-color);
+  background-color: var(--accent-hover-light, rgba(var(--accent-color-rgb), 0.08));
+}
+
+.history-row.selected {
   border-left-color: var(--accent-color);
   background-color: var(--accent-hover-light, rgba(var(--accent-color-rgb), 0.15));
 }
 
 .history-card-top {
   display: flex;
-  align-items: baseline;
-  justify-content: space-between;
-  gap: 12px;
+  align-items: flex-start;
+  gap: 8px;
 }
 
 .history-title {
@@ -59,28 +69,57 @@
   word-break: break-word;
 }
 
-.date-info {
+.history-row-actions {
+  display: flex;
+  gap: 4px;
   flex-shrink: 0;
-  font-size: 0.75rem;
-  color: var(--text-secondary);
-  white-space: nowrap;
+  opacity: 0;
+  transition: opacity 0.15s;
 }
 
-.history-card-meta {
+.history-row:hover .history-row-actions,
+.history-row:focus-within .history-row-actions {
+  opacity: 1;
+}
+
+.history-cards.multi-select-mode .history-row-actions {
+  display: none;
+}
+
+.row-action {
   display: flex;
-  flex-wrap: wrap;
   align-items: center;
-  gap: 6px 12px;
-  min-width: 0;
+  justify-content: center;
+  width: 26px;
+  height: 26px;
+  border-radius: 6px;
+  border: none;
+  background: none;
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: background-color 0.15s, color 0.15s;
+}
+
+.row-action:hover {
+  background-color: var(--bg-primary);
+  color: var(--text-primary);
+}
+
+.row-delete:hover {
+  color: var(--error-color);
+}
+
+.history-prompt {
+  align-self: flex-start;
+  max-width: 100%;
 }
 
 .prompt-type {
   padding: 2px 8px;
-  border-radius: 12px;
+  border-radius: 10px;
   font-size: 0.7rem;
   font-weight: 600;
   line-height: 1.5;
-  max-width: 100%;
   overflow-wrap: anywhere;
 }
 
@@ -100,6 +139,15 @@
   color: var(--neutral-color);
 }
 
+.history-card-meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 4px 10px;
+  font-size: 0.72rem;
+  color: var(--text-secondary);
+}
+
 .model-info {
   display: inline-flex;
   align-items: baseline;
@@ -111,15 +159,11 @@
 
 .model-name {
   font-weight: 500;
-  color: var(--text-primary);
-  font-size: 0.75rem;
   overflow-wrap: anywhere;
 }
 
 .service-name {
-  font-size: 0.7rem;
-  color: var(--text-secondary);
-  opacity: 0.8;
+  opacity: 0.75;
   overflow-wrap: anywhere;
 }
 
@@ -127,12 +171,14 @@
   display: inline-flex;
   align-items: baseline;
   gap: 8px;
-  margin-left: auto;
 }
 
 .message-count,
 .image-count {
-  font-size: 0.7rem;
-  color: var(--text-secondary);
+  white-space: nowrap;
+}
+
+.date-info {
+  margin-left: auto;
   white-space: nowrap;
 }

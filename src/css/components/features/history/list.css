@@ -4,8 +4,8 @@
   flex: 1;
   overflow-y: auto;
   min-height: 0;
-  padding: 20px;
-  gap: 16px;
+  padding: 16px 20px 20px;
+  gap: 12px;
 }
 #history-list::-webkit-scrollbar {
   width: 8px;

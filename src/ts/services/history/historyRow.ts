@@ -76,6 +76,28 @@ export function formatConversationDate(updated: ConversationRecord["updated"]): 
   return date.toLocaleDateString([], { month: "short", day: "numeric" });
 }
 
+/** Buckets a conversation's `updated` timestamp into a history-list section label. */
+export function conversationDateGroup(updated: ConversationRecord["updated"]): string {
+  const date = new Date(updated || 0);
+  const startOfToday = new Date();
+  startOfToday.setHours(0, 0, 0, 0);
+
+  const dayMs = 24 * 60 * 60 * 1000;
+  if (date >= startOfToday) {
+    return "Today";
+  }
+  if (date.getTime() >= startOfToday.getTime() - dayMs) {
+    return "Yesterday";
+  }
+  if (date.getTime() >= startOfToday.getTime() - 7 * dayMs) {
+    return "Previous 7 days";
+  }
+  if (date.getTime() >= startOfToday.getTime() - 30 * dayMs) {
+    return "Previous 30 days";
+  }
+  return "Older";
+}
+
 /** Resolves the prompt summary text and its CSS class for a conversation. */
 export function resolveConversationPrompt(convo: ConversationRecord): { info: string; cssClass: string } {
   if (convo.mode === "party") {
@@ -109,10 +131,17 @@ export function buildHistoryRowHtml(convo: ConversationRecord): string {
   return `
           <div class="history-card-top">
             <div class="history-title">${escapeHtml(title)}</div>
-            <span class="date-info">${formatted}</span>
+            <div class="history-row-actions">
+              <button type="button" class="row-action row-rename" title="Rename" aria-label="Rename conversation">
+                <svg width="14" height="14" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><use href="#pencil"></use></svg>
+              </button>
+              <button type="button" class="row-action row-delete" title="Delete" aria-label="Delete conversation">
+                <svg width="14" height="14" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><use href="#trash"></use></svg>
+              </button>
+            </div>
           </div>
+          ${promptInfo ? `<div class="history-prompt prompt-type ${promptClass}">${escapeHtml(promptInfo)}</div>` : ""}
           <div class="history-card-meta">
-            ${promptInfo ? `<span class="prompt-type ${promptClass}">${escapeHtml(promptInfo)}</span>` : ""}
             <span class="model-info">
               <span class="model-name">${escapeHtml(modelInfo)}</span>
               <span class="service-name">${escapeHtml(serviceInfo)}</span>
@@ -121,6 +150,7 @@ export function buildHistoryRowHtml(convo: ConversationRecord): string {
               <span class="message-count">${messageCount} msg</span>
               ${imageCount > 0 ? `<span class="image-count">${imageCount} media</span>` : ""}
             </span>
+            <span class="date-info">${formatted}</span>
           </div>
         `;
 }

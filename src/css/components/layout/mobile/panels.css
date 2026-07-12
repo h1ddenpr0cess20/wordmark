@@ -44,16 +44,14 @@
     width: 100%;
   }
 
-  .history-toolbar {
-    flex-direction: column;
-    gap: 12px;
-    align-items: stretch;
+  .history-controls {
+    flex-wrap: wrap;
   }
 
-  .history-toolbar-left,
-  .history-toolbar-right {
-    justify-content: center;
-    flex-wrap: wrap;
+  .history-search {
+    flex-basis: 100%;
+    order: 1;
+    min-height: 44px;
   }
 
   .history-row {
@@ -86,25 +84,23 @@
   .date-info {
     font-size: 0.7rem;
   }
-  .history-load-btn,
-  .history-rename-btn,
   .history-delete-btn,
   .history-select-all-btn,
   .history-clear-selection-btn {
-    padding: 8px 16px;
-    min-height: 44px;
-    font-size: 0.9rem;
+    padding: 8px 12px;
+    min-height: 40px;
   }
 
   .history-new-button {
-    padding: 10px 16px;
     min-height: 44px;
-    font-size: 0.95rem;
   }
 
   .selection-mode-toggle {
-    padding: 8px 12px;
     min-height: 44px;
+  }
+
+  .history-row-actions {
+    opacity: 1;
   }
 }
 @media screen and (max-width: 390px) {
