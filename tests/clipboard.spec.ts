@@ -7,24 +7,48 @@ import { copyTextToClipboard } from "../src/ts/utils/dom/clipboard.js";
 const g = globalThis as unknown as {
   navigator?: unknown;
   document?: unknown;
+  window?: unknown;
 };
 
-function setGlobals(navigator: unknown, document: unknown) {
+function setGlobals(navigator: unknown, document: unknown, window?: unknown) {
   Object.defineProperty(g, "navigator", { value: navigator, configurable: true, writable: true });
   Object.defineProperty(g, "document", { value: document, configurable: true, writable: true });
+  Object.defineProperty(g, "window", { value: window, configurable: true, writable: true });
 }
 
 function saveGlobals() {
   return {
     navigator: Object.getOwnPropertyDescriptor(g, "navigator"),
     document: Object.getOwnPropertyDescriptor(g, "document"),
+    window: Object.getOwnPropertyDescriptor(g, "window"),
   };
 }
 
 function restore(saved: ReturnType<typeof saveGlobals>) {
-  if (saved.navigator) Object.defineProperty(g, "navigator", saved.navigator);
-  if (saved.document) Object.defineProperty(g, "document", saved.document);
+  const restoreProperty = (key: "navigator" | "document" | "window") => {
+    const descriptor = saved[key];
+    if (descriptor) Object.defineProperty(g, key, descriptor);
+    else delete g[key];
+  };
+  restoreProperty("navigator");
+  restoreProperty("document");
+  restoreProperty("window");
 }
+
+test("uses the Electron clipboard bridge when available", async () => {
+  const saved = saveGlobals();
+  let written: string | undefined;
+  setGlobals(
+    { clipboard: { writeText: () => Promise.reject(new Error("browser clipboard should not be used")) } },
+    g.document,
+    { wordmarkDesktop: { writeText: (text: string) => { written = text; return Promise.resolve(); } } },
+  );
+
+  const ok = await copyTextToClipboard("desktop text");
+  assert.equal(ok, true);
+  assert.equal(written, "desktop text");
+  restore(saved);
+});
 
 test("uses the Clipboard API and resolves true on success", async () => {
   const saved = saveGlobals();
@@ -43,6 +67,22 @@ test("resolves false when the Clipboard API rejects", async () => {
 
   const ok = await copyTextToClipboard("x");
   assert.equal(ok, false);
+  restore(saved);
+});
+
+test("falls back to execCommand when the Clipboard API rejects", async () => {
+  const saved = saveGlobals();
+  let copied = "";
+  const textArea = { value: "", style: {}, focus() {}, select() {} };
+  setGlobals({ clipboard: { writeText: () => Promise.reject(new Error("denied")) } }, {
+    createElement: () => textArea,
+    body: { appendChild() {}, removeChild() {} },
+    execCommand: () => { copied = textArea.value; return true; },
+  });
+
+  const ok = await copyTextToClipboard("fallback after denial");
+  assert.equal(ok, true);
+  assert.equal(copied, "fallback after denial");
   restore(saved);
 });
 

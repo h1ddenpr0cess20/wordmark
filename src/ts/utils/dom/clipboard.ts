@@ -19,14 +19,20 @@
  * @returns `true` when the copy succeeded, `false` otherwise.
  */
 export function copyTextToClipboard(text: string): Promise<boolean> {
-  if (navigator && navigator.clipboard && typeof navigator.clipboard.writeText === "function") {
-    return navigator.clipboard.writeText(text)
+  const desktopWindow = typeof window !== "undefined"
+    ? window as Window & { wordmarkDesktop?: { writeText?: (value: string) => Promise<void> } }
+    : undefined;
+  const desktopWriteText = desktopWindow?.wordmarkDesktop?.writeText;
+  if (desktopWriteText) {
+    return desktopWriteText(text)
       .then(() => true)
       .catch(err => {
-        console.error("Clipboard API failed:", err);
+        console.error("Desktop clipboard failed:", err);
         return false;
       });
-  } else {
+  }
+
+  const copyWithExecCommand = () => {
     try {
       const textArea = document.createElement("textarea");
       textArea.value = text;
@@ -37,10 +43,18 @@ export function copyTextToClipboard(text: string): Promise<boolean> {
       textArea.select();
       const successful = document.execCommand("copy");
       document.body.removeChild(textArea);
-      return Promise.resolve(successful);
+      return successful;
     } catch (err) {
       console.error("execCommand fallback failed:", err);
-      return Promise.resolve(false);
+      return false;
     }
+  };
+
+  if (typeof navigator !== "undefined" && navigator.clipboard && typeof navigator.clipboard.writeText === "function") {
+    return navigator.clipboard.writeText(text)
+      .then(() => true)
+      .catch(() => copyWithExecCommand());
   }
+
+  return Promise.resolve(copyWithExecCommand());
 }
