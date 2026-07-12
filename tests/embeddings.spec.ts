@@ -60,6 +60,17 @@ test("chunkText returns a single chunk when text is under the size", () => {
   assert.deepEqual(chunkText("short text", 2000), ["short text"]);
 });
 
+test("chunkText overlaps adjacent chunks so boundary text remains retrievable", () => {
+  const text = Array.from({ length: 80 }, (_, i) => `token-${i}`).join(" ");
+  const chunks = chunkText(text, 160, 30);
+  assert.ok(chunks.length > 2);
+  const sharedTerms = chunks.slice(0, -1).map((chunk, i) => {
+    const left = new Set(chunk.split(/\s+/));
+    return chunks[i + 1].split(/\s+/).filter(term => left.has(term));
+  });
+  assert.ok(sharedTerms.every(terms => terms.length > 0), "every adjacent pair should overlap");
+});
+
 test("cosineSim is 1 for identical, 0 for orthogonal, and ranks by direction", () => {
   assert.equal(cosineSim([1, 0], [1, 0]), 1);
   assert.equal(cosineSim([1, 0], [0, 1]), 0);
@@ -138,4 +149,21 @@ test("fetchEmbeddings splits large inputs into batches and keeps input order", a
 test("fetchEmbeddings throws on a non-ok response", async () => {
   globalThis.fetch = (async () => ({ ok: false, status: 500, text: async () => "boom" })) as unknown as typeof fetch;
   await assert.rejects(() => fetchEmbeddings(["a"], "embed-model"), /HTTP 500/);
+});
+
+test("fetchEmbeddings rejects incomplete or malformed vector responses", async () => {
+  globalThis.fetch = (async () => ({
+    ok: true,
+    json: async () => ({ data: [{ index: 0, embedding: [1, 0] }] }),
+  })) as unknown as typeof fetch;
+  await assert.rejects(() => fetchEmbeddings(["a", "b"], "embed-model"), /1 vector.*2 input/);
+
+  globalThis.fetch = (async () => ({
+    ok: true,
+    json: async () => ({ data: [
+      { index: 0, embedding: [1, 0] },
+      { index: 1, embedding: [Number.NaN] },
+    ] }),
+  })) as unknown as typeof fetch;
+  await assert.rejects(() => fetchEmbeddings(["a", "b"], "embed-model"), /malformed|inconsistent/);
 });

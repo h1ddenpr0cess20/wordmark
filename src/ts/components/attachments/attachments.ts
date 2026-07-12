@@ -11,6 +11,7 @@ import { getActiveServiceKey } from "../../services/api/clientConfig.ts";
 import type { DirectoryFile, FileWithRelativePath } from "../../../types/attachments.ts";
 import { showPendingUploadPreviews } from "./attachmentPreviews.ts";
 import { setupDragAndDrop, setupPasteHandler } from "./attachmentDragDrop.ts";
+import { getDocumentSourceName, shouldIgnoreDirectoryPath } from "../../utils/documentPaths.ts";
 
 state.pendingUploads = [];
 state.pendingDocuments = [];
@@ -178,8 +179,24 @@ async function handleFiles(files: File[], options: { isDirectory?: boolean } = {
   if (isDirectory) {
     const supported: File[] = [];
     const unsupported: File[] = [];
+    const ignored: File[] = [];
     for (const file of files) {
-      (isSupportedDocument(file) ? supported : unsupported).push(file);
+      const sourceName = getDocumentSourceName(file);
+      if (shouldIgnoreDirectoryPath(sourceName)) {
+        ignored.push(file);
+      } else {
+        (isSupportedDocument(file) ? supported : unsupported).push(file);
+      }
+    }
+
+    if (ignored.length > 0) {
+      const ignoredNames = ignored.map(getDocumentSourceName);
+      const message = `${ignored.length} generated/dependency file${ignored.length === 1 ? " was" : "s were"} skipped: ${ignoredNames.slice(0, 3).join(", ")}${ignored.length > 3 ? "..." : ""}`;
+      if (showInfo) {
+        showInfo(message);
+      } else {
+        console.info("Generated/dependency files skipped:", ignoredNames);
+      }
     }
 
     if (unsupported.length > 0) {
@@ -196,7 +213,7 @@ async function handleFiles(files: File[], options: { isDirectory?: boolean } = {
 
     const groups = new Map<string, DirectoryFile[]>();
     for (const file of supported) {
-      const rel = file.webkitRelativePath || (file as FileWithRelativePath)._relativePath || file.name;
+      const rel = getDocumentSourceName(file);
       const parts = rel.split("/");
       const top = parts[0] || "Directory";
       const innerRel = parts.slice(1).join("/") || file.name;
@@ -293,4 +310,3 @@ async function handleFiles(files: File[], options: { isDirectory?: boolean } = {
 
   showPendingUploadPreviews();
 }
-
