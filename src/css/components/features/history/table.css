@@ -36,23 +36,23 @@
 }
 
 .history-table .col-title {
-  width: 40%;
+  width: 36%;
 }
 
 .history-table .col-prompt {
-  width: 18%;
+  width: 19%;
 }
 
 .history-table .col-model {
-  width: 18%;
+  width: 21%;
 }
 
 .history-table .col-stats {
-  width: 12%;
+  width: 11%;
 }
 
 .history-table .col-date {
-  width: 12%;
+  width: 13%;
 }
 
 .history-row {
@@ -89,7 +89,7 @@
   padding: 10px 8px;
   border-right: 1px solid var(--border-color);
   vertical-align: middle;
-  overflow: hidden;
+  overflow-wrap: break-word;
 }
 
 .history-row td:last-child {
@@ -103,17 +103,8 @@
   line-height: 1.4;
 }
 
-.history-row .col-prompt {
-  overflow: hidden;
-}
-
-.history-row .col-model {
-  overflow: hidden;
-}
-
 .history-row .col-stats,
 .history-row .col-date {
-  white-space: nowrap;
   text-align: center;
 }
 
@@ -123,10 +114,6 @@
   line-height: 1.4;
   word-break: break-word;
   font-size: 0.9rem;
-  display: -webkit-box;
-  -webkit-line-clamp: 2;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
 }
 
 .prompt-type {
@@ -135,9 +122,9 @@
   font-size: 0.7rem;
   font-weight: 600;
   display: block;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
+  white-space: normal;
+  overflow-wrap: break-word;
+  line-height: 1.4;
   max-width: 100%;
   text-align: center;
 }
@@ -159,25 +146,22 @@
 
 .model-info {
   line-height: 1.3;
-  overflow: hidden;
 }
 
 .model-name {
   font-weight: 500;
   color: var(--text-primary);
   font-size: 0.8rem;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
+  overflow-wrap: anywhere;
+  word-break: break-word;
 }
 
 .service-name {
   font-size: 0.7rem;
   color: var(--text-secondary);
   opacity: 0.7;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
+  overflow-wrap: anywhere;
+  word-break: break-word;
 }
 
 .stats-info {
@@ -191,13 +175,11 @@
 .image-count {
   font-size: 0.7rem;
   color: var(--text-secondary);
-  white-space: nowrap;
 }
 
 .date-info {
   font-size: 0.7rem;
   color: var(--text-secondary);
-  white-space: nowrap;
   line-height: 1.3;
 }
 

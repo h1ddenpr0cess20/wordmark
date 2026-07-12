@@ -69,23 +69,23 @@
     padding: 8px 4px;
   }
   .history-table .col-title {
-    width: 40%;
+    width: 34%;
   }
 
   .history-table .col-prompt {
-    width: 25%;
+    width: 21%;
   }
 
   .history-table .col-model {
-    width: 20%;
+    width: 22%;
   }
 
   .history-table .col-stats {
-    width: 10%;
+    width: 11%;
   }
 
   .history-table .col-date {
-    width: 5%;
+    width: 12%;
   }
 
   .history-title {
