@@ -37,6 +37,10 @@ Wordmark is a **fully client-side** AI chat app — no backend. All persistence 
 
 **Default service selection** (`src/ts/init/services.ts`): on startup a reachable local server (LM Studio, then Ollama) is preferred even over a cloud provider with a stored key.
 
+## Working style
+
+For multi-part tasks with separable, well-specified pieces, use the `delegate` skill (`/delegate`) to run each piece on the cheapest capable model via subagents instead of doing everything inline — decompose, tier (haiku/sonnet/opus), brief tightly, verify by tier.
+
 ## Tests
 
 Specs are strict TypeScript run via `node --test` with tsx loaders (`tests/helpers/registerLoaders.mjs` handles `.ts` transpilation, `.js`→`.ts` specifiers, `?raw` imports, a DOMPurify stub, and `__APP_VERSION__`). Pattern: set up global stubs (`window`, `document`, `fetch`, `localStorage`, …) **before** importing the module under test with a dynamic `await import(...)`; cast partial stubs `as unknown as <LibType>`. DOM-heavy modules use `jsdom` instead of hand-rolled stubs (see `tests/codeInterpreterRender.spec.ts`). Keep the suite deterministic and fast (<5s).
