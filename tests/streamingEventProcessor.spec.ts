@@ -159,6 +159,108 @@ test('mcp_call.failed falls back to "failed" when no error detail is present', (
   assert.ok(reasoning.includes('failed'), 'should still render a failure line without throwing');
 });
 
+test('function call args are rendered inside a fenced json block', () => {
+  const runtime = createRuntimeStub();
+  const processor = createStreamingEventProcessor(runtime as unknown as StreamingRuntimeArg);
+
+  processor.processEvent('response.output_item.added', [
+    JSON.stringify({ item: { id: 'call-1', type: 'function_call', name: 'get_weather' } }),
+  ]);
+  processor.processEvent('response.function_call_arguments.done', [
+    JSON.stringify({
+      name: 'get_weather',
+      item_id: 'call-1',
+      arguments: JSON.stringify({ city: 'Oslo' }),
+    }),
+  ]);
+
+  const reasoning = runtime.state.reasoningLines.join('\n');
+  assert.ok(reasoning.includes('**🔧 get_weather**:'), 'should render tool header');
+  assert.ok(reasoning.includes('```json'), 'args should open a fenced json block');
+  assert.ok(reasoning.includes('"city": "Oslo"'), 'args should be pretty-printed');
+  const fenceCount = runtime.state.reasoningLines.filter(line => line.trim().startsWith('```')).length;
+  assert.equal(fenceCount, 2, 'fenced block should be closed');
+});
+
+test('shell commands are rendered inside a fenced bash block without truncation at 120 chars', () => {
+  const runtime = createRuntimeStub();
+  const processor = createStreamingEventProcessor(runtime as unknown as StreamingRuntimeArg);
+  const longCmd = 'echo ' + 'x'.repeat(160);
+
+  processor.processEvent('response.output_item.added', [
+    JSON.stringify({ item: { id: 'sh-1', type: 'shell_call', action: { commands: [longCmd] } } }),
+  ]);
+
+  const reasoning = runtime.state.reasoningLines.join('\n');
+  assert.ok(reasoning.includes('```bash'), 'commands should open a fenced bash block');
+  assert.ok(reasoning.includes(`$ ${longCmd}`), 'command should not be truncated');
+});
+
+test('mcp_call items get a named header and fenced output preview', () => {
+  const runtime = createRuntimeStub();
+  const processor = createStreamingEventProcessor(runtime as unknown as StreamingRuntimeArg);
+
+  processor.processEvent('response.output_item.added', [
+    JSON.stringify({ item: { id: 'mcp-1', type: 'mcp_call', name: 'search_docs', server_label: 'docs' } }),
+  ]);
+  processor.processEvent('response.output_item.done', [
+    JSON.stringify({ item: { id: 'mcp-1', type: 'mcp_call', name: 'search_docs', server_label: 'docs', output: 'first result\nsecond result' } }),
+  ]);
+
+  const reasoning = runtime.state.reasoningLines.join('\n');
+  assert.ok(reasoning.includes('**🔧 docs.search_docs**:'), 'should render server-qualified tool header');
+  assert.ok(reasoning.includes('first result'), 'should include tool output preview');
+  assert.ok(reasoning.includes('completed in'), 'should mark completion with duration');
+});
+
+test('reasoning done events do not duplicate already-streamed deltas', () => {
+  const runtime = createRuntimeStub();
+  const processor = createStreamingEventProcessor(runtime as unknown as StreamingRuntimeArg);
+
+  processor.processEvent('response.reasoning_summary_text.delta', [
+    JSON.stringify({ delta: 'thinking about it' }),
+  ]);
+  processor.processEvent('response.reasoning_summary_text.done', [
+    JSON.stringify({ text: 'thinking about it' }),
+  ]);
+
+  assert.equal(runtime.state.reasoningDelta, 'thinking about it');
+});
+
+test('reasoning done events still append when nothing was streamed', () => {
+  const runtime = createRuntimeStub();
+  const processor = createStreamingEventProcessor(runtime as unknown as StreamingRuntimeArg);
+
+  processor.processEvent('response.reasoning.done', [
+    JSON.stringify({ text: 'full reasoning text' }),
+  ]);
+
+  assert.equal(runtime.state.reasoningDelta, 'full reasoning text');
+});
+
+test('reasoning summary parts are separated by a blank line', () => {
+  const runtime = createRuntimeStub();
+  const processor = createStreamingEventProcessor(runtime as unknown as StreamingRuntimeArg);
+
+  processor.processEvent('response.reasoning_summary_part.added', [
+    JSON.stringify({ part: { type: 'summary_text', text: '' } }),
+  ]);
+  processor.processEvent('response.reasoning_summary_text.delta', [
+    JSON.stringify({ delta: '**First part** done.' }),
+  ]);
+  processor.processEvent('response.reasoning_summary_part.added', [
+    JSON.stringify({ part: { type: 'summary_text', text: '' } }),
+  ]);
+  processor.processEvent('response.reasoning_summary_text.delta', [
+    JSON.stringify({ delta: '**Second part** begins.' }),
+  ]);
+
+  assert.equal(
+    runtime.state.reasoningDelta,
+    '**First part** done.\n\n**Second part** begins.',
+  );
+});
+
 test('processEvent ignores non-object SSE payloads without throwing', () => {
   const runtime = createRuntimeStub();
   const processor = createStreamingEventProcessor(runtime as unknown as StreamingRuntimeArg);

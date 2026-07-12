@@ -127,7 +127,7 @@ export function createStreamingRuntime({
 
     if (parsedThinking.reasoning) {
       thinkingContent = thinkingContent
-        ? `${thinkingContent}${thinkingContent.endsWith("\n") ? "" : "\n"}${parsedThinking.reasoning}`
+        ? `${thinkingContent.replace(/\n+$/, "")}\n\n${parsedThinking.reasoning}`
         : parsedThinking.reasoning;
     }
     const hasThinking = Boolean(thinkingContent);
@@ -184,6 +184,17 @@ export function createStreamingRuntime({
   }
 
   function appendReasoningLine(text: string, indent = 0) {
+    if (text === "") {
+      // Blank separator: close the current block with an empty line so the
+      // next block renders as a new markdown paragraph.
+      if (!accumulatedReasoning || accumulatedReasoning.endsWith("\n\n")) {
+        render();
+        return;
+      }
+      accumulatedReasoning += accumulatedReasoning.endsWith("\n") ? "\n" : "\n\n";
+      render();
+      return;
+    }
     if (!text) return;
     if (accumulatedReasoning && !accumulatedReasoning.endsWith("\n")) {
       accumulatedReasoning += "\n";
@@ -204,7 +215,7 @@ export function createStreamingRuntime({
     } else {
       lines.push("  ".repeat(indent) + newText);
     }
-    accumulatedReasoning = lines.join("\n") + "\n\n";
+    accumulatedReasoning = lines.join("\n") + "\n";
     render();
   }
 

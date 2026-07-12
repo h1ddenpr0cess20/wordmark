@@ -13,7 +13,7 @@ import {
   bufferGet,
   previewLines,
   safeTruncate,
-  formatToolArgs,
+  formatArgsBlock,
   extractQueriesFromArgs,
   extractDeltaText,
   extractReasoningText,
@@ -100,7 +100,7 @@ export function createStreamingEventProcessor(runtime: StreamingRuntime) {
           q = queue.shift() || "";
           if (id) byId.set(id, q);
         }
-        runtime.appendReasoningLine(`**${emoji} ${label}${q ? ` "${safeTruncate(q, 60)}"` : ""}**:`);
+        beginToolBlock(`**${emoji} ${label}${q ? ` "${safeTruncate(q, 60)}"` : ""}**:`);
         runtime.appendReasoningLine(`  ⏳ _${inProgressVerb}…_`);
       },
       searching(payload: any) {
@@ -133,11 +133,29 @@ export function createStreamingEventProcessor(runtime: StreamingRuntime) {
    * shell/code-interpreter output rendering that otherwise repeats per output
    * kind.
    */
-  function appendFencedPreview(text: string, limit: number, header?: string) {
+  function appendFencedPreview(text: string, limit: number, header?: string, language = "") {
     if (header) runtime.appendReasoningLine(header);
-    runtime.appendReasoningLine("  ```");
+    runtime.appendReasoningLine(`  \`\`\`${language}`);
     previewLines(text, limit).forEach(line => runtime.appendReasoningLine(`  ${line}`));
     runtime.appendReasoningLine("  ```");
+  }
+
+  /**
+   * Starts a tool block in the reasoning panel: a blank separator line (so the
+   * header begins a fresh markdown paragraph after streamed reasoning prose or
+   * a previous block) followed by the bold header line.
+   */
+  function beginToolBlock(header: string) {
+    runtime.appendReasoningLine("");
+    runtime.appendReasoningLine(header);
+  }
+
+  /** Renders tool-call arguments as a fenced code block under an `args:` label. */
+  function appendArgsBlock(args: unknown, label = "  args:") {
+    const block = formatArgsBlock(args);
+    if (block) {
+      appendFencedPreview(block, 20, label, "json");
+    }
   }
 
   function ensureResponseSegment() {
@@ -203,19 +221,36 @@ export function createStreamingEventProcessor(runtime: StreamingRuntime) {
       }
       break;
     }
-    case "response.reasoning.done": {
+    case "response.reasoning.done":
+    case "response.reasoning_text.done":
+    case "response.reasoning_summary_text.done": {
       const full = extractReasoningText(payload);
-      if (typeof full === "string" && full.length > 0) {
+      if (typeof full === "string" && full.trim().length > 0) {
         const current = runtime.getReasoningText();
-        if (current && current.trim().length > 0) {
-          if (!current.endsWith("\n")) {
-            runtime.appendReasoningDelta("\n");
+        // Deltas for this text usually streamed already; only append when the
+        // full text isn't in the accumulated reasoning, to avoid duplication.
+        if (!current.includes(full.trim())) {
+          if (current.trim().length > 0) {
+            runtime.appendReasoningDelta(current.endsWith("\n") ? "\n" : "\n\n");
           }
-          runtime.appendReasoningDelta(full);
-        } else {
           runtime.appendReasoningDelta(full);
         }
       }
+      break;
+    }
+    case "response.reasoning_summary_part.added": {
+      // Reasoning summaries arrive as separate parts; separate them with a
+      // blank line so consecutive parts don't run together.
+      const current = runtime.getReasoningText();
+      if (current.trim().length > 0 && !current.endsWith("\n\n")) {
+        runtime.appendReasoningDelta(current.endsWith("\n") ? "\n" : "\n\n");
+      }
+      break;
+    }
+    case "response.reasoning_summary_part.done":
+    case "response.content_part.added":
+    case "response.content_part.done":
+    case "response.output_text.annotation.added": {
       break;
     }
     case "response.delta": {
@@ -244,17 +279,25 @@ export function createStreamingEventProcessor(runtime: StreamingRuntime) {
           status: "started",
           startTime: Date.now(),
         });
+        beginToolBlock("**🖥️ shell**:");
         const cmds = item?.action?.commands;
         if (Array.isArray(cmds) && cmds.length > 0) {
-          runtime.appendReasoningLine("**🖥️ shell**:");
-          cmds.forEach(c => {
-            runtime.appendReasoningLine(`  \`$ ${c.length > 120 ? c.slice(0, 120) + "…" : c}\``);
-          });
-          runtime.appendReasoningLine("  ⏳ _executing…_");
-        } else {
-          runtime.appendReasoningLine("**🖥️ shell**:");
-          runtime.appendReasoningLine("  ⏳ _executing…_");
+          appendFencedPreview(cmds.map((c: string) => `$ ${c}`).join("\n"), 10, undefined, "bash");
         }
+        runtime.appendReasoningLine("  ⏳ _executing…_");
+      } else if (itype === "mcp_call") {
+        const name = item?.name || "mcp";
+        const serverLabel = typeof item?.server_label === "string" && item.server_label ? `${item.server_label}.` : "";
+        toolExecutions.set(itemId, {
+          name,
+          status: "started",
+          startTime: Date.now(),
+        });
+        beginToolBlock(`**🔧 ${serverLabel}${name}**:`);
+      } else if (itype === "mcp_list_tools") {
+        const serverLabel = typeof item?.server_label === "string" && item.server_label ? ` ${item.server_label}` : "";
+        beginToolBlock(`**🔧 mcp${serverLabel}**:`);
+        runtime.appendReasoningLine("  ⏳ _listing tools…_");
       } else if ((itype.includes("tool") || itype.includes("function")) && !itype.includes("output")) {
         const name = item?.name || item?.tool_name || item?.function?.name || "tool";
         toolExecutions.set(itemId, {
@@ -262,7 +305,7 @@ export function createStreamingEventProcessor(runtime: StreamingRuntime) {
           status: "started",
           startTime: Date.now(),
         });
-        runtime.appendReasoningLine(`**${toolReasoningLabel(name)}**:`);
+        beginToolBlock(`**${toolReasoningLabel(name)}**:`);
       }
       break;
     }
@@ -324,17 +367,37 @@ export function createStreamingEventProcessor(runtime: StreamingRuntime) {
             }
           }
         }
+      } else if (itype === "mcp_call") {
+        const exec = toolExecutions.get(itemId);
+        const mcpOutput = typeof item?.output === "string" ? item.output.trim() : "";
+        const mcpError = typeof item?.error === "string"
+          ? item.error
+          : (item?.error && typeof item.error.message === "string" ? item.error.message : "");
+        if (mcpOutput) {
+          appendFencedPreview(mcpOutput, 15, "  📄 output:");
+        }
+        if (mcpError) {
+          runtime.appendReasoningLine(`  ❌ _failed: ${safeTruncate(mcpError, 200)}_`);
+        } else if (exec) {
+          runtime.appendReasoningLine(`  ✔️ _completed in ${Date.now() - exec.startTime}ms_`);
+        }
+        runtime.appendReasoningLine("");
+        toolExecutions.delete(itemId);
+      } else if (itype === "mcp_list_tools") {
+        runtime.updateLastReasoningLine("  ✔️ _tools listed_");
+        runtime.appendReasoningLine("");
       } else if ((itype.includes("tool") || itype.includes("function")) && !itype.includes("output")) {
         const exec = toolExecutions.get(itemId);
         if (exec) {
           if (exec.name === ACTIVATE_SKILL_TOOL_NAME) {
-            const skillName = activatedSkillName(item?.arguments ?? argBuffers.get(itemId));
+            const bufferedArgs = argBuffers.get(`${itemId}|${exec.name}`) ?? argBuffers.get(`${itemId}|`);
+            const skillName = activatedSkillName(item?.arguments ?? bufferedArgs);
             if (skillName) {
               runtime.appendReasoningLine(`  _loaded skill: ${skillName}_`);
             }
           }
           const duration = Date.now() - exec.startTime;
-          runtime.appendReasoningLine(`✔️ _completed in ${duration}ms_`);
+          runtime.appendReasoningLine(`  ✔️ _completed in ${duration}ms_`);
           runtime.appendReasoningLine("");
           toolExecutions.delete(itemId);
         }
@@ -370,10 +433,7 @@ export function createStreamingEventProcessor(runtime: StreamingRuntime) {
         : (payload.arguments ? JSON.stringify(payload.arguments) : "");
       if (args) argBuffers.set(key, args);
 
-      const formattedArgs = formatToolArgs(args, false);
-      if (formattedArgs) {
-        runtime.appendReasoningLine(`  args:${formattedArgs}`);
-      }
+      appendArgsBlock(args || bufferGet(argBuffers, key));
 
       const normalizedName = (name || "").toLowerCase();
       if (normalizedName === "web_search") {
@@ -402,10 +462,7 @@ export function createStreamingEventProcessor(runtime: StreamingRuntime) {
         : (payload.arguments ? JSON.stringify(payload.arguments) : "");
       if (args) mcpArgBuffers.set(itemId, args);
 
-      const formattedArgs = formatToolArgs(args, false);
-      if (formattedArgs) {
-        runtime.appendReasoningLine(`  args:${formattedArgs}`);
-      }
+      appendArgsBlock(args || bufferGet(mcpArgBuffers, itemId));
 
       const qs = extractQueriesFromArgs(args || "");
       qs.forEach(q => webSearchQueue.push(q));
@@ -422,13 +479,13 @@ export function createStreamingEventProcessor(runtime: StreamingRuntime) {
       const errorMessage = payload?.error?.message || "failed";
       const errorCode = payload?.error?.code;
       const detail = errorCode ? `${errorCode}: ${errorMessage}` : errorMessage;
-      runtime.appendReasoningLine(`❌ _failed: ${detail}_`);
+      runtime.appendReasoningLine(`  ❌ _failed: ${detail}_`);
       runtime.appendReasoningLine("");
       showWarning(`MCP server call failed (${detail}). The server may be offline or unreachable.`);
       break;
     }
     case "response.file_search_call.in_progress": {
-      runtime.appendReasoningLine("**🔎 file_search**:");
+      beginToolBlock("**🔎 file_search**:");
       runtime.appendReasoningLine("  ⏳ _searching…_");
       break;
     }
@@ -480,7 +537,7 @@ export function createStreamingEventProcessor(runtime: StreamingRuntime) {
       break;
     }
     case "response.code_interpreter_call.in_progress": {
-      runtime.appendReasoningLine("**💻 code_interpreter**:");
+      beginToolBlock("**💻 code_interpreter**:");
       break;
     }
     case "response.code_interpreter_call.interpreting": {
@@ -514,16 +571,13 @@ export function createStreamingEventProcessor(runtime: StreamingRuntime) {
         ? payload.code
         : (payload.code ? JSON.stringify(payload.code) : bufferGet(codeBuffers, itemId));
       if (code && code.length > 0) {
-        const lines = code.split("\n");
-        runtime.appendReasoningLine("  ```python");
-        lines.forEach((line: string) => runtime.appendReasoningLine(`  ${line}`));
-        runtime.appendReasoningLine("  ```");
+        appendFencedPreview(code, 30, undefined, "python");
       }
       activeCodeStreams.delete(itemId);
       break;
     }
     case "response.image_generation_call.in_progress": {
-      runtime.appendReasoningLine("**🎨 image_generation**:");
+      beginToolBlock("**🎨 image_generation**:");
       runtime.appendReasoningLine("  ⏳ _preparing…_");
       break;
     }
@@ -556,10 +610,7 @@ export function createStreamingEventProcessor(runtime: StreamingRuntime) {
     }
     case "response.custom_tool_call_input.done": {
       const input = typeof payload.input === "string" ? payload.input : (payload.input ? JSON.stringify(payload.input) : "");
-      const formattedInput = formatToolArgs(input, false);
-      if (formattedInput) {
-        runtime.appendReasoningLine(`  input:${formattedInput}`);
-      }
+      appendArgsBlock(input, "  input:");
       activeCustomInput.delete("custom");
       break;
     }
