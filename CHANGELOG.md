@@ -2,15 +2,23 @@
 
 All notable changes to Wordmark are documented here. Earlier versions didn't follow proper semver — this changelog reflects what actually shipped, not what the version numbers said at the time.
 
-## [Unreleased]
+## [3.13.0] - 2026-07-12
+
+A conversation-history redesign, sharper local folder retrieval, a desktop geolocation fallback, and a reworked reasoning/tool-output panel. Backward-compatible.
+
+### Added
+- **Redesigned conversation history panel** — the table layout is replaced with date-grouped cards, a real-time search field that filters by title/prompt, and a dedicated bulk-actions bar that appears only in multi-select mode. Per-row rename/delete actions surface on hover, and the layout scales better on mobile.
+- **IP geolocation fallback on desktop** — Chromium in the Electron shell can't resolve native geolocation without a Google API key (it fails with `POSITION_UNAVAILABLE`), so the shell now falls back to a city-level IP lookup (ipapi.co). The fallback triggers when native geolocation is unsupported or fails for any reason other than an explicit permission denial.
 
 ### Fixed
+- **Hosted web search not showing its query** — OpenAI's provider-managed web search reports its query in the item's `action.queries` array; the panel only checked the deprecated `action.query` singular, so the query never rendered. Every hosted tool call (web/x/file search) now surfaces its actual invocation.
 - **Folder RAG only surfacing a few files** — local retrieval now combines embeddings with exact-term/path matching and adaptive diversity-aware reranking under a bounded context budget, instead of allowing the globally top eight chunks to come from one or two large files. A single document can still use the full result budget.
 - **Folder paths lost during indexing** — relative paths now survive indexing, retrieval labels, diagnostics, and persistence, including duplicate basenames and identical files stored at different paths.
 - **Document cache persistence races** — cache writes complete before conversation references are saved; failed cache writes fall back to inline chunk storage rather than leaving unrestorable references.
 - **Immediate questions after history load missing documents** — retrieval now waits for the active conversation's IndexedDB restore to finish.
 
 ### Changed
+- **Reasoning/tool-output panel** — tool calls now render their arguments, shell commands, and code-interpreter output inside fenced code blocks (with language hints) instead of inline text, with consistent spacing between tool blocks. Adds MCP tool-call rendering and de-duplicates reasoning that is streamed as deltas and then finalized.
 - Local chunks overlap slightly at boundaries, malformed embedding responses fail clearly, inventory questions receive a compact source list, and common dependency/cache/generated paths are reported and skipped during folder upload.
 
 ## [3.12.0] - 2026-07-11
