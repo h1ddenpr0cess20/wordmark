@@ -88,16 +88,29 @@ test('serializeMessagesForRequest strips media placeholders from assistant conte
   assert.equal(result[1].content, '(generated media attached)');
 });
 
-test('serializeMessagesForRequest splices retrievedContext into user messages at request time', () => {
-  const result = serializeMessagesForRequest([
+test('serializeMessagesForRequest splices retrievedContext before the last user message text', () => {
+  const strResult = serializeMessagesForRequest([
     { role: 'user', content: 'summarize the doc', retrievedContext: 'Relevant context from attached documents:\n\n[From a.pdf]\nchunk' },
+  ]);
+  assert.equal(strResult[0].content, 'Relevant context from attached documents:\n\n[From a.pdf]\nchunk\n\nsummarize the doc');
+
+  const arrResult = serializeMessagesForRequest([
     { role: 'user', content: [{ type: 'input_text', text: 'hi' }], retrievedContext: 'ctx' },
   ]);
-  assert.equal(result[0].content, 'summarize the doc\n\nRelevant context from attached documents:\n\n[From a.pdf]\nchunk');
-  assert.deepEqual(result[1].content, [
-    { type: 'input_text', text: 'hi' },
+  assert.deepEqual(arrResult[0].content, [
     { type: 'input_text', text: 'ctx' },
+    { type: 'input_text', text: 'hi' },
   ]);
+});
+
+test('serializeMessagesForRequest only sends retrievedContext for the most recent user message', () => {
+  const result = serializeMessagesForRequest([
+    { role: 'user', content: 'first question', retrievedContext: 'STALE stale-turn-1 context' },
+    { role: 'assistant', content: 'first answer' },
+    { role: 'user', content: 'second question', retrievedContext: 'FRESH turn-2 context' },
+  ]);
+  assert.equal(result[0].content, 'first question', 'stale retrieval from an earlier turn is not re-sent');
+  assert.equal(result[2].content, 'FRESH turn-2 context\n\nsecond question', 'current turn keeps its retrieval, placed before the question');
 });
 
 test('serializeMessagesForRequest passes through tool-call fields', () => {
