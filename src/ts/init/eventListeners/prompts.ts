@@ -6,6 +6,7 @@
  * and the preset persona dropdown.
  */
 
+import { PERSONALITY_PRESETS } from "../../../config/config.ts";
 import { elements } from "../state.ts";
 import { debounce } from "../../utils/utils.ts";
 import { focusUserInputSafely } from "../../utils/dom/mobileHandling.ts";
@@ -65,12 +66,19 @@ function setupInputFieldEventListeners() {
   }
 }
 
-/** Wires the preset persona dropdown to start a conversation with the chosen persona. */
+/** Populates the preset persona dropdown and starts a conversation on selection. */
 function setupPersonalityPresetEventListeners() {
   const presetSelect = document.querySelector<HTMLSelectElement>("#personality-preset-select");
   if (!presetSelect) {
     return;
   }
+
+  PERSONALITY_PRESETS.forEach(({ label, personality }) => {
+    const option = document.createElement("option");
+    option.value = personality;
+    option.textContent = label;
+    presetSelect.appendChild(option);
+  });
 
   presetSelect.addEventListener("change", () => {
     const personality = presetSelect.value;

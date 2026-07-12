@@ -66,6 +66,22 @@ export const PERSONALITY_PROMPT_TEMPLATE = "Assume the personality of {personali
 /** Custom system-prompt template; `{custom_prompt}` is the user-supplied text. */
 export const CUSTOM_PROMPT_TEMPLATE = "{custom_prompt} \n (current date and location, for reference when needed: {datetime}, {location})";
 
+/** Preset personas offered in the settings panel's inspiration dropdown. */
+export const PERSONALITY_PRESETS: ReadonlyArray<{ label: string; personality: string }> = [
+  { label: "Tech Whiz", personality: "a witty and sarcastic tech expert" },
+  { label: "Wise Teacher", personality: "a wise and patient teacher who explains complex topics simply" },
+  { label: "Storyteller", personality: "a creative storyteller with a vivid imagination" },
+  { label: "Code Master", personality: "a master programmer who loves solving complex problems" },
+  { label: "Philosopher", personality: "a philosophical thinker who asks deep questions" },
+  { label: "Sarcastic Jerk", personality: "a sarcastic jerk who loves to provoke thought" },
+  { label: "Game Master", personality: "an imaginative game master who creates epic adventures" },
+  { label: "Creative Artist", personality: "a passionate artist who sees beauty in everything" },
+  { label: "Financial Wizard", personality: "a financial wizard who loves to discuss the latest trends in finance" },
+  { label: "Master Chef", personality: "a charming and enthusiastic chef who loves sharing recipes" },
+  { label: "😂", personality: "😂" },
+  { label: "🤔", personality: "🤔" },
+];
+
 /**
  * Guideline appended to prompts to encourage shorter responses.
  *
