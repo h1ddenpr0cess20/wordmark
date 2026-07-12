@@ -69,9 +69,6 @@ function replaceImagePlaceholders(content: Message["content"], convo: Conversati
     return "";
   }
 
-  // Escape user-typed markup before splicing in image HTML, mirroring the
-  // sanitizeInput() applied on the live send path so a reloaded conversation
-  // renders the same as it did when sent.
   const text = sanitizeInput(rawText);
 
   return text.replace(createImagePlaceholderRegex(), (match: string, filename: string) => {

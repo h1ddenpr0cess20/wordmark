@@ -1,9 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 
-// Regression: a saved API key must reach config.services regardless of whether
-// the API-key input elements have been cached yet. Otherwise startup default-
-// service selection sees no key and falls back to a keyless provider.
 const store = new Map<string, string>();
 globalThis.localStorage = {
   getItem: (k: string) => (store.has(k) ? store.get(k) ?? null : null),

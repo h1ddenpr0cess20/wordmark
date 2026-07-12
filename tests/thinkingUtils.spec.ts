@@ -1,11 +1,8 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 
-// thinkingUtils imports `marked` (real, works in Node) and sanitizeWithMedia
-// (DOMPurify is stubbed by the test loader). Just provide a window + document.
 globalThis.window = {} as Window & typeof globalThis;
 
-// Minimal document stub so sanitizeWithMedia's DOM post-processing works.
 globalThis.document = {
   createElement: () => {
     let html = "";
@@ -28,7 +25,6 @@ test('processMainContentMarkdown closes unclosed code blocks', () => {
   const input = 'Some text\n```javascript\nconst x = 1;';
   const result = processMainContentMarkdown(input);
 
-  // The unclosed fence is balanced and rendered as a real code block.
   assert.ok(result.includes('<pre>') || result.includes('<code'), 'should render a code block');
   assert.ok(result.includes('const x = 1;'), 'should preserve code content');
 });
@@ -37,7 +33,6 @@ test('processMainContentMarkdown closes unclosed inline code', () => {
   const input = 'This is `inline code';
   const result = processMainContentMarkdown(input);
   
-  // Should balance backticks
   assert.ok(typeof result === 'string', 'should return string result');
 });
 
@@ -69,7 +64,6 @@ test('processMainContentMarkdown processes markdown', () => {
   const input = '**bold** and *italic*';
   const result = processMainContentMarkdown(input);
   
-  // Marked should have processed it
   assert.ok(result.includes('<p>'), 'should process markdown');
 });
 
@@ -82,6 +76,5 @@ test('processMainContentMarkdown sanitizes output', () => {
   const input = '<script>alert("xss")</script>';
   const result = processMainContentMarkdown(input);
   
-  // DOMPurify should have been called
   assert.ok(typeof result === 'string', 'should sanitize HTML');
 });

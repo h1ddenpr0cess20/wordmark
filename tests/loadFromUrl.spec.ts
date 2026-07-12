@@ -1,8 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 
-// loadFromUrl pulls in the chat-render/settings import graph, which touches the
-// DOM at module load, so install broad window/document/localStorage stubs first.
 const store: Record<string, string> = {};
 globalThis.localStorage = {
   getItem(key: string) { return key in store ? store[key] : null; },
@@ -56,14 +54,13 @@ test("loadFromUrl ignores a non-object ?chat= payload (no state corruption)", ()
   setSearch("?chat=" + encodeURIComponent("null"));
   loadFromUrl();
   assert.ok(Array.isArray(state.conversationHistory));
-  assert.equal(state.conversationHistory[0].content, "keep"); // early return left it intact
+  assert.equal(state.conversationHistory[0].content, "keep");
 });
 
 test("loadFromUrl coerces a non-array messages field to [] instead of a string", () => {
   state.conversationHistory = [{ role: "user", content: "keep" }];
   setSearch("?chat=" + encodeURIComponent(JSON.stringify({ messages: "oops" })));
   loadFromUrl();
-  // pre-fix this left conversationHistory === "oops" (a non-array), corrupting downstream code
   assert.ok(Array.isArray(state.conversationHistory), "conversationHistory must stay an array");
 });
 

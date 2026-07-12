@@ -1,50 +1,23 @@
-.history-toolbar {
+.history-controls {
   display: flex;
-  justify-content: space-between;
   align-items: center;
-  padding: 12px;
-  background-color: var(--bg-secondary);
-  border-radius: 8px;
-  margin-bottom: 0;
-  border: 1px solid var(--border-color);
-}
-
-.history-toolbar-left,
-.history-toolbar-right {
-  display: flex;
   gap: 8px;
-  align-items: center;
-}
-
-.selection-mode-toggle {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  font-size: 0.85rem;
-  color: var(--text-primary);
-  cursor: pointer;
-  padding: 4px 8px;
-  border-radius: 4px;
-  transition: background-color 0.2s;
-}
-
-.selection-mode-toggle:hover {
-  background-color: var(--bg-primary);
-}
-
-.selection-mode-toggle input[type="checkbox"] {
-  margin: 0;
+  flex-shrink: 0;
 }
 
 .history-new-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
   background-color: var(--accent-color);
   color: var(--button-text-color);
   border: none;
-  border-radius: 6px;
+  border-radius: 8px;
   padding: 8px 12px;
   cursor: pointer;
-  font-size: 0.9rem;
+  font-size: 0.85rem;
   font-weight: 600;
+  white-space: nowrap;
   transition: background-color 0.2s;
 }
 
@@ -52,65 +25,95 @@
   background-color: var(--accent-hover);
 }
 
-.history-load-btn,
-.history-rename-btn,
-.history-delete-btn,
-.history-select-all-btn,
-.history-clear-selection-btn {
-  padding: 6px 12px;
-  border-radius: 4px;
-  font-size: 0.85rem;
-  border: none;
-  cursor: pointer;
-  transition: all 0.2s;
-}
-
-.history-load-btn {
-  background-color: var(--accent-color);
-  color: var(--button-text-color);
-}
-
-.history-load-btn:hover:not(:disabled) {
-  background-color: var(--accent-hover);
-}
-
-.history-rename-btn {
-  background-color: var(--bg-primary);
-  color: var(--text-primary);
+.history-search {
+  flex: 1;
+  min-width: 0;
+  padding: 8px 12px;
   border: 1px solid var(--border-color);
+  border-radius: 8px;
+  background-color: var(--bg-secondary);
+  color: var(--text-primary);
+  font-size: 0.85rem;
 }
 
-.history-rename-btn:hover:not(:disabled) {
+.history-search:focus {
+  outline: none;
+  border-color: var(--accent-color);
+}
+
+.history-search::placeholder {
+  color: var(--text-secondary);
+}
+
+.selection-mode-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+  white-space: nowrap;
+}
+
+.selection-mode-toggle .toggle-container {
+  margin-left: 0;
+  display: flex;
+}
+
+.history-bulkbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  flex-shrink: 0;
+  padding: 8px 12px;
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
   background-color: var(--bg-secondary);
 }
 
-.history-delete-btn {
-  background-color: color-mix(in srgb, var(--error-color) 10%, transparent);
-  color: var(--error-color);
+.selection-status {
+  font-size: 0.8rem;
+  color: var(--text-secondary);
 }
 
-.history-delete-btn:hover:not(:disabled) {
-  background-color: color-mix(in srgb, var(--error-color) 20%, transparent);
+.history-bulk-actions {
+  display: flex;
+  gap: 8px;
 }
 
 .history-select-all-btn,
 .history-clear-selection-btn {
-  background-color: var(--bg-primary);
+  padding: 5px 10px;
+  border-radius: 6px;
+  font-size: 0.8rem;
+  background: none;
   color: var(--text-primary);
   border: 1px solid var(--border-color);
+  cursor: pointer;
+  transition: background-color 0.2s;
 }
 
 .history-select-all-btn:hover,
 .history-clear-selection-btn:hover {
-  background-color: var(--bg-secondary);
+  background-color: var(--bg-primary);
 }
 
-.history-load-btn:disabled,
-.history-rename-btn:disabled,
-.history-delete-btn:disabled,
-.history-select-all-btn:disabled,
-.history-clear-selection-btn:disabled {
+.history-delete-btn {
+  padding: 5px 10px;
+  border-radius: 6px;
+  font-size: 0.8rem;
+  border: none;
+  cursor: pointer;
+  background-color: color-mix(in srgb, var(--error-color) 12%, transparent);
+  color: var(--error-color);
+  transition: background-color 0.2s;
+}
+
+.history-delete-btn:hover:not(:disabled) {
+  background-color: color-mix(in srgb, var(--error-color) 22%, transparent);
+}
+
+.history-delete-btn:disabled {
   opacity: 0.5;
   cursor: not-allowed;
 }
-

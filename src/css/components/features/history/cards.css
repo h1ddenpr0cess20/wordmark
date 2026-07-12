@@ -1,0 +1,183 @@
+.history-cards {
+  flex: 1;
+  overflow-y: auto;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  padding-right: 2px;
+  scrollbar-width: thin;
+  scrollbar-color: var(--accent-color) var(--bg-secondary);
+}
+
+.history-group {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.history-group-label {
+  font-size: 0.7rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--text-secondary);
+  padding: 14px 12px 6px;
+}
+
+.history-group:first-child .history-group-label {
+  padding-top: 2px;
+}
+
+.history-row {
+  border-radius: 10px;
+  border-left: 3px solid transparent;
+  padding: 10px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  cursor: pointer;
+  transition: background-color 0.15s;
+}
+
+.history-row:hover {
+  background-color: var(--bg-secondary);
+}
+
+.history-row.current-conversation {
+  border-left-color: var(--accent-color);
+  background-color: var(--accent-hover-light, rgba(var(--accent-color-rgb), 0.08));
+}
+
+.history-row.selected {
+  border-left-color: var(--accent-color);
+  background-color: var(--accent-hover-light, rgba(var(--accent-color-rgb), 0.15));
+}
+
+.history-card-top {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+}
+
+.history-title {
+  flex: 1;
+  min-width: 0;
+  font-weight: 500;
+  color: var(--text-primary);
+  font-size: 0.9rem;
+  line-height: 1.4;
+  word-break: break-word;
+}
+
+.history-rename-input {
+  flex: 1;
+  min-width: 0;
+  font: inherit;
+  font-weight: 500;
+  font-size: 0.9rem;
+  color: var(--text-primary);
+  background-color: var(--bg-primary);
+  border: 1px solid var(--accent-color);
+  border-radius: 6px;
+  padding: 2px 8px;
+}
+
+.history-rename-input:focus {
+  outline: none;
+}
+
+.history-row-actions {
+  display: flex;
+  gap: 4px;
+  flex-shrink: 0;
+  opacity: 0;
+  transition: opacity 0.15s;
+}
+
+.history-row:hover .history-row-actions,
+.history-row:focus-within .history-row-actions {
+  opacity: 1;
+}
+
+.history-cards.multi-select-mode .history-row-actions {
+  display: none;
+}
+
+.row-action {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 26px;
+  border-radius: 6px;
+  border: none;
+  background: none;
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: background-color 0.15s, color 0.15s;
+}
+
+.row-action:hover {
+  background-color: var(--bg-primary);
+  color: var(--text-primary);
+}
+
+.row-delete:hover {
+  color: var(--error-color);
+}
+
+.history-prompt {
+  align-self: flex-start;
+  max-width: 100%;
+}
+
+.prompt-type {
+  font-size: 0.72rem;
+  color: var(--text-secondary);
+  line-height: 1.4;
+  overflow-wrap: anywhere;
+}
+
+.history-card-meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 4px 10px;
+  font-size: 0.72rem;
+  color: var(--text-secondary);
+}
+
+.model-info {
+  display: inline-flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: 6px;
+  min-width: 0;
+  max-width: 100%;
+}
+
+.model-name {
+  font-weight: 500;
+  overflow-wrap: anywhere;
+}
+
+.service-name {
+  opacity: 0.75;
+  overflow-wrap: anywhere;
+}
+
+.stats-info {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 8px;
+}
+
+.message-count,
+.image-count {
+  white-space: nowrap;
+}
+
+.date-info {
+  margin-left: auto;
+  white-space: nowrap;
+}

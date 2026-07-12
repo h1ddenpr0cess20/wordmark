@@ -203,8 +203,6 @@ export function removeUserSkill(id: string): boolean {
   return true;
 }
 
-// --- Enable/disable preferences -------------------------------------------
-
 let skillPreferences = loadSkillPreferences();
 
 /** Reads the persisted enable/disable map, or `{}`. */
@@ -275,7 +273,6 @@ export function seedExampleSkills() {
       return;
     }
     try {
-      // Avoid duplicating an example a user (or an earlier seed) already has.
       if (!getAllSkills().some(skill => skill.name === input.name)) {
         const skill = addUserSkill(input);
         setSkillEnabled(skill.id, true);
@@ -291,8 +288,6 @@ export function seedExampleSkills() {
     writeJSON(STORAGE_KEYS.skillsSeededExamples, [...seeded]);
   }
 }
-
-// --- SKILL.md serialization -----------------------------------------------
 
 const RESOURCE_OPEN = /<!--\s*skill:resource\s+name="([^"]+)"\s*-->/;
 const RESOURCE_BLOCK = /<!--\s*skill:resource\s+name="([^"]+)"\s*-->\n([\s\S]*?)\n<!--\s*\/skill:resource\s*-->/g;
@@ -348,7 +343,6 @@ export function parseSkillMarkdown(text: string): SkillInput {
     resources.push({ name: match[1].trim(), content: match[2].trim() });
   }
   body = body.replace(RESOURCE_BLOCK, "").trim();
-  // Drop any dangling, unterminated resource opener.
   body = body.replace(RESOURCE_OPEN, "").trim();
 
   if (!name) {

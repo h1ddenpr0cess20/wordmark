@@ -20,8 +20,6 @@ function createLocalStorage(initial: Record<string, string> = {}) {
   } as unknown as Storage;
 }
 
-// export.js reads window.exportFormatSelector / window.conversationHistory and the
-// bare globals localStorage, document, URL. Provide them on globalThis before import.
 globalThis.window = {} as Window & typeof globalThis;
 globalThis.localStorage = createLocalStorage();
 
@@ -123,7 +121,6 @@ test('exportChat builds markdown export, dedupes reasoning, and triggers downloa
   assert.ok(blobText.includes('Second thought'));
 });
 
-// Minimal document/URL stubs that capture the exported blob without a DOM.
 function setupExportCapture(format: string) {
   globalThis.localStorage = createLocalStorage();
   const capture: { blob: Blob | null } = { blob: null };
@@ -134,7 +131,6 @@ function setupExportCapture(format: string) {
       if (tag === 'a') {
         return { href: '', download: '', click() {} };
       }
-      // Minimal element used by sanitizeWithMedia: stores innerHTML, no children to post-process.
       let html = '';
       return {
         set innerHTML(value: string) { html = value; },
@@ -167,12 +163,10 @@ test('html export renders message markdown to HTML', async () => {
 
   assert.ok(capture.blob);
   const html = await (capture.blob as Blob).text();
-  // Markdown is rendered through marked (content sanitization is covered by sanitize.spec.ts).
   assert.ok(html.includes('<h1'));
   assert.ok(html.includes('<strong>bold</strong>'));
   assert.ok(html.includes('<code>code</code>'));
   assert.ok(html.includes('<li>one</li>'));
-  // The page shell and message scaffolding are present.
   assert.ok(html.includes('class="message user"'));
   assert.ok(html.includes('class="export-container"'));
 });

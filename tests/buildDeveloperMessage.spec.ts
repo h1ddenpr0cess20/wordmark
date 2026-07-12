@@ -1,8 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 
-// buildDeveloperMessage transitively reads localStorage (tool catalog / memory)
-// when function calling is enabled, so stub the browser globals it needs.
 const store: Record<string, string> = {};
 globalThis.window = globalThis.window || ({} as Window & typeof globalThis);
 globalThis.localStorage = {
@@ -37,8 +35,6 @@ test("buildDeveloperMessage still surfaces enabled skills in no-prompt mode", ()
   setSkillEnabled(skill.id, true);
   try {
     const result = buildDeveloperMessage();
-    // Without the discovery list the `activate_skill` tool would be offered
-    // with nothing for the model to act on, so the skill must appear here.
     assert.ok(typeof result === "string" && result.includes("No-Prompt Probe"));
   } finally {
     removeUserSkill(skill.id);
@@ -53,6 +49,5 @@ test("buildDeveloperMessage starts with the prompt and includes a generated-on t
 
   const result = buildDeveloperMessage();
   assert.ok(typeof result === "string" && result.startsWith("BE BRIEF"));
-  // the timestamp line is appended after the instructions
   assert.match(result as string, /\(Generated on .+\)/);
 });

@@ -49,7 +49,6 @@ test("ensureVariants seeds variant 0 once and reports whether it did", () => {
   assert.equal(entry.variants?.length, 1);
   assert.equal(entry.variants?.[0].content, "first");
   assert.equal(entry.activeVariant, 0);
-  // second call is a no-op
   assert.equal(ensureVariants(entry), false);
   assert.equal(entry.variants?.length, 1);
 });

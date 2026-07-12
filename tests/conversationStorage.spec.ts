@@ -9,7 +9,6 @@ type FakeReq = {
   error: unknown;
 };
 
-// Minimal fake IndexedDB for tests
 function createFakeIndexedDB() {
   const stores = new Map<string, ReturnType<typeof createStore>>();
   const objectStoreNames = { contains: (name: string) => stores.has(name) };
@@ -108,7 +107,6 @@ function createFakeIndexedDB() {
   };
 }
 
-// Provide a window with a fake IndexedDB before importing the ES module.
 globalThis.window = { addEventListener: () => {}, indexedDB: createFakeIndexedDB() } as unknown as Window & typeof globalThis;
 
 const {
@@ -141,7 +139,6 @@ test('conversation storage: init, save, load, getAll, rename, delete', async () 
   const deleted = await deleteConversationFromDb('c1');
   assert.equal(deleted, true);
 
-  // After deletion, loading should reject
   let threw = false;
   try { await loadConversationFromDb('c1'); } catch (e) { threw = true; }
   assert.equal(threw, true);

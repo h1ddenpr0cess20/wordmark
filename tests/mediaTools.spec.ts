@@ -37,7 +37,6 @@ test('inferMimeTypeFromFilename maps each known extension and defaults to image/
   assert.equal(inferMimeTypeFromFilename('photo.webp'), 'image/webp');
   assert.equal(inferMimeTypeFromFilename('anim.gif'), 'image/gif');
   assert.equal(inferMimeTypeFromFilename('photo.png'), 'image/png');
-  // case-insensitive, and unknown/empty/missing extensions default to image/png
   assert.equal(inferMimeTypeFromFilename('CLIP.MP4'), 'video/mp4');
   assert.equal(inferMimeTypeFromFilename('document.txt'), 'image/png');
   assert.equal(inferMimeTypeFromFilename('noextension'), 'image/png');
@@ -80,7 +79,6 @@ test('makeFilename mints distinct names on successive calls', () => {
 test('detectMediaType honors an explicit media type first', () => {
   assert.equal(detectMediaType({ mediaType: 'Video' }), 'video');
   assert.equal(detectMediaType({ mediaType: ' image ' }), 'image');
-  // explicit but invalid value falls through to other signals
   assert.equal(detectMediaType({ mediaType: 'audio', mimeType: 'video/mp4' }), 'video');
 });
 
@@ -120,7 +118,6 @@ test('buildMediaRecordHtml escapes attacker-controlled fields', () => {
       timestamp: 't"3',
     }),
   );
-  // No raw quote-breakouts or tags survive into the markup
   assert.ok(!html.includes('<script>'));
   assert.ok(!html.includes('onerror=alert(1)>'));
   assert.ok(!html.includes('"><'));
@@ -134,7 +131,6 @@ test('getMediaDisplayUrl passes through usable urls and wraps bare base64', () =
   assert.equal(getMediaDisplayUrl('data:image/png;base64,AAAA'), 'data:image/png;base64,AAAA');
   assert.equal(getMediaDisplayUrl('blob:foo'), 'blob:foo');
   assert.equal(getMediaDisplayUrl('/local/path.png'), '/local/path.png');
-  // a bare base64 payload is wrapped using the filename-inferred mime type
   assert.equal(getMediaDisplayUrl('QUJD', 'pic.jpg'), 'data:image/jpeg;base64,QUJD');
   assert.equal(getMediaDisplayUrl('QUJD', 'clip.webm'), 'data:video/webm;base64,QUJD');
 });

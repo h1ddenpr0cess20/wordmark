@@ -12,7 +12,6 @@ test("formatAssistantFileDate returns Unknown when created_at is absent", () => 
 });
 
 test("formatAssistantFileDate converts Unix seconds to a locale date", () => {
-  // 2021-01-01T00:00:00Z = 1609459200 seconds.
   const expected = new Date(1609459200 * 1000).toLocaleDateString();
   assert.equal(formatAssistantFileDate(1609459200), expected);
 });

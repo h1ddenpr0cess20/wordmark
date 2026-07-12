@@ -21,6 +21,22 @@ test('extractConversationTitle uses the first user message (string content)', ()
   assert.equal(title, 'How do I center a div?');
 });
 
+test('extractConversationTitle prefers a user-assigned name, ignoring auto-generated ones', () => {
+  const messages = [{ role: 'user', content: 'How do I center a div?' }];
+  assert.equal(
+    extractConversationTitle(asConvo({ name: 'My debugging session', messages })),
+    'My debugging session',
+  );
+  assert.equal(
+    extractConversationTitle(asConvo({ name: 'Conversation 7/12/2026, 1:00:00 PM', messages })),
+    'How do I center a div?',
+  );
+  assert.equal(
+    extractConversationTitle(asConvo({ name: 'Personality: a pirate captain', messages })),
+    'How do I center a div?',
+  );
+});
+
 test('extractConversationTitle reads array content parts', () => {
   const title = extractConversationTitle(asConvo({
     messages: [{ role: 'user', content: [{ type: 'input_text', text: 'array prompt' }] }],

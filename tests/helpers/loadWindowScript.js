@@ -1,5 +1,3 @@
-// Minimal loader to execute browser scripts that attach to `window`
-// Uses Node's VM to evaluate the file with a provided window stub
 import fs from 'node:fs';
 import vm from 'node:vm';
 import path from 'node:path';
@@ -15,7 +13,6 @@ export function loadWindowScript(filePath, extraContext = {}) {
     window,
     console,
     require: requireFn,
-    // Supply minimal stubs for browser APIs if scripts reference them lazily
     document: extraContext.document || undefined,
     navigator: extraContext.navigator || undefined,
     URL: extraContext.URL || URL,
@@ -29,7 +26,6 @@ export function loadWindowScript(filePath, extraContext = {}) {
     setImmediate,
   };
 
-  // Allow injecting additional top-level globals if provided
   if (extraContext.globals && typeof extraContext.globals === 'object') {
     for (const [k, v] of Object.entries(extraContext.globals)) {
       sandbox[k] = v;

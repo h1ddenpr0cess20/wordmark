@@ -30,7 +30,7 @@ test("buildInstructions falls through to the default when the custom prompt is b
   el.systemPromptCustom = { value: "   " };
   const result = buildInstructions();
   assert.equal(typeof result, "string");
-  assert.notEqual(result, ""); // not the no-prompt branch
+  assert.notEqual(result, "");
 });
 
 test("buildInstructions appends the short-response guideline to the default prompt", () => {

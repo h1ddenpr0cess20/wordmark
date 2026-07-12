@@ -1,8 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 
-// createMemoryRow builds DOM nodes, so we drive it with a minimal stub document
-// that records created elements, their attributes, and click handlers.
 
 interface StubEl {
   tagName: string;

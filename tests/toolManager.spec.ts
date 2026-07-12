@@ -1,13 +1,11 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 
-// Mock global dependencies
 globalThis.window = {
   weatherToolHandler: async () => ({ forecast: 'sunny' }),
   getMemoryConfig: () => ({ enabled: false }),
 } as unknown as Window & typeof globalThis;
 
-// Mock localStorage
 let toolManagerStore: Record<string, string> = {};
 globalThis.localStorage = {
   getItem(key: string) {
@@ -141,21 +139,16 @@ test('unregisterMcpServer removes MCP tool', () => {
 });
 
 test('getEnabledToolDefinitions filters by service', () => {
-  // Enable all tools
   setAllToolsEnabled(true);
 
-  // Get definitions for OpenAI
   const openaiTools = getEnabledToolDefinitions('openai');
   assert.ok(Array.isArray(openaiTools), 'should return array');
 
-  // OpenAI should have web_search
   const hasWebSearch = openaiTools.some(tool => tool.type === 'web_search');
   assert.equal(hasWebSearch, true, 'OpenAI should support web_search');
 
-  // Get definitions for LM Studio (local)
   const lmstudioTools = getEnabledToolDefinitions('lmstudio');
 
-  // LM Studio should not have builtin tools
   const hasBuiltin = lmstudioTools.some(tool =>
     tool.type === 'web_search' || tool.type === 'code_interpreter'
   );
@@ -172,7 +165,6 @@ test('getEnabledToolDefinitions respects master toggle', () => {
 });
 
 test('getEnabledToolDefinitions excludes disabled tools', () => {
-  // Disable weather tool
   setToolEnabled('function:open_meteo_forecast', false);
 
   const tools = getEnabledToolDefinitions('openai');
@@ -182,7 +174,6 @@ test('getEnabledToolDefinitions excludes disabled tools', () => {
 
   assert.equal(hasWeather, false, 'should not include disabled tools');
 
-  // Re-enable for other tests
   setToolEnabled('function:open_meteo_forecast', true);
 });
 
@@ -191,14 +182,12 @@ test('getEnabledToolDefinitions handles xAI service specially', () => {
 
   const xaiTools = getEnabledToolDefinitions('xai');
 
-  // xAI should get both web_search and x_search
   const hasWebSearch = xaiTools.some(tool => tool.type === 'web_search');
   const hasXSearch = xaiTools.some(tool => tool.type === 'x_search');
 
   assert.equal(hasWebSearch, true, 'xAI should have web_search');
   assert.equal(hasXSearch, true, 'xAI should have x_search');
 
-  // xAI should not have MCP tools
   const hasMcp = xaiTools.some(tool => tool.type === 'mcp');
   assert.equal(hasMcp, false, 'xAI should not have MCP tools');
 });

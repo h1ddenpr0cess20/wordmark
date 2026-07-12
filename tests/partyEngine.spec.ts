@@ -155,8 +155,6 @@ test("restarting a party immediately after stop emits a fresh turn", async () =>
 
   const before = runTurnCalls.length;
 
-  // Mirror startParty(): stop, then immediately start again without awaiting
-  // the previous loop's teardown.
   partyEngine.stop();
   const second = partyEngine.start(structuredClone(CONFIG));
 
@@ -348,8 +346,6 @@ test("an observer who names a character hands them the next turn", async () => {
 
 test("an aborted turn that already produced tokens is recorded, never discarded", async () => {
   await resetEngine();
-  // Simulate the abort path where runTurn throws AbortError but tokens had
-  // already streamed into the bubble.
   throwAbort = true;
   streamedDomText = "tokens that cost real money";
 

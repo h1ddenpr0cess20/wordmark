@@ -1,8 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 
-// memoryStorage.js + components/memory.js are ES modules. Set up the browser
-// globals they touch before importing them.
 function makeLocalStorage() {
   const store = new Map<string, string>();
   return {

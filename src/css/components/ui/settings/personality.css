@@ -6,57 +6,8 @@
   border: 1px solid var(--border-color);
 }
 
-.personality-presets h4 {
-  font-size: 0.95rem;
-  color: var(--text-primary);
-  margin-bottom: 12px;
-  text-align: center;
-}
-
-.preset-buttons {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 8px;
-}
-
-.preset-button {
-  padding: 10px;
-  border: 1px solid var(--border-color);
-  background: var(--bg-primary);
-  color: var(--text-primary);
-  border-radius: 6px;
-  cursor: pointer;
-  font-size: 0.9rem;
-  transition: all 0.2s ease;
-  text-align: center;
-}
-
-.preset-button:hover {
-  background: var(--accent-hover);
-  border-color: var(--accent-color);
-  transform: translateY(-1px);
-}
-
-@media screen and (max-width: 768px) {
-  .preset-buttons {
-    grid-template-columns: repeat(3, 1fr);
-    gap: 6px;
-  }
-
-  .preset-button {
-    padding: 8px;
-    font-size: 0.85rem;
-  }
-
-  .personality-presets h4 {
-    font-size: 0.9rem;
-  }
-}
-
-@media screen and (max-width: 480px) {
-  .preset-buttons {
-    grid-template-columns: repeat(2, 1fr);
-  }
+.personality-presets select {
+  background-color: var(--bg-primary);
 }
 
 .reset-button {

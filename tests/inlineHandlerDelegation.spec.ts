@@ -1,10 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 
-// The inline-HTML onclick handlers (toggleThinking, about-tab popups) were
-// replaced by single delegated click listeners attached to document at module
-// load. These tests record those listeners on a stub document and dispatch
-// synthetic events to verify the delegation routes correctly.
 
 function fakeClassList(initial: string[] = []) {
   const set = new Set<string>(initial);
@@ -34,7 +30,6 @@ globalThis.document = {
   head: { appendChild() {} },
 } as unknown as Document;
 
-// Importing these modules attaches their delegated click listeners.
 await import("../src/ts/utils/utils.ts");
 await import("../src/ts/components/aboutPopups.ts");
 

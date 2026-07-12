@@ -1,9 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 
-// utils.js is an ES module that reads shared state from init/state.js and
-// attaches a couple of inline-handler shims onto window at import time, so we
-// provide window/document stubs on globalThis before importing it.
 globalThis.window = globalThis.window || ({} as Window & typeof globalThis);
 globalThis.document = globalThis.document || ({
   getElementById: () => null,
@@ -23,7 +20,7 @@ const {
 
 test("truncate appends an ellipsis only when text exceeds the max", () => {
   assert.equal(truncate("hello", 10), "hello");
-  assert.equal(truncate("hello", 5), "hello"); // exactly max -> unchanged
+  assert.equal(truncate("hello", 5), "hello");
   assert.equal(truncate("hello world", 5), "hello...");
   assert.equal(truncate("", 3), "");
 });
@@ -34,7 +31,6 @@ test("normalizeServerBaseUrl trims and strips trailing slash and /v1", () => {
   assert.equal(normalizeServerBaseUrl("http://localhost:1234/v1"), "http://localhost:1234");
   assert.equal(normalizeServerBaseUrl("http://localhost:1234/v1/"), "http://localhost:1234");
   assert.equal(normalizeServerBaseUrl("http://localhost:11434"), "http://localhost:11434");
-  // only a single trailing slash is removed (matches the original behavior)
   assert.equal(normalizeServerBaseUrl("http://localhost:1234/v1//"), "http://localhost:1234/v1/");
   assert.equal(normalizeServerBaseUrl(""), "");
 });
@@ -48,7 +44,6 @@ test("formatFileSize renders B/KB/MB with one-decimal precision", () => {
   assert.equal(formatFileSize(1024 * 1024 - 1), "1024.0 KB");
   assert.equal(formatFileSize(1024 * 1024), "1.0 MB");
   assert.equal(formatFileSize(5 * 1024 * 1024), "5.0 MB");
-  // sizes are not promoted past MB
   assert.equal(formatFileSize(1024 * 1024 * 1024), "1024.0 MB");
 });
 const { state } = await import("../src/ts/init/state.ts");
@@ -138,13 +133,11 @@ test("toggleThinking toggles collapsed state and scrolls on expand", async () =>
   };
   nodes.set("thinking-1", node);
 
-  // Expand (was collapsed)
   toggleThinking("thinking-1", { stopPropagation() {}, preventDefault() {} } as unknown as Event);
   assert.equal(node.classList.contains("collapsed"), false);
   await new Promise(r => setTimeout(r, 120));
   assert.equal(contentDiv.scrollTop, 0);
 
-  // Collapse
   toggleThinking("thinking-1");
   assert.equal(node.classList.contains("collapsed"), true);
 });

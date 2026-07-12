@@ -1,8 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 
-// catalog.js pulls in static tool/config modules; provide minimal browser
-// stubs so the import is headless.
 const store: Record<string, string> = {};
 globalThis.window = globalThis.window || ({} as Window & typeof globalThis);
 globalThis.localStorage = {
@@ -32,7 +30,6 @@ test("cloneDefinition returns an independent deep copy", () => {
   const copy = cloneDefinition(original);
   assert.deepEqual(copy, original);
   assert.notEqual(copy, original);
-  // mutating the copy must not touch the original
   (copy as Record<string, unknown>).server_label = "changed";
   (cast<{ nested: { allow: string[] } }>(copy)).nested.allow.push("b");
   assert.equal((original as Record<string, unknown>).server_label, "lab");
@@ -64,7 +61,7 @@ test("buildMcpToolEntry fills defaults and key from the label", () => {
   assert.ok(entry);
   assert.equal(entry!.key, "mcp:lab");
   assert.equal(entry!.type, "mcp");
-  assert.equal(entry!.displayName, "lab"); // falls back to the label
+  assert.equal(entry!.displayName, "lab");
   assert.equal(entry!.description, "User-configured MCP server");
   assert.equal(entry!.defaultEnabled, true);
   assert.equal(entry!.definition.require_approval, "always");

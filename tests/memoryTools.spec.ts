@@ -1,8 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 
-// The remember/forget tools persist via memoryStorage (localStorage) and that
-// module emits CustomEvents on window; stub both so the handlers run headless.
 const store: Record<string, string> = {};
 globalThis.localStorage = {
   getItem(key: string) { return key in store ? store[key] : null; },
@@ -13,7 +11,7 @@ globalThis.CustomEvent = class { constructor(public type: string, public init?: 
 globalThis.window = { dispatchEvent() { return true; } } as unknown as Window & typeof globalThis;
 
 const memStore = await import("../src/ts/utils/storage/memoryStorage.js");
-await import("../src/ts/services/memory.js"); // registers the handlers
+await import("../src/ts/services/memory.js");
 const { toolImplementations } = await import("../src/ts/services/toolImplementations.js");
 
 const remember = (args: unknown) => toolImplementations.remember(args);
@@ -21,7 +19,7 @@ const forget = (args: unknown) => toolImplementations.forget(args);
 
 function reset(enabled: boolean) {
   for (const k of Object.keys(store)) delete store[k];
-  memStore.getMemoryConfig(); // seed defaults
+  memStore.getMemoryConfig();
   memStore.setMemoryEnabled(enabled);
 }
 

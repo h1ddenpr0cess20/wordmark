@@ -1,8 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 
-// sanitize.js imports DOMPurify, which probes for a window at import time;
-// give it an empty stub so the module loads under Node.
 globalThis.window = globalThis.window || ({} as Window & typeof globalThis);
 
 const { escapeHtml } = await import("../src/ts/utils/sanitize.ts");

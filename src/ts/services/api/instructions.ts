@@ -48,8 +48,6 @@ export function buildDeveloperMessage() {
   const instructions = buildInstructions();
   let developerBlock = instructions;
 
-  // The location/timestamp/tool context augments an actual system prompt, so it
-  // is only attached when there is one (e.g. "no prompt" mode stays bare).
   if (instructions) {
     const locationInfo = getLocationForPrompt();
     const timestamp = buildTimestampString();
@@ -71,9 +69,6 @@ export function buildDeveloperMessage() {
     }
   }
 
-  // Skills must be discoverable whenever they are enabled — even with no base
-  // prompt — otherwise the `activate_skill` tool is offered with no list of
-  // skills (or ids) for the model to act on.
   const skillsCanUseTool = config?.enableFunctionCalling !== false && supportsClientSideTools();
   const skillsDescription = getSkillsDescription(skillsCanUseTool);
   if (skillsDescription) {

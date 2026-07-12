@@ -1,8 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 
-// shouldSkipTts reads the rendered message element from the DOM, so we stub a
-// minimal document whose getElementById is backed by a per-test element map.
 const elements = new Map<string, unknown>();
 globalThis.window = globalThis.window || ({} as Window & typeof globalThis);
 globalThis.document = {

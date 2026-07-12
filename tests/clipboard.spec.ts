@@ -1,8 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 
-// copyTextToClipboard touches navigator + document, so we install minimal stubs
-// per test and restore them afterward.
 
 import { copyTextToClipboard } from "../src/ts/utils/dom/clipboard.js";
 
@@ -11,8 +9,6 @@ const g = globalThis as unknown as {
   document?: unknown;
 };
 
-// navigator is a getter-only built-in global in modern Node, so we must
-// redefine it rather than assign.
 function setGlobals(navigator: unknown, document: unknown) {
   Object.defineProperty(g, "navigator", { value: navigator, configurable: true, writable: true });
   Object.defineProperty(g, "document", { value: document, configurable: true, writable: true });

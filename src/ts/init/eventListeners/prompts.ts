@@ -3,9 +3,10 @@
  *
  * @remarks
  * Wires the prompt-mode radios, the personality and custom-prompt input fields,
- * and the personality preset buttons.
+ * and the preset persona dropdown.
  */
 
+import { PERSONALITY_PRESETS } from "../../../config/config.ts";
 import { elements } from "../state.ts";
 import { debounce } from "../../utils/utils.ts";
 import { focusUserInputSafely } from "../../utils/dom/mobileHandling.ts";
@@ -65,40 +66,44 @@ function setupInputFieldEventListeners() {
   }
 }
 
-/** Wires preset personality buttons to start a conversation with that persona. */
+/** Populates the preset persona dropdown and starts a conversation on selection. */
 function setupPersonalityPresetEventListeners() {
-  const presetButtons = document.querySelectorAll<HTMLElement>(".preset-button");
+  const presetSelect = document.querySelector<HTMLSelectElement>("#personality-preset-select");
+  if (!presetSelect) {
+    return;
+  }
 
-  presetButtons.forEach((button) => {
-    const personality = button.getAttribute("data-personality");
-    if (personality) {
-      button.title = personality;
+  PERSONALITY_PRESETS.forEach(({ label, personality }) => {
+    const option = document.createElement("option");
+    option.value = personality;
+    option.textContent = label;
+    presetSelect.appendChild(option);
+  });
+
+  presetSelect.addEventListener("change", () => {
+    const personality = presetSelect.value;
+    presetSelect.selectedIndex = 0;
+    if (!personality || !elements.personalityInput) {
+      return;
     }
 
-    button.addEventListener("click", () => {
-      if (!personality || !elements.personalityInput) {
-        return;
-      }
+    startNewConversation(`Personality: ${personality}`);
+    elements.personalityInput.value = personality;
 
-      startNewConversation(`Personality: ${personality}`);
-      elements.personalityInput.value = personality;
+    if (elements.personalityPromptRadio) {
+      elements.personalityPromptRadio.checked = true;
+    }
+    elements.personalityInput.setAttribute("data-explicitly-set", "true");
 
-      if (elements.personalityPromptRadio) {
-        elements.personalityPromptRadio.checked = true;
-      }
-      elements.personalityInput.setAttribute("data-explicitly-set", "true");
+    updatePromptVisibility();
 
-      updatePromptVisibility();
+    closeSettingsPanelIfOpen();
 
-      closeSettingsPanelIfOpen();
+    updateHeaderInfo();
 
-      updateHeaderInfo();
+    updateBrowserHistory();
 
-      updateBrowserHistory();
-
-      focusUserInputSafely();
-
-    });
+    focusUserInputSafely();
   });
 }
 

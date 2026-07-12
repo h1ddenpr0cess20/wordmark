@@ -16,7 +16,6 @@ const nullDocument = { getElementById() { return null; } } as unknown as Documen
 type GeoPosition = { coords: { latitude: number; longitude: number }; timestamp?: number };
 const asNavigator = (nav: unknown) => nav as unknown as Navigator;
 
-// globalThis.navigator is a read-only getter in Node; make it writable for stubbing.
 Object.defineProperty(globalThis, "navigator", { value: undefined, configurable: true, writable: true });
 
 globalThis.window = {} as Window & typeof globalThis;
@@ -155,7 +154,7 @@ test('initializeLocationService restores recent stored location', () => {
   initializeLocationService();
   assert.equal(locationState.enabled, true);
   assert.equal(locationState.locationString, 'Stored Place');
-  assert.equal(geoCalls, 0); // recent location => no fresh request
+  assert.equal(geoCalls, 0);
 });
 
 test('initializeLocationService requests fresh location when stored expires', () => {
@@ -174,7 +173,7 @@ test('initializeLocationService requests fresh location when stored expires', ()
   globalThis.navigator = asNavigator({ geolocation: { getCurrentPosition() { geoCalls += 1; } } });
 
   initializeLocationService();
-  assert.equal(geoCalls, 1); // expired => requestLocation() triggers getCurrentPosition
+  assert.equal(geoCalls, 1);
 });
 
 test('disableLocation clears state and updates UI', () => {

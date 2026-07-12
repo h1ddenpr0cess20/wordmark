@@ -14,13 +14,13 @@ npm run dev          # dev server on http://localhost:3000 (opens automatically)
 
 Serve Over HTTPS
 
-- `npm run dev:https` — runs the Vite dev server over HTTPS (recommended for APIs, TTS, and geolocation, which require a secure context).
+- `npm run dev:https` — runs the Vite dev server over HTTPS on your local network, generating self-signed certs on first use (recommended for APIs, TTS, and geolocation, which require a secure context).
 - Accept the self-signed cert warning on first load.
 
 Production Build
 
 - `npm run build` — outputs a static, hashed bundle to `dist/`.
-- `npm run preview` — serves the built `dist/` on http://localhost:8080.
+- `npm run preview` — serves the built `dist/` on port 8080, reachable from other devices on your network (`npm start` builds and serves in one step).
 - Deploy the contents of `dist/` to any static host (the project deploys to Vercel).
 
 API Keys (where to put them)

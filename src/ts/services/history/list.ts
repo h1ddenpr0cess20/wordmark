@@ -2,8 +2,9 @@
  * Conversation history list.
  *
  * @remarks
- * Renders the saved-conversation sidebar from the IndexedDB store and wires its
- * load, rename, and delete controls.
+ * Renders the saved-conversation panel from the IndexedDB store: a search
+ * field, date-grouped conversation rows that load on click, per-row rename and
+ * delete actions, and a bulk-select mode for multi-delete.
  */
 
 import { elements, state } from "../../init/state.ts";
@@ -13,14 +14,20 @@ import {
 } from "../../utils/storage/conversationStorage.ts";
 import { deleteDocChunks } from "../../utils/storage/docChunkStorage.ts";
 import { startNewConversation, loadConversation, renameConversation } from "./persistence.ts";
-import { buildHistoryRowHtml } from "./historyRow.ts";
+import {
+  buildHistoryRowHtml,
+  conversationDateGroup,
+  extractConversationTitle,
+  resolveConversationPrompt,
+} from "./historyRow.ts";
 import { closePanel } from "../../utils/dom/panels.ts";
+import type { ConversationRecord } from "../../../types/common.ts";
 
 let activeHistoryKeydown: ((e: KeyboardEvent) => void) | null = null;
 
 /**
- * Renders the saved-conversation list into the history panel, wiring each
- * entry's load, rename, and delete actions.
+ * Renders the saved-conversation list into the history panel, wiring search,
+ * load-on-click, per-row rename/delete, and bulk selection.
  */
 export function renderChatHistoryList() {
   const historyList = elements.historyList;
@@ -39,139 +46,74 @@ export function renderChatHistoryList() {
 
       convos.sort((a, b) => new Date(b.updated || 0).getTime() - new Date(a.updated || 0).getTime());
 
-      const toolbarDiv = document.createElement("div");
-      toolbarDiv.className = "history-toolbar";
-      toolbarDiv.innerHTML = `
-        <div class="history-toolbar-left">
-          <button class="history-new-button">
-            <span>+ Start New Conversation</span>
-          </button>
-          <label class="selection-mode-toggle">
-            <input type="checkbox" id="multi-select-mode"> Multi-select
-          </label>
-        </div>
-        <div class="history-toolbar-right">
-          <span class="selection-status" style="display: none; font-size: 0.85rem; color: var(--text-secondary); margin-right: 8px;">
-            <span class="selected-count">0</span> selected
-          </span>
-          <button class="history-select-all-btn" title="Select all conversations" style="display: none;">Select All</button>
-          <button class="history-clear-selection-btn" title="Clear selection" style="display: none;">Clear</button>
-          <button class="history-load-btn" title="Load selected conversation" disabled>Load</button>
-          <button class="history-rename-btn" title="Rename selected conversation" disabled>Rename</button>
-          <button class="history-delete-btn" title="Delete selected conversations" disabled>Delete (<span class="delete-count">0</span>)</button>
+      const controls = document.createElement("div");
+      controls.className = "history-controls";
+      controls.innerHTML = `
+        <button type="button" class="history-new-button">
+          <svg width="16" height="16" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><use href="#plus-circle"></use></svg>
+          <span>New conversation</span>
+        </button>
+        <input type="search" class="history-search" placeholder="Search conversations" aria-label="Search conversations">
+        <div class="selection-mode-toggle" title="Select multiple conversations">
+          <span>Select</span>
+          <div class="toggle-container">
+            <input type="checkbox" id="multi-select-mode">
+            <label for="multi-select-mode" class="toggle-switch" aria-label="Select multiple conversations"></label>
+          </div>
         </div>
       `;
 
-      const newButton = toolbarDiv.querySelector(".history-new-button") as HTMLElement;
-      const multiSelectCheckbox = toolbarDiv.querySelector("#multi-select-mode") as HTMLInputElement;
-      const selectionStatus = toolbarDiv.querySelector(".selection-status") as HTMLElement;
-      const selectedCountSpan = toolbarDiv.querySelector(".selected-count") as HTMLElement;
-      const selectAllButton = toolbarDiv.querySelector(".history-select-all-btn") as HTMLElement;
-      const clearSelectionButton = toolbarDiv.querySelector(".history-clear-selection-btn") as HTMLElement;
-      const loadButton = toolbarDiv.querySelector(".history-load-btn") as HTMLButtonElement;
-      const renameButton = toolbarDiv.querySelector(".history-rename-btn") as HTMLButtonElement;
-      const deleteButton = toolbarDiv.querySelector(".history-delete-btn") as HTMLButtonElement;
-      const deleteCountSpan = toolbarDiv.querySelector(".delete-count") as HTMLElement;
+      const bulkbar = document.createElement("div");
+      bulkbar.className = "history-bulkbar";
+      bulkbar.hidden = true;
+      bulkbar.innerHTML = `
+        <span class="selection-status"><span class="selected-count">0</span> selected</span>
+        <div class="history-bulk-actions">
+          <button type="button" class="history-select-all-btn">Select all</button>
+          <button type="button" class="history-clear-selection-btn">Clear</button>
+          <button type="button" class="history-delete-btn" disabled>Delete</button>
+        </div>
+      `;
+
+      const newButton = controls.querySelector(".history-new-button") as HTMLElement;
+      const searchInput = controls.querySelector(".history-search") as HTMLInputElement;
+      const multiSelectCheckbox = controls.querySelector("#multi-select-mode") as HTMLInputElement;
+      const selectedCountSpan = bulkbar.querySelector(".selected-count") as HTMLElement;
+      const selectAllButton = bulkbar.querySelector(".history-select-all-btn") as HTMLElement;
+      const clearSelectionButton = bulkbar.querySelector(".history-clear-selection-btn") as HTMLElement;
+      const deleteButton = bulkbar.querySelector(".history-delete-btn") as HTMLButtonElement;
+
+      const cardList = document.createElement("div");
+      cardList.className = "history-cards";
+
+      const visibleRows = () =>
+        Array.from(cardList.querySelectorAll<HTMLElement>(".history-row")).filter((row) => !row.hidden);
+
+      const selectedRows = () =>
+        Array.from(cardList.querySelectorAll<HTMLElement>(".history-row.selected"));
 
       const deselectAllRows = () => {
-        document.querySelectorAll(".history-row").forEach((row) => row.classList.remove("selected"));
-      };
-
-      const selectAllRows = () => {
-        document.querySelectorAll(".history-row").forEach((row) => row.classList.add("selected"));
+        selectedRows().forEach((row) => row.classList.remove("selected"));
       };
 
       const closeHistoryPanel = () => {
         closePanel({ panel: elements.historyPanel, button: elements.historyButton });
       };
 
-      const updateButtonStates = () => {
-        const selectedRows = document.querySelectorAll<HTMLElement>(".history-row.selected");
-        const isMultiSelect = multiSelectCheckbox.checked;
-        const selectedCount = selectedRows.length;
-
-        selectAllButton.style.display = isMultiSelect ? "inline-block" : "none";
-        clearSelectionButton.style.display = isMultiSelect ? "inline-block" : "none";
-        selectionStatus.style.display = isMultiSelect && selectedCount > 0 ? "inline-block" : "none";
-
-        selectedCountSpan.textContent = String(selectedCount);
-        deleteCountSpan.textContent = String(selectedCount);
-
-        loadButton.disabled = selectedCount !== 1;
-        renameButton.disabled = selectedCount !== 1;
-        deleteButton.disabled = selectedCount === 0;
-
-        deleteButton.title = selectedCount > 1
-          ? `Delete ${selectedCount} selected conversations`
-          : "Delete selected conversation";
+      const updateSelectionState = () => {
+        const count = selectedRows().length;
+        selectedCountSpan.textContent = String(count);
+        deleteButton.disabled = count === 0;
+        deleteButton.textContent = count > 1 ? `Delete (${count})` : "Delete";
       };
 
-      newButton.onclick = () => {
-        startNewConversation();
-        closeHistoryPanel();
-      };
-
-      multiSelectCheckbox.onchange = () => {
-        const isMultiSelect = multiSelectCheckbox.checked;
-
-        deselectAllRows();
-
-        const table = document.querySelector(".history-table");
-        if (table) {
-          table.classList.toggle("multi-select-mode", isMultiSelect);
-        }
-
-        updateButtonStates();
-      };
-
-      selectAllButton.onclick = () => {
-        selectAllRows();
-        updateButtonStates();
-      };
-
-      clearSelectionButton.onclick = () => {
-        deselectAllRows();
-        updateButtonStates();
-      };
-
-      loadButton.onclick = () => {
-        const selectedRow = document.querySelector<HTMLElement>(".history-row.selected");
-        if (selectedRow) {
-          const conversationId = selectedRow.dataset.conversationId;
-          if (conversationId) {
-            loadConversation(conversationId)?.then(() => {
-              closeHistoryPanel();
-            });
-          }
-        }
-      };
-
-      renameButton.onclick = () => {
-        const selectedRow = document.querySelector<HTMLElement>(".history-row.selected");
-        if (!selectedRow) {
+      const deleteConversations = (conversationIds: string[]) => {
+        if (!conversationIds.length) {
           return;
         }
-        const conversationId = selectedRow.dataset.conversationId;
-        const currentTitle = selectedRow.querySelector(".history-title")?.textContent || "";
-        const newName = prompt("Rename conversation:", currentTitle);
-        if (conversationId && newName && newName.trim()) {
-          renameConversation(conversationId, newName.trim());
-        }
-      };
-
-      deleteButton.onclick = () => {
-        const selectedRows = document.querySelectorAll<HTMLElement>(".history-row.selected");
-        if (!selectedRows.length) {
-          return;
-        }
-
-        const conversationIds = Array.from(selectedRows)
-          .map((row) => row.dataset.conversationId)
-          .filter((id): id is string => Boolean(id));
         const confirmMessage = conversationIds.length === 1
           ? "Delete this conversation?"
           : `Delete ${conversationIds.length} conversations?`;
-
         if (!confirm(confirmMessage)) {
           return;
         }
@@ -195,16 +137,51 @@ export function renderChatHistoryList() {
           });
       };
 
-      historyList.appendChild(toolbarDiv);
+      newButton.onclick = () => {
+        startNewConversation();
+        closeHistoryPanel();
+      };
+
+      searchInput.oninput = () => {
+        const query = searchInput.value.trim().toLowerCase();
+        cardList.querySelectorAll<HTMLElement>(".history-row").forEach((row) => {
+          row.hidden = Boolean(query) && !(row.dataset.search || "").includes(query);
+        });
+        cardList.querySelectorAll<HTMLElement>(".history-group").forEach((group) => {
+          group.hidden = !group.querySelector(".history-row:not([hidden])");
+        });
+      };
+
+      multiSelectCheckbox.onchange = () => {
+        const isMultiSelect = multiSelectCheckbox.checked;
+        bulkbar.hidden = !isMultiSelect;
+        cardList.classList.toggle("multi-select-mode", isMultiSelect);
+        deselectAllRows();
+        updateSelectionState();
+      };
+
+      selectAllButton.onclick = () => {
+        visibleRows().forEach((row) => row.classList.add("selected"));
+        updateSelectionState();
+      };
+
+      clearSelectionButton.onclick = () => {
+        deselectAllRows();
+        updateSelectionState();
+      };
+
+      deleteButton.onclick = () => {
+        const conversationIds = selectedRows()
+          .map((row) => row.dataset.conversationId)
+          .filter((id): id is string => Boolean(id));
+        deleteConversations(conversationIds);
+      };
 
       const handleKeydown = (e: KeyboardEvent) => {
         if (elements.historyPanel?.getAttribute("aria-hidden") === "true") {
           return;
         }
 
-        // Never hijack keys the user is typing into a field (e.g. the chat
-        // input or the multi-select checkbox) — Backspace/Enter here must not
-        // delete or load conversations.
         const target = e.target as HTMLElement | null;
         if (target && (
           target.tagName === "INPUT" ||
@@ -216,12 +193,8 @@ export function renderChatHistoryList() {
         }
 
         if ((e.key === "Delete" || e.key === "Backspace")) {
-          if (document.querySelectorAll(".history-row.selected").length > 0) {
+          if (selectedRows().length > 0) {
             deleteButton.click();
-          }
-        } else if (e.key === "Enter") {
-          if (document.querySelectorAll(".history-row.selected").length === 1) {
-            loadButton.click();
           }
         } else if (e.key === "a" && (e.ctrlKey || e.metaKey)) {
           if (multiSelectCheckbox.checked) {
@@ -239,32 +212,34 @@ export function renderChatHistoryList() {
       activeHistoryKeydown = handleKeydown;
       document.addEventListener("keydown", handleKeydown);
 
-      const tableContainer = document.createElement("div");
-      tableContainer.className = "history-table-container";
-
-      const table = document.createElement("table");
-      table.className = "history-table";
-
-      const thead = document.createElement("thead");
-      thead.innerHTML = `
-        <tr>
-          <th class="col-title">Conversation</th>
-          <th class="col-prompt">Prompt</th>
-          <th class="col-model">Model</th>
-          <th class="col-stats">Stats</th>
-          <th class="col-date">Updated</th>
-        </tr>
-      `;
-      table.appendChild(thead);
-
-      const tbody = document.createElement("tbody");
-
       let anchorRow: Element | null = null;
+      let currentGroup: HTMLElement | null = null;
+      let currentGroupLabel: string | null = null;
+
+      const searchTextFor = (convo: ConversationRecord) => [
+        extractConversationTitle(convo),
+        resolveConversationPrompt(convo).info,
+        convo.model || "",
+        convo.service || "",
+      ].join(" ").toLowerCase();
 
       convos.forEach((convo) => {
-        const row = document.createElement("tr");
+        const groupLabel = conversationDateGroup(convo.updated);
+        if (groupLabel !== currentGroupLabel) {
+          currentGroupLabel = groupLabel;
+          currentGroup = document.createElement("div");
+          currentGroup.className = "history-group";
+          const heading = document.createElement("div");
+          heading.className = "history-group-label";
+          heading.textContent = groupLabel;
+          currentGroup.appendChild(heading);
+          cardList.appendChild(currentGroup);
+        }
+
+        const row = document.createElement("div");
         row.className = "history-row";
         row.dataset.conversationId = convo.id || "";
+        row.dataset.search = searchTextFor(convo);
 
         if (state.currentConversationId === convo.id) {
           row.classList.add("current-conversation");
@@ -272,46 +247,94 @@ export function renderChatHistoryList() {
 
         row.innerHTML = buildHistoryRowHtml(convo);
 
-        row.onclick = (e) => {
-          const isMultiSelect = multiSelectCheckbox.checked;
+        const renameAction = row.querySelector(".row-rename") as HTMLElement;
+        const deleteAction = row.querySelector(".row-delete") as HTMLElement;
 
-          if (isMultiSelect) {
-            if (e.ctrlKey || e.metaKey) {
-              row.classList.toggle("selected");
-              anchorRow = row;
-            } else if (e.shiftKey) {
-              const allRows = Array.from(document.querySelectorAll(".history-row"));
-
-              if (anchorRow && allRows.includes(anchorRow)) {
-                const startIndex = allRows.indexOf(anchorRow);
-                const endIndex = allRows.indexOf(row);
-                const [minIndex, maxIndex] = [Math.min(startIndex, endIndex), Math.max(startIndex, endIndex)];
-                for (let i = minIndex; i <= maxIndex; i += 1) {
-                  allRows[i].classList.add("selected");
-                }
-              } else {
-                row.classList.add("selected");
-                anchorRow = row;
-              }
-            } else {
-              row.classList.toggle("selected");
-              anchorRow = row;
-            }
-          } else {
-            deselectAllRows();
-            row.classList.add("selected");
-            anchorRow = row;
+        renameAction.onclick = (e) => {
+          e.stopPropagation();
+          const titleEl = row.querySelector(".history-title") as HTMLElement | null;
+          if (!titleEl || row.querySelector(".history-rename-input")) {
+            return;
           }
 
-          updateButtonStates();
+          const currentTitle = titleEl.textContent || "";
+          const input = document.createElement("input");
+          input.type = "text";
+          input.className = "history-rename-input";
+          input.value = currentTitle;
+          input.setAttribute("aria-label", "Conversation name");
+          titleEl.replaceWith(input);
+
+          let finished = false;
+          const finish = (commit: boolean) => {
+            if (finished) {
+              return;
+            }
+            finished = true;
+            const newName = input.value.trim();
+            if (commit && convo.id && newName && newName !== currentTitle) {
+              titleEl.textContent = newName;
+              renameConversation(convo.id, newName);
+            }
+            input.replaceWith(titleEl);
+          };
+
+          input.onclick = (event) => event.stopPropagation();
+          input.onkeydown = (event) => {
+            event.stopPropagation();
+            if (event.key === "Enter") {
+              finish(true);
+            } else if (event.key === "Escape") {
+              finish(false);
+            }
+          };
+          input.onblur = () => finish(true);
+
+          input.focus();
+          input.select();
         };
 
-        tbody.appendChild(row);
+        deleteAction.onclick = (e) => {
+          e.stopPropagation();
+          if (convo.id) {
+            deleteConversations([convo.id]);
+          }
+        };
+
+        row.onclick = (e) => {
+          if (!multiSelectCheckbox.checked) {
+            if (convo.id) {
+              loadConversation(convo.id)?.then(() => {
+                closeHistoryPanel();
+              });
+            }
+            return;
+          }
+
+          if (e.shiftKey && anchorRow) {
+            const allRows = visibleRows();
+            const startIndex = allRows.indexOf(anchorRow as HTMLElement);
+            const endIndex = allRows.indexOf(row);
+            if (startIndex !== -1 && endIndex !== -1) {
+              const [minIndex, maxIndex] = [Math.min(startIndex, endIndex), Math.max(startIndex, endIndex)];
+              for (let i = minIndex; i <= maxIndex; i += 1) {
+                allRows[i].classList.add("selected");
+              }
+            }
+          } else {
+            row.classList.toggle("selected");
+          }
+          anchorRow = row;
+          updateSelectionState();
+        };
+
+        (currentGroup || cardList).appendChild(row);
       });
 
-      table.appendChild(tbody);
-      tableContainer.appendChild(table);
-      historyList.appendChild(tableContainer);
+      historyList.appendChild(controls);
+      historyList.appendChild(bulkbar);
+      historyList.appendChild(cardList);
+      searchInput.focus({ preventScroll: true });
     })
     .catch((err) => {
       console.error("Error loading conversations for history list:", err);

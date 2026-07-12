@@ -1,8 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 
-// memoryStorage persists via localStorage and emits CustomEvents on window;
-// stub both so the module runs headless and quietly.
 const store: Record<string, string> = {};
 globalThis.localStorage = {
   getItem(key: string) { return key in store ? store[key] : null; },
@@ -52,13 +50,12 @@ test("addMemory evicts oldest entries beyond the configured limit", () => {
 test("setMemoryLimit floors negatives at 1 and trims existing memories", () => {
   reset();
   ["a", "b", "c", "d"].forEach(v => mem.addMemory(v));
-  mem.setMemoryLimit(-5); // negative is floored to 1
+  mem.setMemoryLimit(-5);
   assert.equal(mem.getMemoryConfig().limit, 1);
   assert.deepEqual(mem.getMemories(), ["d"]);
 });
 
 test("setMemoryLimit treats 0 as 'use default' (25), not a real cap", () => {
-  // parseInt("0") || 25 -> 25, since 0 is falsy; documents the existing quirk.
   reset();
   ["a", "b", "c"].forEach(v => mem.addMemory(v));
   mem.setMemoryLimit(0);
@@ -84,7 +81,7 @@ test("clearAllMemories empties storage", () => {
 
 test("getMemories drops falsy entries and survives malformed JSON", () => {
   reset();
-  mem.getMemoryConfig(); // seed defaults
+  mem.getMemoryConfig();
   localStorage.setItem("memories", JSON.stringify(["a", "", null, "b"]));
   assert.deepEqual(mem.getMemories(), ["a", "b"]);
   localStorage.setItem("memories", "{not json");
@@ -94,7 +91,7 @@ test("getMemories drops falsy entries and survives malformed JSON", () => {
 test("getMemoriesForPrompt is empty unless enabled with content", () => {
   reset();
   mem.addMemory("likes tea");
-  assert.equal(mem.getMemoriesForPrompt(), ""); // disabled by default
+  assert.equal(mem.getMemoriesForPrompt(), "");
 
   mem.setMemoryEnabled(true);
   const block = mem.getMemoriesForPrompt();
@@ -102,5 +99,5 @@ test("getMemoriesForPrompt is empty unless enabled with content", () => {
   assert.match(block, /- likes tea/);
 
   mem.clearAllMemories();
-  assert.equal(mem.getMemoriesForPrompt(), ""); // enabled but empty
+  assert.equal(mem.getMemoriesForPrompt(), "");
 });

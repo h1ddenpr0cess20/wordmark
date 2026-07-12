@@ -36,7 +36,6 @@ test('collectImageCandidates gathers nested data URLs and deduplicates', () => {
   assert.ok(mimeTypes.includes('image/png'));
   assert.ok(mimeTypes.includes('image/jpeg'));
 
-  // Ensure duplicates were removed
   const uniqueData = new Set(accumulator.map(item => item.dataUrl));
   assert.equal(uniqueData.size, accumulator.length);
 });
@@ -70,6 +69,6 @@ test('ensureImagesHaveMessageIds matches placeholders and timestamps', () => {
   const byFilename = Object.fromEntries(state.generatedImages.map(img => [img.filename, img.associatedMessageId]));
 
   assert.equal(byFilename['latest.png'], 'assistant-1');
-  assert.equal(byFilename['orphan.png'], 'assistant-2'); // falls back to closest assistant message by timestamp
+  assert.equal(byFilename['orphan.png'], 'assistant-2');
   assert.ok(state.conversationHistory[0].hasImages);
 });

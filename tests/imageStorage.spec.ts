@@ -1,7 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 
-// Fake FileReader to convert Blob to data URL deterministically
 class FakeFileReader {
   result: string | null = null;
   onloadend: (() => void) | null = null;
@@ -21,7 +20,6 @@ type FakeReq = {
   error: unknown;
 };
 
-// Reference-preserving fake IndexedDB (keeps Blob identity, unlike a JSON clone).
 function createFakeIndexedDB() {
   const stores = new Map<string, ReturnType<typeof createStore>>();
   const objectStoreNames = { contains: (name: string) => stores.has(name) };

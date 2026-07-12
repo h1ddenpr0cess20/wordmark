@@ -4,11 +4,6 @@ import { readFileSync, readdirSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { dirname, join } from "node:path";
 
-// Regression guard for the themed-color contract. Buttons on accent
-// backgrounds must take their text color from --button-text-color (not a
-// hardcoded white/black), and danger/status colors must come from the theme
-// palette rather than literal hexes — otherwise themes whose on-accent text is
-// dark render an unreadable white/black mix, and "fixed red" creeps back in.
 
 const root = join(dirname(fileURLToPath(import.meta.url)), "..");
 const themesDir = join(root, "src/css/themes");

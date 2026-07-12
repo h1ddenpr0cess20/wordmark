@@ -1,12 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 
-// Regression test for stacked tap-to-expand listeners on the mobile
-// system-prompt (#model-info). setupPromptTapExpand runs more than once
-// (initialization + window load + retry). It used a nested function
-// declaration for the click handler, so removeEventListener never matched the
-// previously-registered listener and handlers piled up. With an even number
-// stacked, each tap toggled `expanded` twice and the panel never opened.
 
 type Listener = (event: unknown) => void;
 
