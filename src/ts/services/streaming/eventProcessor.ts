@@ -13,8 +13,9 @@ import {
   bufferGet,
   previewLines,
   safeTruncate,
-  formatToolArgs,
+  formatArgsBlock,
   extractQueriesFromArgs,
+  extractSearchQueryFromItem,
   extractDeltaText,
   extractReasoningText,
 } from "./eventParsing.ts";
@@ -56,6 +57,39 @@ function activatedSkillName(rawArgs: string | undefined): string | null {
 }
 
 /**
+ * Collects human-readable source labels (URLs, titles, filenames) from a
+ * completed search item, checking `action.sources`, `sources`, and file-search
+ * `results`. De-duplicated; empty when the item carries no sources.
+ */
+function collectSourceLabels(item: unknown): string[] {
+  const out: string[] = [];
+  const push = (value: unknown) => {
+    if (typeof value === "string" && value.trim()) out.push(value.trim());
+  };
+  const fromArray = (arr: unknown) => {
+    if (!Array.isArray(arr)) return;
+    for (const entry of arr) {
+      if (typeof entry === "string") {
+        push(entry);
+      } else if (entry && typeof entry === "object") {
+        const rec = entry as Record<string, unknown>;
+        push(rec.url || rec.title || rec.filename || rec.file_id || rec.name);
+      }
+    }
+  };
+  if (item && typeof item === "object") {
+    const rec = item as Record<string, unknown>;
+    const action = rec.action;
+    if (action && typeof action === "object") {
+      fromArray((action as Record<string, unknown>).sources);
+    }
+    fromArray(rec.sources);
+    fromArray(rec.results);
+  }
+  return [...new Set(out)];
+}
+
+/**
  * Creates the SSE event processor for a streaming turn. The returned handler
  * accumulates per-call argument/code buffers and tool-call queues, and drives
  * the provided {@link StreamingRuntime} as deltas and lifecycle events arrive.
@@ -68,6 +102,8 @@ export function createStreamingEventProcessor(runtime: StreamingRuntime) {
   const webSearchById = new Map<string, string>();
   const xSearchQueue: string[] = [];
   const xSearchById = new Map<string, string>();
+  const fileSearchQueue: string[] = [];
+  const fileSearchById = new Map<string, string>();
   const activeCodeStreams = new Set<string>();
   const activeCustomInput = new Set<string>();
   const toolExecutions = new Map<string, { name: string; status: string; startTime: number }>();
@@ -90,42 +126,92 @@ export function createStreamingEventProcessor(runtime: StreamingRuntime) {
     queue: string[],
     byId: Map<string, string>,
   ) {
+    const rendered = new Set<string>();
+
+    function resolveQuery(id: string, source: any): string {
+      if (byId.has(id)) return byId.get(id) || "";
+      if (queue.length > 0) {
+        const q = queue.shift() || "";
+        if (id) byId.set(id, q);
+        return q;
+      }
+      const q = extractSearchQueryFromItem(source);
+      if (q && id) byId.set(id, q);
+      return q;
+    }
+
+    function renderHeader(q: string) {
+      beginToolBlock(`**${emoji} ${label}${q ? ` "${safeTruncate(q, 60)}"` : ""}**:`);
+    }
+
+    function appendSources(item: any) {
+      const labels = collectSourceLabels(item);
+      if (labels.length) {
+        appendFencedPreview(labels.join("\n"), 10, "  📄 sources:");
+      }
+    }
+
+    function cleanup(id: string) {
+      if (id) {
+        byId.delete(id);
+        rendered.delete(id);
+      }
+    }
+
     return {
       inProgress(payload: any) {
         const id = payload.item_id || "";
-        let q = "";
-        if (byId.has(id)) {
-          q = byId.get(id) || "";
-        } else if (queue.length > 0) {
-          q = queue.shift() || "";
-          if (id) byId.set(id, q);
+        const q = resolveQuery(id, payload);
+        if (!q) {
+          return;
         }
-        runtime.appendReasoningLine(`**${emoji} ${label}${q ? ` "${safeTruncate(q, 60)}"` : ""}**:`);
+        renderHeader(q);
         runtime.appendReasoningLine(`  ⏳ _${inProgressVerb}…_`);
+        if (id) rendered.add(id);
       },
       searching(payload: any) {
         const id = payload.item_id || "";
+        if (!rendered.has(id)) {
+          return;
+        }
         const q = byId.get(id) || "";
         runtime.updateLastReasoningLine(`  🔍 _searching${q ? ` "${safeTruncate(q, 60)}"` : ""}…_`);
       },
       completed(payload: any) {
         const id = payload.item_id || "";
+        if (!rendered.has(id)) {
+          return;
+        }
         runtime.appendReasoningLine("  ✔️ _completed_");
-        runtime.appendReasoningLine("");
-        if (id) byId.delete(id);
       },
       failed(payload: any) {
         const id = payload.item_id || "";
         const error = payload?.error?.message || "failed";
+        if (!rendered.has(id)) {
+          renderHeader(byId.get(id) || extractSearchQueryFromItem(payload));
+        }
         runtime.appendReasoningLine(`  ❌ _failed: ${error}_`);
         runtime.appendReasoningLine("");
-        if (id) byId.delete(id);
+        cleanup(id);
+      },
+      finalize(item: any) {
+        const id = (item && (item.id || item.item_id)) || "";
+        const q = resolveQuery(id, item);
+        if (!rendered.has(id)) {
+          renderHeader(q);
+          runtime.appendReasoningLine("  ✔️ _completed_");
+          if (id) rendered.add(id);
+        }
+        appendSources(item);
+        runtime.appendReasoningLine("");
+        cleanup(id);
       },
     };
   }
 
   const webSearch = makeSearchHandlers("web_search", "🌐", "searching web", webSearchQueue, webSearchById);
   const xSearch = makeSearchHandlers("x_search", "🐦", "searching X", xSearchQueue, xSearchById);
+  const fileSearch = makeSearchHandlers("file_search", "🔎", "searching files", fileSearchQueue, fileSearchById);
 
   /**
    * Emits a fenced (```) reasoning block containing a length-capped preview of
@@ -133,11 +219,29 @@ export function createStreamingEventProcessor(runtime: StreamingRuntime) {
    * shell/code-interpreter output rendering that otherwise repeats per output
    * kind.
    */
-  function appendFencedPreview(text: string, limit: number, header?: string) {
+  function appendFencedPreview(text: string, limit: number, header?: string, language = "") {
     if (header) runtime.appendReasoningLine(header);
-    runtime.appendReasoningLine("  ```");
+    runtime.appendReasoningLine(`  \`\`\`${language}`);
     previewLines(text, limit).forEach(line => runtime.appendReasoningLine(`  ${line}`));
     runtime.appendReasoningLine("  ```");
+  }
+
+  /**
+   * Starts a tool block in the reasoning panel: a blank separator line (so the
+   * header begins a fresh markdown paragraph after streamed reasoning prose or
+   * a previous block) followed by the bold header line.
+   */
+  function beginToolBlock(header: string) {
+    runtime.appendReasoningLine("");
+    runtime.appendReasoningLine(header);
+  }
+
+  /** Renders tool-call arguments as a fenced code block under an `args:` label. */
+  function appendArgsBlock(args: unknown, label = "  args:") {
+    const block = formatArgsBlock(args);
+    if (block) {
+      appendFencedPreview(block, 20, label, "json");
+    }
   }
 
   function ensureResponseSegment() {
@@ -203,19 +307,32 @@ export function createStreamingEventProcessor(runtime: StreamingRuntime) {
       }
       break;
     }
-    case "response.reasoning.done": {
+    case "response.reasoning.done":
+    case "response.reasoning_text.done":
+    case "response.reasoning_summary_text.done": {
       const full = extractReasoningText(payload);
-      if (typeof full === "string" && full.length > 0) {
+      if (typeof full === "string" && full.trim().length > 0) {
         const current = runtime.getReasoningText();
-        if (current && current.trim().length > 0) {
-          if (!current.endsWith("\n")) {
-            runtime.appendReasoningDelta("\n");
+        if (!current.includes(full.trim())) {
+          if (current.trim().length > 0) {
+            runtime.appendReasoningDelta(current.endsWith("\n") ? "\n" : "\n\n");
           }
-          runtime.appendReasoningDelta(full);
-        } else {
           runtime.appendReasoningDelta(full);
         }
       }
+      break;
+    }
+    case "response.reasoning_summary_part.added": {
+      const current = runtime.getReasoningText();
+      if (current.trim().length > 0 && !current.endsWith("\n\n")) {
+        runtime.appendReasoningDelta(current.endsWith("\n") ? "\n" : "\n\n");
+      }
+      break;
+    }
+    case "response.reasoning_summary_part.done":
+    case "response.content_part.added":
+    case "response.content_part.done":
+    case "response.output_text.annotation.added": {
       break;
     }
     case "response.delta": {
@@ -244,17 +361,33 @@ export function createStreamingEventProcessor(runtime: StreamingRuntime) {
           status: "started",
           startTime: Date.now(),
         });
+        beginToolBlock("**🖥️ shell**:");
         const cmds = item?.action?.commands;
         if (Array.isArray(cmds) && cmds.length > 0) {
-          runtime.appendReasoningLine("**🖥️ shell**:");
-          cmds.forEach(c => {
-            runtime.appendReasoningLine(`  \`$ ${c.length > 120 ? c.slice(0, 120) + "…" : c}\``);
-          });
-          runtime.appendReasoningLine("  ⏳ _executing…_");
-        } else {
-          runtime.appendReasoningLine("**🖥️ shell**:");
-          runtime.appendReasoningLine("  ⏳ _executing…_");
+          appendFencedPreview(cmds.map((c: string) => `$ ${c}`).join("\n"), 10, undefined, "bash");
         }
+        runtime.appendReasoningLine("  ⏳ _executing…_");
+      } else if (itype === "mcp_call") {
+        const name = item?.name || "mcp";
+        const serverLabel = typeof item?.server_label === "string" && item.server_label ? `${item.server_label}.` : "";
+        toolExecutions.set(itemId, {
+          name,
+          status: "started",
+          startTime: Date.now(),
+        });
+        beginToolBlock(`**🔧 ${serverLabel}${name}**:`);
+      } else if (itype === "mcp_list_tools") {
+        const serverLabel = typeof item?.server_label === "string" && item.server_label ? ` ${item.server_label}` : "";
+        beginToolBlock(`**🔧 mcp${serverLabel}**:`);
+        runtime.appendReasoningLine("  ⏳ _listing tools…_");
+      } else if (itype === "web_search_call" || itype === "x_search_call" || itype === "file_search_call") {
+        const byId = itype === "x_search_call"
+          ? xSearchById
+          : itype === "file_search_call"
+            ? fileSearchById
+            : webSearchById;
+        const q = extractSearchQueryFromItem(item);
+        if (q && itemId) byId.set(itemId, q);
       } else if ((itype.includes("tool") || itype.includes("function")) && !itype.includes("output")) {
         const name = item?.name || item?.tool_name || item?.function?.name || "tool";
         toolExecutions.set(itemId, {
@@ -262,7 +395,7 @@ export function createStreamingEventProcessor(runtime: StreamingRuntime) {
           status: "started",
           startTime: Date.now(),
         });
-        runtime.appendReasoningLine(`**${toolReasoningLabel(name)}**:`);
+        beginToolBlock(`**${toolReasoningLabel(name)}**:`);
       }
       break;
     }
@@ -271,7 +404,13 @@ export function createStreamingEventProcessor(runtime: StreamingRuntime) {
       const itype = item?.type ? String(item.type).toLowerCase() : "";
       const itemId = item?.id || "";
 
-      if (itype === "shell_call") {
+      if (itype === "web_search_call") {
+        webSearch.finalize(item);
+      } else if (itype === "x_search_call") {
+        xSearch.finalize(item);
+      } else if (itype === "file_search_call") {
+        fileSearch.finalize(item);
+      } else if (itype === "shell_call") {
         const exec = toolExecutions.get(itemId);
         if (exec) {
           const duration = Date.now() - exec.startTime;
@@ -324,17 +463,37 @@ export function createStreamingEventProcessor(runtime: StreamingRuntime) {
             }
           }
         }
+      } else if (itype === "mcp_call") {
+        const exec = toolExecutions.get(itemId);
+        const mcpOutput = typeof item?.output === "string" ? item.output.trim() : "";
+        const mcpError = typeof item?.error === "string"
+          ? item.error
+          : (item?.error && typeof item.error.message === "string" ? item.error.message : "");
+        if (mcpOutput) {
+          appendFencedPreview(mcpOutput, 15, "  📄 output:");
+        }
+        if (mcpError) {
+          runtime.appendReasoningLine(`  ❌ _failed: ${safeTruncate(mcpError, 200)}_`);
+        } else if (exec) {
+          runtime.appendReasoningLine(`  ✔️ _completed in ${Date.now() - exec.startTime}ms_`);
+        }
+        runtime.appendReasoningLine("");
+        toolExecutions.delete(itemId);
+      } else if (itype === "mcp_list_tools") {
+        runtime.updateLastReasoningLine("  ✔️ _tools listed_");
+        runtime.appendReasoningLine("");
       } else if ((itype.includes("tool") || itype.includes("function")) && !itype.includes("output")) {
         const exec = toolExecutions.get(itemId);
         if (exec) {
           if (exec.name === ACTIVATE_SKILL_TOOL_NAME) {
-            const skillName = activatedSkillName(item?.arguments ?? argBuffers.get(itemId));
+            const bufferedArgs = argBuffers.get(`${itemId}|${exec.name}`) ?? argBuffers.get(`${itemId}|`);
+            const skillName = activatedSkillName(item?.arguments ?? bufferedArgs);
             if (skillName) {
               runtime.appendReasoningLine(`  _loaded skill: ${skillName}_`);
             }
           }
           const duration = Date.now() - exec.startTime;
-          runtime.appendReasoningLine(`✔️ _completed in ${duration}ms_`);
+          runtime.appendReasoningLine(`  ✔️ _completed in ${duration}ms_`);
           runtime.appendReasoningLine("");
           toolExecutions.delete(itemId);
         }
@@ -370,10 +529,7 @@ export function createStreamingEventProcessor(runtime: StreamingRuntime) {
         : (payload.arguments ? JSON.stringify(payload.arguments) : "");
       if (args) argBuffers.set(key, args);
 
-      const formattedArgs = formatToolArgs(args, false);
-      if (formattedArgs) {
-        runtime.appendReasoningLine(`  args:${formattedArgs}`);
-      }
+      appendArgsBlock(args || bufferGet(argBuffers, key));
 
       const normalizedName = (name || "").toLowerCase();
       if (normalizedName === "web_search") {
@@ -402,10 +558,7 @@ export function createStreamingEventProcessor(runtime: StreamingRuntime) {
         : (payload.arguments ? JSON.stringify(payload.arguments) : "");
       if (args) mcpArgBuffers.set(itemId, args);
 
-      const formattedArgs = formatToolArgs(args, false);
-      if (formattedArgs) {
-        runtime.appendReasoningLine(`  args:${formattedArgs}`);
-      }
+      appendArgsBlock(args || bufferGet(mcpArgBuffers, itemId));
 
       const qs = extractQueriesFromArgs(args || "");
       qs.forEach(q => webSearchQueue.push(q));
@@ -422,29 +575,25 @@ export function createStreamingEventProcessor(runtime: StreamingRuntime) {
       const errorMessage = payload?.error?.message || "failed";
       const errorCode = payload?.error?.code;
       const detail = errorCode ? `${errorCode}: ${errorMessage}` : errorMessage;
-      runtime.appendReasoningLine(`❌ _failed: ${detail}_`);
+      runtime.appendReasoningLine(`  ❌ _failed: ${detail}_`);
       runtime.appendReasoningLine("");
       showWarning(`MCP server call failed (${detail}). The server may be offline or unreachable.`);
       break;
     }
     case "response.file_search_call.in_progress": {
-      runtime.appendReasoningLine("**🔎 file_search**:");
-      runtime.appendReasoningLine("  ⏳ _searching…_");
+      fileSearch.inProgress(payload);
       break;
     }
     case "response.file_search_call.searching": {
-      runtime.updateLastReasoningLine("  🔍 _searching files…_");
+      fileSearch.searching(payload);
       break;
     }
     case "response.file_search_call.completed": {
-      runtime.appendReasoningLine("  ✔️ _completed_");
-      runtime.appendReasoningLine("");
+      fileSearch.completed(payload);
       break;
     }
     case "response.file_search_call.failed": {
-      const error = payload?.error?.message || "failed";
-      runtime.appendReasoningLine(`  ❌ _failed: ${error}_`);
-      runtime.appendReasoningLine("");
+      fileSearch.failed(payload);
       break;
     }
     case "response.web_search_call.in_progress": {
@@ -480,7 +629,7 @@ export function createStreamingEventProcessor(runtime: StreamingRuntime) {
       break;
     }
     case "response.code_interpreter_call.in_progress": {
-      runtime.appendReasoningLine("**💻 code_interpreter**:");
+      beginToolBlock("**💻 code_interpreter**:");
       break;
     }
     case "response.code_interpreter_call.interpreting": {
@@ -514,16 +663,13 @@ export function createStreamingEventProcessor(runtime: StreamingRuntime) {
         ? payload.code
         : (payload.code ? JSON.stringify(payload.code) : bufferGet(codeBuffers, itemId));
       if (code && code.length > 0) {
-        const lines = code.split("\n");
-        runtime.appendReasoningLine("  ```python");
-        lines.forEach((line: string) => runtime.appendReasoningLine(`  ${line}`));
-        runtime.appendReasoningLine("  ```");
+        appendFencedPreview(code, 30, undefined, "python");
       }
       activeCodeStreams.delete(itemId);
       break;
     }
     case "response.image_generation_call.in_progress": {
-      runtime.appendReasoningLine("**🎨 image_generation**:");
+      beginToolBlock("**🎨 image_generation**:");
       runtime.appendReasoningLine("  ⏳ _preparing…_");
       break;
     }
@@ -556,10 +702,7 @@ export function createStreamingEventProcessor(runtime: StreamingRuntime) {
     }
     case "response.custom_tool_call_input.done": {
       const input = typeof payload.input === "string" ? payload.input : (payload.input ? JSON.stringify(payload.input) : "");
-      const formattedInput = formatToolArgs(input, false);
-      if (formattedInput) {
-        runtime.appendReasoningLine(`  input:${formattedInput}`);
-      }
+      appendArgsBlock(input, "  input:");
       activeCustomInput.delete("custom");
       break;
     }

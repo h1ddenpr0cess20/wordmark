@@ -114,7 +114,7 @@ export function finalizeStreamedResponse(loadingMessage: HTMLElement | null, con
     content = parsedThinking.content;
     if (parsedThinking.reasoning) {
       reasoning = reasoning
-        ? `${reasoning}${reasoning.endsWith("\n") ? "" : "\n"}${parsedThinking.reasoning}`
+        ? `${reasoning.replace(/\n+$/, "")}\n\n${parsedThinking.reasoning}`
         : parsedThinking.reasoning;
     }
   }
@@ -350,7 +350,7 @@ export function updateMessageContent(loadingMessage: HTMLElement | null, assista
   let thinkingContent = reasoning;
   if (parsedThinking.reasoning) {
     thinkingContent = thinkingContent
-      ? `${thinkingContent}${thinkingContent.endsWith("\n") ? "" : "\n"}${parsedThinking.reasoning}`
+      ? `${thinkingContent.replace(/\n+$/, "")}\n\n${parsedThinking.reasoning}`
       : parsedThinking.reasoning;
   }
   let hasThinking = Boolean(thinkingContent);

@@ -51,39 +51,38 @@ export function safeTruncate(str: unknown, max = 800): string {
 }
 
 /**
- * Formats tool-call arguments for display, either inline (a compact summary) or
- * as an indented multi-line block.
+ * Formats tool-call arguments for display inside a fenced code block: pretty
+ * printed JSON when parseable, the raw string otherwise. Truncation happens on
+ * a line boundary (with a `…` marker) so the block is never cut mid-line.
+ * Returns `""` for empty/absent arguments.
  */
-export function formatToolArgs(args: unknown, inline = false) {
+export function formatArgsBlock(args: unknown, maxChars = 600): string {
   if (!args) return "";
   let parsed: unknown = null;
   if (typeof args === "string") {
+    if (!args.trim()) return "";
     try {
       parsed = JSON.parse(args);
     } catch {
-      return inline ? ` ${safeTruncate(args, 120)}` : `\n    ${safeTruncate(args, 400)}`;
+      return truncateAtLineBoundary(args.trim(), maxChars);
     }
   } else if (typeof args === "object") {
     parsed = args;
   }
-  if (!isRecord(parsed)) return "";
-
-  if (inline) {
-    const keys = Object.keys(parsed);
-    if (keys.length === 0) return "";
-    if (keys.length === 1 && typeof parsed[keys[0]] === "string") {
-      return ` → ${safeTruncate(parsed[keys[0]], 100)}`;
-    }
-    return ` → ${keys.length} param${keys.length > 1 ? "s" : ""}`;
-  }
-
+  if (!isRecord(parsed) || Object.keys(parsed).length === 0) return "";
   try {
-    const formatted = JSON.stringify(parsed, null, 2);
-    const indented = formatted.split("\n").map(line => `    ${line}`).join("\n");
-    return formatted.length > 400 ? `\n${indented.slice(0, 400)}…` : `\n${indented}`;
+    return truncateAtLineBoundary(JSON.stringify(parsed, null, 2), maxChars);
   } catch {
     return "";
   }
+}
+
+/** Truncates `text` to at most `maxChars`, cutting at the last full line and appending `…`. */
+function truncateAtLineBoundary(text: string, maxChars: number): string {
+  if (text.length <= maxChars) return text;
+  const cut = text.slice(0, maxChars);
+  const lastNewline = cut.lastIndexOf("\n");
+  return `${lastNewline > 0 ? cut.slice(0, lastNewline) : cut}\n…`;
 }
 
 /** Extracts de-duplicated search query strings from raw tool-call arguments. */
@@ -121,6 +120,37 @@ export function extractQueriesFromArgs(argsStr: unknown) {
     }
   });
   return queries;
+}
+
+/**
+ * Extracts the query (or target URL) from a hosted search-call item. Provider-
+ * managed web/x search tools do not emit `function_call_arguments` events; their
+ * query travels in the item's `action` object on `output_item.added`/`.done`
+ * (`{ type: "search", queries: [...] }`, or `{ type: "open_page", url }` when the
+ * model opens a result). The `queries` array is the populated field; `query`
+ * (singular) is deprecated and often absent. Returns `""` when nothing is present.
+ */
+export function extractSearchQueryFromItem(item: unknown): string {
+  if (!isRecord(item)) return "";
+  const action = item.action;
+  if (isRecord(action)) {
+    const fromActionQueries = joinQueries(action.queries);
+    if (fromActionQueries) return fromActionQueries;
+    if (typeof action.query === "string" && action.query.trim()) return action.query.trim();
+    if (typeof action.url === "string" && action.url.trim()) return action.url.trim();
+  }
+  const fromItemQueries = joinQueries(item.queries);
+  if (fromItemQueries) return fromItemQueries;
+  if (typeof item.query === "string" && item.query.trim()) return item.query.trim();
+  return "";
+}
+
+function joinQueries(value: unknown): string {
+  if (!Array.isArray(value)) return "";
+  return value
+    .filter((q): q is string => typeof q === "string" && q.trim().length > 0)
+    .map((q) => q.trim())
+    .join(", ");
 }
 
 /** Pulls the incremental text out of a delta payload across the shapes the API emits. */
