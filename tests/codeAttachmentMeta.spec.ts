@@ -22,7 +22,7 @@ test('fallbackFilename prefers filename, then fileId, then positional default', 
 test('formatBytes renders human-readable sizes and rejects invalid input', () => {
   assert.equal(formatBytes(512), '512 B');
   assert.equal(formatBytes(2048), '2.0 KB');
-  assert.equal(formatBytes(15 * 1024), '15 KB'); // >= 10 drops the decimal
+  assert.equal(formatBytes(15 * 1024), '15 KB');
   assert.equal(formatBytes(5 * 1024 * 1024), '5.0 MB');
   assert.equal(formatBytes(-1), null);
   assert.equal(formatBytes('x'), null);

@@ -1,9 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 
-// queue.js is an ES module sharing state via tts/config.js. Drive the real
-// module with DOM/global stubs and assert on the shared ttsMessageQueue /
-// ttsRuntime plus the play-button stubs.
 
 let elements = new Map<string, unknown>();
 let timeouts: Array<{ fn: unknown; ms: unknown }> = [];
@@ -25,8 +22,6 @@ function reset() {
   timeouts = [];
 }
 
-// An element that passes shouldSkipTts (not a system message, no code keywords)
-// and optionally exposes a .tts-play-pause button via .tts-controls.
 function makeMessage(playButton: { click(): void } | null = null) {
   const controls = playButton
     ? { querySelector: (s: string) => (s === ".tts-play-pause" ? playButton : null) }
@@ -75,18 +70,15 @@ test("playNextMessageInQueue clicks play button and removes from queue", () => {
 
 test("addMessageToTtsQueue enqueues messages and rejects duplicates/disabled", () => {
   reset();
-  // Audio active so enqueue does not immediately drain the queue.
   ttsRuntime.activeTtsAudio = { playing: true } as unknown as HTMLAudioElement;
   elements.set("msg-1", makeMessage());
 
   addMessageToTtsQueue("msg-1");
   assert.deepEqual(ttsMessageQueue, ["msg-1"]);
 
-  // Duplicate is ignored.
   addMessageToTtsQueue("msg-1");
   assert.equal(ttsMessageQueue.length, 1);
 
-  // Skipped when TTS disabled.
   ttsConfig.enabled = false;
   addMessageToTtsQueue("msg-2");
   assert.equal(ttsMessageQueue.includes("msg-2"), false);
@@ -101,7 +93,6 @@ test("addMessageToTtsQueue triggers playback when autoplay and idle", () => {
 
   addMessageToTtsQueue("msg-go");
 
-  // playback was triggered: the play button was clicked and the queue drained.
   assert.equal(clicked, true);
   assert.equal(ttsMessageQueue.length, 0);
 });

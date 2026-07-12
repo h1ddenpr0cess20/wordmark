@@ -107,8 +107,6 @@ export function loadFromUrl() {
 
     const now = new Date();
     const conversation = {
-      // Always mint a fresh id: honoring an id from the URL would let a
-      // crafted link overwrite an existing stored conversation.
       id: `url-import-${now.getTime()}`,
       name: typeof chatData.name === "string" && chatData.name
         ? chatData.name
@@ -119,8 +117,6 @@ export function loadFromUrl() {
       images: chatData.images || [],
       model: chatData.model || elements.modelSelector?.value || "Unknown",
       service: chatData.service || config?.defaultService || "Unknown",
-      // Never accept a system prompt from the URL: it would be applied as the
-      // active instructions whenever this conversation is loaded from history.
       systemPrompt: {
         type: "none",
         content: "",

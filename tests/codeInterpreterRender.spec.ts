@@ -25,7 +25,6 @@ function messageWithContent(): HTMLElement {
   return message;
 }
 
-// containerId makes hydration resolve synchronously (no network fetch).
 function attachment(overrides: Partial<Attachment> = {}): Attachment {
   return {
     fileId: "file-1",

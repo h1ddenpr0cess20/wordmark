@@ -26,7 +26,7 @@ test("deriveFriendlyVectorStoreName title-cases and collapses separators in a la
 });
 
 test("deriveFriendlyVectorStoreName uses created_at date when the name is blank", () => {
-  const createdAt = 1609459200; // 2021-01-01T00:00:00Z, in seconds
+  const createdAt = 1609459200;
   const expected = `Document Set ${new Date(createdAt * 1000).toLocaleDateString()}`;
   assert.equal(deriveFriendlyVectorStoreName({ name: "   ", created_at: createdAt }), expected);
 });

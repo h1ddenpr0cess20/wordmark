@@ -1,8 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 
-// triggerAnchorDownload touches document, so we install a minimal stub and
-// restore it afterward.
 
 import { triggerAnchorDownload } from "../src/ts/utils/dom/download.js";
 

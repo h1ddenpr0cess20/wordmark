@@ -1,7 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 
-// Mock localStorage
 let skillsStore: Record<string, string> = {};
 globalThis.localStorage = {
   getItem(key: string) {
@@ -120,7 +119,6 @@ test('stripSkillToolMessages drops skill tool calls/outputs, keeps real turns', 
     { type: 'function_call', name: ACTIVATE_SKILL_TOOL_NAME, call_id: 'c1', arguments: '{"skill_id":"user:x"}' },
     { type: 'function_call_output', call_id: 'c1', output: 'FULL SKILL INSTRUCTIONS...' },
     { role: 'assistant', content: 'Here is your email.' },
-    // a non-skill tool call must be preserved
     { type: 'function_call', name: 'open_meteo_forecast', call_id: 'c2', arguments: '{}' },
     { type: 'function_call_output', call_id: 'c2', output: 'sunny' },
   ];
@@ -132,7 +130,6 @@ test('stripSkillToolMessages drops skill tool calls/outputs, keeps real turns', 
   assert.ok(cleaned.some((m: { call_id?: string }) => m.call_id === 'c2'), 'non-skill output kept');
   assert.equal(cleaned.length, 4, 'only the two skill artifacts removed');
 
-  // No skill artifacts -> returns the same array reference (cheap no-op).
   const plain = [{ role: 'user', content: 'hi' }];
   assert.equal(stripSkillToolMessages(plain as never), plain);
 });
@@ -197,7 +194,6 @@ test('parseSkillMarkdown falls back to a heading when no frontmatter', () => {
   assert.throws(() => parseSkillMarkdown('---\nname: Empty\n---\n'), /no instructions/);
 });
 
-// Runs last: seeding persists into the shared mock localStorage for this file.
 test('seedExampleSkills loads every bundled example, enabled', () => {
   seedExampleSkills();
   for (const name of ['Frontend Development', 'Email Assistant', 'Brainstorming Partner']) {
@@ -212,8 +208,6 @@ test('seedExampleSkills loads every bundled example, enabled', () => {
 });
 
 test('seedExampleSkills tracks examples individually (no resurrection, seeds new ones)', () => {
-  // Existing install that already saw Frontend Development + Brainstorming Partner
-  // and deleted them; Email Assistant did not exist yet at that time.
   localStorage.removeItem('wordmark_skills');
   localStorage.removeItem('wordmark_skill_preferences');
   localStorage.setItem('wordmark_skills_seeded_examples', JSON.stringify(['Frontend Development', 'Brainstorming Partner']));

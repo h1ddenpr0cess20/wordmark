@@ -35,11 +35,8 @@ test("treats public hosts and IPs as non-local", () => {
   assert.equal(isLocalNetworkUrl("https://example.com/mcp"), false);
   assert.equal(isLocalNetworkUrl("http://8.8.8.8"), false);
   assert.equal(isLocalNetworkUrl("https://api.openai.com"), false);
-  // CGNAT range 100.64/10 is not matched by the private-range checks
   assert.equal(isLocalNetworkUrl("http://100.64.0.1"), false);
-  // a public host that merely contains "localhost" as a substring is not local
   assert.equal(isLocalNetworkUrl("https://localhost.evil.com"), false);
-  // a 10-prefixed but non-10.0.0.0/8 address is public
   assert.equal(isLocalNetworkUrl("http://9.10.0.1"), false);
 });
 

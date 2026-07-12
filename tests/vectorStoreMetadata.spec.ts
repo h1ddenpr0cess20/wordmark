@@ -80,7 +80,6 @@ test("getActiveVectorStoreIds lists the active store first, then by recency, cap
   reset();
   seed({ a: { lastUsed: 100 }, b: { lastUsed: 300 }, c: { lastUsed: 200 } });
   setActiveVectorStoreId("a");
-  // active "a" first, then most-recent remaining ("b"); capped at 2
   assert.deepEqual(getActiveVectorStoreIds(), ["a", "b"]);
 });
 

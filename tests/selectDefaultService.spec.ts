@@ -1,9 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 
-// pickCloudFallback is the pure decision behind the default-service auto-pick.
-// It must move off a keyless cloud default to another cloud provider that has a
-// key, before any local-service fallback happens.
 const { pickCloudFallback } = await import("../src/ts/init/serviceSelection.ts");
 
 type ServiceConfigMap = Parameters<typeof pickCloudFallback>[0];

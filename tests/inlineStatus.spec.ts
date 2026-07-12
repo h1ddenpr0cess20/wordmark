@@ -1,9 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 
-// Unit tests for showInlineStatus: a transient settings toast. We drive it with
-// a minimal stub `document` that records created elements and resolves anchors,
-// and a captured setTimeout so the auto-removal can be asserted synchronously.
 
 import { showInlineStatus } from "../src/ts/utils/inlineStatus.js";
 
@@ -124,7 +121,6 @@ test("shows nothing when no anchor matches", () => {
 
   showInlineStatus("a", [".none", ".missing"], "x", "success");
 
-  // The note element is created but never inserted anywhere.
   assert.equal(doc.created.length, 1);
   assert.equal(doc.created[0].inserted.length, 0);
 });

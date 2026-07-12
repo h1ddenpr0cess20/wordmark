@@ -55,6 +55,5 @@ test('buildAttachmentFromObject builds an attachment or returns null', () => {
   assert.equal(att?.status, 'pending');
 
   assert.equal(buildAttachmentFromObject({ foo: 'bar' }, null), null);
-  // size falls back when bytes absent
   assert.equal(buildAttachmentFromObject({ id: 'file_z', size: 50 }, null)?.bytes, 50);
 });

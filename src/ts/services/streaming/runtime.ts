@@ -144,8 +144,6 @@ export function createStreamingRuntime({
       if (thinkingContainer) {
         const contentDiv = thinkingContainer.querySelector<HTMLElement>(".thinking-content");
         if (contentDiv) {
-          // Remember whether the user was following the bottom before we replace
-          // the content, so we only auto-scroll when they haven't scrolled up.
           const prevScrollTop = contentDiv.scrollTop;
           const wasNearBottom = contentDiv.scrollHeight - prevScrollTop - contentDiv.clientHeight < 24;
           contentDiv.innerHTML = processMainContentMarkdown(thinkingContent);
@@ -154,8 +152,6 @@ export function createStreamingRuntime({
             thinkingContainer.classList.add("collapsed");
           } else {
             thinkingContainer.classList.remove("collapsed");
-            // Follow the stream only if the user was at the bottom; otherwise
-            // keep their scroll position so they can read earlier reasoning.
             contentDiv.scrollTop = wasNearBottom ? contentDiv.scrollHeight : prevScrollTop;
           }
         }

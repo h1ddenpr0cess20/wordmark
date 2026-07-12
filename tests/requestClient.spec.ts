@@ -1,8 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 
-// requestClient.js reads the shared config singleton via clientConfig.js.
-// Provide browser stubs, then drive the real config object.
 globalThis.window = globalThis.window || {};
 const requestClientStore: Record<string, string> = {};
 globalThis.localStorage = {
@@ -81,7 +79,6 @@ test('buildRequestBody includes previousResponseId when provided', () => {
 });
 
 test('buildRequestBody handles xAI service quirks', () => {
-  // Mock xAI as active service by changing defaultService
   const originalService = config.defaultService;
   config.defaultService = 'xai';
 
@@ -95,7 +92,6 @@ test('buildRequestBody handles xAI service quirks', () => {
   assert.equal(body.include, undefined, 'xAI should not include default fields');
   assert.equal(body.text, undefined, 'xAI should remove text.format when using server tools');
 
-  // Restore
   config.defaultService = originalService;
 });
 

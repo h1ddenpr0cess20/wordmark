@@ -1,9 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 
-// clientConfig.js reads the shared config singleton (src/config/config.js) and
-// the elements registry (init/state.js). Provide minimal browser stubs, then
-// drive the real config object directly.
 globalThis.window = globalThis.window || {};
 const clientConfigStore: Record<string, string> = {};
 globalThis.localStorage = {
@@ -26,7 +23,6 @@ const {
   supportsReasoningEffort,
 } = await import('../src/ts/services/api/clientConfig.js');
 
-// Seed the active service for the tests.
 config.defaultService = 'openai';
 config.services.openai.apiKey = 'sk-test-openai-key';
 
@@ -67,7 +63,6 @@ test('ensureApiKey throws when API key is missing', () => {
     'should throw when key is missing'
   );
 
-  // Restore
   config.services.openai.apiKey = originalKey;
 });
 
@@ -105,7 +100,6 @@ test('supportsReasoningEffort uses active model when not specified', () => {
   config.services.openai.defaultModel = 'gpt-5-mini';
   assert.equal(supportsReasoningEffort(), true, 'gpt-5-mini should support reasoning');
 
-  // Restore
   config.services.openai.defaultModel = originalModel;
   elements.modelSelector = originalSelector;
 });

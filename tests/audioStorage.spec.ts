@@ -11,7 +11,6 @@ type FakeReq = {
 
 type AudioRecord = { id: unknown; messageId?: unknown; timestamp?: number; [key: string]: unknown };
 
-// Fake IndexedDB with simple index support on 'timestamp'
 function createFakeIndexedDB() {
   const stores = new Map<string, ReturnType<typeof createStore>>();
   const objectStoreNames = { contains: (name: string) => stores.has(name) };
@@ -122,11 +121,8 @@ function makeDom() {
   };
 }
 
-// Set up browser-ish globals before importing the ES module.
 const dom = makeDom();
 globalThis.document = dom.document as unknown as Document;
-// Keep the real URL constructor (the loader/runtime needs `new URL`) and only
-// override the object-URL helpers used by the code under test.
 Object.assign(globalThis.URL, { createObjectURL: () => 'blob://fake-url', revokeObjectURL: () => {} });
 globalThis.window = { addEventListener: () => {}, indexedDB: createFakeIndexedDB() } as unknown as Window & typeof globalThis;
 
@@ -142,7 +138,6 @@ test('exportAudioForDownload creates anchor and triggers click', () => {
   const buffer = new ArrayBuffer(4);
   const ok = exportAudioForDownload(buffer, 'voice.wav');
   assert.equal(ok, true);
-  // Last appended element is the anchor
   const anchor = dom.document.body.appended.at(-1)!;
   assert.equal(anchor.tagName, 'A');
   assert.equal(anchor.download, 'voice.wav');
@@ -152,22 +147,18 @@ test('exportAudioForDownload creates anchor and triggers click', () => {
 test('audio cleanupOldAudio enforces max and is idempotent', async () => {
   await initAudioDb();
 
-  // Save more than MAX_STORED_AUDIO (15)
   const total = 22;
   for (let i = 0; i < total; i++) {
     await saveAudioToDb(new ArrayBuffer(1), 'msg', 't', 'v');
   }
 
-  // Now run cleanup explicitly; may already be clean due to auto-clean in save
   const deleted = await cleanupOldAudio();
   assert.equal(typeof deleted, 'number');
   assert.ok(deleted >= 0);
 
-  // Loading by message should return a record
   const rec = await loadAudioForMessage('msg');
   assert.equal(rec.messageId, 'msg');
 
-  // Running cleanup again should result in zero deletions
   const deleted2 = await cleanupOldAudio();
   assert.equal(deleted2, 0);
 });

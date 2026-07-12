@@ -1,15 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 
-// Regression test for the variable-shadowing bug in settingsPanel.js: the
-// outside-click handler reads the GLOBAL `state.isSlideshowOpen` to decide
-// whether to auto-close the gallery. A `state` parameter once shadowed the
-// import, so the check read the wrong object and the gallery closed even while
-// the image slideshow was open.
-//
-// setupOutsideClickHandler registers its listener via document.addEventListener,
-// so we record click handlers on a stub document, run the real
-// initializeSettingsPanelControls(), then invoke the recorded handler.
 
 function makeStubEl() {
   return {
@@ -63,7 +54,6 @@ function makeGalleryPanel() {
 }
 type GalleryPanel = ReturnType<typeof makeGalleryPanel>;
 
-// Click somewhere outside the gallery; the synthetic target matches no selector.
 function outsideClickEvent() {
   return {
     target: { closest: () => null },
@@ -75,7 +65,6 @@ function outsideClickEvent() {
 
 function registerHandlerWithGallery(galleryPanel: GalleryPanel) {
   clickHandlers.length = 0;
-  // Disable the settings/history branches so only the gallery branch can fire.
   elements.settingsButton = null;
   elements.settingsPanel = null;
   elements.closeSettingsButton = null;
@@ -85,7 +74,6 @@ function registerHandlerWithGallery(galleryPanel: GalleryPanel) {
   elements.galleryPanel = galleryPanel as unknown as HTMLElement;
 
   initializeSettingsPanelControls();
-  // setupOutsideClickHandler registers last, so it is the most recent handler.
   return clickHandlers[clickHandlers.length - 1];
 }
 

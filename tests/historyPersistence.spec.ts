@@ -1,9 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 
-// conversationStorage is now a real ES module backed by IndexedDB, so the
-// persistence layer talks to it directly rather than through window stubs.
-// We drive it with a fake IndexedDB and read records back to assert.
 import {
   initConversationDb,
   saveConversationToDb,
@@ -21,7 +18,6 @@ type FakeReq = {
   error: unknown;
 };
 
-// Minimal fake IndexedDB (mirrors conversationStorage.spec.js)
 function createFakeIndexedDB() {
   const stores = new Map<string, ReturnType<typeof createStore>>();
   const objectStoreNames = { contains: (name: string) => stores.has(name) };
@@ -114,9 +110,6 @@ function createFakeIndexedDB() {
   };
 }
 
-// renderConversationMessages now runs for real (appendMessage/render are static
-// ESM imports), so provide a minimal DOM + markdown stub good enough for the
-// hydration path. These tests only assert observable state, not rendered HTML.
 type FakeEl = {
   childNodes: unknown[];
   [key: string]: unknown;
@@ -153,12 +146,8 @@ globalThis.document = {
   body: makeEl(),
 } as unknown as Document;
 
-// Set up a window before importing persistence; the module reads shared state
-// (conversationHistory, generatedImages, DOM refs) off whatever `window` is in
-// scope at call time, so each test swaps in a fresh window object below.
 globalThis.window = { addEventListener: () => {}, indexedDB: createFakeIndexedDB(), VERBOSE_LOGGING: false } as unknown as Window & typeof globalThis;
 
-// persistence.js is now an ES module — import its API directly.
 const {
   saveCurrentConversation,
   loadConversation,
@@ -169,9 +158,6 @@ function flush() {
   return new Promise((resolve) => setImmediate(resolve));
 }
 
-// persistence.js reads shared state via the state.js singleton. Distribute the
-// per-test fixture keys into state/elements; everything else (config,
-// ensureImagesHaveMessageIds, indexedDB, ...) stays on the window stub.
 const STATE_KEYS = new Set([
   "conversationHistory", "generatedImages", "currentConversationId",
   "currentConversationName", "loadedSystemPrompt", "activePartyConfig", "partyMode",
@@ -262,8 +248,6 @@ test("saveCurrentConversation filters metadata, persists images, and marks messa
   const assistantMsg = convo.messages.find(msg => msg.role === "assistant");
   assert.equal(assistantMsg!.hasImages, true);
 
-  // The data-URL image is persisted (new filename, marked stored); the remote
-  // image is passed through untouched. Metadata rides along on the record.
   assert.equal(convo.images.length, 2);
   const storedImage = convo.images.find(img => img.isStoredInDb);
   assert.ok(storedImage!.filename.endsWith(".png"));
@@ -283,7 +267,6 @@ test("saveCurrentConversation keeps the model/service actually used, not a dropd
     lastUsedModel: "gemma4",
     lastUsedService: "ollama",
     ensureImagesHaveMessageIds() { return 0; },
-    // The user flipped the selectors after the last exchange without sending.
     modelSelector: { value: "gpt-5.5" },
     config: { defaultService: "openai" },
     personalityPromptRadio: { checked: false },
@@ -338,12 +321,9 @@ test("loadConversation hydrates UI, preloads images, and filters developer messa
     chatBox: { innerHTML: "old", appendChild: () => {} },
   });
 
-  // Seed the conversation and the stored image into the (fake) database.
   await saveConversationToDb(conversationRecord);
   await saveImageToDb("binary:stored.png", "stored.png");
 
-  // renderConversationMessages is now a direct ESM import (no window seam to
-  // stub), so assert the observable state hydration loadConversation performs.
   const result = await loadConversation("1");
   assert.equal(result, true);
   assert.equal(elements.chatBox!.innerHTML, "");
@@ -363,8 +343,6 @@ test("startNewConversation saves existing session and resets state", async () =>
     currentConversationName: "Existing",
   });
 
-  // saveCurrentConversation is a direct ESM import now; let the real one run and
-  // assert the existing session was persisted before the reset.
   startNewConversation("Fresh Chat");
   await flush();
 
@@ -401,8 +379,6 @@ test("startNewConversation persists an active party's metadata, then tears down 
       noPromptRadio: { checked: true },
     });
 
-    // The flush runs while the party is still active, so the archived record must
-    // keep its party metadata; the teardown happens afterwards in the reset.
     startNewConversation("Fresh chat");
     await flush();
     await flush();
@@ -420,7 +396,6 @@ test("startNewConversation persists an active party's metadata, then tears down 
     assert.equal(archived!.scenario!.topic, "Math vs poetry");
     assert.equal(archived!.userName, "Host");
 
-    // The fresh chat is no longer a party, and the running engine was stopped.
     assert.equal(state.partyMode, false);
     assert.equal(state.activePartyConfig, null);
     assert.equal(stopPartyCalls, 1);

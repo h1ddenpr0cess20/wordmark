@@ -1,14 +1,8 @@
-// Node ESM customization hooks so tests can import Vite-style `*?raw` modules.
-// Mirrors Vite's `?raw` import: returns the file contents as a default-export string.
 import { readFile } from "node:fs/promises";
 import { fileURLToPath } from "node:url";
 
 const RAW_SUFFIX = "?raw";
 
-// DOMPurify's default export is a factory needing a DOM `window` to yield a
-// working instance, which Node test processes lack. Source imports it directly
-// (`import DOMPurify from "dompurify"`); substitute an identity-sanitizer stub
-// so DOM-free unit tests can run.
 const DOMPURIFY_URL = "test-stub:dompurify";
 
 export async function resolve(specifier, context, next) {

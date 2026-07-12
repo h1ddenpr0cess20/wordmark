@@ -1,10 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 
-// extractOutputText / extractReasoningText fold the divergent non-streaming
-// provider response shapes into plain strings. The branch precedence is
-// behavior-critical (a response can carry more than one reasoning shape), so
-// these tests pin each branch and the order they're tried in.
 import { extractOutputText, extractReasoningText } from "../src/ts/services/api/responseNormalization.ts";
 import type { ResponseObject } from "../src/types/api.ts";
 
@@ -55,7 +51,6 @@ test("extractReasoningText: returns empty string when no recognized shape", () =
 });
 
 test("extractReasoningText: string reasoning wins over reasoning_content", () => {
-  // Precedence: the string-reasoning branch is tried before reasoning_content.
   assert.equal(
     extractReasoningText(make({ reasoning: "primary", reasoning_content: "secondary" })),
     "primary",

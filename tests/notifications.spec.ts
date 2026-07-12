@@ -1,8 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 
-// notifications.js is an ES module that initializes against `document` at import
-// time, so install a DOM stub on globalThis before importing it.
 type FakeEl = {
   tagName: string;
   className: string;

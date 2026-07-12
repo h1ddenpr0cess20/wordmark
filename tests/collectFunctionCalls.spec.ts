@@ -5,8 +5,6 @@ globalThis.window = globalThis.window || ({} as Window & typeof globalThis);
 
 const { collectFunctionCalls } = await import("../src/ts/services/api/messageUtils.js");
 
-// collectFunctionCalls accepts ResponseOutputItem[]; feed loosely-shaped
-// fixtures through the parameter type.
 const run = (items: unknown[]) =>
   collectFunctionCalls(items as Parameters<typeof collectFunctionCalls>[0]);
 

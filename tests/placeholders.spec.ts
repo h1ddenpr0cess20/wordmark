@@ -44,7 +44,6 @@ test("returns a fresh regex each call (independent lastIndex)", () => {
   const b = createImagePlaceholderRegex();
   assert.notEqual(a, b);
   a.exec("[[IMAGE: one.png]][[IMAGE: two.png]]");
-  // b is unaffected by a's advanced lastIndex
   assert.equal(b.lastIndex, 0);
 });
 

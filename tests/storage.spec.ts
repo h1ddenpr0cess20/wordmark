@@ -1,7 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 
-// In-memory localStorage stub installed before importing the module under test.
 const store = new Map<string, string>();
 globalThis.localStorage = {
   getItem: (k: string) => (store.has(k) ? store.get(k) ?? null : null),
@@ -27,7 +26,6 @@ test("dynamic key builders preserve the existing key format", () => {
 });
 
 test("registry values match the historically persisted key strings", () => {
-  // These must not drift — they are what existing installs already wrote.
   assert.equal(STORAGE_KEYS.mcpServers, "mcp_servers");
   assert.equal(STORAGE_KEYS.toolPreferences, "wordmark_tool_preferences");
   assert.equal(STORAGE_KEYS.vectorStores, "wordmark_vector_stores");

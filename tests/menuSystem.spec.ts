@@ -1,11 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 
-// menuSystem.js is an ES module that imports panel markup via Vite `?raw`
-// imports (resolved in tests by tests/helpers/rawLoader.mjs) and exports the
-// HTMLLoader utility plus initializeMenus(), which inserts the panels and
-// initializes the theme selector (the app's initialize() is called by main.js,
-// not here).
 
 function createDom() {
   const elements = new Map<string, { id?: string; innerHTML: string }>();
@@ -24,11 +19,8 @@ function createDom() {
 
 let importCounter = 0;
 async function loadMenuSystem(windowStub: unknown, document: unknown) {
-  // Keep the stubs on globalThis for the duration of the test so module code
-  // that references bare `window`/`document` works during later calls too.
   globalThis.window = windowStub as Window & typeof globalThis;
   globalThis.document = document as Document;
-  // Cache-bust so the module re-evaluates against the new stubs.
   const mod = await import(`../src/ts/utils/dom/menuSystem.js?case=${importCounter++}`);
   return mod;
 }
@@ -82,8 +74,6 @@ test("initializeMenus loads panels and resolves true", async () => {
   elements.set("menu-panels-container", panelsContainer);
   SETTINGS_CONTENT_IDS.forEach(id => elements.set(id, { id, innerHTML: "" }));
 
-  // initTheme is a static ESM import (no window seam to intercept); it runs for
-  // real and bails early because there is no #theme-selector element here.
   const windowStub = { addEventListener() {} };
 
   const mod = await loadMenuSystem(windowStub, document);

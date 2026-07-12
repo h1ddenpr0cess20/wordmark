@@ -1,9 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 
-// config.js is now an ES module exporting the `config` singleton. Provide
-// minimal browser stubs, then drive the provider fetchAndUpdateModels methods
-// directly by swapping globalThis.fetch per test.
 globalThis.window = globalThis.window || {};
 const modelFilteringStore: Record<string, string> = {};
 globalThis.localStorage = {
@@ -23,7 +20,6 @@ function mockFetch(responseData: unknown, ok = true) {
   })) as unknown as typeof fetch;
 }
 
-// --- LM Studio embedding model filtering ---
 
 test("LM Studio filters out embedding models from data.data format", async () => {
   mockFetch({
@@ -104,7 +100,6 @@ test("LM Studio keeps all models when none are embedding models", async () => {
   ]);
 });
 
-// --- Ollama embedding model filtering ---
 
 test("Ollama filters out embedding models from data.data format", async () => {
   mockFetch({
@@ -128,7 +123,6 @@ test("Ollama filters out embedding models from api/tags format", async () => {
     if (url.includes("/v1/models")) {
       return { ok: false, status: 404, statusText: "Not Found", text: async () => "" };
     }
-    // /api/tags fallback
     return {
       ok: true,
       json: async () => ({

@@ -1,8 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 
-// preferences.ts persists through the storage helpers (localStorage) and reads
-// the live TOOL_CATALOG, so stub localStorage and register known test tools.
 const store: Record<string, string> = {};
 globalThis.window = globalThis.window || ({} as Window & typeof globalThis);
 globalThis.localStorage = {
@@ -61,7 +59,6 @@ test("setToolEnabled persists an explicit preference over the default", () => {
 test("setToolEnabled is a no-op for keys not in the catalog", () => {
   setToolEnabled("not-in-catalog", true);
   assert.equal(isToolEnabled("not-in-catalog"), false);
-  // no explicit preference was recorded, so the default still governs
   assert.equal(getToolPreference("not-in-catalog", false), false);
 });
 

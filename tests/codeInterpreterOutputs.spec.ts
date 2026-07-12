@@ -7,8 +7,6 @@ const { extractCodeInterpreterOutputs } = await import(
   '../src/ts/services/streaming/codeInterpreter.js'
 );
 
-// extractCodeInterpreterOutputs is typed to accept ResponseObject | null; the
-// tests feed plain shaped fixtures, so cast through the parameter type.
 const asPayload = (p: unknown): Parameters<typeof extractCodeInterpreterOutputs>[0] =>
   p as Parameters<typeof extractCodeInterpreterOutputs>[0];
 
@@ -60,7 +58,6 @@ test('deduplicates by fileId and merges complementary metadata', () => {
   assert.equal(attachment.fileId, 'cfile_dup');
   assert.equal(attachment.filename, 'data.csv');
   assert.equal(attachment.mimeType, 'image/png');
-  // an image mime promotes the merged attachment's subtype
   assert.equal(attachment.subtype, 'image');
 });
 

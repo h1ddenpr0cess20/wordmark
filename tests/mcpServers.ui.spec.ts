@@ -1,10 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 
-// mcpServers.js imports the notifications module and attaches its API to window.
-// Provide browser-global stubs before importing it. showNotification is a real
-// import that no-ops without a DOM, so these tests verify storage/UI behavior
-// rather than intercepting the toast.
 declare global {
   // eslint-disable-next-line no-var
   var __mcpContainer: unknown;
@@ -60,8 +56,6 @@ globalThis.document = {
   head: { appendChild() {} },
   getElementById: (id: string) => (id === "mcp-servers-list" ? globalThis.__mcpContainer : null),
   createElement: () => makeStubEl(),
-  // mcpServers now imports the responsesClient facade, which transitively loads
-  // apiKeys.js; its DOMContentLoaded self-init needs addEventListener present.
   addEventListener() {},
 } as unknown as Document;
 
@@ -107,10 +101,6 @@ test("requestMcpServerRemoval removes confirmed servers and refreshes UI", () =>
 
   const confirmCalls: Array<string | undefined> = [];
   globalThis.confirm = (message?: string) => { confirmCalls.push(message); return true; };
-  // unregisterMcpServer + refreshToolSettingsUI are now reached through static
-  // ESM imports (no window seam to spy on); assert the observable effect: the
-  // server is removed from storage. The real refreshToolSettingsUI no-ops here
-  // because there is no tools container in the DOM.
   (globalThis.window as unknown as { icon: () => string }).icon = () => "";
 
   const removed = requestMcpServerRemoval("first");

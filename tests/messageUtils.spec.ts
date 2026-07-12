@@ -24,11 +24,11 @@ test('windowMessagesByTokenBudget returns all messages when budget is 0 (no limi
 });
 
 test('windowMessagesByTokenBudget drops oldest messages first when over budget', () => {
-  const big = 'x'.repeat(400); // ~100 tokens each + overhead
+  const big = 'x'.repeat(400);
   const messages = [
-    { role: 'user', content: big },      // oldest
+    { role: 'user', content: big },
     { role: 'assistant', content: big },
-    { role: 'user', content: big },      // newest
+    { role: 'user', content: big },
   ];
   const result = windowMessagesByTokenBudget(messages, 220);
   assert.equal(result.length, 2, 'only the two newest should fit');
@@ -37,7 +37,7 @@ test('windowMessagesByTokenBudget drops oldest messages first when over budget',
 });
 
 test('windowMessagesByTokenBudget always keeps the latest message even if it alone exceeds budget', () => {
-  const huge = 'x'.repeat(4000); // ~1000 tokens
+  const huge = 'x'.repeat(4000);
   const messages = [
     { role: 'user', content: 'older' },
     { role: 'user', content: huge },
@@ -50,22 +50,16 @@ test('windowMessagesByTokenBudget always keeps the latest message even if it alo
 test('estimateTokens and estimateMessageTokens use the ~4 chars/token heuristic', () => {
   assert.equal(estimateTokens('12345678'), 2);
   assert.equal(estimateTokens(''), 0);
-  // 8 chars -> 2 tokens, + 4 overhead
   assert.equal(estimateMessageTokens({ role: 'user', content: '12345678' }), 6);
 });
 
 test('estimateMessageTokens handles array, object, and empty content', () => {
-  // array parts: string / {text} / {output} are joined with spaces
-  // ['hello','world'].join(' ') = 11 chars -> ceil(11/4)=3, +4 overhead = 7
   assert.equal(
     estimateMessageTokens({ role: 'assistant', content: [{ text: 'hello' }, { output: 'world' }] }),
     7,
   );
-  // object content reads .text: 'abcd' -> 1 token, +4 = 5
   assert.equal(estimateMessageTokens({ role: 'assistant', content: { text: 'abcd' } }), 5);
-  // missing content -> empty text -> 0 tokens, +4 overhead
   assert.equal(estimateMessageTokens({ role: 'user' }), 4);
-  // non-object inputs are zero-cost
   assert.equal(estimateMessageTokens(null as never), 0);
   assert.equal(estimateMessageTokens('nope' as never), 0);
 });
@@ -134,7 +128,6 @@ test('serializeMessagesForRequest normalizes array string parts and copies objec
     { type: 'output_text', text: 'loose string' },
     { type: 'output_text', text: 'kept' },
   ]);
-  // object parts are shallow-copied, not aliased
   assert.notEqual(result[0].content[1], objectPart);
 });
 

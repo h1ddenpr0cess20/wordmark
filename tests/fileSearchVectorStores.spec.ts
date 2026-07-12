@@ -1,9 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 
-// runTurn reads the shared config singleton via clientConfig.js. Each test
-// resets globalThis.window/localStorage, but config is a module singleton, so
-// seed the active OpenAI service key once up front.
 globalThis.window = globalThis.window || {};
 globalThis.localStorage = globalThis.localStorage || {
   getItem: () => null, setItem: () => {}, removeItem: () => {},
@@ -14,7 +11,6 @@ config.services.openai.apiKey = 'test-key';
 config.services.openai.baseUrl = 'https://api.openai.com/v1';
 
 test('file_search attaches provided vectorStoreId when no stored IDs exist', async (t) => {
-  // Fresh globals per test
   globalThis.window = {
     handleStreamedResponse: async () => ({ response: {}, outputText: '', reasoningText: '' }),
     responsesClient: { toolHandlers: {} },
@@ -23,7 +19,6 @@ test('file_search attaches provided vectorStoreId when no stored IDs exist', asy
     shouldStopGeneration: false,
   } as unknown as Window & typeof globalThis;
 
-  // Minimal localStorage polyfill
   const kv = new Map<string, string>();
   globalThis.localStorage = {
     getItem: (k: string) => (kv.has(k) ? kv.get(k) : null),
@@ -31,14 +26,11 @@ test('file_search attaches provided vectorStoreId when no stored IDs exist', asy
     removeItem: (k: string) => { kv.delete(k); },
   } as unknown as Storage;
 
-  // Enable file_search tool
   localStorage.setItem('wordmark_tool_preferences', JSON.stringify({ 'builtin:file_search': true }));
 
-  // Ensure no stored vector stores
   localStorage.removeItem('wordmark_vector_stores');
   localStorage.removeItem('active_vector_store');
 
-  // Capture request body sent to fetch
   let capturedBody: { tools?: Array<{ type?: string; vector_store_ids?: string[] }> } | null = null;
   globalThis.fetch = (async (_endpoint: unknown, options: RequestInit) => {
     try {
@@ -71,7 +63,6 @@ test('file_search attaches provided vectorStoreId when no stored IDs exist', asy
 });
 
 test('file_search attaches all active vector stores from storage when none provided explicitly', async (t) => {
-  // Fresh globals per test
   globalThis.window = {
     handleStreamedResponse: async () => ({ response: {}, outputText: '', reasoningText: '' }),
     responsesClient: { toolHandlers: {} },
@@ -80,7 +71,6 @@ test('file_search attaches all active vector stores from storage when none provi
     shouldStopGeneration: false,
   } as unknown as Window & typeof globalThis;
 
-  // Minimal localStorage polyfill
   const kv = new Map<string, string>();
   globalThis.localStorage = {
     getItem: (k: string) => (kv.has(k) ? kv.get(k) : null),
@@ -88,17 +78,14 @@ test('file_search attaches all active vector stores from storage when none provi
     removeItem: (k: string) => { kv.delete(k); },
   } as unknown as Storage;
 
-  // Enable file_search tool
   localStorage.setItem('wordmark_tool_preferences', JSON.stringify({ 'builtin:file_search': true }));
 
-  // Seed stored vector stores (metadata + active)
   localStorage.setItem('wordmark_vector_stores', JSON.stringify({
     vs_A: { name: 'A' },
     vs_B: { name: 'B' },
   }));
   localStorage.setItem('active_vector_store', 'vs_C');
 
-  // Capture request body
   let capturedBody: { tools?: Array<{ type?: string; vector_store_ids?: string[] }> } | null = null;
   globalThis.fetch = (async (_endpoint: unknown, options: RequestInit) => {
     try {
@@ -112,14 +99,12 @@ test('file_search attaches all active vector stores from storage when none provi
     };
   }) as unknown as typeof fetch;
 
-  // Import after env is prepared
   const { runTurn } = await import('../src/ts/services/api/requestClient.js');
 
   await runTurn({
     inputMessages: [{ role: 'user', content: 'Search docs' }],
     model: 'gpt-4o',
     stream: false,
-    // no vectorStoreId passed
   });
 
   assert.ok(capturedBody, 'request body should be captured');
@@ -128,14 +113,12 @@ test('file_search attaches all active vector stores from storage when none provi
     ? body.tools.find(t => t && t.type === 'file_search')
     : null;
   assert.ok(fileSearchTool, 'file_search tool should be included');
-  // MAX_ACTIVE_VECTOR_STORES is 2, so only the active store + 1 from metadata
   const ids = new Set(fileSearchTool.vector_store_ids);
   assert.equal(ids.size, 2, 'should include two vector store ids (capped by MAX_ACTIVE_VECTOR_STORES)');
   assert.ok(ids.has('vs_C'), 'includes vs_C (active)');
 });
 
 test('file_search dedupes and merges storage + explicit vectorStoreId', async (t) => {
-  // Fresh globals per test
   globalThis.window = {
     handleStreamedResponse: async () => ({ response: {}, outputText: '', reasoningText: '' }),
     responsesClient: { toolHandlers: {} },
@@ -144,7 +127,6 @@ test('file_search dedupes and merges storage + explicit vectorStoreId', async (t
     shouldStopGeneration: false,
   } as unknown as Window & typeof globalThis;
 
-  // Minimal localStorage polyfill
   const kv = new Map<string, string>();
   globalThis.localStorage = {
     getItem: (k: string) => (kv.has(k) ? kv.get(k) : null),
@@ -152,17 +134,14 @@ test('file_search dedupes and merges storage + explicit vectorStoreId', async (t
     removeItem: (k: string) => { kv.delete(k); },
   } as unknown as Storage;
 
-  // Enable file_search tool
   localStorage.setItem('wordmark_tool_preferences', JSON.stringify({ 'builtin:file_search': true }));
 
-  // Seed metadata with vs_A and vs_C
   localStorage.setItem('wordmark_vector_stores', JSON.stringify({
     vs_A: { name: 'A' },
     vs_C: { name: 'C' },
   }));
   localStorage.setItem('active_vector_store', 'vs_B');
 
-  // Capture request body
   let capturedBody: { tools?: Array<{ type?: string; vector_store_ids?: string[] }> } | null = null;
   globalThis.fetch = (async (_endpoint: unknown, options: RequestInit) => {
     try {
@@ -182,7 +161,7 @@ test('file_search dedupes and merges storage + explicit vectorStoreId', async (t
     inputMessages: [{ role: 'user', content: 'Search docs' }],
     model: 'gpt-4o',
     stream: false,
-    vectorStoreId: 'vs_C', // duplicate of metadata; should be deduped
+    vectorStoreId: 'vs_C',
   });
 
   assert.ok(capturedBody, 'request body should be captured');
