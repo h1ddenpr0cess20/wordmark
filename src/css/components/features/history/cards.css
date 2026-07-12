@@ -1,6 +1,3 @@
-/* Saved-conversation cards. Each .history-row is a stacked card: title + date
-   on top, then a wrapping meta row (prompt pill, model/service, counts), so
-   long content wraps instead of being clipped by fixed columns. */
 .history-cards {
   flex: 1;
   overflow-y: auto;

@@ -15,6 +15,10 @@ import type { ConversationRecord } from "../../../types/common.ts";
 
 type ConversationMessage = NonNullable<ConversationRecord["messages"]>[number];
 
+/** Display cap for derived titles/prompt summaries. Cards wrap text, so this
+    only guards against pasted walls of text, not normal-length content. */
+const DISPLAY_MAX = 160;
+
 /** Extracts displayable text from a message's content (plain string or structured parts). */
 function messageText(message: ConversationMessage): string {
   if (typeof message.content === "string") {
@@ -37,11 +41,11 @@ export function extractConversationTitle(convo: ConversationRecord): string {
   if (convo.mode === "party") {
     const topic = convo.scenario?.topic?.trim();
     if (topic) {
-      return truncate(topic, 50);
+      return truncate(topic, DISPLAY_MAX);
     }
     const opening = (convo.messages || []).map(messageText).find(text => text.trim());
     if (opening) {
-      return truncate(opening, 50);
+      return truncate(opening, DISPLAY_MAX);
     }
     const names = (convo.characters || []).map(c => c.name).filter(Boolean);
     return names.length ? names.join(", ") : "Party";
@@ -50,7 +54,7 @@ export function extractConversationTitle(convo: ConversationRecord): string {
   if (!userMsg) {
     return "(No user message)";
   }
-  return truncate(messageText(userMsg), 50);
+  return truncate(messageText(userMsg), DISPLAY_MAX);
 }
 
 /**
@@ -77,7 +81,7 @@ export function resolveConversationPrompt(convo: ConversationRecord): { info: st
   if (convo.mode === "party") {
     const names = (convo.characters || []).map(c => c.name).filter(Boolean);
     const summary = names.length ? `Party: ${names.join(", ")}` : "Party";
-    return { info: truncate(summary, 40), cssClass: "party" };
+    return { info: truncate(summary, DISPLAY_MAX), cssClass: "party" };
   }
   if (!convo.systemPrompt) {
     return { info: "", cssClass: "none" };
@@ -86,7 +90,7 @@ export function resolveConversationPrompt(convo: ConversationRecord): { info: st
     return { info: convo.systemPrompt.content || DEFAULT_PERSONALITY || "Default", cssClass: "personality" };
   }
   if (convo.systemPrompt.type === "custom") {
-    return { info: truncate(convo.systemPrompt.content || "", 30), cssClass: "custom" };
+    return { info: truncate(convo.systemPrompt.content || "", DISPLAY_MAX), cssClass: "custom" };
   }
   return { info: "None", cssClass: "none" };
 }
