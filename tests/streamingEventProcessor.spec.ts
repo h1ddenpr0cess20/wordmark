@@ -108,6 +108,138 @@ test('web search events annotate reasoning with queued query', () => {
   assert.ok(reasoning.includes('completed'), 'should mark completion');
 });
 
+test('hosted web search surfaces the query from the item action (no function_call events)', () => {
+  const runtime = createRuntimeStub();
+  const processor = createStreamingEventProcessor(runtime as unknown as StreamingRuntimeArg);
+
+  processor.processEvent('response.output_item.added', [
+    JSON.stringify({
+      item: {
+        id: 'ws-1',
+        type: 'web_search_call',
+        status: 'in_progress',
+        action: { type: 'search', query: 'best coffee in oslo' },
+      },
+    }),
+  ]);
+  processor.processEvent('response.web_search_call.in_progress', [
+    JSON.stringify({ item_id: 'ws-1' }),
+  ]);
+  processor.processEvent('response.web_search_call.completed', [
+    JSON.stringify({ item_id: 'ws-1' }),
+  ]);
+
+  const reasoning = runtime.state.reasoningLines.join('\n');
+  assert.ok(reasoning.includes('🌐 web_search "best coffee in oslo"'), 'should surface the hosted-search query');
+  assert.ok(reasoning.includes('completed'), 'should mark completion');
+});
+
+test('hosted web search renders from output_item.done when the query only arrives at completion', () => {
+  const runtime = createRuntimeStub();
+  const processor = createStreamingEventProcessor(runtime as unknown as StreamingRuntimeArg);
+
+  processor.processEvent('response.output_item.added', [
+    JSON.stringify({ item: { id: 'ws-1', type: 'web_search_call', status: 'in_progress' } }),
+  ]);
+  processor.processEvent('response.web_search_call.in_progress', [JSON.stringify({ item_id: 'ws-1' })]);
+  processor.processEvent('response.web_search_call.searching', [JSON.stringify({ item_id: 'ws-1' })]);
+  processor.processEvent('response.web_search_call.completed', [JSON.stringify({ item_id: 'ws-1' })]);
+  processor.processEvent('response.output_item.done', [
+    JSON.stringify({
+      item: {
+        id: 'ws-1',
+        type: 'web_search_call',
+        status: 'completed',
+        action: {
+          type: 'search',
+          query: 'mars weather today',
+          sources: [{ url: 'https://nasa.gov/mars' }, { url: 'https://weather.com' }],
+        },
+      },
+    }),
+  ]);
+
+  const reasoning = runtime.state.reasoningLines.join('\n');
+  assert.ok(reasoning.includes('🌐 web_search "mars weather today"'), 'query must appear even when it only arrives at output_item.done');
+  assert.ok(reasoning.includes('completed'), 'should mark completion');
+  assert.ok(reasoning.includes('nasa.gov/mars'), 'should list sources from the completed item');
+});
+
+test('hosted web search reads the current action.queries array (deprecated singular query absent)', () => {
+  const runtime = createRuntimeStub();
+  const processor = createStreamingEventProcessor(runtime as unknown as StreamingRuntimeArg);
+
+  processor.processEvent('response.output_item.added', [
+    JSON.stringify({ item: { id: 'ws-1', type: 'web_search_call', status: 'in_progress' } }),
+  ]);
+  processor.processEvent('response.web_search_call.in_progress', [JSON.stringify({ item_id: 'ws-1' })]);
+  processor.processEvent('response.web_search_call.completed', [JSON.stringify({ item_id: 'ws-1' })]);
+  processor.processEvent('response.output_item.done', [
+    JSON.stringify({
+      item: {
+        id: 'ws-1',
+        type: 'web_search_call',
+        status: 'completed',
+        action: {
+          type: 'search',
+          queries: ['saturn moon count', 'titan atmosphere'],
+          sources: [{ type: 'url', url: 'https://nasa.gov/saturn' }],
+        },
+      },
+    }),
+  ]);
+
+  const reasoning = runtime.state.reasoningLines.join('\n');
+  assert.ok(
+    reasoning.includes('🌐 web_search "saturn moon count, titan atmosphere"'),
+    'query must come from action.queries when the deprecated singular query is absent',
+  );
+  assert.ok(reasoning.includes('nasa.gov/saturn'), 'should list sources from the completed item');
+});
+
+test('concurrent hosted searches keep their queries paired by item id', () => {
+  const runtime = createRuntimeStub();
+  const processor = createStreamingEventProcessor(runtime as unknown as StreamingRuntimeArg);
+
+  processor.processEvent('response.output_item.added', [
+    JSON.stringify({ item: { id: 'ws-a', type: 'web_search_call', action: { type: 'search', query: 'alpha query' } } }),
+  ]);
+  processor.processEvent('response.output_item.added', [
+    JSON.stringify({ item: { id: 'ws-b', type: 'web_search_call', action: { type: 'search', query: 'beta query' } } }),
+  ]);
+  processor.processEvent('response.web_search_call.in_progress', [JSON.stringify({ item_id: 'ws-b' })]);
+  processor.processEvent('response.web_search_call.in_progress', [JSON.stringify({ item_id: 'ws-a' })]);
+
+  const reasoning = runtime.state.reasoningLines.join('\n');
+  assert.ok(reasoning.includes('🌐 web_search "beta query"'), 'ws-b keeps its own query');
+  assert.ok(reasoning.includes('🌐 web_search "alpha query"'), 'ws-a keeps its own query');
+});
+
+test('file search surfaces its queries in the reasoning header', () => {
+  const runtime = createRuntimeStub();
+  const processor = createStreamingEventProcessor(runtime as unknown as StreamingRuntimeArg);
+
+  processor.processEvent('response.output_item.added', [
+    JSON.stringify({
+      item: {
+        id: 'fs-1',
+        type: 'file_search_call',
+        queries: ['refund policy', 'return window'],
+      },
+    }),
+  ]);
+  processor.processEvent('response.file_search_call.in_progress', [
+    JSON.stringify({ item_id: 'fs-1' }),
+  ]);
+  processor.processEvent('response.file_search_call.completed', [
+    JSON.stringify({ item_id: 'fs-1' }),
+  ]);
+
+  const reasoning = runtime.state.reasoningLines.join('\n');
+  assert.ok(reasoning.includes('🔎 file_search "refund policy, return window"'), 'should surface file-search queries');
+  assert.ok(reasoning.includes('completed'), 'should mark completion');
+});
+
 test('processor captures final payload, attaches images, and finalizes reasoning', () => {
   const runtime = createRuntimeStub();
   const processor = createStreamingEventProcessor(runtime as unknown as StreamingRuntimeArg);

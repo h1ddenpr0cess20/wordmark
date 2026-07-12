@@ -15,6 +15,7 @@ import {
   safeTruncate,
   formatArgsBlock,
   extractQueriesFromArgs,
+  extractSearchQueryFromItem,
   extractDeltaText,
   extractReasoningText,
 } from "./eventParsing.ts";
@@ -56,6 +57,39 @@ function activatedSkillName(rawArgs: string | undefined): string | null {
 }
 
 /**
+ * Collects human-readable source labels (URLs, titles, filenames) from a
+ * completed search item, checking `action.sources`, `sources`, and file-search
+ * `results`. De-duplicated; empty when the item carries no sources.
+ */
+function collectSourceLabels(item: unknown): string[] {
+  const out: string[] = [];
+  const push = (value: unknown) => {
+    if (typeof value === "string" && value.trim()) out.push(value.trim());
+  };
+  const fromArray = (arr: unknown) => {
+    if (!Array.isArray(arr)) return;
+    for (const entry of arr) {
+      if (typeof entry === "string") {
+        push(entry);
+      } else if (entry && typeof entry === "object") {
+        const rec = entry as Record<string, unknown>;
+        push(rec.url || rec.title || rec.filename || rec.file_id || rec.name);
+      }
+    }
+  };
+  if (item && typeof item === "object") {
+    const rec = item as Record<string, unknown>;
+    const action = rec.action;
+    if (action && typeof action === "object") {
+      fromArray((action as Record<string, unknown>).sources);
+    }
+    fromArray(rec.sources);
+    fromArray(rec.results);
+  }
+  return [...new Set(out)];
+}
+
+/**
  * Creates the SSE event processor for a streaming turn. The returned handler
  * accumulates per-call argument/code buffers and tool-call queues, and drives
  * the provided {@link StreamingRuntime} as deltas and lifecycle events arrive.
@@ -68,6 +102,8 @@ export function createStreamingEventProcessor(runtime: StreamingRuntime) {
   const webSearchById = new Map<string, string>();
   const xSearchQueue: string[] = [];
   const xSearchById = new Map<string, string>();
+  const fileSearchQueue: string[] = [];
+  const fileSearchById = new Map<string, string>();
   const activeCodeStreams = new Set<string>();
   const activeCustomInput = new Set<string>();
   const toolExecutions = new Map<string, { name: string; status: string; startTime: number }>();
@@ -90,42 +126,92 @@ export function createStreamingEventProcessor(runtime: StreamingRuntime) {
     queue: string[],
     byId: Map<string, string>,
   ) {
+    const rendered = new Set<string>();
+
+    function resolveQuery(id: string, source: any): string {
+      if (byId.has(id)) return byId.get(id) || "";
+      if (queue.length > 0) {
+        const q = queue.shift() || "";
+        if (id) byId.set(id, q);
+        return q;
+      }
+      const q = extractSearchQueryFromItem(source);
+      if (q && id) byId.set(id, q);
+      return q;
+    }
+
+    function renderHeader(q: string) {
+      beginToolBlock(`**${emoji} ${label}${q ? ` "${safeTruncate(q, 60)}"` : ""}**:`);
+    }
+
+    function appendSources(item: any) {
+      const labels = collectSourceLabels(item);
+      if (labels.length) {
+        appendFencedPreview(labels.join("\n"), 10, "  📄 sources:");
+      }
+    }
+
+    function cleanup(id: string) {
+      if (id) {
+        byId.delete(id);
+        rendered.delete(id);
+      }
+    }
+
     return {
       inProgress(payload: any) {
         const id = payload.item_id || "";
-        let q = "";
-        if (byId.has(id)) {
-          q = byId.get(id) || "";
-        } else if (queue.length > 0) {
-          q = queue.shift() || "";
-          if (id) byId.set(id, q);
+        const q = resolveQuery(id, payload);
+        if (!q) {
+          return;
         }
-        beginToolBlock(`**${emoji} ${label}${q ? ` "${safeTruncate(q, 60)}"` : ""}**:`);
+        renderHeader(q);
         runtime.appendReasoningLine(`  ⏳ _${inProgressVerb}…_`);
+        if (id) rendered.add(id);
       },
       searching(payload: any) {
         const id = payload.item_id || "";
+        if (!rendered.has(id)) {
+          return;
+        }
         const q = byId.get(id) || "";
         runtime.updateLastReasoningLine(`  🔍 _searching${q ? ` "${safeTruncate(q, 60)}"` : ""}…_`);
       },
       completed(payload: any) {
         const id = payload.item_id || "";
+        if (!rendered.has(id)) {
+          return;
+        }
         runtime.appendReasoningLine("  ✔️ _completed_");
-        runtime.appendReasoningLine("");
-        if (id) byId.delete(id);
       },
       failed(payload: any) {
         const id = payload.item_id || "";
         const error = payload?.error?.message || "failed";
+        if (!rendered.has(id)) {
+          renderHeader(byId.get(id) || extractSearchQueryFromItem(payload));
+        }
         runtime.appendReasoningLine(`  ❌ _failed: ${error}_`);
         runtime.appendReasoningLine("");
-        if (id) byId.delete(id);
+        cleanup(id);
+      },
+      finalize(item: any) {
+        const id = (item && (item.id || item.item_id)) || "";
+        const q = resolveQuery(id, item);
+        if (!rendered.has(id)) {
+          renderHeader(q);
+          runtime.appendReasoningLine("  ✔️ _completed_");
+          if (id) rendered.add(id);
+        }
+        appendSources(item);
+        runtime.appendReasoningLine("");
+        cleanup(id);
       },
     };
   }
 
   const webSearch = makeSearchHandlers("web_search", "🌐", "searching web", webSearchQueue, webSearchById);
   const xSearch = makeSearchHandlers("x_search", "🐦", "searching X", xSearchQueue, xSearchById);
+  const fileSearch = makeSearchHandlers("file_search", "🔎", "searching files", fileSearchQueue, fileSearchById);
 
   /**
    * Emits a fenced (```) reasoning block containing a length-capped preview of
@@ -294,6 +380,14 @@ export function createStreamingEventProcessor(runtime: StreamingRuntime) {
         const serverLabel = typeof item?.server_label === "string" && item.server_label ? ` ${item.server_label}` : "";
         beginToolBlock(`**🔧 mcp${serverLabel}**:`);
         runtime.appendReasoningLine("  ⏳ _listing tools…_");
+      } else if (itype === "web_search_call" || itype === "x_search_call" || itype === "file_search_call") {
+        const byId = itype === "x_search_call"
+          ? xSearchById
+          : itype === "file_search_call"
+            ? fileSearchById
+            : webSearchById;
+        const q = extractSearchQueryFromItem(item);
+        if (q && itemId) byId.set(itemId, q);
       } else if ((itype.includes("tool") || itype.includes("function")) && !itype.includes("output")) {
         const name = item?.name || item?.tool_name || item?.function?.name || "tool";
         toolExecutions.set(itemId, {
@@ -310,7 +404,13 @@ export function createStreamingEventProcessor(runtime: StreamingRuntime) {
       const itype = item?.type ? String(item.type).toLowerCase() : "";
       const itemId = item?.id || "";
 
-      if (itype === "shell_call") {
+      if (itype === "web_search_call") {
+        webSearch.finalize(item);
+      } else if (itype === "x_search_call") {
+        xSearch.finalize(item);
+      } else if (itype === "file_search_call") {
+        fileSearch.finalize(item);
+      } else if (itype === "shell_call") {
         const exec = toolExecutions.get(itemId);
         if (exec) {
           const duration = Date.now() - exec.startTime;
@@ -481,23 +581,19 @@ export function createStreamingEventProcessor(runtime: StreamingRuntime) {
       break;
     }
     case "response.file_search_call.in_progress": {
-      beginToolBlock("**🔎 file_search**:");
-      runtime.appendReasoningLine("  ⏳ _searching…_");
+      fileSearch.inProgress(payload);
       break;
     }
     case "response.file_search_call.searching": {
-      runtime.updateLastReasoningLine("  🔍 _searching files…_");
+      fileSearch.searching(payload);
       break;
     }
     case "response.file_search_call.completed": {
-      runtime.appendReasoningLine("  ✔️ _completed_");
-      runtime.appendReasoningLine("");
+      fileSearch.completed(payload);
       break;
     }
     case "response.file_search_call.failed": {
-      const error = payload?.error?.message || "failed";
-      runtime.appendReasoningLine(`  ❌ _failed: ${error}_`);
-      runtime.appendReasoningLine("");
+      fileSearch.failed(payload);
       break;
     }
     case "response.web_search_call.in_progress": {

@@ -122,6 +122,37 @@ export function extractQueriesFromArgs(argsStr: unknown) {
   return queries;
 }
 
+/**
+ * Extracts the query (or target URL) from a hosted search-call item. Provider-
+ * managed web/x search tools do not emit `function_call_arguments` events; their
+ * query travels in the item's `action` object on `output_item.added`/`.done`
+ * (`{ type: "search", queries: [...] }`, or `{ type: "open_page", url }` when the
+ * model opens a result). The `queries` array is the populated field; `query`
+ * (singular) is deprecated and often absent. Returns `""` when nothing is present.
+ */
+export function extractSearchQueryFromItem(item: unknown): string {
+  if (!isRecord(item)) return "";
+  const action = item.action;
+  if (isRecord(action)) {
+    const fromActionQueries = joinQueries(action.queries);
+    if (fromActionQueries) return fromActionQueries;
+    if (typeof action.query === "string" && action.query.trim()) return action.query.trim();
+    if (typeof action.url === "string" && action.url.trim()) return action.url.trim();
+  }
+  const fromItemQueries = joinQueries(item.queries);
+  if (fromItemQueries) return fromItemQueries;
+  if (typeof item.query === "string" && item.query.trim()) return item.query.trim();
+  return "";
+}
+
+function joinQueries(value: unknown): string {
+  if (!Array.isArray(value)) return "";
+  return value
+    .filter((q): q is string => typeof q === "string" && q.trim().length > 0)
+    .map((q) => q.trim())
+    .join(", ");
+}
+
 /** Pulls the incremental text out of a delta payload across the shapes the API emits. */
 export function extractDeltaText(payload: unknown): string {
   if (!isRecord(payload)) return "";
