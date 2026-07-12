@@ -3,7 +3,7 @@
 Local Dev
 
 - Built with [Vite](https://vite.dev). Install once with `npm install`, then `npm run dev` (port 3000) or `npm run dev:https` for a secure context.
-- `npm run build` produces a static bundle in `dist/`; `npm run preview` serves it on port 8080.
+- `npm run build` produces a static bundle in `dist/`; `npm run preview` serves it on port 8080 (network-accessible), and `npm start` does both in one step.
 - Module entry is `src/ts/main.ts`. The app is TypeScript ES modules — code uses explicit `import`/`export`, not `window.*` globals. Shared runtime state lives in `src/ts/init/state.ts` (`state`, `elements`); UI callbacks register on `src/ts/init/uiHooks.ts`.
 - Type-check with `npm run typecheck` (source) and `npm run typecheck:tests` (specs).
 
