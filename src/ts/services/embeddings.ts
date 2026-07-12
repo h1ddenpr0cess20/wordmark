@@ -25,47 +25,52 @@ export const EMBEDDING_BATCH_SIZE = 64;
  *
  * @param t - The text to split.
  * @param size - Target chunk size in characters.
+ * @param overlap - Approximate characters repeated across adjacent chunks so
+ * facts at a boundary remain retrievable.
  */
-export function chunkText(t: string, size = 2000): string[] {
+export function chunkText(t: string, size = 2000, overlap = 200): string[] {
   const chunks: string[] = [];
   let start = 0;
+  const safeSize = Math.max(100, size);
+  const safeOverlap = Math.max(0, Math.min(overlap, Math.floor(safeSize / 3)));
 
   while (start < t.length) {
-    if (start + size >= t.length) {
+    if (start + safeSize >= t.length) {
       const tail = t.slice(start).trim();
       if (tail) chunks.push(tail);
       break;
     }
 
-    const window = t.slice(start, start + size);
+    const window = t.slice(start, start + safeSize);
     let breakAt = -1;
 
     const paraIdx = window.lastIndexOf("\n\n");
-    if (paraIdx >= size * 0.4) breakAt = paraIdx + 2;
+    if (paraIdx >= safeSize * 0.4) breakAt = paraIdx + 2;
 
     if (breakAt < 0) {
       const nlIdx = window.lastIndexOf("\n");
-      if (nlIdx >= size * 0.4) breakAt = nlIdx + 1;
+      if (nlIdx >= safeSize * 0.4) breakAt = nlIdx + 1;
     }
 
     if (breakAt < 0) {
       const sentMatches = [...window.matchAll(/[.!?]\s+/g)];
       if (sentMatches.length) {
         const last = sentMatches[sentMatches.length - 1];
-        if ((last.index ?? -1) >= size * 0.4) breakAt = (last.index ?? 0) + last[0].length;
+        if ((last.index ?? -1) >= safeSize * 0.4) breakAt = (last.index ?? 0) + last[0].length;
       }
     }
 
     if (breakAt < 0) {
       const spIdx = window.lastIndexOf(" ");
-      if (spIdx >= size * 0.4) breakAt = spIdx + 1;
+      if (spIdx >= safeSize * 0.4) breakAt = spIdx + 1;
     }
 
-    if (breakAt < 0) breakAt = size;
+    if (breakAt < 0) breakAt = safeSize;
 
     const chunk = t.slice(start, start + breakAt).trim();
     if (chunk) chunks.push(chunk);
-    start += breakAt;
+    const nextStart = start + breakAt;
+    start = Math.max(start + 1, nextStart - safeOverlap);
   }
 
   return chunks;
@@ -175,10 +180,22 @@ export async function fetchEmbeddings(
       throw new Error(`Embeddings request failed: HTTP ${res.status} — ${err.slice(0, 200)}`);
     }
     const data = await res.json();
-    vectors.push(...(data.data as { index: number; embedding: number[] }[])
-      .slice()
-      .sort((a, b) => a.index - b.index)
-      .map((d) => d.embedding));
+    const rows = Array.isArray(data?.data) ? data.data as { index: number; embedding: number[] }[] : [];
+    if (rows.length !== batch.length) {
+      throw new Error(`Embeddings response returned ${rows.length} vector(s) for ${batch.length} input(s)`);
+    }
+    const ordered = rows.slice().sort((a, b) => a.index - b.index);
+    const dimensions = ordered[0]?.embedding?.length || 0;
+    const valid = dimensions > 0 && ordered.every((row, index) =>
+      row.index === index &&
+      Array.isArray(row.embedding) &&
+      row.embedding.length === dimensions &&
+      row.embedding.every(Number.isFinite),
+    );
+    if (!valid) {
+      throw new Error("Embeddings response contained missing, malformed, or inconsistent vectors");
+    }
+    vectors.push(...ordered.map((row) => row.embedding));
   }
   return vectors;
 }

@@ -30,3 +30,11 @@ Location Not Available
 Missing API Keys
 
 - The app does not ship with keys. Add your own in Settings → API Keys (and Tools where applicable).
+
+Local Documents Miss Answers
+
+- Confirm the indexing notification reports the expected document and chunk counts. Unsupported binaries and dependency/cache files in folder uploads are reported as skipped.
+- Ask “which files are indexed?” to inspect the relative-path inventory for the conversation.
+- Queries can use either natural language or an exact filename/path, identifier, error code, or config key. Wordmark combines both retrieval styles.
+- Make sure the same embedding model remains loaded for indexing and querying. Wordmark re-embeds saved chunks after a model change, which may take a moment for a large folder.
+- Very broad questions still receive a bounded set of relevant, non-redundant passages so local model context is not overflowed. Narrow the question to a subsystem or path when more detail is needed.

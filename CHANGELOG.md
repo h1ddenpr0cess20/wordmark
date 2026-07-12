@@ -2,6 +2,17 @@
 
 All notable changes to Wordmark are documented here. Earlier versions didn't follow proper semver — this changelog reflects what actually shipped, not what the version numbers said at the time.
 
+## [Unreleased]
+
+### Fixed
+- **Folder RAG only surfacing a few files** — local retrieval now combines embeddings with exact-term/path matching and adaptive diversity-aware reranking under a bounded context budget, instead of allowing the globally top eight chunks to come from one or two large files. A single document can still use the full result budget.
+- **Folder paths lost during indexing** — relative paths now survive indexing, retrieval labels, diagnostics, and persistence, including duplicate basenames and identical files stored at different paths.
+- **Document cache persistence races** — cache writes complete before conversation references are saved; failed cache writes fall back to inline chunk storage rather than leaving unrestorable references.
+- **Immediate questions after history load missing documents** — retrieval now waits for the active conversation's IndexedDB restore to finish.
+
+### Changed
+- Local chunks overlap slightly at boundaries, malformed embedding responses fail clearly, inventory questions receive a compact source list, and common dependency/cache/generated paths are reported and skipped during folder upload.
+
 ## [3.12.0] - 2026-07-11
 
 An Android first-run server picker, a custom desktop title bar, and an app icon fix. Backward-compatible.

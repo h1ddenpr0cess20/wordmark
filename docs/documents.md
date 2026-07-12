@@ -4,6 +4,8 @@ Wordmark can attach documents to a message so the model can answer questions abo
 
 Attach files with the upload button in the composer, by drag-and-drop, or by paste. You can attach individual files or a whole folder.
 
+Folder uploads keep each file's relative path so files with the same basename remain distinct. To avoid drowning codebase retrieval in generated dependencies, folders named `.git`, `node_modules`, `.venv`, `venv`, `__pycache__`, and common tool caches are skipped, along with source maps and minified JavaScript/CSS. The upload notification reports how many were ignored. Uploading one of those files individually still accepts it when its format is supported.
+
 ## Per-provider handling
 
 | Provider | How documents are handled |
@@ -38,11 +40,14 @@ The parsers use only in-browser primitives (`TextDecoder`, `DecompressionStream`
 Local servers have no files API or vector store, so documents are indexed and searched client-side. Dumping every file's full text into the prompt would overflow a local model's context (LM Studio reports a "Channel Error"), so only the relevant passages are sent:
 
 1. **Extract** each attached file to text.
-2. **Chunk** the text into ~2000-character pieces on paragraph/sentence/word boundaries (`chunkText`).
+2. **Chunk** the text into ~2000-character pieces on paragraph/sentence/word boundaries (`chunkText`), with a small overlap so facts at chunk boundaries remain searchable.
 3. **Embed** the chunks via the provider's OpenAI-compatible `/embeddings` endpoint (`fetchEmbeddings`) and hold them in an in-memory index (`src/ts/services/localDocRetrieval.ts`).
-4. On **each turn**, embed the user's question and append only the top matching chunks (cosine similarity) to the message.
+4. On **each turn**, combine semantic similarity with an in-browser BM25-style exact-term score over chunk text and source paths. This lets queries for filenames, identifiers, error codes, and config keys work alongside natural-language questions.
+5. Re-rank the candidate set for relevance and novelty so one large or repetitive file cannot occupy every result in a folder. At most 12 chunks and roughly 24,000 characters are sent. The per-source limit adapts to the number of matching files, so a single document can use the full budget while larger folders receive broader source coverage.
 
-The index is per-conversation and is cleared when you start or load a conversation.
+Questions such as “which files are available?” also receive a compact source-path inventory. Retrieved text is delimited and labeled as untrusted reference material so document content is not presented as application instructions.
+
+The index is per-conversation and is cleared when you start a new conversation. Loading a saved conversation restores its index before retrieval is allowed to run.
 
 ### Embedding model selection
 
@@ -63,5 +68,6 @@ For local providers, document contents never leave your machine — extraction, 
 - `src/ts/services/parsers/` — format parsers and the `extractDocumentText` / `isExtractableDocument` dispatcher
 - `src/ts/services/embeddings.ts` — `chunkText`, `cosineSim`, `fetchEmbeddings`, `resolveEmbeddingModel`
 - `src/ts/services/localDocRetrieval.ts` — the in-memory index (`indexDocuments`, `retrieveRelevantChunks`, `clearLocalDocIndex`)
+- `src/ts/utils/documentPaths.ts` — relative-path normalization and dependency/cache filtering for folder uploads
 - `src/ts/components/interaction.ts` — `indexDocumentsLocally` and `injectRetrievedContext` wire retrieval into the send flow
 - `src/ts/services/providers.ts` — `extractsDocumentsClientSide`, `usesDirectFileUpload`

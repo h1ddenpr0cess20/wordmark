@@ -36,3 +36,15 @@ test("buildDocChunkRecord inlines chunks for unhashable files", () => {
   assert.equal(record.files[1].name, "b.txt");
   assert.deepEqual(record.files[2], { cacheKey: "hash3:embed-model", name: "c.pdf", chunks: null });
 });
+
+test("buildDocChunkRecord preserves identical content at different source paths", () => {
+  const record = buildDocChunkRecord("c1", [
+    chunk("project/a/config.json", "same bytes", "samehash:embed-model"),
+    chunk("project/b/config.json", "same bytes", "samehash:embed-model"),
+  ]);
+
+  assert.deepEqual(record.files, [
+    { cacheKey: "samehash:embed-model", name: "project/a/config.json", chunks: null },
+    { cacheKey: "samehash:embed-model", name: "project/b/config.json", chunks: null },
+  ]);
+});

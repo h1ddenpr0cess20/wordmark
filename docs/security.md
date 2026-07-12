@@ -23,7 +23,11 @@ Keys & Privacy
 - API keys are entered in-app and stored in localStorage (never committed to the repo). No analytics or tracking is present.
 - Conversations, images, and audio are stored in IndexedDB and never leave your machine unless your configured providers receive data as part of a request.
 
+Retrieved Documents
+
+- Local document chunks are wrapped in explicit source boundaries and labeled as untrusted reference material before they are added to a request. This reduces the chance that instructions embedded in a document are mistaken for application instructions, but users should still treat untrusted uploaded content cautiously.
+- Directory uploads skip common dependency, VCS, cache, source-map, and minified-output paths to reduce irrelevant or adversarial retrieval noise. Individual supported files can still be attached explicitly.
+
 HTTPS
 
 - Some browser APIs and provider features require HTTPS; use the local HTTPS instructions in the Getting Started guide.
-

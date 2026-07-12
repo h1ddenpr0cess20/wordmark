@@ -88,13 +88,16 @@ function withChunkDb<T>(run: (db: IDBDatabase) => Promise<T>): Promise<T> {
  */
 export function buildDocChunkRecord(conversationId: string, chunks: StoredDocChunk[]): DocChunkRecord {
   const files: StoredFileRef[] = [];
-  const refByKey = new Map<string, StoredFileRef>();
+  const refByKeyAndSource = new Map<string, StoredFileRef>();
 
   for (const chunk of chunks) {
     if (chunk.cacheKey) {
-      if (!refByKey.has(chunk.cacheKey)) {
+      // The same bytes may legitimately appear at multiple paths. Each source
+      // needs its own reference even though both resolve the same cached chunks.
+      const refKey = `${chunk.cacheKey}\u0000${chunk.name}`;
+      if (!refByKeyAndSource.has(refKey)) {
         const ref: StoredFileRef = { cacheKey: chunk.cacheKey, name: chunk.name, chunks: null };
-        refByKey.set(chunk.cacheKey, ref);
+        refByKeyAndSource.set(refKey, ref);
         files.push(ref);
       }
       continue;
@@ -164,6 +167,8 @@ export async function loadDocChunks(conversationId: string): Promise<StoredDocCh
     const cached = await getCachedFileChunks(file.cacheKey).catch(() => null);
     if (cached) {
       chunks.push(...cached.map((chunk) => ({ ...chunk, name: file.name, cacheKey: file.cacheKey })));
+    } else {
+      console.warn(`Document cache entry is missing for stored source: ${file.name}`);
     }
   }
   return chunks;
