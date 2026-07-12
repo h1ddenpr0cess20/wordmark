@@ -185,8 +185,6 @@ export function createStreamingRuntime({
 
   function appendReasoningLine(text: string, indent = 0) {
     if (text === "") {
-      // Blank separator: close the current block with an empty line so the
-      // next block renders as a new markdown paragraph.
       if (!accumulatedReasoning || accumulatedReasoning.endsWith("\n\n")) {
         render();
         return;

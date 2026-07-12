@@ -227,8 +227,6 @@ export function createStreamingEventProcessor(runtime: StreamingRuntime) {
       const full = extractReasoningText(payload);
       if (typeof full === "string" && full.trim().length > 0) {
         const current = runtime.getReasoningText();
-        // Deltas for this text usually streamed already; only append when the
-        // full text isn't in the accumulated reasoning, to avoid duplication.
         if (!current.includes(full.trim())) {
           if (current.trim().length > 0) {
             runtime.appendReasoningDelta(current.endsWith("\n") ? "\n" : "\n\n");
@@ -239,8 +237,6 @@ export function createStreamingEventProcessor(runtime: StreamingRuntime) {
       break;
     }
     case "response.reasoning_summary_part.added": {
-      // Reasoning summaries arrive as separate parts; separate them with a
-      // blank line so consecutive parts don't run together.
       const current = runtime.getReasoningText();
       if (current.trim().length > 0 && !current.endsWith("\n\n")) {
         runtime.appendReasoningDelta(current.endsWith("\n") ? "\n" : "\n\n");
