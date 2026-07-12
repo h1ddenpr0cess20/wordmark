@@ -43,7 +43,7 @@ Local servers have no files API or vector store, so documents are indexed and se
 2. **Chunk** the text into ~2000-character pieces on paragraph/sentence/word boundaries (`chunkText`), with a small overlap so facts at chunk boundaries remain searchable.
 3. **Embed** the chunks via the provider's OpenAI-compatible `/embeddings` endpoint (`fetchEmbeddings`) and hold them in an in-memory index (`src/ts/services/localDocRetrieval.ts`).
 4. On **each turn**, combine semantic similarity with an in-browser BM25-style exact-term score over chunk text and source paths. This lets queries for filenames, identifiers, error codes, and config keys work alongside natural-language questions.
-5. Re-rank the candidate set for relevance and novelty so one large or repetitive file cannot occupy every result. At most 12 chunks and roughly 24,000 characters are sent, with no more than three chunks from one source.
+5. Re-rank the candidate set for relevance and novelty so one large or repetitive file cannot occupy every result in a folder. At most 12 chunks and roughly 24,000 characters are sent. The per-source limit adapts to the number of matching files, so a single document can use the full budget while larger folders receive broader source coverage.
 
 Questions such as “which files are available?” also receive a compact source-path inventory. Retrieved text is delimited and labeled as untrusted reference material so document content is not presented as application instructions.
 

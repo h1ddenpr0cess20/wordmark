@@ -37,7 +37,7 @@ export const DEFAULT_RETRIEVAL_CHARACTER_BUDGET = 24_000;
 const HYBRID_DENSE_WEIGHT = 0.72;
 const HYBRID_LEXICAL_WEIGHT = 0.28;
 const MMR_RELEVANCE_WEIGHT = 0.78;
-const MAX_CHUNKS_PER_SOURCE = 3;
+const MIN_MULTI_SOURCE_CHUNK_LIMIT = 3;
 const BM25_K1 = 1.2;
 const BM25_B = 0.75;
 
@@ -379,6 +379,10 @@ function diversifyCandidates(
 ): IndexedChunk[] {
   const selected: RetrievalCandidate[] = [];
   const sourceCounts = new Map<string, number>();
+  const sourceTotal = new Set(candidates.map(candidate => candidate.chunk.name)).size;
+  const perSourceLimit = inventoryQuery
+    ? 1
+    : Math.max(MIN_MULTI_SOURCE_CHUNK_LIMIT, Math.ceil(topK / Math.max(1, Math.min(sourceTotal, 4))));
   let characters = 0;
 
   while (selected.length < topK) {
@@ -387,7 +391,6 @@ function diversifyCandidates(
     for (const candidate of candidates) {
       if (selected.includes(candidate)) continue;
       const sourceCount = sourceCounts.get(candidate.chunk.name) || 0;
-      const perSourceLimit = inventoryQuery ? 1 : MAX_CHUNKS_PER_SOURCE;
       if (sourceCount >= perSourceLimit) continue;
       if (selected.length > 0 && characters + candidate.chunk.text.length > characterBudget) continue;
 

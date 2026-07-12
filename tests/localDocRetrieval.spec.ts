@@ -145,6 +145,16 @@ test("MMR retrieval diversifies redundant chunks across source files", async () 
   assert.equal(new Set(hits.map(hit => hit.name)).size, 3);
 });
 
+test("a single large document can use the full retrieval result budget", async () => {
+  clearLocalDocIndex();
+  await indexDocuments([
+    fakeFile("manual.txt", "section one|section two|section three|section four|section five|section six"),
+  ]);
+  const hits = await retrieveRelevantChunks("overview", 6);
+  assert.equal(hits.length, 6);
+  assert.ok(hits.every(hit => hit.name === "manual.txt"));
+});
+
 test("retrieval respects the total character budget", async () => {
   clearLocalDocIndex();
   await indexDocuments([
