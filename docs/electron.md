@@ -31,7 +31,9 @@ session. There is no backend.
   opens in the system browser; the app window itself never navigates away.
 - **Geolocation & media permissions** — granted automatically when the web
   app requests them, since there is no browser permission UI in a packaged
-  desktop app.
+  desktop app. Chromium's native geolocation provider requires a Google API
+  key that the shell doesn't ship, so on desktop the web app falls back to a
+  city-level IP geolocation lookup instead.
 - **Single instance** — a second launch focuses the existing window instead
   of opening a duplicate.
 

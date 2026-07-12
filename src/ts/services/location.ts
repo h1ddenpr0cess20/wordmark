@@ -77,13 +77,86 @@ function commitLocation(position: GeoPositionLike, locationString: string): Loca
 }
 
 /**
+ * Whether the app is running inside the Electron desktop shell, where the
+ * `wordmarkDesktop` preload bridge is exposed.
+ */
+function isDesktopShell() {
+  return typeof window !== "undefined" && "wordmarkDesktop" in window;
+}
+
+/**
+ * Resolves an approximate position from the client's IP address.
+ *
+ * @remarks
+ * Chromium's `navigator.geolocation` needs Google's network location service
+ * (a `GOOGLE_API_KEY`), which the Electron shell doesn't ship, so native
+ * geolocation fails there with `POSITION_UNAVAILABLE`. This city-level
+ * fallback keeps the feature working on desktop.
+ */
+export async function requestIpLocation(): Promise<LocationResult> {
+  try {
+    const response = await fetch("https://ipapi.co/json/", {
+      signal: AbortSignal.timeout(5000),
+    });
+
+    if (!response.ok) {
+      throw new Error(`IP geolocation request failed with status ${response.status}`);
+    }
+
+    const data = await response.json();
+    const latitude = Number(data.latitude);
+    const longitude = Number(data.longitude);
+
+    if (!Number.isFinite(latitude) || !Number.isFinite(longitude)) {
+      throw new Error("IP geolocation returned no coordinates");
+    }
+
+    const position: GeoPositionLike = {
+      coords: { latitude, longitude },
+      timestamp: Date.now(),
+    };
+
+    locationState.position = position;
+    locationState.error = null;
+    locationState.lastFetched = new Date().toISOString();
+
+    const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+    const locationParts = [data.city, data.region, data.country_name].filter(Boolean);
+    const locationString = locationParts.length > 0
+      ? `Location: ${locationParts.join(", ")} (${latitude.toFixed(4)}, ${longitude.toFixed(4)}, ${timezone})`
+      : `Location: ${latitude.toFixed(4)}, ${longitude.toFixed(4)} (${timezone})`;
+
+    logLocation("Location obtained via IP geolocation");
+
+    return commitLocation(position, locationString);
+  } catch (error) {
+    const errorMessage = "Location information unavailable";
+
+    locationState.error = errorMessage;
+    locationState.enabled = false;
+    localStorage.setItem(STORAGE_KEYS.locationEnabled, "false");
+
+    console.warn("IP geolocation error:", error);
+    return { error: errorMessage };
+  }
+}
+
+/**
  * Requests geolocation permission and resolves the current position.
+ *
+ * @remarks
+ * In the Electron desktop shell, native geolocation is unavailable (Chromium's
+ * location provider requires a Google API key), so failures fall back to
+ * {@link requestIpLocation}.
  *
  * @returns A success payload with coordinates and a formatted string, or an
  * object with an `error` message. Never rejects.
  */
 export async function requestLocation(): Promise<LocationResult> {
   if (!navigator.geolocation) {
+    if (isDesktopShell()) {
+      return requestIpLocation();
+    }
     const error = "Geolocation is not supported by this browser";
     locationState.error = error;
     console.warn(error);
@@ -110,6 +183,12 @@ export async function requestLocation(): Promise<LocationResult> {
         }
       },
       (error) => {
+        if (isDesktopShell() && error.code !== error.PERMISSION_DENIED) {
+          logLocation("Native geolocation failed in desktop shell, falling back to IP geolocation");
+          resolve(requestIpLocation());
+          return;
+        }
+
         let errorMessage = "Location access denied or unavailable";
         switch (error.code) {
         case error.PERMISSION_DENIED:
