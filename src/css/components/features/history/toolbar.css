@@ -48,24 +48,15 @@
 .selection-mode-toggle {
   display: inline-flex;
   align-items: center;
-  gap: 6px;
+  gap: 8px;
   font-size: 0.85rem;
   color: var(--text-secondary);
-  cursor: pointer;
-  padding: 7px 10px;
-  border: 1px solid var(--border-color);
-  border-radius: 8px;
   white-space: nowrap;
-  transition: border-color 0.2s, color 0.2s;
 }
 
-.selection-mode-toggle:hover {
-  border-color: var(--accent-color);
-  color: var(--text-primary);
-}
-
-.selection-mode-toggle input[type="checkbox"] {
-  margin: 0;
+.selection-mode-toggle .toggle-container {
+  margin-left: 0;
+  display: flex;
 }
 
 .history-bulkbar {

@@ -54,9 +54,13 @@ export function renderChatHistoryList() {
           <span>New conversation</span>
         </button>
         <input type="search" class="history-search" placeholder="Search conversations" aria-label="Search conversations">
-        <label class="selection-mode-toggle" title="Select multiple conversations">
-          <input type="checkbox" id="multi-select-mode"> Select
-        </label>
+        <div class="selection-mode-toggle" title="Select multiple conversations">
+          <span>Select</span>
+          <div class="toggle-container">
+            <input type="checkbox" id="multi-select-mode">
+            <label for="multi-select-mode" class="toggle-switch" aria-label="Select multiple conversations"></label>
+          </div>
+        </div>
       `;
 
       const bulkbar = document.createElement("div");
