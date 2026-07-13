@@ -55,4 +55,3 @@ Specs are strict TypeScript run via `node --test` with tsx loaders (`tests/helpe
 ## Intentional quirks — do not "fix"
 
 - `index.html` viewport `user-scalable=no` is deliberate; don't change it for accessibility.
-- `src/ts/utils/tooltips.ts` and `tooltipPosition.ts` are deliberately kept even though nothing imports them (`main.ts` is the only entry point). They are a shelved first attempt at custom tooltips — the positioning logic was buggy, so they were unwired rather than shipped. They're kept as a starting point for a future reimplementation (after which they'll be deleted). Until that project happens, leave them alone entirely: don't refactor, delete, or wire them back in.
