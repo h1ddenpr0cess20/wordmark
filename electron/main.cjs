@@ -1,9 +1,9 @@
-const { app, BrowserWindow, ipcMain, shell } = require("electron");
+const { app, BrowserWindow, clipboard, ipcMain, protocol, shell } = require("electron");
 const path = require("node:path");
 const fs = require("node:fs");
-const http = require("node:http");
 
 const DIST_DIR = path.join(__dirname, "..", "dist");
+const APP_ORIGIN = "wordmark://app";
 
 const TITLEBAR_HEIGHT = 36;
 const HEX_COLOR = /^#[0-9a-f]{6}$/i;
@@ -24,39 +24,44 @@ const MIME_TYPES = {
   ".wasm": "application/wasm",
 };
 
-function startServer() {
-  return new Promise((resolve, reject) => {
-    const server = http.createServer((req, res) => {
-      const requestPath = decodeURIComponent(req.url.split("?")[0]);
-      const filePath = path.join(DIST_DIR, requestPath === "/" ? "index.html" : requestPath);
+protocol.registerSchemesAsPrivileged([{
+  scheme: "wordmark",
+  privileges: {
+    standard: true,
+    secure: true,
+    supportFetchAPI: true,
+    corsEnabled: true,
+    stream: true,
+  },
+}]);
 
-      if (!filePath.startsWith(DIST_DIR)) {
-        res.writeHead(403);
-        res.end();
-        return;
-      }
+async function readAppAsset(url) {
+  let requestPath;
+  try {
+    requestPath = decodeURIComponent(new URL(url).pathname);
+  } catch {
+    return new Response("Bad request", { status: 400 });
+  }
 
-      fs.readFile(filePath, (err, data) => {
-        if (err) {
-          fs.readFile(path.join(DIST_DIR, "index.html"), (fallbackErr, fallbackData) => {
-            if (fallbackErr) {
-              res.writeHead(404);
-              res.end();
-              return;
-            }
-            res.writeHead(200, { "Content-Type": "text/html" });
-            res.end(fallbackData);
-          });
-          return;
-        }
-        res.writeHead(200, { "Content-Type": MIME_TYPES[path.extname(filePath)] || "application/octet-stream" });
-        res.end(data);
-      });
+  const relativePath = requestPath === "/" ? "index.html" : `.${requestPath}`;
+  const filePath = path.resolve(DIST_DIR, relativePath);
+  if (filePath !== DIST_DIR && !filePath.startsWith(`${DIST_DIR}${path.sep}`)) {
+    return new Response("Forbidden", { status: 403 });
+  }
+
+  try {
+    const data = await fs.promises.readFile(filePath);
+    return new Response(data, {
+      headers: { "Content-Type": MIME_TYPES[path.extname(filePath)] || "application/octet-stream" },
     });
-
-    server.on("error", reject);
-    server.listen(0, "127.0.0.1", () => resolve(server));
-  });
+  } catch {
+    try {
+      const data = await fs.promises.readFile(path.join(DIST_DIR, "index.html"));
+      return new Response(data, { headers: { "Content-Type": "text/html" } });
+    } catch {
+      return new Response("Not found", { status: 404 });
+    }
+  }
 }
 
 let mainWindow = null;
@@ -65,9 +70,6 @@ async function createWindow() {
   if (!fs.existsSync(path.join(DIST_DIR, "index.html"))) {
     throw new Error(`Build not found at ${DIST_DIR}. Run "npm run build" in the project root first.`);
   }
-
-  const server = await startServer();
-  const origin = `http://127.0.0.1:${server.address().port}`;
 
   mainWindow = new BrowserWindow({
     width: 1280,
@@ -92,7 +94,7 @@ async function createWindow() {
   });
 
   mainWindow.webContents.setWindowOpenHandler(({ url }) => {
-    if (!url.startsWith(origin)) {
+    if (!url.startsWith(`${APP_ORIGIN}/`)) {
       shell.openExternal(url);
       return { action: "deny" };
     }
@@ -100,7 +102,7 @@ async function createWindow() {
   });
 
   mainWindow.webContents.on("will-navigate", (event, url) => {
-    if (!url.startsWith(origin)) {
+    if (!url.startsWith(`${APP_ORIGIN}/`)) {
       event.preventDefault();
       shell.openExternal(url);
     }
@@ -116,10 +118,9 @@ async function createWindow() {
 
   mainWindow.on("closed", () => {
     mainWindow = null;
-    server.close();
   });
 
-  await mainWindow.loadURL(origin);
+  await mainWindow.loadURL(`${APP_ORIGIN}/`);
 }
 
 const gotLock = app.requestSingleInstanceLock();
@@ -149,8 +150,16 @@ if (!gotLock) {
     } catch {}
   });
 
+  ipcMain.handle("clipboard:write-text", (_event, text) => {
+    if (typeof text !== "string") {
+      throw new TypeError("Clipboard text must be a string");
+    }
+    clipboard.writeText(text);
+  });
+
   app.whenReady().then(async () => {
     try {
+      protocol.handle("wordmark", request => readAppAsset(request.url));
       await createWindow();
     } catch (err) {
       console.error(err.message);

@@ -16,6 +16,7 @@ declare global {
     wordmarkDesktop?: {
       platform: string;
       setTitleBarColors: (colors: { color: string; symbolColor: string }) => Promise<void>;
+      writeText: (text: string) => Promise<void>;
     };
   }
 }

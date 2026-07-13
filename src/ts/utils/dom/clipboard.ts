@@ -2,8 +2,9 @@
  * Clipboard copy helper.
  *
  * @remarks
- * Prefers the async Clipboard API and falls back to a hidden-`<textarea>` +
- * `document.execCommand("copy")` for browsers without it. Extracted from
+ * Prefers the Electron clipboard bridge when present, then the async Clipboard
+ * API, then a hidden-`<textarea>` + `document.execCommand("copy")`; each tier
+ * falls through to the next on failure. Extracted from
  * {@link ../highlight.ts}'s copy button so the modern/fallback branching is
  * reusable and testable in isolation.
  */
@@ -19,14 +20,7 @@
  * @returns `true` when the copy succeeded, `false` otherwise.
  */
 export function copyTextToClipboard(text: string): Promise<boolean> {
-  if (navigator && navigator.clipboard && typeof navigator.clipboard.writeText === "function") {
-    return navigator.clipboard.writeText(text)
-      .then(() => true)
-      .catch(err => {
-        console.error("Clipboard API failed:", err);
-        return false;
-      });
-  } else {
+  const copyWithExecCommand = () => {
     try {
       const textArea = document.createElement("textarea");
       textArea.value = text;
@@ -37,10 +31,34 @@ export function copyTextToClipboard(text: string): Promise<boolean> {
       textArea.select();
       const successful = document.execCommand("copy");
       document.body.removeChild(textArea);
-      return Promise.resolve(successful);
+      return successful;
     } catch (err) {
       console.error("execCommand fallback failed:", err);
-      return Promise.resolve(false);
+      return false;
     }
+  };
+
+  const copyWithBrowserApis = (): Promise<boolean> => {
+    if (typeof navigator !== "undefined" && navigator.clipboard && typeof navigator.clipboard.writeText === "function") {
+      return navigator.clipboard.writeText(text)
+        .then(() => true)
+        .catch(() => copyWithExecCommand());
+    }
+    return Promise.resolve(copyWithExecCommand());
+  };
+
+  const desktopWindow = typeof window !== "undefined"
+    ? window as Window & { wordmarkDesktop?: { writeText?: (value: string) => Promise<void> } }
+    : undefined;
+  const desktopWriteText = desktopWindow?.wordmarkDesktop?.writeText;
+  if (desktopWriteText) {
+    return desktopWriteText(text)
+      .then(() => true)
+      .catch(err => {
+        console.error("Desktop clipboard failed:", err);
+        return copyWithBrowserApis();
+      });
   }
+
+  return copyWithBrowserApis();
 }

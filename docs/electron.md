@@ -21,10 +21,10 @@ session. There is no backend.
   window-control overlay through the `electron/preload.cjs` bridge whenever
   the theme changes; macOS keeps its standard traffic lights. In a browser the
   bridge is absent, so the bar never appears.
-- **Local static server** — `electron/main.cjs` serves `dist/` over
-  `http://127.0.0.1` on an OS-assigned port with an `index.html` SPA
-  fallback, since Vite's root-relative asset paths (`/assets/...`) don't
-  resolve under `file://`.
+- **Stable local app origin** — `electron/main.cjs` serves `dist/` through the
+  privileged `wordmark://app` protocol with an `index.html` SPA fallback.
+  Keeping this origin stable across launches is what lets Chromium retain the
+  app's IndexedDB conversations and local settings.
 - **Downloads** — files (chat exports, generated images) save straight to the
   OS Downloads folder instead of prompting a save dialog.
 - **External links** — navigation to any origin other than the local server
@@ -63,7 +63,7 @@ quick local testing without building an installer.
 
 ## Local AI servers
 
-The window's origin is `http://127.0.0.1:<port>`, so the web app's CSP
-(`connect-src 'self' https: http: ws: wss:`) already permits reaching a local
+The web app's CSP (`connect-src 'self' https: http: ws: wss:`) permits the
+desktop app's stable origin as well as local HTTP/WebSocket connections to an
 LM Studio or Ollama server with no extra configuration. See
 [LM Studio](lm-studio.md) and [Ollama](ollama.md).
