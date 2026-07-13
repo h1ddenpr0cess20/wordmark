@@ -214,16 +214,24 @@ export function createStreamingEventProcessor(runtime: StreamingRuntime) {
   const fileSearch = makeSearchHandlers("file_search", "🔎", "searching files", fileSearchQueue, fileSearchById);
 
   /**
-   * Emits a fenced (```) reasoning block containing a length-capped preview of
-   * `text`, optionally preceded by an indented `header` line. Centralizes the
+   * Emits a fenced reasoning block containing a length-capped preview of
+   * `text`, optionally preceded by an indented `header` line. The fence is one
+   * backtick longer than the longest backtick run in the preview, so content
+   * containing ``` cannot close the block early. Centralizes the
    * shell/code-interpreter output rendering that otherwise repeats per output
    * kind.
    */
   function appendFencedPreview(text: string, limit: number, header?: string, language = "") {
     if (header) runtime.appendReasoningLine(header);
-    runtime.appendReasoningLine(`  \`\`\`${language}`);
-    previewLines(text, limit).forEach(line => runtime.appendReasoningLine(`  ${line}`));
-    runtime.appendReasoningLine("  ```");
+    const lines = previewLines(text, limit);
+    const longestRun = lines.reduce((max, line) => {
+      const runs = line.match(/`+/g) || [];
+      return runs.reduce((acc, run) => Math.max(acc, run.length), max);
+    }, 0);
+    const fence = "`".repeat(Math.max(3, longestRun + 1));
+    runtime.appendReasoningLine(`  ${fence}${language}`);
+    lines.forEach(line => runtime.appendReasoningLine(`  ${line}`));
+    runtime.appendReasoningLine(`  ${fence}`);
   }
 
   /**
@@ -671,21 +679,25 @@ export function createStreamingEventProcessor(runtime: StreamingRuntime) {
     case "response.image_generation_call.in_progress": {
       beginToolBlock("**🎨 image_generation**:");
       runtime.appendReasoningLine("  ⏳ _preparing…_");
+      runtime.showImageWaitSpinner();
       break;
     }
     case "response.image_generation_call.generating": {
       runtime.updateLastReasoningLine("  🖌️ _generating image…_");
+      runtime.showImageWaitSpinner();
       break;
     }
     case "response.image_generation_call.completed": {
       runtime.appendReasoningLine("  ✔️ _completed_");
       runtime.appendReasoningLine("");
+      runtime.hideImageWaitSpinner();
       break;
     }
     case "response.image_generation_call.failed": {
       const error = payload?.error?.message || "failed";
       runtime.appendReasoningLine(`  ❌ _failed: ${error}_`);
       runtime.appendReasoningLine("");
+      runtime.hideImageWaitSpinner();
       break;
     }
     case "response.image_generation_call.partial_image": {
@@ -773,6 +785,7 @@ export function createStreamingEventProcessor(runtime: StreamingRuntime) {
   return {
     processEvent,
     finalize: () => {
+      runtime.hideImageWaitSpinner();
       runtime.ensureReasoningTrailingNewline();
     },
     getFinalResponsePayload: () => (finalResponsePayload ? { ...finalResponsePayload } : null),

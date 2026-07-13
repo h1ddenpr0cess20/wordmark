@@ -15,6 +15,7 @@ function createRuntimeStub() {
     trailingEnsured: false,
     imageCalls: [] as Array<{ payload: unknown; label: unknown }>,
     attachCalls: [] as unknown[],
+    imageSpinnerVisible: false,
   };
 
   return {
@@ -39,6 +40,12 @@ function createRuntimeStub() {
     },
     ensureReasoningTrailingNewline() {
       state.trailingEnsured = true;
+    },
+    showImageWaitSpinner() {
+      state.imageSpinnerVisible = true;
+    },
+    hideImageWaitSpinner() {
+      state.imageSpinnerVisible = false;
     },
     collectImagesFromSource(payload: unknown, label: unknown) {
       state.imageCalls.push({ payload, label });
@@ -391,6 +398,56 @@ test('reasoning summary parts are separated by a blank line', () => {
     runtime.state.reasoningDelta,
     '**First part** done.\n\n**Second part** begins.',
   );
+});
+
+test('image generation events toggle the pending-image spinner', () => {
+  const runtime = createRuntimeStub();
+  const processor = createStreamingEventProcessor(runtime as unknown as StreamingRuntimeArg);
+
+  processor.processEvent('response.image_generation_call.in_progress', [JSON.stringify({})]);
+  assert.equal(runtime.state.imageSpinnerVisible, true, 'spinner shows when generation starts');
+
+  processor.processEvent('response.image_generation_call.generating', [JSON.stringify({})]);
+  assert.equal(runtime.state.imageSpinnerVisible, true, 'spinner stays up while generating');
+
+  processor.processEvent('response.image_generation_call.completed', [JSON.stringify({})]);
+  assert.equal(runtime.state.imageSpinnerVisible, false, 'spinner hides on completion');
+
+  processor.processEvent('response.image_generation_call.in_progress', [JSON.stringify({})]);
+  processor.finalize();
+  assert.equal(runtime.state.imageSpinnerVisible, false, 'finalize clears a leftover spinner');
+});
+
+test('image generation failure hides the pending-image spinner', () => {
+  const runtime = createRuntimeStub();
+  const processor = createStreamingEventProcessor(runtime as unknown as StreamingRuntimeArg);
+
+  processor.processEvent('response.image_generation_call.in_progress', [JSON.stringify({})]);
+  processor.processEvent('response.image_generation_call.failed', [
+    JSON.stringify({ error: { message: 'content policy' } }),
+  ]);
+  assert.equal(runtime.state.imageSpinnerVisible, false);
+  assert.ok(runtime.state.reasoningLines.join('\n').includes('failed: content policy'));
+});
+
+test('fenced previews escalate the fence when content contains backtick fences', () => {
+  const runtime = createRuntimeStub();
+  const processor = createStreamingEventProcessor(runtime as unknown as StreamingRuntimeArg);
+
+  processor.processEvent('response.output_item.done', [
+    JSON.stringify({
+      item: {
+        id: 'sh-2',
+        type: 'shell_call_output',
+        output: [{ stdout: 'before\n```\ninner\n```\nafter', outcome: { type: 'exit', exit_code: 0 } }],
+      },
+    }),
+  ]);
+
+  const lines = runtime.state.reasoningLines;
+  const fences = lines.filter(line => line.trim().startsWith('````'));
+  assert.equal(fences.length, 2, 'preview should open and close with a 4-backtick fence');
+  assert.ok(lines.some(line => line.includes('inner')), 'inner content should be preserved');
 });
 
 test('processEvent ignores non-object SSE payloads without throwing', () => {

@@ -2,6 +2,15 @@
 
 All notable changes to Wordmark are documented here. Earlier versions didn't follow proper semver — this changelog reflects what actually shipped, not what the version numbers said at the time.
 
+## [Unreleased]
+
+### Fixed
+- **Image prompts cut off in the reasoning trace** — tool-argument previews were capped at 600 characters and truncated at the previous line boundary, which silently dropped a long single-line `"prompt"` value; and the panel's code blocks didn't wrap, so long lines scrolled out of view. Previews now keep long values under a larger budget (mid-line `…` when exceeded), stub base64 data URIs to a short marker, and the reasoning panel wraps long code-block lines.
+- **Fenced previews breaking on embedded backticks** — tool output containing ``` closed the reasoning-panel fence early and leaked the rest as markdown, and the streamed-markdown dangling-fence check miscounted backtick runs appearing mid-line (e.g. a ``` mention in prose opened a phantom code block). Preview fences now grow past the longest backtick run in the content, and dangling-fence detection follows CommonMark line rules.
+
+### Added
+- **Pending-image spinner** — while a generated image is being produced (OpenAI's built-in `image_generation` tool mid-stream, or the client-side OpenAI/Grok image tools running between streams on xAI/local providers), the assistant message shows the loading-dots spinner instead of sitting idle.
+
 ## [3.14.0] - 2026-07-12
 
 Desktop conversations that survive restarts, smarter local RAG injection, and a hardened clipboard. Backward-compatible.

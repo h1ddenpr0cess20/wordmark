@@ -16,6 +16,7 @@ import {
 } from "./imageGeneration.ts";
 import { processMainContentMarkdown, separateThinkingSegments } from "./thinkingUtils.ts";
 import { highlightAndAddCopyButtons } from "../../components/messages.ts";
+import { showImageWaitSpinner, hideImageWaitSpinner } from "../../components/ui/imageWaitSpinner.ts";
 import { fastScroll } from "../../utils/dom/mobileHandling.ts";
 
 interface StreamingRuntimeOptions {
@@ -304,6 +305,8 @@ export function createStreamingRuntime({
     appendReasoningLine,
     updateLastReasoningLine,
     ensureReasoningTrailingNewline,
+    showImageWaitSpinner: () => showImageWaitSpinner(loadingMessage),
+    hideImageWaitSpinner: () => hideImageWaitSpinner(loadingMessage),
     collectImagesFromSource,
     attachImagesToPayload,
     getOutputText: () => accumulatedContent,

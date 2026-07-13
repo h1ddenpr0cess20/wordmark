@@ -34,9 +34,11 @@ import {
   TOOL_HANDLERS,
 } from "./toolManager.ts";
 import { applyVectorStoreIds } from "./vectorStoreTools.ts";
+import { isImageGenerationToolName } from "./staticTools.ts";
 import { toolImplementations } from "../toolImplementations.ts";
 import { handleStreamedResponse } from "../streaming.ts";
 import { executeToolCalls, type ActionableCall } from "./toolCallExecution.ts";
+import { showImageWaitSpinnerById, hideImageWaitSpinnerById } from "../../components/ui/imageWaitSpinner.ts";
 import type {
   BuildRequestOptions,
   CollectedFunctionCall,
@@ -292,6 +294,16 @@ export async function runTurn({
       };
     }
 
-    await executeToolCalls(actionableCalls, workingMessages, serviceKey);
+    const awaitingImage = actionableCalls.some(call => isImageGenerationToolName(call.name));
+    if (awaitingImage) {
+      showImageWaitSpinnerById(loadingId || "");
+    }
+    try {
+      await executeToolCalls(actionableCalls, workingMessages, serviceKey);
+    } finally {
+      if (awaitingImage) {
+        hideImageWaitSpinnerById(loadingId || "");
+      }
+    }
   }
 }

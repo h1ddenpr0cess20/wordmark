@@ -7,16 +7,41 @@ import { sanitizeWithMedia } from "../../utils/sanitize.ts";
 import { createMediaPlaceholderRegex } from "../../utils/placeholders.ts";
 
 /**
+ * Closes a still-open fenced code block at the end of streamed markdown.
+ *
+ * @remarks
+ * Tracks fences the way CommonMark does — an opening fence is 3+ backticks at
+ * the start of a line (up to 3 spaces of indentation) whose info string has no
+ * backticks; a closing fence is at least as many backticks with nothing else on
+ * the line. Backtick runs elsewhere (inline code, prose, fenced content) don't
+ * count, so they can't flip the state the way the old occurrence-parity check
+ * could.
+ */
+function closeDanglingFence(text: string): string {
+  let openFence = "";
+  for (const line of text.split("\n")) {
+    const match = /^ {0,3}(`{3,})(.*)$/.exec(line);
+    if (!match) {
+      continue;
+    }
+    if (!openFence) {
+      if (!match[2].includes("`")) {
+        openFence = match[1];
+      }
+    } else if (match[1].length >= openFence.length && !match[2].trim()) {
+      openFence = "";
+    }
+  }
+  return openFence ? `${text}\n${openFence}` : text;
+}
+
+/**
  * Renders streamed markdown to sanitized HTML: closes any dangling code
  * fence/inline-code so partial streams parse, then hides `[[IMAGE: ...]]` and
  * `[[MEDIA: ...]]` placeholders behind a CSS class.
  */
 export function processMainContentMarkdown(mainText: string) {
-  let html = mainText;
-
-  if (html.split("```").length % 2 === 0) {
-    html += "\n```";
-  }
+  let html = closeDanglingFence(mainText);
 
   const backtickCount = (html.match(/`/g) || []).length;
   if (backtickCount % 2 !== 0 && html.endsWith("`")) {

@@ -24,6 +24,7 @@ import { highlightAndAddCopyButtons, generateMessageId, addMessageCopyButton } f
 import { decorateAssistantMessage, captureVariantImages } from "../../components/messageActions.ts";
 import { recordRegeneratedVariant, applyVariant } from "../../components/messageVariants.ts";
 import { setupImageInteractions } from "../../components/ui/imageInteractions.ts";
+import { hideImageWaitSpinner } from "../../components/ui/imageWaitSpinner.ts";
 import { createMediaPlaceholderRegex, mediaPlaceholder } from "../../utils/placeholders.ts";
 import type { StreamedMessageContent, ResponseObject } from "../../../types/api.ts";
 import { isRecord } from "../../utils/utils.ts";
@@ -96,6 +97,8 @@ export function finalizeStreamedResponse(loadingMessage: HTMLElement | null, con
   if (!loadingMessage) {
     return;
   }
+
+  hideImageWaitSpinner(loadingMessage);
 
   const responsePayload: unknown = contentObj && typeof contentObj === "object" ? contentObj.response || null : null;
   let content = contentObj && typeof contentObj === "object" ? (contentObj.content || "") : (contentObj || "");
