@@ -2,6 +2,21 @@
 
 All notable changes to Wordmark are documented here. Earlier versions didn't follow proper semver — this changelog reflects what actually shipped, not what the version numbers said at the time.
 
+## [3.14.0] - 2026-07-12
+
+Desktop conversations that survive restarts, smarter local RAG injection, and a hardened clipboard. Backward-compatible.
+
+### Fixed
+- **Desktop conversations disappearing between launches** — the Electron shell previously served the app from a random localhost port on every launch, so Chromium scoped IndexedDB/localStorage to a new origin each time and prior conversations became unreachable. The renderer is now served from the stable privileged `wordmark://app` origin, so conversations and settings persist across restarts.
+- **Copy buttons failing in the desktop app** — Electron denies the renderer's Clipboard API, and the helper gave up on that rejection. Desktop copies now go through a native clipboard bridge, and every tier (bridge → Clipboard API → `execCommand`) falls through to the next on failure instead of returning false.
+- **Local RAG context accumulating across turns** — retrieved document chunks were persisted into the conversation, so every past turn's context was re-sent (and stale chunks answered new questions). Context is now injected only for the current turn, immediately before the question.
+
+### Changed
+- **Contextualized retrieval queries** — short follow-ups ("what about the second one?") now embed recent user turns into the retrieval query so the right chunks are found, instead of matching the bare follow-up text.
+- Removed the unused shelved tooltip prototype (`tooltips.ts`/`tooltipPosition.ts` and dead CSS); the app uses native `title` tooltips.
+- `CLAUDE.md` is now tracked in the repository.
+- The desktop title bar no longer draws a bottom separator line.
+
 ## [3.13.0] - 2026-07-12
 
 A conversation-history redesign, sharper local folder retrieval, a desktop geolocation fallback, and a reworked reasoning/tool-output panel. Backward-compatible.
