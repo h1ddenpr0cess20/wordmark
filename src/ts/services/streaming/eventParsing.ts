@@ -52,11 +52,12 @@ export function safeTruncate(str: unknown, max = 800): string {
 
 /**
  * Formats tool-call arguments for display inside a fenced code block: pretty
- * printed JSON when parseable, the raw string otherwise. Truncation happens on
- * a line boundary (with a `…` marker) so the block is never cut mid-line.
+ * printed JSON when parseable, the raw string otherwise. Data-URI string values
+ * (e.g. base64 source images passed to edit tools) are stubbed to a short
+ * marker, and the result is truncated with a `…` marker past `maxChars`.
  * Returns `""` for empty/absent arguments.
  */
-export function formatArgsBlock(args: unknown, maxChars = 600): string {
+export function formatArgsBlock(args: unknown, maxChars = 4000): string {
   if (!args) return "";
   let parsed: unknown = null;
   if (typeof args === "string") {
@@ -71,18 +72,39 @@ export function formatArgsBlock(args: unknown, maxChars = 600): string {
   }
   if (!isRecord(parsed) || Object.keys(parsed).length === 0) return "";
   try {
-    return truncateAtLineBoundary(JSON.stringify(parsed, null, 2), maxChars);
+    return truncateAtLineBoundary(JSON.stringify(stubDataUris(parsed), null, 2), maxChars);
   } catch {
     return "";
   }
 }
 
-/** Truncates `text` to at most `maxChars`, cutting at the last full line and appending `…`. */
+/** Recursively replaces long data-URI strings with a short `data:…(N chars)` stub. */
+function stubDataUris(value: unknown): unknown {
+  if (typeof value === "string") {
+    return value.startsWith("data:") && value.length > 120
+      ? `${value.slice(0, 40)}…(${value.length} chars)`
+      : value;
+  }
+  if (Array.isArray(value)) {
+    return value.map(stubDataUris);
+  }
+  if (isRecord(value)) {
+    return Object.fromEntries(Object.entries(value).map(([key, entry]) => [key, stubDataUris(entry)]));
+  }
+  return value;
+}
+
+/**
+ * Truncates `text` to at most `maxChars`, preferring to cut at a line boundary
+ * but falling back to a mid-line cut when the last line spans more than half
+ * the budget, so a single long line (e.g. an image prompt) is never dropped
+ * outright.
+ */
 function truncateAtLineBoundary(text: string, maxChars: number): string {
   if (text.length <= maxChars) return text;
   const cut = text.slice(0, maxChars);
   const lastNewline = cut.lastIndexOf("\n");
-  return `${lastNewline > 0 ? cut.slice(0, lastNewline) : cut}\n…`;
+  return lastNewline >= maxChars / 2 ? `${cut.slice(0, lastNewline)}\n…` : `${cut}…`;
 }
 
 /** Extracts de-duplicated search query strings from raw tool-call arguments. */

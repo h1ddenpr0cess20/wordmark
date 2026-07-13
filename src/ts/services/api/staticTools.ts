@@ -286,3 +286,14 @@ export const OPENAI_IMAGE_FUNCTION_TOOLS: ToolDefinition[] = [
     },
   },
 ];
+
+/**
+ * Whether a function-call name is one of the client-side image
+ * generation/edit tools, whose execution leaves the user waiting on an image.
+ */
+export function isImageGenerationToolName(name: string): boolean {
+  return name === "openai_generate_image"
+    || name === "openai_edit_image"
+    || name === "grok_generate_image"
+    || name === "grok_edit_image";
+}
