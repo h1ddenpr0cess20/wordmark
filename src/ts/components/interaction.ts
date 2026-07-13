@@ -35,6 +35,7 @@ import { extractDocumentText, isExtractableDocument } from "../services/parsers/
 import type { PendingDocument } from "../../types/attachments.ts";
 import type { PartyDocument } from "../services/party/partyTypes.ts";
 import { RETRIEVED_CONTEXT_MARKER } from "../utils/retrievedContext.ts";
+import { buildRetrievalQuery } from "../utils/retrievalQuery.ts";
 
 const logInteraction = createScopedLogger("interaction");
 
@@ -152,7 +153,7 @@ async function indexDocumentsLocally(documents: PendingDocument[]): Promise<{ ok
  */
 async function injectRetrievedContext(query: string): Promise<void> {
   try {
-    const chunks = await retrieveRelevantChunks(query);
+    const chunks = await retrieveRelevantChunks(buildRetrievalQuery(state.conversationHistory, query));
     const inventoryQuery = isDocumentInventoryQuery(query);
     const indexedNames = inventoryQuery ? getIndexedDocumentNames() : [];
     if (chunks.length === 0 && indexedNames.length === 0) {

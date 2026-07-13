@@ -217,13 +217,25 @@ function stripMediaPlaceholders(content: string): string {
  * `[[IMAGE: ...]]` placeholders and inline attachments into multimodal content
  * parts (user messages) and stripping media placeholders from assistant text.
  * Invalid entries are dropped.
+ *
+ * Retrieved document context is spliced onto only the most recent user message
+ * (stale retrievals from earlier turns are not re-sent) and placed before that
+ * message's own text, so the user's actual question is the last thing the model
+ * reads.
  */
 export function serializeMessagesForRequest(messages: Message[] = []): Message[] {
   if (!Array.isArray(messages)) {
     return [];
   }
+  let lastUserIndex = -1;
+  for (let i = messages.length - 1; i >= 0; i--) {
+    if (messages[i] && messages[i].role === "user") {
+      lastUserIndex = i;
+      break;
+    }
+  }
   return messages
-    .map((msg: Message): Message | null => {
+    .map((msg: Message, index: number): Message | null => {
       if (!msg || typeof msg !== "object") {
         return null;
       }
@@ -260,13 +272,13 @@ export function serializeMessagesForRequest(messages: Message[] = []): Message[]
       } else if (msg.content && typeof msg.content === "object") {
         payload.content = { ...msg.content };
       }
-      if (msg.role === "user" && typeof msg.retrievedContext === "string" && msg.retrievedContext.trim()) {
+      if (msg.role === "user" && index === lastUserIndex && typeof msg.retrievedContext === "string" && msg.retrievedContext.trim()) {
         if (typeof payload.content === "string") {
           payload.content = payload.content
-            ? `${payload.content}\n\n${msg.retrievedContext}`
+            ? `${msg.retrievedContext}\n\n${payload.content}`
             : msg.retrievedContext;
         } else if (Array.isArray(payload.content)) {
-          payload.content.push({ type: "input_text", text: msg.retrievedContext });
+          payload.content.unshift({ type: "input_text", text: msg.retrievedContext });
         } else if (payload.content === undefined) {
           payload.content = msg.retrievedContext;
         }
