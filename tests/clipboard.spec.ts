@@ -50,6 +50,21 @@ test("uses the Electron clipboard bridge when available", async () => {
   restore(saved);
 });
 
+test("falls back to the browser APIs when the desktop bridge rejects", async () => {
+  const saved = saveGlobals();
+  let written: string | undefined;
+  setGlobals(
+    { clipboard: { writeText: (text: string) => { written = text; return Promise.resolve(); } } },
+    g.document,
+    { wordmarkDesktop: { writeText: () => Promise.reject(new Error("bridge failed")) } },
+  );
+
+  const ok = await copyTextToClipboard("bridge fallback");
+  assert.equal(ok, true);
+  assert.equal(written, "bridge fallback");
+  restore(saved);
+});
+
 test("uses the Clipboard API and resolves true on success", async () => {
   const saved = saveGlobals();
   let written: string | undefined;
