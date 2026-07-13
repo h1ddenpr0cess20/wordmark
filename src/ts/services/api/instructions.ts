@@ -15,7 +15,7 @@ import { getLocationForPrompt } from "../location.ts";
 import { getMediaToolInstructions } from "../mediaTools.ts";
 import { getToolsDescription } from "../../components/tools.ts";
 import { getSkillsDescription } from "../skills/skills.ts";
-import { supportsClientSideTools } from "./toolManager.ts";
+import { getEnabledToolDefinitions, supportsClientSideTools } from "./toolManager.ts";
 import { DEFAULT_PERSONALITY, DEFAULT_SYSTEM_PROMPT, PERSONALITY_PROMPT_TEMPLATE, config } from "../../../config/config.ts";
 
 /**
@@ -63,7 +63,7 @@ export function buildDeveloperMessage() {
         developerBlock += `\n${toolsDescription.trim()}`;
       }
       const mediaToolInstructions = getMediaToolInstructions();
-      if (mediaToolInstructions) {
+      if (mediaToolInstructions && hasImageEditTool()) {
         developerBlock += `\n${mediaToolInstructions.trim()}`;
       }
     }
@@ -84,6 +84,19 @@ export function buildDeveloperMessage() {
 
   const trimmed = developerBlock.trim();
   return trimmed ? trimmed : "";
+}
+
+const IMAGE_EDIT_TOOL_NAMES = new Set(["grok_edit_image", "openai_edit_image"]);
+
+/**
+ * Reports whether the current request will include an image-editing tool
+ * (the OpenAI built-in image tool or a Grok/OpenAI edit-image function),
+ * so the media-tool guidance is only injected when it can apply.
+ */
+function hasImageEditTool() {
+  return getEnabledToolDefinitions().some(def =>
+    def.type === "image_generation"
+    || (def.type === "function" && typeof def.name === "string" && IMAGE_EDIT_TOOL_NAMES.has(def.name)));
 }
 
 function buildPersonalityInstruction() {

@@ -488,6 +488,9 @@ let getToolsDescription: () => string;
       if (tool.type === "mcp" && tool.isOnline === false) {
         return;
       }
+      if (tool.hasRequiredApiKey === false) {
+        return;
+      }
       if (tool.key === "builtin:image_generation" && openAiImageUnavailableReason(serviceKey, codexModelActive, clientSideToolsSupported)) {
         return;
       }
