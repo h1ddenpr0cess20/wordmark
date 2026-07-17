@@ -19,6 +19,11 @@ jobs:
           - os: windows-latest
             script: electron:dist:win
             files: release/*.exe
+          - os: macos-latest
+            script: electron:dist:mac
+            files: |
+              release/*.dmg
+              release/*.zip
     runs-on: ${{ matrix.os }}
     steps:
       - name: Check out repository
