@@ -26,7 +26,11 @@
     "electron": "npm run build && electron electron/main.cjs",
     "electron:run": "electron electron/main.cjs",
     "electron:pack": "npm run build && electron-builder --dir",
-    "electron:dist": "npm run build && electron-builder"
+    "electron:dist": "npm run build && electron-builder --publish never",
+    "electron:dist:linux": "npm run build && electron-builder --linux AppImage --x64 --publish never",
+    "electron:dist:win": "npm run build && electron-builder --win nsis --x64 --publish never",
+    "electron:dist:mac": "npm run build && electron-builder --mac --publish never",
+    "electron:dist:release": "npm run build && electron-builder --linux AppImage --x64 --publish never && electron-builder --win nsis --x64 --publish never"
   },
   "keywords": [
     "ai",
