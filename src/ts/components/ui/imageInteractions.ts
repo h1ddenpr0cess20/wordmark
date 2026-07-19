@@ -228,7 +228,7 @@ export function createImageSlideshow(images: any[], startIndex: number, isGaller
   }
 
   let currentIndex = startIndex || 0;
-  const isMobile =isMobileDevice();
+  const isMobile = isMobileDevice();
 
   const slideshow = document.createElement("div");
   slideshow.className = "gallery-slideshow";

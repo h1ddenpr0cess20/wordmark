@@ -23,6 +23,11 @@ Production Build
 - `npm run preview` — serves the built `dist/` on port 8080, reachable from other devices on your network (`npm start` builds and serves in one step).
 - Deploy the contents of `dist/` to any static host (the project deploys to Vercel).
 
+Install as an App
+
+- There is no native Android app. On Android, open the hosted app (`https://wordmark-chatbot.vercel.app/`, or your own deployment) in Chrome, then use the menu's **Install app** (or **Add to Home screen**) option — it launches full-screen from the home screen like a native app, with nothing extra to build or sideload.
+- Desktop Chrome/Edge offer the same **Install** option from the address bar. For a packaged desktop build instead, see [Electron App](electron.md).
+
 API Keys (where to put them)
 
 - Open Settings (gear button), then the API Keys tab.

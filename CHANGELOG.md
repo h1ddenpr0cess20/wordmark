@@ -2,6 +2,15 @@
 
 All notable changes to Wordmark are documented here. Earlier versions didn't follow proper semver — this changelog reflects what actually shipped, not what the version numbers said at the time.
 
+## [Unreleased]
+
+### Fixed
+- **Mobile chat view falling short of full screen height** — `#chat-container` sized itself with `height: 100vh` plus a `max-height: -webkit-fill-available` fallback meant to work around mobile browsers resizing the viewport as the address bar shows/hides. That fallback resolves to the browser's internal `stretch` keyword, which sizes against the fixed-position containing block rather than the actual viewport and is unreliable across browsers. Replaced it with the standard `100dvh` dynamic-viewport unit (with a `100vh` fallback) in the mobile, landscape, and iOS-specific stylesheets, which tracks the real visible viewport directly.
+- **Several mobile behaviors never running** — startup called `initializeMobileKeyboardHandling` from `ttsInitialization.ts`, an inert same-named duplicate that only wired up keyboard-avoidance scrolling. The real implementation in `mobileHandling.ts` — which also adds the `mobile-device` body class, touch-scroll optimizations, orientation-change rescrolling, and panel-transition suppression during resize — was never invoked. Startup now calls the real function; the shadow duplicate is gone.
+
+### Removed
+- **Native Android app** — the `android/` WebView wrapper project is gone, along with its docs (`docs/android.md`) and the signed APK. On Android, install the hosted app from Chrome's **Install app** / **Add to Home screen** menu instead; see [Getting Started](docs/getting-started.md).
+
 ## [3.14.1] - 2026-07-13
 
 Reasoning-trace fixes, a spinner while images generate, and tighter image-tool prompting. Backward-compatible.

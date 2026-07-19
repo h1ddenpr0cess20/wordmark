@@ -257,9 +257,3 @@ function handlePromptOutsideTap(e: Event) {
     container.classList.remove("expanded");
   }
 }
-
-if (typeof window !== "undefined" && typeof window.addEventListener === "function") {
-  window.addEventListener("load", () => {
-    setTimeout(setupPromptTapExpand, 100);
-  });
-}
