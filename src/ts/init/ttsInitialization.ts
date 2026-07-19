@@ -3,8 +3,6 @@
  */
 
 import { elements } from "./state.ts";
-import { logVerbose } from "../utils/logger.ts";
-import { setupMobileKeyboardHandling } from "../utils/dom/mobileHandling.ts";
 import { ttsConfig, availableTtsVoices, initTtsReferences } from "../services/tts.ts";
 import { ttsSupportsInstructions } from "../services/providers.ts";
 
@@ -81,12 +79,4 @@ export function populateTtsVoiceSelector() {
     }
     elements.ttsVoiceSelector.value = ttsConfig.voice;
   }
-}
-
-/**
- * Initialize mobile keyboard handling
- */
-export function initializeMobileKeyboardHandling() {
-  setupMobileKeyboardHandling();
-  logVerbose("Mobile keyboard handling initialized.");
 }

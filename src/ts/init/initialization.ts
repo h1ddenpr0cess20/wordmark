@@ -6,14 +6,14 @@
  */
 
 import { elements, state } from "./state.ts";
-import { focusUserInputSafely } from "../utils/dom/mobileHandling.ts";
+import { focusUserInputSafely, initializeMobileKeyboardHandling } from "../utils/dom/mobileHandling.ts";
 import { STORAGE_KEYS } from "../utils/storage/storage.ts";
 import { initializeLocationService } from "../services/location.ts";
 import { initMCPServers } from "../services/mcpServers.ts";
 import { ensureApiKeysLoaded } from "../services/apiKeys.ts";
 import { loadFromUrl } from "../services/history/state.ts";
 import { renderChatHistoryList } from "../services/history/list.ts";
-import { initializeTts, initializeMobileKeyboardHandling } from "./ttsInitialization.ts";
+import { initializeTts } from "./ttsInitialization.ts";
 import { updateParameterControls } from "../components/ui/settingsControls.ts";
 import { initTabs, openApiKeysTabIfNeeded } from "../components/ui/settingsTabs.ts";
 import { initMemorySettings } from "../components/memory.ts";
