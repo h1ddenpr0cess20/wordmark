@@ -53,6 +53,17 @@ export function supportsResponseIncludeFields(serviceKey: string | null | undefi
 }
 
 /**
+ * Whether the provider supports server-side storage of Responses API state
+ * (the `store` flag and `previous_response_id` chaining). OpenRouter's
+ * Responses API rejects `store: true` outright (`invalid_value: expected
+ * false`), so it must be sent `store: false` and never given a
+ * `previous_response_id` to resolve. Every other provider stores by default.
+ */
+export function supportsResponseStorage(serviceKey: string | null | undefined): boolean {
+  return serviceKey !== "openrouter";
+}
+
+/**
  * Whether the provider runs certain tools (web_search / x_search /
  * code_interpreter) server-side rather than via client tool-call round-trips.
  * Currently xAI (Grok).
