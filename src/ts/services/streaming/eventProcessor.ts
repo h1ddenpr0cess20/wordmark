@@ -267,7 +267,7 @@ export function createStreamingEventProcessor(runtime: StreamingRuntime) {
       return;
     }
     const dataStr = dataLines.join("\n").trim();
-    if (!dataStr) {
+    if (!dataStr || dataStr === "[DONE]") {
       return;
     }
 

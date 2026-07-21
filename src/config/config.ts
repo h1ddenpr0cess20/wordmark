@@ -425,6 +425,87 @@ export const config: Config = {
                 notifyModelsUpdated(this, this.models[0]?.startsWith("Error"));
             },
         },
+
+        openrouter: {
+            baseUrl: "https://openrouter.ai/api/v1",
+            apiKey: "",
+            models: [],
+            embeddingModels: [],
+            defaultModel: "nvidia/nemotron-3-ultra-550b-a55b:free",
+            defaultEmbeddingModel: "nvidia/nemotron-3-embed-1b:free",
+            modelsFetching: false,
+
+            /**
+             * Fetches the OpenRouter chat model list from `/models` and refreshes the
+             * dropdown, then separately fetches the embedding-model catalog from
+             * `/embeddings/models` — OpenRouter lists embedding models (e.g.
+             * `openai/text-embedding-3-small`) there rather than in the general chat
+             * catalog, so `embeddingModels` cannot be derived by filtering `/models`.
+             */
+            async fetchAndUpdateModels() {
+                if (!this.apiKey) {
+                    const stored = localStorage.getItem(apiKeyStorageKey("openrouter"));
+                    if (stored) this.apiKey = stored;
+                }
+                if (!this.apiKey) {
+                    this.models = ["Set API key to load models"];
+                    return;
+                }
+                this.modelsFetching = true;
+                const apiRoot = this.baseUrl.replace(/\/+$/, "");
+                const authHeaders = { "Authorization": `Bearer ${this.apiKey}` };
+                const endpoint = `${apiRoot}/models`;
+                console.info(`Fetching OpenRouter models from: ${endpoint}`);
+                try {
+                    const response = await fetch(endpoint, { headers: authHeaders });
+                    if (!response.ok) {
+                        console.error(`Error fetching OpenRouter models: ${response.status}`);
+                        this.models = ["Error: Could not fetch models"];
+                    } else {
+                        const data = await response.json();
+                        if (data && Array.isArray(data.data)) {
+                            this.models = data.data
+                                .map((item: ModelListItem) => item.id)
+                                .filter((id: unknown): id is string => typeof id === "string")
+                                .sort();
+                        } else {
+                            this.models = ["Error: Invalid response"];
+                        }
+                        if (this.models.length === 0) {
+                            this.models = ["No models found"];
+                        }
+                    }
+                } catch (error) {
+                    console.error("Failed to fetch OpenRouter models:", error);
+                    this.models = ["Error: Failed to connect"];
+                } finally {
+                    this.modelsFetching = false;
+                }
+
+                const embeddingsEndpoint = `${apiRoot}/embeddings/models`;
+                console.info(`Fetching OpenRouter embedding models from: ${embeddingsEndpoint}`);
+                try {
+                    const response = await fetch(embeddingsEndpoint, { headers: authHeaders });
+                    if (!response.ok) {
+                        console.error(`Error fetching OpenRouter embedding models: ${response.status}`);
+                    } else {
+                        const data = await response.json();
+                        if (data && Array.isArray(data.data)) {
+                            this.embeddingModels = data.data
+                                .map((item: ModelListItem) => item.id)
+                                .filter((id: unknown): id is string => typeof id === "string")
+                                .sort();
+                        } else {
+                            console.error("Unexpected OpenRouter /embeddings/models response format:", data);
+                        }
+                    }
+                } catch (error) {
+                    console.error("Failed to fetch OpenRouter embedding models:", error);
+                }
+
+                notifyModelsUpdated(this, this.models[0]?.startsWith("Error"));
+            },
+        },
     },
 
     /**

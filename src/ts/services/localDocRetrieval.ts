@@ -1,10 +1,13 @@
 /**
- * In-browser semantic retrieval over attached documents for local providers.
+ * In-browser semantic retrieval over attached documents for providers with no
+ * native document ingestion.
  *
  * @remarks
- * Local servers (LM Studio / Ollama) have no files API or vector store, so
- * attached documents are indexed client-side: each file is extracted to text,
- * split into chunks, and embedded via the provider's `/embeddings` endpoint.
+ * Local servers (LM Studio / Ollama) have no files API or vector store, and
+ * OpenRouter — a multi-vendor router — has no OpenAI-compatible one either
+ * (see {@link extractsDocumentsClientSide}), so attached documents are
+ * indexed client-side for all of them: each file is extracted to text, split
+ * into chunks, and embedded via the provider's `/embeddings` endpoint.
  * At send time the user's question is embedded and the most similar chunks are
  * returned, so only the relevant passages reach the model rather than every
  * file's full text. The index is per-conversation: it is persisted to IndexedDB
@@ -152,7 +155,8 @@ export async function indexDocuments(
   const model = resolveEmbeddingModel();
   if (!model) {
     throw new Error(
-      "No embedding model found. Load an embedding model in your local server (LM Studio / Ollama) and reconnect.",
+      "No embedding model found. Load an embedding model in your local server (LM Studio / Ollama), " +
+      "or pick one for OpenRouter under Settings → API Keys, then try again.",
     );
   }
 

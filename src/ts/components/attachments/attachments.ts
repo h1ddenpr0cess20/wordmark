@@ -148,9 +148,10 @@ function readFileAsDataURL(file: File): Promise<string> {
 }
 
 /**
- * Check if a file is a supported document type. Local providers extract text in
+ * Check if a file is a supported document type. Providers with no native
+ * document ingestion ({@link extractsDocumentsClientSide}) extract text in
  * the browser and accept any document format or non-binary (text/code/data)
- * file; cloud providers keep their native upload allowlist.
+ * file; other cloud providers keep their native upload allowlist.
  */
 function isSupportedDocument(file: File) {
   if (extractsDocumentsClientSide(getActiveServiceKey())) {
