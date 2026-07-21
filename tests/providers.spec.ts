@@ -11,6 +11,7 @@ import {
   ttsSupportsInstructions,
   usesDirectFileUpload,
   extractsDocumentsClientSide,
+  supportsResponseStorage,
 } from "../src/ts/services/providers.ts";
 
 test("isLocalService is true only for local-server providers", () => {
@@ -82,6 +83,16 @@ test("usesDirectFileUpload is true only for xai", () => {
   assert.equal(usesDirectFileUpload("lmstudio"), false);
   assert.equal(usesDirectFileUpload(null), false);
   assert.equal(usesDirectFileUpload(undefined), false);
+});
+
+test("supportsResponseStorage is false only for openrouter", () => {
+  assert.equal(supportsResponseStorage("openai"), true);
+  assert.equal(supportsResponseStorage("xai"), true);
+  assert.equal(supportsResponseStorage("lmstudio"), true);
+  assert.equal(supportsResponseStorage("ollama"), true);
+  assert.equal(supportsResponseStorage("openrouter"), false);
+  assert.equal(supportsResponseStorage(null), true);
+  assert.equal(supportsResponseStorage(undefined), true);
 });
 
 test("extractsDocumentsClientSide is true for local providers and openrouter", () => {

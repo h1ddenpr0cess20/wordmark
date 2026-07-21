@@ -22,6 +22,7 @@ import { windowMessagesByTokenBudget } from "./tokenBudget.ts";
 import {
   serviceSupportsReasoning,
   supportsResponseIncludeFields,
+  supportsResponseStorage,
   usesServerManagedTools,
   instructionMessageRole,
 } from "../providers.ts";
@@ -55,8 +56,9 @@ const DEFAULT_INCLUDE_FIELDS = [
 
 /**
  * Constructs a Responses API request payload from a turn's options, applying
- * provider-specific shaping: include fields, reasoning config, and dropping the
- * `text` block for server-managed tool calls.
+ * provider-specific shaping: include fields, response storage/chaining,
+ * reasoning config, and dropping the `text` block for server-managed tool
+ * calls.
  *
  * @param options - The turn's request inputs.
  * @param options.inputMessages - Conversation messages serialized into `input`.
@@ -96,7 +98,7 @@ export function buildRequestBody({
       verbosity: verbosity || DEFAULT_VERBOSITY,
     },
     input: serializeMessagesForRequest(inputMessages),
-    store: true,
+    store: supportsResponseStorage(serviceKey),
   };
   if (supportsResponseIncludeFields(serviceKey)) {
     payload.include = [...DEFAULT_INCLUDE_FIELDS];
@@ -116,7 +118,7 @@ export function buildRequestBody({
   if (stream) {
     payload.stream = true;
   }
-  if (previousResponseId) {
+  if (previousResponseId && supportsResponseStorage(serviceKey)) {
     payload.previous_response_id = previousResponseId;
   }
   if (typeof temperature === "number" && Number.isFinite(temperature)) {
