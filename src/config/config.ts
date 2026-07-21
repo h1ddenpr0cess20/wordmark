@@ -425,6 +425,63 @@ export const config: Config = {
                 notifyModelsUpdated(this, this.models[0]?.startsWith("Error"));
             },
         },
+
+        openrouter: {
+            baseUrl: "https://openrouter.ai/api/v1",
+            apiKey: "",
+            models: [],
+            defaultModel: "nvidia/nemotron-3-ultra-550b-a55b:free",
+            modelsFetching: false,
+
+            /** Excludes embedding-only models from OpenRouter's combined multi-vendor catalog. */
+            _isChatModel(modelId) {
+                return !/embed/i.test(modelId);
+            },
+
+            /** Fetches the OpenRouter model list and refreshes the dropdown. */
+            async fetchAndUpdateModels() {
+                if (!this.apiKey) {
+                    const stored = localStorage.getItem(apiKeyStorageKey("openrouter"));
+                    if (stored) this.apiKey = stored;
+                }
+                if (!this.apiKey) {
+                    this.models = ["Set API key to load models"];
+                    return;
+                }
+                this.modelsFetching = true;
+                const endpoint = `${this.baseUrl.replace(/\/+$/, "")}/models`;
+                console.info(`Fetching OpenRouter models from: ${endpoint}`);
+                try {
+                    const response = await fetch(endpoint, {
+                        headers: { "Authorization": `Bearer ${this.apiKey}` },
+                    });
+                    if (!response.ok) {
+                        console.error(`Error fetching OpenRouter models: ${response.status}`);
+                        this.models = ["Error: Could not fetch models"];
+                    } else {
+                        const data = await response.json();
+                        if (data && Array.isArray(data.data)) {
+                            this.models = data.data
+                                .map((item: ModelListItem) => item.id)
+                                .filter((id: unknown): id is string => typeof id === "string" && this._isChatModel?.(id) === true)
+                                .sort();
+                        } else {
+                            this.models = ["Error: Invalid response"];
+                        }
+                        if (this.models.length === 0) {
+                            this.models = ["No models found"];
+                        }
+                    }
+                } catch (error) {
+                    console.error("Failed to fetch OpenRouter models:", error);
+                    this.models = ["Error: Failed to connect"];
+                } finally {
+                    this.modelsFetching = false;
+                }
+
+                notifyModelsUpdated(this, this.models[0]?.startsWith("Error"));
+            },
+        },
     },
 
     /**
