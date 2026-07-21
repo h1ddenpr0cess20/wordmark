@@ -20,13 +20,15 @@ export interface ServiceConfig {
   models: string[];
   /** Embedding models exposed by the provider, kept out of the chat `models` list. */
   embeddingModels?: string[];
+  /** Preferred embedding model id for this provider, used by {@link resolveEmbeddingModel} ahead of the generic name-pattern heuristics. */
+  defaultEmbeddingModel?: string;
   defaultModel: string;
   modelsFetching: boolean;
   /** OpenAI organization id, when applicable. */
   organization?: string | null;
   /** Providers default to enabled; set false to hide from selection. */
   enabled?: boolean;
-  /** Present only on providers that filter their model list (openai, xai, openrouter). */
+  /** Present only on providers that filter their model list (openai, xai). */
   _isChatModel?(modelId: string): boolean;
   /** Refreshes `models` from the provider and notifies the UI. */
   fetchAndUpdateModels(): Promise<void>;

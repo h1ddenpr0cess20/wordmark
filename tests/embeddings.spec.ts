@@ -13,8 +13,15 @@ const configObj = {
       models: ["llama-3-8b"] as string[],
       embeddingModels: [] as string[],
     },
+    openrouter: {
+      models: ["some/chat-model"] as string[],
+      embeddingModels: ["some/embed-model"] as string[],
+      defaultEmbeddingModel: "nvidia/nemotron-3-embed-1b:free",
+    },
   },
 };
+
+let activeServiceKey = "lmstudio";
 
 mock.module(new URL("../src/config/config.ts", import.meta.url).href, {
   namedExports: { config: configObj },
@@ -22,7 +29,7 @@ mock.module(new URL("../src/config/config.ts", import.meta.url).href, {
 
 mock.module(new URL("../src/ts/services/api/clientConfig.ts", import.meta.url).href, {
   namedExports: {
-    getActiveServiceKey: () => "lmstudio",
+    getActiveServiceKey: () => activeServiceKey,
     getBaseUrl: () => "http://localhost:1234/v1",
   },
 });
@@ -105,6 +112,23 @@ test("resolveEmbeddingModel defaults to nomic, falls back to other embedding mod
 
   store.set(EMBEDDING_MODEL_STORAGE_KEY, "my-embed-model");
   assert.equal(resolveEmbeddingModel(), "my-embed-model");
+});
+
+test("resolveEmbeddingModel prefers a provider's curated default over the generic pattern scan", () => {
+  store.clear();
+  activeServiceKey = "openrouter";
+
+  assert.equal(
+    resolveEmbeddingModel(),
+    "nvidia/nemotron-3-embed-1b:free",
+    "OpenRouter's defaultEmbeddingModel wins over its fetched embeddingModels list",
+  );
+
+  store.set(EMBEDDING_MODEL_STORAGE_KEY, "user-chosen-embed-model");
+  assert.equal(resolveEmbeddingModel(), "user-chosen-embed-model", "a stored user override still wins");
+
+  store.clear();
+  activeServiceKey = "lmstudio";
 });
 
 test("fetchEmbeddings posts to /embeddings and returns vectors in input order", async () => {

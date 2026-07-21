@@ -14,7 +14,7 @@ import { config } from "../../config/config.ts";
 import { state } from "../init/state.ts";
 import { API_KEYS_STORAGE_PREFIX, loadApiKeysIntoConfig, loadLocalServerUrlsIntoConfig } from "./apiKeyStorage.ts";
 import { STORAGE_KEYS } from "../utils/storage/storage.ts";
-import { isLocalService } from "./providers.ts";
+import { isLocalService, extractsDocumentsClientSide } from "./providers.ts";
 import { EMBEDDING_MODEL_STORAGE_KEY } from "./embeddings.ts";
 import { uiHooks } from "../init/uiHooks.ts";
 import { normalizeServerBaseUrl } from "../utils/utils.ts";
@@ -295,11 +295,13 @@ function saveOllamaServerUrl() {
  * Rebuilds the embedding-model dropdown for the active provider.
  *
  * @remarks
- * Enabled only when the active service is a local provider (LM Studio /
- * Ollama) that reported at least one embedding model; otherwise it is grayed
- * out. Options are an auto-detect default plus every embedding model the
- * provider listed; a stored model missing from the list is kept as an option
- * since it is still the one {@link resolveEmbeddingModel} will use.
+ * Enabled only when the active service does client-side document RAG (the
+ * local providers, LM Studio/Ollama, plus OpenRouter — see
+ * {@link extractsDocumentsClientSide}) and reported at least one embedding
+ * model; otherwise it is grayed out. Options are an auto-detect default plus
+ * every embedding model the provider listed; a stored model missing from the
+ * list is kept as an option since it is still the one
+ * {@link resolveEmbeddingModel} will use.
  */
 function refreshEmbeddingModelUI() {
   const select = embeddingModelSelect
@@ -310,8 +312,8 @@ function refreshEmbeddingModelUI() {
 
   const serviceKey = config?.defaultService;
   const service = serviceKey ? config?.services?.[serviceKey] : null;
-  const local = isLocalService(serviceKey);
-  const embeddingModels = local && Array.isArray(service?.embeddingModels)
+  const ragEligible = extractsDocumentsClientSide(serviceKey);
+  const embeddingModels = ragEligible && Array.isArray(service?.embeddingModels)
     ? service.embeddingModels.filter((m): m is string => typeof m === "string" && m.length > 0)
     : [];
 
@@ -322,7 +324,7 @@ function refreshEmbeddingModelUI() {
     stored = "";
   }
 
-  const options = local && stored && !embeddingModels.includes(stored)
+  const options = ragEligible && stored && !embeddingModels.includes(stored)
     ? [stored, ...embeddingModels]
     : embeddingModels;
 
@@ -337,7 +339,7 @@ function refreshEmbeddingModelUI() {
     option.textContent = model;
     select.appendChild(option);
   }
-  select.value = local ? stored : "";
+  select.value = ragEligible ? stored : "";
   select.disabled = options.length === 0;
 }
 

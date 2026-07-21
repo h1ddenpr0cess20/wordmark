@@ -430,15 +430,20 @@ export const config: Config = {
             baseUrl: "https://openrouter.ai/api/v1",
             apiKey: "",
             models: [],
+            embeddingModels: [],
             defaultModel: "nvidia/nemotron-3-ultra-550b-a55b:free",
+            defaultEmbeddingModel: "nvidia/nemotron-3-embed-1b:free",
             modelsFetching: false,
 
-            /** Excludes embedding-only models from OpenRouter's combined multi-vendor catalog. */
-            _isChatModel(modelId) {
-                return !/embed/i.test(modelId);
-            },
-
-            /** Fetches the OpenRouter model list and refreshes the dropdown. */
+            /**
+             * Fetches the OpenRouter model list and refreshes the dropdown.
+             *
+             * @remarks
+             * OpenRouter's `/models` catalog spans every vendor it routes to, chat
+             * and embedding alike, so embedding models (e.g. `openai/text-embedding-3-small`)
+             * are split out into `embeddingModels` rather than dropped, enabling
+             * client-side document RAG the same way LM Studio/Ollama do.
+             */
             async fetchAndUpdateModels() {
                 if (!this.apiKey) {
                     const stored = localStorage.getItem(apiKeyStorageKey("openrouter"));
@@ -461,10 +466,12 @@ export const config: Config = {
                     } else {
                         const data = await response.json();
                         if (data && Array.isArray(data.data)) {
-                            this.models = data.data
+                            const isEmbeddingModel = (id: string) => /embed/i.test(id);
+                            const allIds = data.data
                                 .map((item: ModelListItem) => item.id)
-                                .filter((id: unknown): id is string => typeof id === "string" && this._isChatModel?.(id) === true)
-                                .sort();
+                                .filter((id: unknown): id is string => typeof id === "string");
+                            this.models = allIds.filter((id: string) => !isEmbeddingModel(id)).sort();
+                            this.embeddingModels = allIds.filter(isEmbeddingModel).sort();
                         } else {
                             this.models = ["Error: Invalid response"];
                         }
