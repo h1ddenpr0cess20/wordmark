@@ -31,6 +31,7 @@ const API_KEYS_INIT_RETRY_DELAY = 150;
 const apiKeyInputs: Record<string, HTMLInputElement | null> = {
   openai: null,
   xai: null,
+  openrouter: null,
 };
 
 let saveApiKeysButton: HTMLElement | null = null;
@@ -70,6 +71,7 @@ function refreshApiDependentUi() {
 function initApiKeys(retryCount: number = 0) {
   const openaiInput = document.getElementById("openai-api-key") as HTMLInputElement | null;
   const xaiInput = document.getElementById("xai-api-key") as HTMLInputElement | null;
+  const openrouterInput = document.getElementById("openrouter-api-key") as HTMLInputElement | null;
   const saveKeysButton = document.getElementById("save-api-keys");
   const lmStudioUrlInput = document.getElementById("lmstudio-server-url") as HTMLInputElement | null;
   const saveLmStudioButton = document.getElementById("save-lmstudio-url");
@@ -77,7 +79,7 @@ function initApiKeys(retryCount: number = 0) {
   const saveOllamaButton = document.getElementById("save-ollama-url");
   const embeddingSelect = document.getElementById("embedding-model") as HTMLSelectElement | null;
 
-  const essentialReady = Boolean(saveKeysButton && (openaiInput || xaiInput || lmStudioUrlInput || ollamaUrlInput));
+  const essentialReady = Boolean(saveKeysButton && (openaiInput || xaiInput || openrouterInput || lmStudioUrlInput || ollamaUrlInput));
 
   if (!essentialReady) {
     if (retryCount < API_KEYS_INIT_MAX_RETRIES) {
@@ -90,6 +92,7 @@ function initApiKeys(retryCount: number = 0) {
 
   apiKeyInputs.openai = openaiInput;
   apiKeyInputs.xai = xaiInput;
+  apiKeyInputs.openrouter = openrouterInput;
   saveApiKeysButton = saveKeysButton;
   lmStudioServerUrlInput = lmStudioUrlInput;
   saveLmStudioUrlButton = saveLmStudioButton;

@@ -4,6 +4,9 @@ All notable changes to Wordmark are documented here. Earlier versions didn't fol
 
 ## [Unreleased]
 
+### Added
+- **OpenRouter provider** — adds OpenRouter as a fifth AI service alongside OpenAI and xAI, using its OpenAI-compatible Responses API (`https://openrouter.ai/api/v1/responses`). Configure it with its own API key in Settings → API Keys; its model list is fetched live from OpenRouter's combined multi-vendor catalog, defaulting to `nvidia/nemotron-3-ultra-550b-a55b:free`. Document attachments are extracted client-side (like the local providers) since OpenRouter has no OpenAI-compatible vector-store/file API.
+
 ### Fixed
 - **Mobile chat view falling short of full screen height** — `#chat-container` sized itself with `height: 100vh` plus a `max-height: -webkit-fill-available` fallback meant to work around mobile browsers resizing the viewport as the address bar shows/hides. That fallback resolves to the browser's internal `stretch` keyword, which sizes against the fixed-position containing block rather than the actual viewport and is unreliable across browsers. Replaced it with the standard `100dvh` dynamic-viewport unit (with a `100vh` fallback) in the mobile, landscape, and iOS-specific stylesheets, which tracks the real visible viewport directly.
 - **Several mobile behaviors never running** — startup called `initializeMobileKeyboardHandling` from `ttsInitialization.ts`, an inert same-named duplicate that only wired up keyboard-avoidance scrolling. The real implementation in `mobileHandling.ts` — which also adds the `mobile-device` body class, touch-scroll optimizations, orientation-change rescrolling, and panel-transition suppression during resize — was never invoked. Startup now calls the real function; the shadow duplicate is gone.

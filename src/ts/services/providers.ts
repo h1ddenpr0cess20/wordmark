@@ -2,9 +2,9 @@
  * Provider capability registry.
  *
  * Central source of truth for "what does each AI service support", replacing the
- * scattered `serviceKey === "xai" | "ollama" | "lmstudio" | "openai"` checks that
- * were re-derived at ~20 call sites. Adding or changing a provider's quirks now
- * happens here instead of being hunted down across the codebase.
+ * scattered `serviceKey === "xai" | "ollama" | "lmstudio" | "openai" | "openrouter"`
+ * checks that were re-derived at ~20 call sites. Adding or changing a provider's
+ * quirks now happens here instead of being hunted down across the codebase.
  *
  * These are pure predicates over the service key (the same keys used in
  * `config.services`). They intentionally do not import `config` so they stay
@@ -21,7 +21,7 @@
 const LOCAL_SERVICES = new Set<string>(["lmstudio", "ollama"]);
 
 /** Hosted services that require an API key. */
-const CLOUD_SERVICES = new Set<string>(["openai", "xai"]);
+const CLOUD_SERVICES = new Set<string>(["openai", "xai", "openrouter"]);
 
 /** True for local-server providers (LM Studio, Ollama): no key, no cloud-only request fields. */
 export function isLocalService(serviceKey: string | null | undefined): boolean {
@@ -44,10 +44,12 @@ export function serviceSupportsReasoning(serviceKey: string | null | undefined):
 
 /**
  * Whether the provider accepts the cloud-only `include` response fields.
- * Only hosted, non-xAI providers (i.e. OpenAI) do; local providers and xAI do not.
+ * Only hosted, non-xAI providers (i.e. OpenAI) do; local providers, xAI, and
+ * OpenRouter (whose Responses API compatibility layer doesn't advertise
+ * support for these fields) do not.
  */
 export function supportsResponseIncludeFields(serviceKey: string | null | undefined): boolean {
-  return serviceSupportsReasoning(serviceKey) && !isLocalService(serviceKey);
+  return serviceSupportsReasoning(serviceKey) && !isLocalService(serviceKey) && serviceKey !== "openrouter";
 }
 
 /**
@@ -87,8 +89,9 @@ export function usesDirectFileUpload(serviceKey: string | null | undefined): boo
 /**
  * Whether document attachments must be extracted to text in the browser because
  * the provider has no server-side file ingestion. Local servers (LM Studio,
- * Ollama) offer neither direct uploads nor vector stores.
+ * Ollama) offer neither direct uploads nor vector stores; OpenRouter, as a
+ * multi-vendor router, has no OpenAI-compatible Files/Vector Store API either.
  */
 export function extractsDocumentsClientSide(serviceKey: string | null | undefined): boolean {
-  return isLocalService(serviceKey);
+  return isLocalService(serviceKey) || serviceKey === "openrouter";
 }

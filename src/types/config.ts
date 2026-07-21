@@ -4,7 +4,7 @@
  */
 
 /** Identifier for a built-in AI provider. */
-export type ServiceKey = "openai" | "lmstudio" | "ollama" | "xai";
+export type ServiceKey = "openai" | "lmstudio" | "ollama" | "xai" | "openrouter";
 
 /** A model entry as returned by a provider's `/models` (or `/api/tags`) endpoint. */
 export interface ModelListItem {
@@ -26,7 +26,7 @@ export interface ServiceConfig {
   organization?: string | null;
   /** Providers default to enabled; set false to hide from selection. */
   enabled?: boolean;
-  /** Present only on providers that filter their model list (openai, xai). */
+  /** Present only on providers that filter their model list (openai, xai, openrouter). */
   _isChatModel?(modelId: string): boolean;
   /** Refreshes `models` from the provider and notifies the UI. */
   fetchAndUpdateModels(): Promise<void>;
