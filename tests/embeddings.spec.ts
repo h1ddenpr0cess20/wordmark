@@ -114,20 +114,28 @@ test("resolveEmbeddingModel defaults to nomic, falls back to other embedding mod
   assert.equal(resolveEmbeddingModel(), "my-embed-model");
 });
 
-test("resolveEmbeddingModel prefers a provider's curated default over the generic pattern scan", () => {
+test("resolveEmbeddingModel only picks a provider's curated default when the server actually reported it", () => {
   store.clear();
   activeServiceKey = "openrouter";
 
   assert.equal(
     resolveEmbeddingModel(),
+    "some/embed-model",
+    "falls back to the fetched list when the server didn't report the curated default",
+  );
+
+  configObj.services.openrouter.embeddingModels = ["some/embed-model", "nvidia/nemotron-3-embed-1b:free"];
+  assert.equal(
+    resolveEmbeddingModel(),
     "nvidia/nemotron-3-embed-1b:free",
-    "OpenRouter's defaultEmbeddingModel wins over its fetched embeddingModels list",
+    "the curated default wins once it's actually in the server's fetched list",
   );
 
   store.set(EMBEDDING_MODEL_STORAGE_KEY, "user-chosen-embed-model");
   assert.equal(resolveEmbeddingModel(), "user-chosen-embed-model", "a stored user override still wins");
 
   store.clear();
+  configObj.services.openrouter.embeddingModels = ["some/embed-model"];
   activeServiceKey = "lmstudio";
 });
 
