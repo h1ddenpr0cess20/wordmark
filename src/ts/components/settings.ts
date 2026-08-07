@@ -483,7 +483,7 @@ export function populateServiceSelector() {
     const option = document.createElement("option");
     option.value = serviceKey;
 
-    let displayName = serviceKey.charAt(0).toUpperCase() + serviceKey.slice(1);
+    let displayName: string;
 
     switch (serviceKey) {
     case "openai":

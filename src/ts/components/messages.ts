@@ -45,7 +45,10 @@ export function highlightAndAddCopyButtons(messageElement: HTMLElement | null) {
  * @returns A unique message ID.
  */
 export function generateMessageId() {
-  return `msg-${Date.now()}-${Math.random().toString(36).substring(2, 10)}`;
+  const bytes = new Uint8Array(4);
+  crypto.getRandomValues(bytes);
+  const suffix = Array.from(bytes, byte => byte.toString(16).padStart(2, "0")).join("");
+  return `msg-${Date.now()}-${suffix}`;
 }
 
 /**

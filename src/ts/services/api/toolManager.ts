@@ -365,7 +365,7 @@ function appendSkillTools(defs: ToolDefinition[], serviceKey: string = getActive
 function appendMemoryTools(defs: ToolDefinition[], serviceKey: string = getActiveServiceKey(), modelName: string = getActiveModel()) {
   try {
     const cfg = getMemoryConfig();
-    if (!cfg || !cfg.enabled) {
+    if (!cfg.enabled) {
       return;
     }
 

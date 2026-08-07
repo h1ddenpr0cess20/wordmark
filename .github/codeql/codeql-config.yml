@@ -1,0 +1,13 @@
+name: "Wordmark CodeQL config"
+
+queries:
+  - uses: security-and-quality
+
+query-filters:
+  # Wordmark is a fully client-side app with no backend. Every user secret and
+  # preference — API keys, the last-known geolocation fix — has to live in
+  # browser-local storage for the app to work at all, and there is no
+  # server-held secret to encrypt any of it with. This query flags that
+  # architecture by definition, so every hit it can produce here is by design.
+  - exclude:
+      id: js/clear-text-storage-of-sensitive-data

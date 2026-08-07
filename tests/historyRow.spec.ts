@@ -112,7 +112,7 @@ test('buildHistoryRowHtml escapes content and omits media count when zero', () =
     images: [],
   }));
   assert.match(html, /&lt;script&gt;/);
-  assert.doesNotMatch(html, /<script>/);
+  assert.doesNotMatch(html, /<script/i);
   assert.match(html, /1 msg/);
   assert.doesNotMatch(html, /media/);
 });

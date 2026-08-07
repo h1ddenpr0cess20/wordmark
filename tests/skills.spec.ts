@@ -26,7 +26,6 @@ const {
   removeUserSkill,
   isSkillEnabled,
   setSkillEnabled,
-  getEnabledSkills,
   serializeSkillMarkdown,
   parseSkillMarkdown,
   seedExampleSkills,
