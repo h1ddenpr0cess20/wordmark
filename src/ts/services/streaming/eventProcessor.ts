@@ -344,7 +344,7 @@ export function createStreamingEventProcessor(runtime: StreamingRuntime) {
       break;
     }
     case "response.delta": {
-      const innerType = (payload && (payload.type || (payload.delta && payload.delta.type))) || "";
+      const innerType = payload.type || (payload.delta && payload.delta.type) || "";
       const deltaText = extractDeltaText(payload);
       if (innerType.includes("reasoning")) {
         if (deltaText) {

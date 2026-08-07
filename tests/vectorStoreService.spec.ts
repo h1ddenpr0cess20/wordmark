@@ -57,7 +57,7 @@ test('filterSupportedFiles separates extensions correctly', async () => {
 });
 
 test('uploadAndAttachFiles processes supported files and skips unsupported', async () => {
-  const showInfoCalls = setupEnvironment();
+  setupEnvironment();
   const { uploadAndAttachFiles } = await import('../src/ts/services/vectorStore.js');
 
   const fetchCalls: Array<{ url: string; options: { method?: string } }> = [];
@@ -91,7 +91,7 @@ test('uploadAndAttachFiles processes supported files and skips unsupported', asy
 });
 
 test('uploadAndAttachFiles throws when no supported files remain', async () => {
-  const showInfoCalls = setupEnvironment();
+  setupEnvironment();
   const { uploadAndAttachFiles } = await import('../src/ts/services/vectorStore.js');
 
   global.fetch = (async () => {

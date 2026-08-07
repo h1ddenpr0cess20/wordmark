@@ -325,7 +325,7 @@ export function collectFunctionCalls(responseOutput: ResponseOutputItem[] = []):
     }
     if (typeof rawArgs === "string") {
       try {
-        return rawArgs ? JSON.parse(rawArgs) : {};
+        return JSON.parse(rawArgs);
       } catch {
         return {};
       }

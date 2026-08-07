@@ -62,7 +62,7 @@ function stubFetch(body: unknown, { ok = true, status = 200 } = {}) {
 
 const okImage = { data: [{ b64_json: "AAAA", mime_type: "image/png" }] };
 const lastJsonBody = () => JSON.parse(fetchCalls[fetchCalls.length - 1].options.body as string || "{}");
-const apiCall = () => fetchCalls.find(call => call.url.includes("api.openai.com"))!;
+const apiCall = () => fetchCalls.find(call => new URL(call.url).hostname === "api.openai.com")!;
 
 test("rejects when the prompt is missing or blank", async () => {
   apiKeyValue = "test-key";

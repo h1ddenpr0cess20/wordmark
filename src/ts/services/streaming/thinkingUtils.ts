@@ -93,7 +93,6 @@ export function separateThinkingSegments(text: string) {
       const closeIndex = lower.indexOf(closeTag, cursor);
       if (closeIndex === -1) {
         reasoningParts.push(text.slice(cursor));
-        cursor = text.length;
         break;
       }
       if (closeIndex > cursor) {

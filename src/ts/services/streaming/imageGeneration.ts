@@ -111,7 +111,7 @@ export function collectImageCandidates(
     return;
   }
 
-  if (typeof value === "object" && value !== null) {
+  if (typeof value === "object") {
     if (visited) {
       try {
         if (visited.has(value)) {

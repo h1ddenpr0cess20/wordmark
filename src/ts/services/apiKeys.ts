@@ -436,9 +436,7 @@ function ensureApiKeysLoaded() {
   loadApiKeysIntoConfig();
   loadLocalServerUrlsIntoConfig();
 
-  if (typeof loadApiKeys === "function") {
-    loadApiKeys();
-  }
+  loadApiKeys();
 
   if (!config || !config.services) {
     return;
@@ -483,7 +481,7 @@ if (typeof document !== "undefined") {
     }, 100);
   });
 
-  if (typeof window !== "undefined" && config && config.services) {
+  if (typeof window !== "undefined" && config.services) {
     initApiKeys();
   }
 }

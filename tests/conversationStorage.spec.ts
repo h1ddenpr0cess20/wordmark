@@ -20,10 +20,6 @@ function createFakeIndexedDB() {
     req.result = result;
     setImmediate(() => req.onsuccess && req.onsuccess({ target: { result } }));
   }
-  function fireError(req: FakeReq, error: unknown) {
-    req.error = error;
-    setImmediate(() => req.onerror && req.onerror({ target: { error } }));
-  }
 
   function createStore(name: string, opts: { keyPath?: string } = {}) {
     const data = new Map<unknown, Record<string, unknown>>();

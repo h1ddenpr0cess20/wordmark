@@ -44,7 +44,7 @@ export function saveVectorStoreMetadata(vectorStoreId: string, metadata: Partial
     };
     const entries = Object.entries(stores);
     if (entries.length > MAX_ACTIVE_VECTOR_STORES) {
-      const activeId = typeof getActiveVectorStoreId === "function" ? getActiveVectorStoreId() : null;
+      const activeId = getActiveVectorStoreId();
       const sorted = entries.sort((a, b) => {
         const aTime = a[1]?.lastUsed || 0;
         const bTime = b[1]?.lastUsed || 0;
@@ -92,11 +92,11 @@ export function getVectorStoreMetadata() {
 export function getActiveVectorStoreIds() {
   try {
     const orderedIds: string[] = [];
-    const active = typeof getActiveVectorStoreId === "function" ? getActiveVectorStoreId() : null;
+    const active = getActiveVectorStoreId();
     if (active) {
       orderedIds.push(active);
     }
-    const metadata = typeof getVectorStoreMetadata === "function" ? getVectorStoreMetadata() : {};
+    const metadata = getVectorStoreMetadata();
     if (metadata && typeof metadata === "object") {
       const entries = Object.entries(metadata as Record<string, VectorStoreMetadataEntry>).sort((a, b) => {
         const aTime = a[1]?.lastUsed || 0;
