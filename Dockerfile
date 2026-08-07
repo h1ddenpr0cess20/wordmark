@@ -1,7 +1,7 @@
 # syntax=docker/dockerfile:1
 
 # --- Build stage: compile the Vite bundle ---
-FROM node:24-alpine AS build
+FROM node:25-alpine AS build
 WORKDIR /app
 
 # Install dependencies first (reproducible install from the lockfile)
@@ -16,7 +16,7 @@ COPY skills ./skills
 RUN npm run build
 
 # --- Runtime stage: serve the built static files with Nginx ---
-FROM nginx:1.28-alpine-slim
+FROM nginx:1.31-alpine-slim
 
 # Install curl for health checks and ensure cert directory exists for SSL mounts
 RUN apk add --no-cache curl && \
