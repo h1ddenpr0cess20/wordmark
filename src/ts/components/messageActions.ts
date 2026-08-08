@@ -16,6 +16,7 @@ import { finalizeStreamedResponse, updateMessageContent } from "../services/stre
 import { renderChatHistoryList } from "../services/history/list.ts";
 import { updateHeaderInfo } from "./settings.ts";
 import { applyVariant, ensureVariants } from "./messageVariants.ts";
+import { buildMessageMediaHtml } from "../services/messageMedia.ts";
 import type { Message } from "../../types/api.ts";
 
 const logRegen = createScopedLogger("regenerate");
@@ -23,24 +24,21 @@ const logRegen = createScopedLogger("regenerate");
 const LOADING_HTML =
   "<div class=\"loading-animation\"><div class=\"loading-dot\"></div><div class=\"loading-dot\"></div><div class=\"loading-dot\"></div></div>";
 
-const variantImages = new Map<string, (string[] | undefined)[]>();
-
 /**
  * Stores the rendered image-HTML snapshot for a given message/variant index in
  * the runtime-only image map (kept off the persisted history to avoid bloat).
  */
 function setVariantImages(messageId: string, index: number, images: string[] | undefined): void {
-  let list = variantImages.get(messageId);
-  if (!list) {
-    list = [];
-    variantImages.set(messageId, list);
+  if (!state.variantImages) {
+    state.variantImages = {};
   }
+  const list = state.variantImages[messageId] ?? (state.variantImages[messageId] = []);
   list[index] = images && images.length > 0 ? [...images] : undefined;
 }
 
 /** Returns the stored image-HTML snapshot for a message/variant index, if any. */
 function getVariantImages(messageId: string, index: number): string[] | undefined {
-  return variantImages.get(messageId)?.[index];
+  return state.variantImages?.[messageId]?.[index];
 }
 
 /** Returns a copy of the currently rendered image HTML for a message, if any. */
@@ -184,6 +182,7 @@ export async function regenerateMessage(messageId: string): Promise<void> {
 
   const requestMessages = history.slice(0, idx);
   enterGeneratingState(messageId);
+  state.currentGeneratedImageHtml = [];
   const abortController = new AbortController();
   state.activeAbortController = abortController;
 
@@ -234,6 +233,7 @@ export async function regenerateMessage(messageId: string): Promise<void> {
     }
     renderActiveVariant(messageId);
   } finally {
+    state.currentGeneratedImageHtml = [];
     state.activeAbortController = null;
     resetSendButton();
   }
@@ -255,8 +255,8 @@ function renderActiveVariant(messageId: string): void {
   applyVariant(entry, variant);
 
   if (state.messageImages) {
-    const images = getVariantImages(messageId, index);
-    if (images && images.length > 0) {
+    const images = getVariantImages(messageId, index) ?? buildMessageMediaHtml(variant.content);
+    if (images.length > 0) {
       state.messageImages[messageId] = [...images];
     } else {
       delete state.messageImages[messageId];

@@ -35,6 +35,7 @@ export const state: AppState = {
   userThinkingState: {},
 
   messageImages: {},
+  variantImages: {},
 
   galleryImages: [],
   galleryImagesLoaded: false,

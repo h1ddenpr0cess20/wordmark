@@ -25,10 +25,40 @@ import { decorateAssistantMessage, captureVariantImages } from "../../components
 import { recordRegeneratedVariant, applyVariant } from "../../components/messageVariants.ts";
 import { setupImageInteractions } from "../../components/ui/imageInteractions.ts";
 import { hideImageWaitSpinner } from "../../components/ui/imageWaitSpinner.ts";
+import { buildMessageMediaHtml } from "../messageMedia.ts";
 import { createMediaPlaceholderRegex, mediaPlaceholder } from "../../utils/placeholders.ts";
 import type { StreamedMessageContent, ResponseObject } from "../../../types/api.ts";
 import { isRecord } from "../../utils/utils.ts";
 import { extractOutputText, extractReasoningText } from "./finalizeExtract.ts";
+
+/**
+ * Resolves the generated-media markup to render for a message: the runtime
+ * snapshot when one exists, otherwise the thumbnails rebuilt from the media
+ * placeholders in `content`.
+ *
+ * @remarks
+ * The snapshot in {@link state.messageImages} only covers messages rendered in
+ * this session; a message replayed from history — or an older response version
+ * restored by the version navigator — has to be rebuilt from its placeholders,
+ * which is the association that actually persists. A successful rebuild is
+ * cached back onto the snapshot map.
+ */
+function resolveMessageImages(messageId: string, content: string): string[] {
+  if (!state.messageImages) {
+    state.messageImages = {};
+  }
+
+  const snapshot = state.messageImages[messageId];
+  if (Array.isArray(snapshot) && snapshot.length > 0) {
+    return snapshot;
+  }
+
+  const rebuilt = buildMessageMediaHtml(content);
+  if (rebuilt.length > 0) {
+    state.messageImages[messageId] = rebuilt;
+  }
+  return rebuilt;
+}
 
 /**
  * Renders (or updates in place) the collapsible "Reasoning" panel inside a
@@ -367,10 +397,11 @@ export function updateMessageContent(loadingMessage: HTMLElement | null, assista
     contentWrapper.appendChild(partyNameLabel);
   }
 
-  if (state.messageImages && state.messageImages[loadingMessage.id]) {
+  const messageImages = resolveMessageImages(loadingMessage.id, content);
+  if (messageImages.length > 0) {
     const imagesContainer = document.createElement("div");
     imagesContainer.className = "generated-images";
-    imagesContainer.innerHTML = state.messageImages[loadingMessage.id].join("");
+    imagesContainer.innerHTML = messageImages.join("");
     contentWrapper.appendChild(imagesContainer);
     setupImageInteractions(imagesContainer);
   }

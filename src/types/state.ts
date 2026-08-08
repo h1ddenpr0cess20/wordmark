@@ -40,6 +40,12 @@ export interface AppState {
 
   userThinkingState: Record<string, boolean>;
   messageImages: Record<string, string[]>;
+  /**
+   * Per-message snapshots of the rendered media markup for each response
+   * version, indexed by message id then variant index. Runtime-only: the
+   * durable association is the media placeholder inside a variant's content.
+   */
+  variantImages: Record<string, (string[] | undefined)[]>;
 
   galleryImages: GeneratedImage[];
   galleryImagesLoaded: boolean;

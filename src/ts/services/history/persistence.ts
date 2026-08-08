@@ -20,6 +20,7 @@ import { ensureImagesHaveMessageIds } from "../streaming/imageGeneration.ts";
 import { renderChatHistoryList } from "./list.ts";
 import { renderConversationMessages } from "./render.ts";
 import { processImageForStorage, markMessagesWithImages } from "./persistenceImages.ts";
+import { hydrateMediaUrls } from "./renderMedia.ts";
 import { uiHooks } from "../../init/uiHooks.ts";
 import { clearLocalDocIndex, persistLocalDocIndex, restoreLocalDocIndex } from "../localDocRetrieval.ts";
 import { stripRetrievedContextFromMessages } from "../../utils/retrievedContext.ts";
@@ -124,6 +125,8 @@ function resetConversationState() {
   state.lastUsedService = null;
   state.loadedSystemPrompt = null;
   state.userThinkingState = {};
+  state.messageImages = {};
+  state.variantImages = {};
 
   if (state.partyMode || state.activePartyConfig) {
     uiHooks.stopParty?.();
@@ -288,6 +291,10 @@ function loadConversationIntoUI(convo: ConversationRecord, imageCache: Map<strin
   state.lastUsedService = convo.service && convo.service !== "Unknown" ? convo.service : null;
   state.loadedSystemPrompt = convo.systemPrompt || null;
   state.userThinkingState = {};
+  state.messageImages = {};
+  state.variantImages = {};
+
+  hydrateMediaUrls(state.generatedImages, imageCache);
 
   clearLocalDocIndex();
   if (convo.id) {
