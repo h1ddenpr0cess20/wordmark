@@ -529,6 +529,7 @@ async function executeTurn(
 
     const abortController = new AbortController();
     state.activeAbortController = abortController;
+    state.currentGeneratedImageHtml = [];
 
     const requestMessages = Array.isArray(state.conversationHistory)
       ? [...state.conversationHistory]
@@ -590,6 +591,7 @@ async function executeTurn(
     if (onSettled) {
       onSettled();
     }
+    state.currentGeneratedImageHtml = [];
     state.activeAbortController = null;
     resetSendButton();
   }

@@ -124,6 +124,8 @@ function resetConversationState() {
   state.lastUsedService = null;
   state.loadedSystemPrompt = null;
   state.userThinkingState = {};
+  state.messageImages = {};
+  state.variantImages = {};
 
   if (state.partyMode || state.activePartyConfig) {
     uiHooks.stopParty?.();
@@ -288,6 +290,8 @@ function loadConversationIntoUI(convo: ConversationRecord, imageCache: Map<strin
   state.lastUsedService = convo.service && convo.service !== "Unknown" ? convo.service : null;
   state.loadedSystemPrompt = convo.systemPrompt || null;
   state.userThinkingState = {};
+  state.messageImages = {};
+  state.variantImages = {};
 
   clearLocalDocIndex();
   if (convo.id) {
