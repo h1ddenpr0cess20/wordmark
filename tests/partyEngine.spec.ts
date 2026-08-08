@@ -18,6 +18,8 @@ const runTurnCalls: RunTurnCall[] = [];
 let finalizeCount = 0;
 let removeCount = 0;
 let throwAbort = false;
+let emptyOutput = false;
+let mediaGeneratedDuringTurn = 0;
 let streamedDomText = "";
 let gate: { promise: Promise<void>; resolve: () => void } | null = null;
 
@@ -34,12 +36,15 @@ async function fakeRunTurn(opts: RunTurnCall): Promise<unknown> {
   if (gate) {
     await gate.promise;
   }
+  for (let i = 0; i < mediaGeneratedDuringTurn; i++) {
+    (fakeState.currentGeneratedImageHtml as string[]).push(`<img data-filename="party-${i}.png" />`);
+  }
   if (throwAbort) {
     const error = new Error("Request aborted");
     error.name = "AbortError";
     throw error;
   }
-  return { response: {}, outputText: "hello there", reasoningText: "" };
+  return { response: {}, outputText: emptyOutput ? "" : "hello there", reasoningText: "" };
 }
 
 /** A generic DOM node that absorbs every call the engine makes on it. */
@@ -79,6 +84,7 @@ const fakeState: Record<string, unknown> = {
   partyMode: false,
   activePartyConfig: null,
   conversationHistory: [] as unknown[],
+  currentGeneratedImageHtml: [] as string[],
 };
 
 function mockModule(rel: string, namedExports: Record<string, unknown>): void {
@@ -139,7 +145,10 @@ async function resetEngine(): Promise<void> {
   finalizeCount = 0;
   removeCount = 0;
   throwAbort = false;
+  emptyOutput = false;
+  mediaGeneratedDuringTurn = 0;
   streamedDomText = "";
+  (fakeState.currentGeneratedImageHtml as string[]).length = 0;
   gate = null;
   fakeState.partyMode = false;
   fakeState.activePartyConfig = null;
@@ -358,4 +367,37 @@ test("an aborted turn that already produced tokens is recorded, never discarded"
 
   assert.equal(removeCount, 0, "an aborted turn with generated text must not be removed/discarded");
   assert.equal(finalizeCount, 1, "the already-generated tokens must be finalized and recorded");
+});
+
+test("a turn that only generated an image is finalized, not discarded", async () => {
+  await resetEngine();
+  emptyOutput = true;
+  mediaGeneratedDuringTurn = 1;
+
+  const loop = partyEngine.start(structuredClone(CONFIG));
+  await delay(120);
+
+  partyEngine.stop();
+  await loop;
+
+  assert.equal(removeCount, 0, "a turn holding a generated image must not be discarded");
+  assert.ok(finalizeCount >= 1, "the generated image must be finalized into its own bubble");
+});
+
+test("pending generated media never leaks past the turn that produced it", async () => {
+  await resetEngine();
+  throwAbort = true;
+  mediaGeneratedDuringTurn = 2;
+
+  const loop = partyEngine.start(structuredClone(CONFIG));
+  await delay(120);
+
+  partyEngine.stop();
+  await loop;
+
+  assert.deepEqual(
+    fakeState.currentGeneratedImageHtml,
+    [],
+    "a failed turn must not leave its images pending for the next message",
+  );
 });

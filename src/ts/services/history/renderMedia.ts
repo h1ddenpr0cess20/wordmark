@@ -8,6 +8,7 @@
  */
 
 import { detectMediaType, getMediaDisplayUrl } from "../mediaTools.ts";
+import { state } from "../../init/state.ts";
 import { escapeHtml } from "../../utils/sanitize.ts";
 import type { ConversationRecord, GeneratedImage } from "../../../types/common.ts";
 
@@ -40,6 +41,34 @@ export function resolveMediaSource(mediaRecord: GeneratedImage | null, filename:
   }
 
   return "";
+}
+
+/**
+ * Resolves a display url onto every preloaded media record that lacks one, and
+ * mirrors it into `state.imageDataCache`.
+ *
+ * @remarks
+ * Run before a conversation renders so that media referenced only by an
+ * inactive response version — which no message body renders on load — can still
+ * be resolved when that version is restored. Records are hydrated once here
+ * rather than on demand so a blob is never turned into two object urls.
+ */
+export function hydrateMediaUrls(records: GeneratedImage[], imageCache: Map<string, string | Blob>) {
+  records.forEach((record) => {
+    const filename = record?.filename;
+    if (!filename || (typeof record.url === "string" && record.url.trim())) {
+      return;
+    }
+    if (!imageCache.has(filename)) {
+      return;
+    }
+    const src = getMediaDisplayUrl(imageCache.get(filename), filename);
+    if (!src) {
+      return;
+    }
+    record.url = src;
+    state.imageDataCache?.set(filename, src);
+  });
 }
 
 /** Builds a `<video>` or `<img>` element for a media record, tagged with dataset metadata. */

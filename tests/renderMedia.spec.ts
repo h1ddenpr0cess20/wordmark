@@ -11,10 +11,12 @@ const {
   findMediaRecord,
   resolveMediaSource,
   createMediaElement,
+  hydrateMediaUrls,
 } = await import('../src/ts/services/history/renderMedia.js');
+const { state } = await import('../src/ts/init/state.js');
 
 type ConversationRecord = Parameters<typeof findMediaRecord>[0];
-type GeneratedImage = Parameters<typeof resolveMediaSource>[0];
+type GeneratedImage = NonNullable<Parameters<typeof resolveMediaSource>[0]>;
 
 const convo = (images: unknown[]): ConversationRecord =>
   ({ images } as unknown as ConversationRecord);
@@ -110,4 +112,29 @@ test('createMediaElement falls back to a default alt and empty dataset when fiel
   assert.equal(el.dataset.messageId, '');
   assert.equal(el.dataset.prompt, '');
   assert.equal(el.dataset.timestamp, '');
+});
+
+test('hydrateMediaUrls resolves a url onto preloaded records and mirrors it into the data cache', () => {
+  state.imageDataCache = new Map();
+  const records = [
+    record({ filename: 'pic.jpg', isStoredInDb: true }),
+    record({ filename: 'kept.png', url: 'https://example.com/kept.png', isStoredInDb: true }),
+    record({ filename: 'absent.png', isStoredInDb: true }),
+  ] as unknown as GeneratedImage[];
+  const cache = new Map<string, string | Blob>([['pic.jpg', 'QUJD'], ['kept.png', 'QUJD']]);
+
+  hydrateMediaUrls(records, cache);
+
+  assert.equal(records[0].url, 'data:image/jpeg;base64,QUJD');
+  assert.equal(state.imageDataCache.get('pic.jpg'), 'data:image/jpeg;base64,QUJD');
+  assert.equal(records[1].url, 'https://example.com/kept.png', 'an existing url is left alone');
+  assert.equal(state.imageDataCache.has('kept.png'), false);
+  assert.equal(records[2].url, undefined, 'a record with nothing preloaded stays unresolved');
+});
+
+test('hydrateMediaUrls skips records with no filename', () => {
+  state.imageDataCache = new Map();
+  const records = [record({ isStoredInDb: true })] as unknown as GeneratedImage[];
+  hydrateMediaUrls(records, new Map([['', 'QUJD']]));
+  assert.equal(records[0].url, undefined);
 });

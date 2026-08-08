@@ -346,55 +346,64 @@ class PartyEngine {
       : buildTurnPrompt(this.scenario, this.history, this.userName);
 
     this.controller = new AbortController();
+    state.currentGeneratedImageHtml = [];
 
     let result: Awaited<ReturnType<typeof runTurn>> | null = null;
     let fatalError: unknown = null;
     try {
-      result = await runTurn({
-        inputMessages: [{ role: "user", content: prompt, id: `party-prompt-${loadingId}` }],
-        model: getActiveModel(),
-        systemOverride: appendPartyDocumentContext(
-          buildCharacterSystemPrompt(speaker, this.resolveCharacterTools(speaker)),
-          this.documents,
-        ),
-        allowedTools: speaker.allowedTools || [],
-        temperature: speaker.temperature,
-        stream: true,
-        loadingId,
-        abortController: this.controller,
-      });
-    } catch (error) {
-      const aborted = this.abort || (error instanceof Error && error.name === "AbortError");
-      if (!aborted) {
-        fatalError = error;
+      try {
+        result = await runTurn({
+          inputMessages: [{ role: "user", content: prompt, id: `party-prompt-${loadingId}` }],
+          model: getActiveModel(),
+          systemOverride: appendPartyDocumentContext(
+            buildCharacterSystemPrompt(speaker, this.resolveCharacterTools(speaker)),
+            this.documents,
+          ),
+          allowedTools: speaker.allowedTools || [],
+          temperature: speaker.temperature,
+          stream: true,
+          loadingId,
+          abortController: this.controller,
+        });
+      } catch (error) {
+        const aborted = this.abort || (error instanceof Error && error.name === "AbortError");
+        if (!aborted) {
+          fatalError = error;
+        }
       }
-    }
 
-    const element = document.getElementById(loadingId);
-    if (!element) {
+      const element = document.getElementById(loadingId);
+      if (!element) {
+        if (fatalError) {
+          throw fatalError;
+        }
+        return;
+      }
+
+      const salvaged = result?.outputText?.trim() ? result.outputText : readStreamedText(element);
+      const hasPendingMedia = Array.isArray(state.currentGeneratedImageHtml)
+        && state.currentGeneratedImageHtml.length > 0;
+
+      if (salvaged.trim() || hasPendingMedia) {
+        finalizeStreamedResponse(element, {
+          content: salvaged,
+          reasoning: result?.reasoningText || "",
+          response: result?.response,
+          character: { name: speaker.name },
+        });
+        applyPartyNameLabel(element, speaker.name);
+        if (salvaged.trim()) {
+          this.recordHistoryEntry(speaker.name, salvaged);
+        }
+      } else {
+        removeLoadingIndicator(loadingId);
+      }
+
       if (fatalError) {
         throw fatalError;
       }
-      return;
-    }
-
-    const salvaged = result?.outputText?.trim() ? result.outputText : readStreamedText(element);
-
-    if (salvaged.trim()) {
-      finalizeStreamedResponse(element, {
-        content: salvaged,
-        reasoning: result?.reasoningText || "",
-        response: result?.response,
-        character: { name: speaker.name },
-      });
-      applyPartyNameLabel(element, speaker.name);
-      this.recordHistoryEntry(speaker.name, salvaged);
-    } else {
-      removeLoadingIndicator(loadingId);
-    }
-
-    if (fatalError) {
-      throw fatalError;
+    } finally {
+      state.currentGeneratedImageHtml = [];
     }
   }
 

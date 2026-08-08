@@ -15,6 +15,7 @@ globalThis.requestAnimationFrame = ((cb: FrameRequestCallback) =>
 const { state, elements } = await import("../src/ts/init/state.ts");
 const { renderConversationMessages } = await import("../src/ts/services/history/render.ts");
 const { decorateAssistantMessage } = await import("../src/ts/components/messageActions.ts");
+const { hydrateMediaUrls } = await import("../src/ts/services/history/renderMedia.ts");
 
 type ConversationRecord = Parameters<typeof renderConversationMessages>[0];
 
@@ -42,7 +43,9 @@ function loadConversation(convo: ConversationRecord) {
   state.imageDataCache = new Map();
   state.conversationHistory = convo.messages as typeof state.conversationHistory;
   state.generatedImages = convo.images as typeof state.generatedImages;
-  renderConversationMessages(convo, new Map([["generated-1.png", "data:image/png;base64,AAAA"]]));
+  const imageCache = new Map<string, string | Blob>([["generated-1.png", "data:image/png;base64,AAAA"]]);
+  hydrateMediaUrls(state.generatedImages, imageCache);
+  renderConversationMessages(convo, imageCache);
   return document.getElementById("a1")!;
 }
 
@@ -103,4 +106,25 @@ test("a version whose media record is gone renders without a broken thumbnail", 
   const hidden = messageElement.querySelector(".hidden-image-placeholder");
   assert.ok(hidden, "the orphaned placeholder stays behind the hiding class");
   assert.equal(hidden!.textContent, "[[MEDIA: generated-1.png]]");
+});
+
+test("an image belonging only to an inactive version is restorable after a reload", () => {
+  const messageElement = loadConversation(conversation({
+    content: WITHOUT_IMAGE,
+    hasImages: false,
+    variants: [
+      { content: WITH_IMAGE, hasImages: true },
+      { content: WITHOUT_IMAGE, hasImages: false },
+    ],
+    activeVariant: 1,
+  }));
+
+  assert.equal(messageElement.querySelector(".generated-images img"), null, "the active version has no image");
+
+  decorateAssistantMessage(messageElement, "a1");
+  messageElement.querySelector<HTMLButtonElement>(".message-version-prev")!.click();
+
+  const restored = messageElement.querySelector<HTMLImageElement>(".generated-images img");
+  assert.ok(restored, "the other version's image resolves even though nothing rendered it on load");
+  assert.equal(restored!.dataset.filename, "generated-1.png");
 });
