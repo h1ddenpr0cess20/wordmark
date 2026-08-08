@@ -205,3 +205,63 @@ test("LM Studio filtering is case-insensitive", async () => {
     "qwen3-8b",
   ]);
 });
+
+test("OpenRouter fetches chat models from /models and embedding models from /embeddings/models separately", async () => {
+  config.services.openrouter.apiKey = "test-key";
+  globalThis.fetch = (async (url: string) => {
+    if (url.endsWith("/embeddings/models")) {
+      return {
+        ok: true,
+        json: async () => ({
+          data: [
+            { id: "openai/text-embedding-3-small" },
+            { id: "nvidia/nemotron-3-embed-1b:free" },
+          ],
+        }),
+      };
+    }
+    return {
+      ok: true,
+      json: async () => ({
+        data: [
+          { id: "openai/gpt-4o" },
+          { id: "nvidia/nemotron-3-ultra-550b-a55b:free" },
+        ],
+      }),
+    };
+  }) as unknown as typeof fetch;
+
+  await config.services.openrouter.fetchAndUpdateModels();
+
+  assert.deepEqual(config.services.openrouter.models, [
+    "nvidia/nemotron-3-ultra-550b-a55b:free",
+    "openai/gpt-4o",
+  ]);
+  assert.deepEqual(config.services.openrouter.embeddingModels, [
+    "nvidia/nemotron-3-embed-1b:free",
+    "openai/text-embedding-3-small",
+  ]);
+});
+
+test("OpenRouter keeps its fetched chat models when the embeddings endpoint fails", async () => {
+  config.services.openrouter.apiKey = "test-key";
+  config.services.openrouter.embeddingModels = ["stale-embed-model"];
+  globalThis.fetch = (async (url: string) => {
+    if (url.endsWith("/embeddings/models")) {
+      return { ok: false, status: 500, statusText: "Internal Server Error", text: async () => "boom" };
+    }
+    return {
+      ok: true,
+      json: async () => ({ data: [{ id: "openai/gpt-4o" }] }),
+    };
+  }) as unknown as typeof fetch;
+
+  await config.services.openrouter.fetchAndUpdateModels();
+
+  assert.deepEqual(config.services.openrouter.models, ["openai/gpt-4o"]);
+  assert.deepEqual(
+    config.services.openrouter.embeddingModels,
+    ["stale-embed-model"],
+    "a failed embeddings fetch should not clobber the previously known list",
+  );
+});

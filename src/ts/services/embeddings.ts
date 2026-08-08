@@ -4,9 +4,10 @@
  * @remarks
  * Ported from the dataset-generator source: text chunking, cosine similarity,
  * and a call to the active provider's OpenAI-compatible `/embeddings` endpoint.
- * Used to build an in-browser vector index over attached documents so local
- * providers (LM Studio / Ollama) retrieve only the relevant passages per turn
- * instead of receiving every file's full text. See {@link ./localDocRetrieval.ts}.
+ * Used to build an in-browser vector index over attached documents so
+ * providers with no native document ingestion (LM Studio, Ollama, and
+ * OpenRouter) retrieve only the relevant passages per turn instead of
+ * receiving every file's full text. See {@link ./localDocRetrieval.ts}.
  */
 
 import { getActiveServiceKey, getBaseUrl } from "./api/clientConfig.ts";
@@ -124,9 +125,18 @@ function pickPreferred(models: string[]): string | null {
 }
 
 /**
- * Resolves the embedding model for the active provider: the user-set value if
- * present, otherwise a preferred embedding model (nomic first, then known
- * alternatives, then any available) from the provider's embedding-model list.
+ * Resolves the embedding model for the active provider, in priority order:
+ * the user-set value; else, from the provider's actually-fetched
+ * embedding-model list — its curated default (e.g. OpenRouter's free
+ * Nemotron embedding model) when that list contains it, otherwise a
+ * preferred embedding model (nomic first, then known alternatives, then any
+ * available); else a name-pattern scan of its chat model list.
+ *
+ * @remarks
+ * A provider's `defaultEmbeddingModel` is only ever picked when the server's
+ * own fetched list actually contains it — it is a priority hint, not an
+ * override, so a stale/wrong default can't be used against a provider that
+ * doesn't (or doesn't yet) report that model.
  *
  * @returns The model id, or `null` if none can be determined.
  */
@@ -138,6 +148,9 @@ export function resolveEmbeddingModel(): string | null {
 
   const embeddingModels = service?.embeddingModels;
   if (Array.isArray(embeddingModels) && embeddingModels.length > 0) {
+    if (service?.defaultEmbeddingModel && embeddingModels.includes(service.defaultEmbeddingModel)) {
+      return service.defaultEmbeddingModel;
+    }
     return pickPreferred(embeddingModels);
   }
 

@@ -14,7 +14,7 @@ import { config } from "../../config/config.ts";
 import { state } from "../init/state.ts";
 import { API_KEYS_STORAGE_PREFIX, loadApiKeysIntoConfig, loadLocalServerUrlsIntoConfig } from "./apiKeyStorage.ts";
 import { STORAGE_KEYS } from "../utils/storage/storage.ts";
-import { isLocalService } from "./providers.ts";
+import { isLocalService, extractsDocumentsClientSide } from "./providers.ts";
 import { EMBEDDING_MODEL_STORAGE_KEY } from "./embeddings.ts";
 import { uiHooks } from "../init/uiHooks.ts";
 import { normalizeServerBaseUrl } from "../utils/utils.ts";
@@ -31,6 +31,7 @@ const API_KEYS_INIT_RETRY_DELAY = 150;
 const apiKeyInputs: Record<string, HTMLInputElement | null> = {
   openai: null,
   xai: null,
+  openrouter: null,
 };
 
 let saveApiKeysButton: HTMLElement | null = null;
@@ -70,6 +71,7 @@ function refreshApiDependentUi() {
 function initApiKeys(retryCount: number = 0) {
   const openaiInput = document.getElementById("openai-api-key") as HTMLInputElement | null;
   const xaiInput = document.getElementById("xai-api-key") as HTMLInputElement | null;
+  const openrouterInput = document.getElementById("openrouter-api-key") as HTMLInputElement | null;
   const saveKeysButton = document.getElementById("save-api-keys");
   const lmStudioUrlInput = document.getElementById("lmstudio-server-url") as HTMLInputElement | null;
   const saveLmStudioButton = document.getElementById("save-lmstudio-url");
@@ -77,7 +79,7 @@ function initApiKeys(retryCount: number = 0) {
   const saveOllamaButton = document.getElementById("save-ollama-url");
   const embeddingSelect = document.getElementById("embedding-model") as HTMLSelectElement | null;
 
-  const essentialReady = Boolean(saveKeysButton && (openaiInput || xaiInput || lmStudioUrlInput || ollamaUrlInput));
+  const essentialReady = Boolean(saveKeysButton && (openaiInput || xaiInput || openrouterInput || lmStudioUrlInput || ollamaUrlInput));
 
   if (!essentialReady) {
     if (retryCount < API_KEYS_INIT_MAX_RETRIES) {
@@ -90,6 +92,7 @@ function initApiKeys(retryCount: number = 0) {
 
   apiKeyInputs.openai = openaiInput;
   apiKeyInputs.xai = xaiInput;
+  apiKeyInputs.openrouter = openrouterInput;
   saveApiKeysButton = saveKeysButton;
   lmStudioServerUrlInput = lmStudioUrlInput;
   saveLmStudioUrlButton = saveLmStudioButton;
@@ -292,11 +295,13 @@ function saveOllamaServerUrl() {
  * Rebuilds the embedding-model dropdown for the active provider.
  *
  * @remarks
- * Enabled only when the active service is a local provider (LM Studio /
- * Ollama) that reported at least one embedding model; otherwise it is grayed
- * out. Options are an auto-detect default plus every embedding model the
- * provider listed; a stored model missing from the list is kept as an option
- * since it is still the one {@link resolveEmbeddingModel} will use.
+ * Enabled only when the active service does client-side document RAG (the
+ * local providers, LM Studio/Ollama, plus OpenRouter — see
+ * {@link extractsDocumentsClientSide}) and reported at least one embedding
+ * model; otherwise it is grayed out. Options are an auto-detect default plus
+ * every embedding model the provider listed; a stored model missing from the
+ * list is kept as an option since it is still the one
+ * {@link resolveEmbeddingModel} will use.
  */
 function refreshEmbeddingModelUI() {
   const select = embeddingModelSelect
@@ -307,8 +312,8 @@ function refreshEmbeddingModelUI() {
 
   const serviceKey = config?.defaultService;
   const service = serviceKey ? config?.services?.[serviceKey] : null;
-  const local = isLocalService(serviceKey);
-  const embeddingModels = local && Array.isArray(service?.embeddingModels)
+  const ragEligible = extractsDocumentsClientSide(serviceKey);
+  const embeddingModels = ragEligible && Array.isArray(service?.embeddingModels)
     ? service.embeddingModels.filter((m): m is string => typeof m === "string" && m.length > 0)
     : [];
 
@@ -319,7 +324,7 @@ function refreshEmbeddingModelUI() {
     stored = "";
   }
 
-  const options = local && stored && !embeddingModels.includes(stored)
+  const options = ragEligible && stored && !embeddingModels.includes(stored)
     ? [stored, ...embeddingModels]
     : embeddingModels;
 
@@ -334,7 +339,7 @@ function refreshEmbeddingModelUI() {
     option.textContent = model;
     select.appendChild(option);
   }
-  select.value = local ? stored : "";
+  select.value = ragEligible ? stored : "";
   select.disabled = options.length === 0;
 }
 

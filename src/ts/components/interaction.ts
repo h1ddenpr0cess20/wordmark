@@ -556,11 +556,17 @@ async function executeTurn(
     const hasPendingMedia = Array.isArray(state.currentGeneratedImageHtml)
       && state.currentGeneratedImageHtml.length > 0;
 
-    if (wasStopped && !(result.outputText || "").trim() && !(result.reasoningText || "").trim() && !hasPendingMedia) {
+    const hasEmptyResult = !(result.outputText || "").trim() && !(result.reasoningText || "").trim() && !hasPendingMedia;
+
+    if (hasEmptyResult) {
       removeLoadingIndicator(loadingId);
       addUserRetryButton(userId);
-      if (showInfo) {
-        showInfo("Generation stopped");
+      if (wasStopped) {
+        if (showInfo) {
+          showInfo("Generation stopped");
+        }
+      } else if (showError) {
+        showError("The assistant returned an empty response. Try again.");
       }
       return;
     }

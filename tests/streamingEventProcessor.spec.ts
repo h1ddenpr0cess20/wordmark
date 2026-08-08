@@ -463,3 +463,20 @@ test('processEvent ignores non-object SSE payloads without throwing', () => {
   ]);
   assert.equal(runtime.state.output, 'ok');
 });
+
+test('processEvent silently ignores the legacy [DONE] sentinel', () => {
+  const runtime = createRuntimeStub();
+  const processor = createStreamingEventProcessor(runtime as unknown as StreamingRuntimeArg);
+
+  const originalConsoleError = console.error;
+  let errorLogged = false;
+  console.error = () => { errorLogged = true; };
+  try {
+    assert.doesNotThrow(() => processor.processEvent(null, ['[DONE]']));
+  } finally {
+    console.error = originalConsoleError;
+  }
+
+  assert.equal(errorLogged, false, '[DONE] should not be logged as a parse error');
+  assert.equal(runtime.state.output, '');
+});

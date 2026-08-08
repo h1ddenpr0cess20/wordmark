@@ -15,6 +15,7 @@ const { buildHeaders } = await import('../src/ts/services/api/requestTransport.j
 config.defaultService = 'openai';
 config.services.openai.apiKey = 'test-key';
 config.services.xai.apiKey = 'test-xai-key';
+config.services.openrouter.apiKey = 'test-openrouter-key';
 
 test('buildRequestBody includes basic required fields', () => {
   const body = buildRequestBody({
@@ -107,6 +108,22 @@ test('buildRequestBody removes xAI text format when MCP tools are enabled', () =
   });
 
   assert.equal(body.text, undefined, 'xAI should remove text.format when MCP tools are present');
+
+  config.defaultService = originalService;
+});
+
+test('buildRequestBody sends store: false and drops previous_response_id for OpenRouter', () => {
+  const originalService = config.defaultService;
+  config.defaultService = 'openrouter';
+
+  const body = buildRequestBody({
+    inputMessages: [{ role: 'user', content: 'Hello' }],
+    model: 'nvidia/nemotron-3-ultra-550b-a55b:free',
+    previousResponseId: 'resp_123',
+  });
+
+  assert.equal(body.store, false, 'OpenRouter requires store: false');
+  assert.equal(body.previous_response_id, undefined, 'OpenRouter should not receive previous_response_id');
 
   config.defaultService = originalService;
 });

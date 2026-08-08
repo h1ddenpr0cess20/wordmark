@@ -4,7 +4,7 @@
  */
 
 /** Identifier for a built-in AI provider. */
-export type ServiceKey = "openai" | "lmstudio" | "ollama" | "xai";
+export type ServiceKey = "openai" | "lmstudio" | "ollama" | "xai" | "openrouter";
 
 /** A model entry as returned by a provider's `/models` (or `/api/tags`) endpoint. */
 export interface ModelListItem {
@@ -20,6 +20,8 @@ export interface ServiceConfig {
   models: string[];
   /** Embedding models exposed by the provider, kept out of the chat `models` list. */
   embeddingModels?: string[];
+  /** Preferred embedding model id for this provider, used by {@link resolveEmbeddingModel} ahead of the generic name-pattern heuristics. */
+  defaultEmbeddingModel?: string;
   defaultModel: string;
   modelsFetching: boolean;
   /** OpenAI organization id, when applicable. */
