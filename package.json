@@ -112,7 +112,7 @@
   },
   "dependencies": {
     "dompurify": "^3.4.13",
-    "highlight.js": "^11.11.1",
+    "highlight.js": "^11.11.2",
     "marked": "^18.0.9"
   },
   "build": {
