@@ -15,7 +15,7 @@
  */
 
 import { extractDocumentText } from "./parsers/index.ts";
-import { chunkText, cosineSim, fetchEmbeddings, resolveEmbeddingModel } from "./embeddings.ts";
+import { chunkText, cosineSimCached, fetchEmbeddings, resolveEmbeddingModel } from "./embeddings.ts";
 import {
   saveDocChunks,
   loadDocChunks,
@@ -359,7 +359,7 @@ function lexicalScores(chunks: IndexedChunk[], query: string): number[] {
 }
 
 function normalizedCosine(a: number[], b: number[]): number {
-  const score = cosineSim(a, b);
+  const score = cosineSimCached(a, b);
   return Number.isFinite(score) ? Math.max(0, Math.min(1, score)) : 0;
 }
 
