@@ -89,6 +89,42 @@ export function cosineSim(a: number[], b: number[]): number {
   return dot / (Math.sqrt(na) * Math.sqrt(nb) || 1);
 }
 
+const vectorNorms = new WeakMap<number[], number>();
+
+/**
+ * Euclidean norm of a vector, memoized per array instance.
+ *
+ * @remarks
+ * Keyed on identity, so a vector replaced wholesale (as re-embedding does)
+ * gets a fresh entry rather than a stale norm. Callers must not mutate a
+ * vector's elements in place.
+ */
+export function vectorNorm(vector: number[]): number {
+  const cached = vectorNorms.get(vector);
+  if (cached !== undefined) return cached;
+  let sum = 0;
+  for (let i = 0; i < vector.length; i++) sum += vector[i] * vector[i];
+  const norm = Math.sqrt(sum);
+  vectorNorms.set(vector, norm);
+  return norm;
+}
+
+/**
+ * Cosine similarity reusing memoized norms, for the retrieval hot paths that
+ * score one vector against many (and the same vectors against each other
+ * repeatedly during reranking). Returns `NaN` on a dimension mismatch, matching
+ * {@link cosineSim}; callers already treat a non-finite score as no similarity.
+ *
+ * @param a - First vector.
+ * @param b - Second vector.
+ */
+export function cosineSimCached(a: number[], b: number[]): number {
+  if (a.length !== b.length) return NaN;
+  let dot = 0;
+  for (let i = 0; i < a.length; i++) dot += a[i] * b[i];
+  return dot / (vectorNorm(a) * vectorNorm(b) || 1);
+}
+
 /** Reads the user-set embedding model from localStorage, or `null` if unset. */
 function readStoredEmbeddingModel(): string | null {
   try {

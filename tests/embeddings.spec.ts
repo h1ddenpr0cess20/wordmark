@@ -31,7 +31,7 @@ mock.module(new URL("../src/ts/services/api/requestTransport.ts", import.meta.ur
   namedExports: { buildHeaders: () => ({ "Content-Type": "application/json" }) },
 });
 
-const { chunkText, cosineSim, resolveEmbeddingModel, fetchEmbeddings, EMBEDDING_MODEL_STORAGE_KEY, EMBEDDING_BATCH_SIZE } =
+const { chunkText, cosineSim, cosineSimCached, vectorNorm, resolveEmbeddingModel, fetchEmbeddings, EMBEDDING_MODEL_STORAGE_KEY, EMBEDDING_BATCH_SIZE } =
   await import("../src/ts/services/embeddings.ts");
 
 const store = new Map<string, string>();
@@ -166,4 +166,26 @@ test("fetchEmbeddings rejects incomplete or malformed vector responses", async (
     ] }),
   })) as unknown as typeof fetch;
   await assert.rejects(() => fetchEmbeddings(["a", "b"], "embed-model"), /malformed|inconsistent/);
+});
+
+test("vectorNorm memoizes per array instance and stays correct", () => {
+  const vector = [3, 4];
+  assert.equal(vectorNorm(vector), 5);
+  assert.equal(vectorNorm(vector), 5);
+  assert.equal(vectorNorm([3, 4]), 5);
+  assert.equal(vectorNorm([]), 0);
+});
+
+test("cosineSimCached matches cosineSim and is stable across repeat calls", () => {
+  const query = [1, 1, 0];
+  const candidates = [[1, 0, 0], [0, 1, 1], [2, 2, 0], [0, 0, 0]];
+  for (const candidate of candidates) {
+    const expected = cosineSim(query, candidate);
+    assert.ok(Math.abs(cosineSimCached(query, candidate) - expected) < 1e-12);
+    assert.ok(Math.abs(cosineSimCached(query, candidate) - expected) < 1e-12);
+  }
+});
+
+test("cosineSimCached returns a non-finite score on a dimension mismatch", () => {
+  assert.equal(Number.isFinite(cosineSimCached([1, 0], [1, 0, 0])), false);
 });
