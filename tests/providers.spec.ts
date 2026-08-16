@@ -12,6 +12,7 @@ import {
   usesDirectFileUpload,
   extractsDocumentsClientSide,
   supportsResponseStorage,
+  usesEmbeddingRetrieval,
 } from "../src/ts/services/providers.ts";
 
 test("isLocalService is true only for local-server providers", () => {
@@ -103,4 +104,14 @@ test("extractsDocumentsClientSide is true for local providers and openrouter", (
   assert.equal(extractsDocumentsClientSide("xai"), false);
   assert.equal(extractsDocumentsClientSide(null), false);
   assert.equal(extractsDocumentsClientSide(undefined), false);
+});
+
+test("usesEmbeddingRetrieval excludes openrouter from the embedding-backed index", () => {
+  assert.equal(usesEmbeddingRetrieval("lmstudio"), true);
+  assert.equal(usesEmbeddingRetrieval("ollama"), true);
+  assert.equal(usesEmbeddingRetrieval("openrouter"), false);
+  assert.equal(usesEmbeddingRetrieval("openai"), false);
+  assert.equal(usesEmbeddingRetrieval("xai"), false);
+  assert.equal(usesEmbeddingRetrieval(null), false);
+  assert.equal(usesEmbeddingRetrieval(undefined), false);
 });

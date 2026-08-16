@@ -106,3 +106,19 @@ export function usesDirectFileUpload(serviceKey: string | null | undefined): boo
 export function extractsDocumentsClientSide(serviceKey: string | null | undefined): boolean {
   return isLocalService(serviceKey) || serviceKey === "openrouter";
 }
+
+/**
+ * Whether client-side extracted document text is indexed and retrieved through
+ * the provider's `/embeddings` endpoint rather than injected directly.
+ *
+ * @remarks
+ * Local servers (LM Studio, Ollama) expose an OpenAI-compatible `/embeddings`
+ * endpoint the browser can reach, and their small context windows make
+ * retrieval mandatory. OpenRouter's `/embeddings` endpoint is not usable from a
+ * browser (the preflight is not answered with CORS headers), so its documents
+ * are injected in full under a character budget instead — its models have the
+ * context window to absorb them.
+ */
+export function usesEmbeddingRetrieval(serviceKey: string | null | undefined): boolean {
+  return extractsDocumentsClientSide(serviceKey) && serviceKey !== "openrouter";
+}
