@@ -4,7 +4,7 @@ All notable changes to Wordmark are documented here. Earlier versions didn't fol
 
 ## [4.0.0] - 2026-08-17
 
-A full redesign of the app shell around a left rail, plus data import. The chat, settings, history and gallery features are unchanged in behavior; what changed is the frame they sit in.
+A full redesign of the app shell around a left rail. The chat, settings, history and gallery features are unchanged in behavior; what changed is the frame they sit in.
 
 ### Changed
 - **The app shell is now the Rail layout** — the floating 80vw card, the centered logo above it and the three icon buttons floating over the chat are gone. In their place is a full-bleed two-column shell: a 264px rail on the left carrying the mark, a New chat button, the recent-conversation list, the history/gallery/settings buttons and a provider status line; and a chat column with a header, a 760px reading column and the composer. Below 860px the rail collapses into an overlay drawer opened from a hamburger in the header.
@@ -16,7 +16,6 @@ A full redesign of the app shell around a left rail, plus data import. The chat,
 - **Settings keeps its vertical tab pane at every width** — 3.15.1 fell back to a horizontal strip below 641px; the pane now trades width for a smaller label instead (116px, then 104px on the narrowest phones), which keeps every tab name intact without starving the content column.
 
 ### Added
-- **Import in Settings → Data** — loads a Wordmark export (the JSON from Storage → Export All Data) and *merges* it into local storage rather than replacing anything. Conversations match on id and are only overwritten when the file's copy is newer, so re-importing the same file is a no-op and a stale bundle can't clobber newer local work; memories are unioned without duplicates; document-index chunks are written only for conversations that have none. The file's settings are left alone unless you opt in, and credentials are never in an export to begin with.
 - **A real lightbox for images** — the media viewer gains zoom and pan (wheel, the new zoom buttons, `+`/`-`/`0`, double-click to toggle, drag to pan when zoomed), a copy-prompt button, and `Home`/`End` to jump to the first or last item. It also behaves like a dialog now: it declares `role="dialog"`/`aria-modal`, takes focus when it opens, returns focus where it came from when it closes, and locks background scrolling while open.
 - **Empty-state for a new conversation** — the mark, a reminder that everything stays on this machine, and starter prompts that drop into the composer.
 

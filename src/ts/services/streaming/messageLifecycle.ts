@@ -22,6 +22,7 @@ import {
 } from "./thinkingUtils.ts";
 import { highlightAndAddCopyButtons, generateMessageId, addMessageCopyButton } from "../../components/messages.ts";
 import { decorateAssistantMessage, captureVariantImages } from "../../components/messageActions.ts";
+import { assistantMetaText } from "../../components/ui/messageShell.ts";
 import { recordRegeneratedVariant, applyVariant } from "../../components/messageVariants.ts";
 import { setupImageInteractions } from "../../components/ui/imageInteractions.ts";
 import { hideImageWaitSpinner } from "../../components/ui/imageWaitSpinner.ts";
@@ -350,6 +351,13 @@ export function updateFinalMessage(loadingMessage: HTMLElement | null) {
     highlightAndAddCopyButtons(loadingMessage);
   } catch (e) {
     console.warn("Error highlighting code in final message:", e);
+  }
+
+  const metaInfo = loadingMessage.querySelector<HTMLElement>(".message-meta-info");
+  if (metaInfo) {
+    const metaText = assistantMetaText();
+    metaInfo.textContent = metaText;
+    metaInfo.title = metaText;
   }
 
   loadingMessage.className = "message assistant";

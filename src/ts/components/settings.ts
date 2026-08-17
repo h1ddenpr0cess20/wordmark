@@ -165,6 +165,8 @@ export function updateHeaderInfo() {
 
   try { updateFeatureStatus(); } catch { /* noop */ }
 
+  try { uiHooks.updateRailServiceLine?.(); } catch { /* noop */ }
+
   updateReasoningAvailability();
 }
 
