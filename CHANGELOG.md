@@ -2,11 +2,16 @@
 
 All notable changes to Wordmark are documented here. Earlier versions didn't follow proper semver — this changelog reflects what actually shipped, not what the version numbers said at the time.
 
-## [Unreleased]
+## [3.15.0] - 2026-08-17
+
+Adds OpenRouter as a provider, a real app manifest and icon set for installs, a settings panel reorganized around a left-hand list, and a batch of image/media and mobile fixes. Backward-compatible.
 
 ### Added
 - **Web app manifest** — `public/manifest.webmanifest`, linked from `index.html`, declaring the app name, standalone display, theme/background colors, and the full icon set. Installing from Chrome's **Add to Home screen** now gets real app metadata instead of the browser guessing from the page title and favicon.
 - **OpenRouter provider** — adds OpenRouter as a fifth AI service alongside OpenAI and xAI, using its OpenAI-compatible Responses API (`https://openrouter.ai/api/v1/responses`). Configure it with its own API key in Settings → API Keys; its model list is fetched live from OpenRouter's combined multi-vendor catalog, defaulting to `nvidia/nemotron-3-ultra-550b-a55b:free`. Requests set `store: false` and omit `previous_response_id`, since OpenRouter's Responses API rejects server-side state storage. Document attachments are extracted to text client-side (like the local providers) since OpenRouter has no OpenAI-compatible vector-store/file API; unlike the local providers they are injected into the turn whole, capped at 120k characters, because OpenRouter's `/embeddings` endpoint is not reachable from a browser, so the embedding-backed retrieval index can't be built against it.
+
+### Changed
+- **Settings navigation is a list pane, not tabs** — the twelve settings sections used to sit in a single horizontally scrolling strip of tabs across the top of the panel, where the later ones (Location, Storage, About) were off-screen until you scrolled sideways. They are now a vertical list down the left side of the panel with the active section filling the rest of the width, so every section is visible at once. The active row is marked with an inset accent bar; the list narrows on small screens.
 
 ### Fixed
 - **Document retrieval recomputing vector norms on every comparison** — `cosineSim` derived both vectors' magnitudes on each call, so a turn re-derived the query vector's norm once per indexed chunk and each candidate's norm once per reranking pass. Retrieval now scores through a norm-memoizing variant keyed on the vector's array identity, leaving `cosineSim` itself unchanged for other callers. Measured ~30% off the scoring work for a 400-chunk index (5.9ms → 4.2ms per turn).
