@@ -10,81 +10,83 @@
     </button>
   </div>
 
-  <!-- Tabs Navigation -->
-  <div class="settings-tabs" role="tablist">
-    <button type="button" id="tab-personality" class="tab-button active" role="tab" aria-selected="true" aria-controls="content-personality">Personality</button>
-    <button type="button" id="tab-model" class="tab-button" role="tab" aria-selected="false" aria-controls="content-model">Model</button>
-    <button type="button" id="tab-tools" class="tab-button" role="tab" aria-selected="false" aria-controls="content-tools">Tools</button>
-    <button type="button" id="tab-skills" class="tab-button" role="tab" aria-selected="false" aria-controls="content-skills">Skills</button>
-    <button type="button" id="tab-data" class="tab-button" role="tab" aria-selected="false" aria-controls="content-data">Data</button>
-    <button type="button" id="tab-memory" class="tab-button" role="tab" aria-selected="false" aria-controls="content-memory">Memory</button>
-    <button type="button" id="tab-tts" class="tab-button" role="tab" aria-selected="false" aria-controls="content-tts">TTS</button>
-    <button type="button" id="tab-theme" class="tab-button" role="tab" aria-selected="false" aria-controls="content-theme">Theme</button>
-    <button type="button" id="tab-apikeys" class="tab-button" role="tab" aria-selected="false" aria-controls="content-apikeys">API Keys</button>
-    <button type="button" id="tab-location" class="tab-button" role="tab" aria-selected="false" aria-controls="content-location">Location</button>
-    <button type="button" id="tab-storage" class="tab-button" role="tab" aria-selected="false" aria-controls="content-storage">Storage</button>
-    <button type="button" id="tab-about" class="tab-button" role="tab" aria-selected="false" aria-controls="content-about">About</button>
-  </div>
-
-  <div class="tab-content-container">
-    <!-- Personality Tab Content -->
-    <div id="content-personality" class="tab-content active" role="tabpanel" aria-labelledby="tab-personality">
-      <!-- Loaded from src/html/panels/settings/personality.html -->
+  <div class="settings-body">
+    <!-- Tabs Navigation -->
+    <div class="settings-tabs" role="tablist" aria-orientation="vertical">
+      <button type="button" id="tab-personality" class="tab-button active" role="tab" aria-selected="true" aria-controls="content-personality">Personality</button>
+      <button type="button" id="tab-model" class="tab-button" role="tab" aria-selected="false" aria-controls="content-model">Model</button>
+      <button type="button" id="tab-tools" class="tab-button" role="tab" aria-selected="false" aria-controls="content-tools">Tools</button>
+      <button type="button" id="tab-skills" class="tab-button" role="tab" aria-selected="false" aria-controls="content-skills">Skills</button>
+      <button type="button" id="tab-data" class="tab-button" role="tab" aria-selected="false" aria-controls="content-data">Data</button>
+      <button type="button" id="tab-memory" class="tab-button" role="tab" aria-selected="false" aria-controls="content-memory">Memory</button>
+      <button type="button" id="tab-tts" class="tab-button" role="tab" aria-selected="false" aria-controls="content-tts">TTS</button>
+      <button type="button" id="tab-theme" class="tab-button" role="tab" aria-selected="false" aria-controls="content-theme">Theme</button>
+      <button type="button" id="tab-apikeys" class="tab-button" role="tab" aria-selected="false" aria-controls="content-apikeys">API Keys</button>
+      <button type="button" id="tab-location" class="tab-button" role="tab" aria-selected="false" aria-controls="content-location">Location</button>
+      <button type="button" id="tab-storage" class="tab-button" role="tab" aria-selected="false" aria-controls="content-storage">Storage</button>
+      <button type="button" id="tab-about" class="tab-button" role="tab" aria-selected="false" aria-controls="content-about">About</button>
     </div>
 
-    <!-- Theme Tab Content -->
-    <div id="content-theme" class="tab-content" role="tabpanel" aria-labelledby="tab-theme">
-      <!-- Loaded from src/html/panels/settings/theme.html -->
-    </div>
+    <div class="tab-content-container">
+      <!-- Personality Tab Content -->
+      <div id="content-personality" class="tab-content active" role="tabpanel" aria-labelledby="tab-personality">
+        <!-- Loaded from src/html/panels/settings/personality.html -->
+      </div>
 
-    <!-- TTS Tab Content -->
-    <div id="content-tts" class="tab-content" role="tabpanel" aria-labelledby="tab-tts">
-      <!-- Loaded from src/html/panels/settings/tts.html -->
-    </div>
+      <!-- Theme Tab Content -->
+      <div id="content-theme" class="tab-content" role="tabpanel" aria-labelledby="tab-theme">
+        <!-- Loaded from src/html/panels/settings/theme.html -->
+      </div>
 
-    <!-- Model Settings Tab Content -->
-    <div id="content-model" class="tab-content" role="tabpanel" aria-labelledby="tab-model">
-      <!-- Loaded from src/html/panels/settings/model.html -->
-    </div>
+      <!-- TTS Tab Content -->
+      <div id="content-tts" class="tab-content" role="tabpanel" aria-labelledby="tab-tts">
+        <!-- Loaded from src/html/panels/settings/tts.html -->
+      </div>
 
-    <!-- API Keys Tab Content -->
-    <div id="content-apikeys" class="tab-content" role="tabpanel" aria-labelledby="tab-apikeys">
-      <!-- Loaded from src/html/panels/settings/apiKeys.html -->
-    </div>
+      <!-- Model Settings Tab Content -->
+      <div id="content-model" class="tab-content" role="tabpanel" aria-labelledby="tab-model">
+        <!-- Loaded from src/html/panels/settings/model.html -->
+      </div>
 
-    <!-- Tools Tab Content -->
-    <div id="content-tools" class="tab-content" role="tabpanel" aria-labelledby="tab-tools">
-      <!-- Loaded from src/html/panels/settings/tools.html -->
-    </div>
+      <!-- API Keys Tab Content -->
+      <div id="content-apikeys" class="tab-content" role="tabpanel" aria-labelledby="tab-apikeys">
+        <!-- Loaded from src/html/panels/settings/apiKeys.html -->
+      </div>
 
-    <!-- Skills Tab Content -->
-    <div id="content-skills" class="tab-content" role="tabpanel" aria-labelledby="tab-skills">
-      <!-- Loaded from src/html/panels/settings/skills.html -->
-    </div>
+      <!-- Tools Tab Content -->
+      <div id="content-tools" class="tab-content" role="tabpanel" aria-labelledby="tab-tools">
+        <!-- Loaded from src/html/panels/settings/tools.html -->
+      </div>
 
-    <!-- Data Tab Content -->
-    <div id="content-data" class="tab-content" role="tabpanel" aria-labelledby="tab-data">
-      <!-- Loaded from src/html/panels/settings/data.html -->
-    </div>
+      <!-- Skills Tab Content -->
+      <div id="content-skills" class="tab-content" role="tabpanel" aria-labelledby="tab-skills">
+        <!-- Loaded from src/html/panels/settings/skills.html -->
+      </div>
 
-    <!-- Memory Tab Content -->
-    <div id="content-memory" class="tab-content" role="tabpanel" aria-labelledby="tab-memory">
-      <!-- Loaded from src/html/panels/settings/memory.html -->
-    </div>
+      <!-- Data Tab Content -->
+      <div id="content-data" class="tab-content" role="tabpanel" aria-labelledby="tab-data">
+        <!-- Loaded from src/html/panels/settings/data.html -->
+      </div>
 
-    <!-- Location Tab Content -->
-    <div id="content-location" class="tab-content" role="tabpanel" aria-labelledby="tab-location">
-      <!-- Loaded from src/html/panels/settings/location.html -->
-    </div>
+      <!-- Memory Tab Content -->
+      <div id="content-memory" class="tab-content" role="tabpanel" aria-labelledby="tab-memory">
+        <!-- Loaded from src/html/panels/settings/memory.html -->
+      </div>
 
-    <!-- Storage Tab Content -->
-    <div id="content-storage" class="tab-content" role="tabpanel" aria-labelledby="tab-storage">
-      <!-- Loaded from src/html/panels/settings/storage.html -->
-    </div>
+      <!-- Location Tab Content -->
+      <div id="content-location" class="tab-content" role="tabpanel" aria-labelledby="tab-location">
+        <!-- Loaded from src/html/panels/settings/location.html -->
+      </div>
 
-    <!-- About Tab Content -->
-    <div id="content-about" class="tab-content" role="tabpanel" aria-labelledby="tab-about">
-      <!-- Loaded from src/html/panels/settings/about.html -->
+      <!-- Storage Tab Content -->
+      <div id="content-storage" class="tab-content" role="tabpanel" aria-labelledby="tab-storage">
+        <!-- Loaded from src/html/panels/settings/storage.html -->
+      </div>
+
+      <!-- About Tab Content -->
+      <div id="content-about" class="tab-content" role="tabpanel" aria-labelledby="tab-about">
+        <!-- Loaded from src/html/panels/settings/about.html -->
+      </div>
     </div>
   </div>
 </section>

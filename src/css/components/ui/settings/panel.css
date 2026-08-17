@@ -1,20 +1,32 @@
 /* Panel shell, header, and close button come from components/ui/panels.css. */
 
+/* The tab list is a vertical navigation pane on the left of the settings body;
+   the active panel fills the remaining width. */
+.settings-body {
+  display: flex;
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow: hidden;
+}
+
 .settings-tabs {
   display: flex;
-  border-bottom: 1px solid var(--border-color);
+  flex-direction: column;
+  border-right: 1px solid var(--border-color);
   position: relative;
-  flex-wrap: nowrap;
-  width: 100%;
-  overflow-x: auto;
-  overflow-y: hidden;
+  flex: 0 0 auto;
+  width: 168px;
+  padding: 8px 0;
+  gap: 2px;
+  overflow-x: hidden;
+  overflow-y: auto;
   background-color: var(--bg-primary);
   scrollbar-width: thin;
   scrollbar-color: var(--accent-color) var(--bg-secondary);
 }
 
 .settings-tabs::-webkit-scrollbar {
-  height: 8px;
+  width: 8px;
   background: var(--bg-secondary);
 }
 .settings-tabs::-webkit-scrollbar-thumb {
@@ -26,7 +38,7 @@
 }
 
 .tab-button {
-  padding: 10px 8px;
+  padding: 10px 14px;
   background: none;
   border: none;
   color: var(--text-secondary);
@@ -34,23 +46,26 @@
   cursor: pointer;
   transition: all 0.2s;
   position: relative;
-  bottom: -1px;
-  border-bottom: 2px solid transparent;
-  flex: 1;
-  min-width: min-content;
+  flex: 0 0 auto;
+  width: 100%;
   white-space: nowrap;
-  text-align: center;
+  text-align: left;
   overflow: hidden;
   text-overflow: ellipsis;
 }
 
 .tab-button:hover {
   color: var(--text-primary);
+  background-color: var(--bg-secondary);
 }
 
-.tab-button.active {
-  color: var(--button-text-color);
-  border-bottom: 2px solid var(--accent-color);
+/* Themes paint the active tab with `border-bottom: ... !important`, which reads
+   as a stray underline in a vertical list — the marker here is an inset bar. */
+.settings-tabs .tab-button.active {
+  color: var(--accent-color);
+  background-color: var(--bg-secondary);
+  border-bottom-color: transparent !important;
+  box-shadow: inset 3px 0 0 var(--accent-color);
 }
 
 .tab-content {
@@ -67,7 +82,8 @@
 }
 
 .tab-content-container {
-  flex: 1;
+  flex: 1 1 auto;
+  min-width: 0;
   overflow-y: auto;
   overflow-x: hidden;
   padding-right: 2px;
