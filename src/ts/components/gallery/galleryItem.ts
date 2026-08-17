@@ -11,6 +11,7 @@
 
 import { icon } from "../../utils/icons.ts";
 import { detectMediaType } from "../../services/mediaTools.ts";
+import { confirmAction } from "../../utils/dialogs.ts";
 import type { GeneratedImage } from "../../../types/common.ts";
 
 /** Callbacks wiring a gallery item's buttons back to the gallery controller. */
@@ -88,9 +89,18 @@ export function createGalleryItem(image: GeneratedImage, index: number, handlers
 
   const deleteBtn = actions.querySelector<HTMLElement>(".gallery-delete-btn");
   if (deleteBtn) {
-    deleteBtn.addEventListener("click", (e: Event) => {
+    deleteBtn.addEventListener("click", async (e: Event) => {
       e.stopPropagation();
-      if (image.filename && confirm(`Delete this ${mediaType}?`)) {
+      if (!image.filename) {
+        return;
+      }
+      const confirmed = await confirmAction({
+        message: `Delete this ${mediaType}?`,
+        detail: "It is removed from local storage. This cannot be undone.",
+        confirmLabel: "Delete",
+        destructive: true,
+      });
+      if (confirmed) {
         handlers.onDelete(image.filename);
       }
     });

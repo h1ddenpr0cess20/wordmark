@@ -9,6 +9,7 @@
 import { showError, showInfo } from "../../utils/notifications.ts";
 import { escapeHtml } from "../../utils/sanitize.ts";
 import { isRecord } from "../../utils/utils.ts";
+import { alertMessage, confirmAction } from "../../utils/dialogs.ts";
 import {
   listVectorStores,
   deleteVectorStore,
@@ -163,7 +164,7 @@ export async function refreshVectorStoreList(applyCooldown = true) {
               if (showError) {
                 showError(`You can enable up to ${MAX_ACTIVE_VECTOR_STORES} vector stores at a time.`);
               } else {
-                alert(`You can enable up to ${MAX_ACTIVE_VECTOR_STORES} vector stores at a time.`);
+                await alertMessage(`You can enable up to ${MAX_ACTIVE_VECTOR_STORES} vector stores at a time.`, undefined, "error");
               }
               return;
             }
@@ -212,7 +213,7 @@ export async function refreshVectorStoreList(applyCooldown = true) {
     listContainer.querySelectorAll(".btn-delete").forEach(btn => {
       btn.addEventListener("click", (e) => {
         const storeId = (e.target as HTMLElement).getAttribute("data-store-id");
-        confirmDeleteVectorStore(storeId);
+        void confirmDeleteVectorStore(storeId);
       });
     });
 
@@ -250,26 +251,26 @@ async function viewVectorStoreDetails(storeId: string | null) {
     const fileList = files.length > 0
       ? files.map((f: unknown) => {
         const r = isRecord(f) ? f : {};
-        return `<li>${String(r.id ?? "")} (${String(r.status ?? "")})</li>`;
-      }).join("")
-      : "<li>No files in this vector store</li>";
+        return `${String(r.id ?? "")} (${String(r.status ?? "")})`;
+      })
+      : ["No files in this vector store"];
 
-    const detailsHtml = `
-      <div class="vector-store-details">
-        <h3>${escapeHtml(store.name || "Unnamed Store")}</h3>
-        <p><strong>ID:</strong> ${store.id}</p>
-        <p><strong>Created:</strong> ${new Date(store.created_at * 1000).toLocaleString()}</p>
-        <p><strong>Total Files:</strong> ${store.file_counts?.total || 0}</p>
-        <p><strong>Completed Files:</strong> ${store.file_counts?.completed || 0}</p>
-        <p><strong>In Progress:</strong> ${store.file_counts?.in_progress || 0}</p>
-        <p><strong>Failed:</strong> ${store.file_counts?.failed || 0}</p>
-        ${store.usage_bytes ? `<p><strong>Storage Used:</strong> ${formatBytes(store.usage_bytes)}</p>` : ""}
-        <h4>Files:</h4>
-        <ul>${fileList}</ul>
-      </div>
-    `;
+    // A native message box renders plain text, so the detail is assembled as
+    // lines rather than the HTML fragment this used to strip tags out of.
+    const detailLines = [
+      `ID: ${store.id}`,
+      `Created: ${new Date(store.created_at * 1000).toLocaleString()}`,
+      `Total Files: ${store.file_counts?.total || 0}`,
+      `Completed Files: ${store.file_counts?.completed || 0}`,
+      `In Progress: ${store.file_counts?.in_progress || 0}`,
+      `Failed: ${store.file_counts?.failed || 0}`,
+      ...(store.usage_bytes ? [`Storage Used: ${formatBytes(store.usage_bytes)}`] : []),
+      "",
+      "Files:",
+      ...fileList,
+    ];
 
-    alert(detailsHtml.replace(/<[^>]*>/g, "\n"));
+    await alertMessage(store.name || "Unnamed Store", detailLines.join("\n"));
   } catch (error) {
     console.error("Failed to view vector store details:", error);
     if (showError) {
@@ -281,10 +282,15 @@ async function viewVectorStoreDetails(storeId: string | null) {
 /**
  * Confirm and delete a vector store
  */
-function confirmDeleteVectorStore(storeId: string | null) {
-  const confirmed = confirm("Are you sure you want to delete this vector store? This action cannot be undone.");
+async function confirmDeleteVectorStore(storeId: string | null) {
+  const confirmed = await confirmAction({
+    message: "Delete this vector store?",
+    detail: "The store and its indexed files are removed from your OpenAI account. This cannot be undone.",
+    confirmLabel: "Delete",
+    destructive: true,
+  });
   if (confirmed) {
-    deleteVectorStoreById(storeId);
+    await deleteVectorStoreById(storeId);
   }
 }
 

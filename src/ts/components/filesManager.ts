@@ -10,6 +10,7 @@ import { listAssistantFiles, deleteFile as deleteAssistantFile, deleteAllAssista
 import { uploadFile as uploadAssistantFile } from "../services/vectorStore.ts";
 import { escapeHtml } from "../utils/sanitize.ts";
 import { buildAssistantFileItemHtml } from "./assistantFileRow.ts";
+import { confirmAction, confirmDestructive } from "../utils/dialogs.ts";
 
 /**
  * Initializes the Assistants file manager.
@@ -63,7 +64,12 @@ export async function refreshAssistantFileList() {
       btn.addEventListener("click", async (e: Event) => {
         const fileId = (e.currentTarget as HTMLElement).getAttribute("data-file-id");
         if (!fileId) return;
-        const confirmed = confirm("Delete this file? This action cannot be undone.");
+        const confirmed = await confirmAction({
+          message: "Delete this file?",
+          detail: "This cannot be undone.",
+          confirmLabel: "Delete",
+          destructive: true,
+        });
         if (!confirmed) return;
 
         try {
@@ -132,8 +138,12 @@ async function uploadSelectedAssistantFiles() {
  * Delete all assistant files, with strong confirmation
  */
 async function handleDeleteAllAssistantFiles() {
-  const confirmation = prompt("This will delete all OpenAI files with purpose 'assistants'. Type 'YES' to confirm:");
-  if (confirmation !== "YES") {
+  const confirmed = await confirmDestructive({
+    message: "Delete every assistants file?",
+    detail: "This deletes all OpenAI files with purpose 'assistants'. This cannot be undone.",
+    confirmLabel: "Delete all files",
+  });
+  if (!confirmed) {
     if (showInfo) showInfo("Operation cancelled.");
     return;
   }

@@ -13,6 +13,7 @@
 
 import { icon } from "../utils/icons.ts";
 import { showNotification } from "../utils/notifications.ts";
+import { confirmAction } from "../utils/dialogs.ts";
 import {
   getAllSkills,
   getSkillById,
@@ -105,7 +106,7 @@ function renderSkillsList() {
       deleteButton.addEventListener("click", (event) => {
         event.preventDefault();
         event.stopPropagation();
-        handleRemoveSkill(skill.id, skill.name);
+        void handleRemoveSkill(skill.id, skill.name);
       });
       control.appendChild(deleteButton);
     }
@@ -149,8 +150,14 @@ function handleSkillToggle(event: Event) {
 }
 
 /** Confirms and removes an uploaded skill, then re-renders. */
-function handleRemoveSkill(id: string, name: string) {
-  if (!confirm(`Are you sure you want to remove the skill "${name}"?`)) {
+async function handleRemoveSkill(id: string, name: string) {
+  const confirmed = await confirmAction({
+    message: `Remove the skill "${name}"?`,
+    detail: "The uploaded SKILL.md is deleted from this browser. This cannot be undone.",
+    confirmLabel: "Remove",
+    destructive: true,
+  });
+  if (!confirmed) {
     return;
   }
   try {

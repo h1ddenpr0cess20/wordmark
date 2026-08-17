@@ -14,6 +14,7 @@ import { showNotification } from "../utils/notifications.ts";
 import { responsesClient } from "./api.ts";
 import { refreshToolSettingsUI } from "../components/tools.ts";
 import { getMCPServers, addMCPServer, removeMCPServer } from "./mcpServerStore.ts";
+import { confirmAction } from "../utils/dialogs.ts";
 
 export { getMCPServers, addMCPServer, removeMCPServer };
 export type { McpServer } from "./mcpServerStore.ts";
@@ -23,10 +24,10 @@ export type { McpServer } from "./mcpServerStore.ts";
  *
  * @param serverLabel - The server label to remove.
  * @param fallbackDisplayName - Name shown if the server is no longer in storage.
- * @returns `true` if the server was removed, or `false` if the label is empty
- *   or the user cancels the confirmation.
+ * @returns A promise resolving to `true` if the server was removed, or `false`
+ *   if the label is empty or the user cancels the confirmation.
  */
-export function requestMcpServerRemoval(serverLabel: string, fallbackDisplayName?: string) {
+export async function requestMcpServerRemoval(serverLabel: string, fallbackDisplayName?: string) {
   if (!serverLabel) {
     return false;
   }
@@ -35,7 +36,13 @@ export function requestMcpServerRemoval(serverLabel: string, fallbackDisplayName
   const server = servers.find((s) => s.server_label === serverLabel);
   const displayName = server ? server.displayName : (fallbackDisplayName || serverLabel);
 
-  if (!confirm(`Are you sure you want to remove the MCP server "${displayName}"?`)) {
+  const confirmed = await confirmAction({
+    message: `Remove the MCP server "${displayName}"?`,
+    detail: "Its tools stop being offered to the model. You can add the server again later.",
+    confirmLabel: "Remove",
+    destructive: true,
+  });
+  if (!confirmed) {
     return false;
   }
 

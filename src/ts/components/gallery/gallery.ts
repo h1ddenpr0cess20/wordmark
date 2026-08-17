@@ -14,6 +14,7 @@ import { createImageSlideshow } from "../ui/imageInteractions.ts";
 import type { GeneratedImage } from "../../../types/common.ts";
 import { isPanelOpen, openPanel, closePanel } from "../../utils/dom/panels.ts";
 import { closeSettingsPanelIfOpen } from "../../init/eventListeners/settingsPanel.ts";
+import { alertMessage, confirmAction } from "../../utils/dialogs.ts";
 
 state.isSlideshowOpen = false;
 
@@ -65,7 +66,7 @@ const initGallery = function() {
 
   if (bulkDeleteBtn) {
     bulkDeleteBtn.addEventListener("click", () => {
-      bulkDeleteSelectedImages();
+      void bulkDeleteSelectedImages();
     });
   }
 
@@ -206,7 +207,7 @@ const deleteImageAndUpdateGallery = async function(filename: string) {
     loadGalleryImages();
   } catch (error) {
     console.error("Error deleting media:", error);
-    alert("Failed to delete the media item. Please try again.");
+    await alertMessage("Failed to delete the media item. Please try again.", undefined, "error");
   }
 };
 
@@ -220,7 +221,7 @@ const downloadGalleryImage = function(imageData: string | Blob, filename?: strin
   downloadMediaSource(imageData, filename)
     .catch(error => {
       console.error("Failed to download gallery media:", error);
-      alert("Failed to download the selected media item.");
+      void alertMessage("Failed to download the selected media item.", undefined, "error");
     });
 };
 
@@ -242,47 +243,50 @@ const startGallerySlideshow = function(startIndex: number) {
  * Bulk delete selected media items
  */
 const bulkDeleteSelectedImages = async function() {
-  const selectedCheckboxes = document.querySelectorAll<HTMLInputElement>(".gallery-select-checkbox:checked");
+  // Resolved to filenames before the confirmation, because the native dialog no
+  // longer freezes the page: the grid can re-render (tab switch, refresh) while
+  // it is open, which would leave the checkbox nodes detached and unreadable.
+  const filenames = Array.from(document.querySelectorAll<HTMLInputElement>(".gallery-select-checkbox:checked"))
+    .map((checkbox) => checkbox.closest<HTMLElement>(".gallery-item")?.dataset.filename)
+    .filter((filename): filename is string => Boolean(filename));
 
-  if (selectedCheckboxes.length === 0) {
-    alert("No media selected");
+  if (filenames.length === 0) {
+    await alertMessage("No media selected", "Tick the Select box on one or more items first.");
     return;
   }
 
-  if (!confirm(`Delete ${selectedCheckboxes.length} selected media item(s)?`)) {
+  const confirmed = await confirmAction({
+    message: `Delete ${filenames.length} selected media item(s)?`,
+    detail: "They are removed from local storage. This cannot be undone.",
+    confirmLabel: "Delete",
+    destructive: true,
+  });
+  if (!confirmed) {
     return;
   }
 
   const galleryGrid = document.getElementById("gallery-grid");
   const loadingIndicator = document.createElement("div");
   loadingIndicator.className = "bulk-delete-indicator";
-  loadingIndicator.textContent = `Deleting ${selectedCheckboxes.length} media item(s)...`;
+  loadingIndicator.textContent = `Deleting ${filenames.length} media item(s)...`;
 
   if (galleryGrid) {
     galleryGrid.classList.add("deleting-images");
     galleryGrid.appendChild(loadingIndicator);
   }
 
-  const deletePromises: Promise<unknown>[] = [];
-
-  selectedCheckboxes.forEach((checkbox) => {
-    const galleryItem = checkbox.closest<HTMLElement>(".gallery-item");
-    if (galleryItem) {
-      const filename = galleryItem.dataset.filename;
-      if (filename) {
-        deletePromises.push(deleteImageFromDb(filename));
-      }
-    }
-  });
-
-  const results = await Promise.allSettled(deletePromises);
+  const results = await Promise.allSettled(filenames.map((filename) => deleteImageFromDb(filename)));
   const failures = results.filter((r): r is PromiseRejectedResult => r.status === "rejected");
   failures.forEach((r) => console.error("Failed to delete media item:", r.reason));
 
   loadGalleryImages();
 
   if (failures.length > 0) {
-    alert(`${failures.length} of ${deletePromises.length} media item(s) could not be deleted. Please try again.`);
+    await alertMessage(
+      `${failures.length} of ${filenames.length} media item(s) could not be deleted. Please try again.`,
+      undefined,
+      "error",
+    );
   }
 };
 
