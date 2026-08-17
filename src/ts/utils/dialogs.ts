@@ -55,7 +55,11 @@ function desktopBridge(): MessageBoxFn | null {
   if (typeof window === "undefined") {
     return null;
   }
-  const showMessageBox = window.wordmarkDesktop?.showMessageBox;
+  // Read through a local cast rather than the ambient Window augmentation in
+  // components/desktopTitlebar.ts: the tests tsconfig does not pull that module
+  // in, so relying on it breaks `npm run typecheck:tests`.
+  const bridge = (window as { wordmarkDesktop?: { showMessageBox?: MessageBoxFn } }).wordmarkDesktop;
+  const showMessageBox = bridge?.showMessageBox;
   return typeof showMessageBox === "function" ? showMessageBox : null;
 }
 

@@ -18,6 +18,7 @@ import { updateHeaderInfo } from "./settings.ts";
 import { applyVariant, ensureVariants } from "./messageVariants.ts";
 import { buildMessageMediaHtml } from "../services/messageMedia.ts";
 import { messageActionHost, setAssistantMetaText } from "./ui/messageShell.ts";
+import { uncompactedMessages } from "../services/api/compaction.ts";
 import type { Message } from "../../types/api.ts";
 
 const logRegen = createScopedLogger("regenerate");
@@ -188,7 +189,16 @@ export async function regenerateMessage(messageId: string): Promise<void> {
     delete state.messageImages[messageId];
   }
 
-  const requestMessages = history.slice(0, idx);
+  // Match the send path: when the conversation has been compacted, only the
+  // tail after the marker is resent, because `buildDeveloperMessage` puts the
+  // summary in the system prompt for this request too. Trimming is skipped when
+  // the marker is not among the prior messages (the regenerated turn is itself
+  // the marker), so the model sees those turns verbatim rather than not at all.
+  const prior = history.slice(0, idx);
+  const marker = state.compactedThroughId;
+  const requestMessages = marker && prior.some(msg => msg && msg.id === marker)
+    ? uncompactedMessages(prior, marker)
+    : prior;
   enterGeneratingState(messageId);
   state.currentGeneratedImageHtml = [];
   const abortController = new AbortController();

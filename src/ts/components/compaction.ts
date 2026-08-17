@@ -277,6 +277,17 @@ export function initCompactionControls(): void {
     button.dataset.bound = "true";
   }
 
+  // The meter is drawn against the budget, so a budget edit has to redraw it —
+  // a separate listener rather than a change in `modelSettings`, so the budget
+  // control keeps owning its own persistence.
+  const budgetInput = document.getElementById("history-token-budget");
+  if (budgetInput && !budgetInput.dataset.meterBound) {
+    budgetInput.addEventListener("change", () => {
+      refreshHistoryMeter();
+    });
+    budgetInput.dataset.meterBound = "true";
+  }
+
   const toggle = document.getElementById("auto-compact-toggle") as HTMLInputElement | null;
   if (toggle) {
     toggle.checked = isAutoCompactEnabled();
