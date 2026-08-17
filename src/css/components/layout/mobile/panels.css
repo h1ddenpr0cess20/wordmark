@@ -9,10 +9,6 @@
     max-width: 100vw !important;
   }
 
-  .settings-body .settings-tabs {
-    width: 132px;
-  }
-
   #gallery-grid {
     grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
   }
@@ -107,13 +103,13 @@
   }
 }
 @media screen and (max-width: 390px) {
-  .tab-button {
-    padding: 8px 8px;
-    font-size: 0.75rem;
+  .settings-tabs .tab-button {
+    padding: 8px 6px;
+    font-size: 0.8rem;
   }
 
-  .settings-body .settings-tabs {
-    width: 108px;
+  .settings-tabs {
+    padding: 0 4px 0 2px;
   }
 
   .gallery-tab {
