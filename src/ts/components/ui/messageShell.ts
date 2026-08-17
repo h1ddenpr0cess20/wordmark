@@ -43,6 +43,41 @@ export function assistantMetaText(model?: string | null): string {
   return candidate.split("/").pop() || candidate;
 }
 
+/**
+ * Sets the model line in an assistant message's meta row, creating the
+ * `.message-meta-info` span if the message was built before any model was
+ * resolvable (or removing it if there is nothing to show).
+ *
+ * @remarks
+ * Callers that already know which model a turn is about to use (send, retry,
+ * regenerate) should call this immediately when the turn starts rather than
+ * waiting for {@link assistantMetaText}'s `state.lastUsedModel` fallback to
+ * catch up once the response finishes — otherwise the line shows the
+ * *previous* turn's model for the entire generation.
+ *
+ * @param messageElement - The `.message` root.
+ * @param model - Explicit model id; omitted falls back to {@link assistantMetaText}'s default chain.
+ */
+export function setAssistantMetaText(messageElement: HTMLElement, model?: string | null): void {
+  const meta = messageElement.querySelector<HTMLElement>(".message-meta");
+  if (!meta) {
+    return;
+  }
+  const metaText = assistantMetaText(model);
+  let info = meta.querySelector<HTMLElement>(".message-meta-info");
+  if (!metaText) {
+    info?.remove();
+    return;
+  }
+  if (!info) {
+    info = document.createElement("span");
+    info.className = "message-meta-info";
+    meta.insertBefore(info, meta.querySelector(".message-actions"));
+  }
+  info.textContent = metaText;
+  info.title = metaText;
+}
+
 /** Renders the circled-W mark into a fresh SVG element. */
 function assistantMark(): HTMLElement {
   const wrapper = document.createElement("div");

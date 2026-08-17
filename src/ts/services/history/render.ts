@@ -128,7 +128,7 @@ export function renderConversationMessages(convo: ConversationRecord, imageCache
     }
 
     const { messageElement, contentElement: contentWrapper } = createMessageShell("Assistant", "assistant", {
-      meta: assistantMetaText(convo.model),
+      meta: assistantMetaText(msg.model || convo.model),
     });
     const messageId = msg.id || generateMessageId();
     messageElement.id = messageId;

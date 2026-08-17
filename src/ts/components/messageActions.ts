@@ -17,7 +17,7 @@ import { renderChatHistoryList } from "../services/history/list.ts";
 import { updateHeaderInfo } from "./settings.ts";
 import { applyVariant, ensureVariants } from "./messageVariants.ts";
 import { buildMessageMediaHtml } from "../services/messageMedia.ts";
-import { messageActionHost } from "./ui/messageShell.ts";
+import { messageActionHost, setAssistantMetaText } from "./ui/messageShell.ts";
 import type { Message } from "../../types/api.ts";
 
 const logRegen = createScopedLogger("regenerate");
@@ -135,6 +135,12 @@ export async function regenerateMessage(messageId: string): Promise<void> {
   if (state.isResponsePending) {
     return;
   }
+  if (!isSelectableModelId(elements.modelSelector?.value)) {
+    if (showInfo) {
+      showInfo("Still loading models for the selected provider. Try again in a moment.");
+    }
+    return;
+  }
   if (!responsesClient || typeof responsesClient.runTurn !== "function") {
     if (showError) {
       showError("Responses client is not available.");
@@ -176,6 +182,7 @@ export async function regenerateMessage(messageId: string): Promise<void> {
     contentWrapper.appendChild(partyNameLabel);
   }
   contentWrapper.insertAdjacentHTML("beforeend", LOADING_HTML);
+  setAssistantMetaText(messageElement, elements.modelSelector?.value);
   removeMessageControls(messageElement);
   if (state.messageImages) {
     delete state.messageImages[messageId];
@@ -267,6 +274,7 @@ function renderActiveVariant(messageId: string): void {
   updateMessageContent(messageElement, {
     content: variant.content,
     reasoning: variant.reasoning || "",
+    model: variant.model,
     codeInterpreterOutputs: variant.codeInterpreterOutputs,
   });
 }

@@ -37,7 +37,7 @@ import type { PartyDocument } from "../services/party/partyTypes.ts";
 import { RETRIEVED_CONTEXT_MARKER } from "../utils/retrievedContext.ts";
 import { buildRetrievalQuery } from "../utils/retrievalQuery.ts";
 import { getDocumentSourceName } from "../utils/documentPaths.ts";
-import { messageActionHost } from "./ui/messageShell.ts";
+import { messageActionHost, setAssistantMetaText } from "./ui/messageShell.ts";
 
 const logInteraction = createScopedLogger("interaction");
 
@@ -546,8 +546,12 @@ export async function sendMessage() {
   const loadingId = `loading-${Date.now()}`;
   appendMessage("Assistant", LOADING_HTML, "assistant", true);
   const loadingElement = elements.chatBox ? elements.chatBox.lastElementChild : null;
-  if (loadingElement) {
+  if (loadingElement instanceof HTMLElement) {
     loadingElement.id = loadingId;
+    setAssistantMetaText(
+      loadingElement,
+      isSelectableModelId(elements.modelSelector?.value) ? elements.modelSelector?.value : undefined,
+    );
   }
 
   updateBrowserHistory();
@@ -734,8 +738,12 @@ function retryUserMessage(userId: string) {
   const loadingId = `loading-${Date.now()}`;
   appendMessage("Assistant", LOADING_HTML, "assistant", true);
   const loadingElement = elements.chatBox ? elements.chatBox.lastElementChild : null;
-  if (loadingElement) {
+  if (loadingElement instanceof HTMLElement) {
     loadingElement.id = loadingId;
+    setAssistantMetaText(
+      loadingElement,
+      isSelectableModelId(elements.modelSelector?.value) ? elements.modelSelector?.value : undefined,
+    );
   }
 
   state.shouldStopGeneration = false;

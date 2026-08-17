@@ -22,7 +22,7 @@ import {
 } from "./thinkingUtils.ts";
 import { highlightAndAddCopyButtons, generateMessageId, addMessageCopyButton } from "../../components/messages.ts";
 import { decorateAssistantMessage, captureVariantImages } from "../../components/messageActions.ts";
-import { assistantMetaText } from "../../components/ui/messageShell.ts";
+import { setAssistantMetaText } from "../../components/ui/messageShell.ts";
 import { recordRegeneratedVariant, applyVariant } from "../../components/messageVariants.ts";
 import { setupImageInteractions } from "../../components/ui/imageInteractions.ts";
 import { hideImageWaitSpinner } from "../../components/ui/imageWaitSpinner.ts";
@@ -241,6 +241,7 @@ export function finalizeStreamedResponse(loadingMessage: HTMLElement | null, con
       codeInterpreterOutputs,
       hasImages: willHaveImages,
       incomplete,
+      model: state.lastUsedModel || undefined,
     });
     applyVariant(existingEntry, existingEntry.variants![existingEntry.activeVariant!]);
   } else {
@@ -254,6 +255,7 @@ export function finalizeStreamedResponse(loadingMessage: HTMLElement | null, con
       responseId,
       codeInterpreterOutputs,
       incomplete,
+      model: state.lastUsedModel || undefined,
       character: contentObj && typeof contentObj === "object" ? contentObj.character : undefined,
     });
   }
@@ -320,7 +322,7 @@ export function finalizeStreamedResponse(loadingMessage: HTMLElement | null, con
     captureVariantImages(existingEntry);
   }
 
-  updateFinalMessage(loadingMessage);
+  updateFinalMessage(loadingMessage, state.lastUsedModel);
 
   if (ttsConfig.enabled) {
     generateTtsForMessage(content, loadingMessage.id);
@@ -342,7 +344,7 @@ export function finalizeStreamedResponse(loadingMessage: HTMLElement | null, con
  * Applies final styling to a completed message: highlights code, adds copy
  * buttons, and assigns an id if missing.
  */
-export function updateFinalMessage(loadingMessage: HTMLElement | null) {
+export function updateFinalMessage(loadingMessage: HTMLElement | null, model?: string | null) {
   if (!loadingMessage) {
     return;
   }
@@ -353,12 +355,7 @@ export function updateFinalMessage(loadingMessage: HTMLElement | null) {
     console.warn("Error highlighting code in final message:", e);
   }
 
-  const metaInfo = loadingMessage.querySelector<HTMLElement>(".message-meta-info");
-  if (metaInfo) {
-    const metaText = assistantMetaText();
-    metaInfo.textContent = metaText;
-    metaInfo.title = metaText;
-  }
+  setAssistantMetaText(loadingMessage, model);
 
   loadingMessage.className = "message assistant";
   if (!loadingMessage.id) {
@@ -383,6 +380,7 @@ export function updateMessageContent(loadingMessage: HTMLElement | null, assista
   }
   const content = typeof assistantMessageObj === "string" ? assistantMessageObj : (assistantMessageObj.content || "");
   const reasoning = typeof assistantMessageObj === "string" ? "" : (assistantMessageObj.reasoning || "");
+  const contentModel = typeof assistantMessageObj === "string" ? undefined : assistantMessageObj.model;
   const codeOutputs = typeof assistantMessageObj === "string"
     ? null
     : ((assistantMessageObj.codeInterpreterOutputs as CodeInterpreterOutputs) || null);
@@ -425,7 +423,7 @@ export function updateMessageContent(loadingMessage: HTMLElement | null, assista
 
   renderCodeInterpreterOutputs(loadingMessage, codeOutputs);
 
-  updateFinalMessage(loadingMessage);
+  updateFinalMessage(loadingMessage, contentModel);
 }
 
 /** Removes the loading-indicator message element for `loadingId`, if present. */

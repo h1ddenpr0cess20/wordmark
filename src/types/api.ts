@@ -52,6 +52,8 @@ export interface Message {
   character?: { name: string };
   /** True when generation was stopped before completing this message. */
   incomplete?: boolean;
+  /** The model that generated this assistant message (or its active variant). */
+  model?: string;
   /**
    * Document chunks retrieved for this user message by local RAG. Kept out of
    * `content` so it never renders or pollutes saved history; spliced into the
@@ -77,6 +79,8 @@ export interface MessageVariant {
   hasImages?: boolean;
   /** True when this variant was stopped before completing. */
   incomplete?: boolean;
+  /** The model that generated this variant. */
+  model?: string;
 }
 
 /**
@@ -93,6 +97,8 @@ export interface StreamedMessageContent {
   character?: { name: string };
   /** True when generation was stopped before completing this message. */
   incomplete?: boolean;
+  /** The model that generated this content. */
+  model?: string;
 }
 
 /** A function/tool call as embedded in a provider response. */
