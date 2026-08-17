@@ -13,7 +13,7 @@
  * inline implementation in `requestClient.ts`.
  */
 
-import type { ResponseObject } from "../../../types/api.ts";
+import type { ResponseObject, ResponseOutputItem } from "../../../types/api.ts";
 
 /** Flatten an array of strings / `{content}` / `{text}` items into one string. */
 function flattenContent(items: unknown[]): string {
@@ -36,9 +36,49 @@ function flattenContent(items: unknown[]): string {
     .join("");
 }
 
-/** The assistant's text output from a non-streaming response. */
+/** Extracts assistant text from a raw Responses API output item. */
+function extractOutputItemText(item: ResponseOutputItem): string {
+  if (!item || typeof item !== "object") {
+    return "";
+  }
+
+  if (typeof item.text === "string") {
+    return item.text;
+  }
+
+  const content = item.content;
+  if (typeof content === "string") {
+    return content;
+  }
+  if (Array.isArray(content)) {
+    return flattenContent(content);
+  }
+
+  return "";
+}
+
+/**
+ * The assistant's text output from a non-streaming response.
+ *
+ * `output_text` is an SDK convenience property and is not present in the raw
+ * Responses API JSON returned by `response.json()`. Prefer it when supplied by
+ * a compatible caller, but otherwise derive the text from the raw `output`
+ * array so non-streaming requests do not silently produce an empty response.
+ */
 export function extractOutputText(response: ResponseObject): string {
-  return typeof response.output_text === "string" ? response.output_text : "";
+  if (typeof response.output_text === "string") {
+    return response.output_text;
+  }
+
+  if (!Array.isArray(response.output)) {
+    return "";
+  }
+
+  return response.output
+    .filter(item => item && typeof item === "object" && item.type === "message")
+    .map(extractOutputItemText)
+    .filter(Boolean)
+    .join("");
 }
 
 /**
