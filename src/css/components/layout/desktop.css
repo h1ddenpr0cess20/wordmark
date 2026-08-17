@@ -44,7 +44,6 @@ body.desktop-app #app-shell {
   top: var(--titlebar-height);
 }
 
-body.desktop-app .notification-container,
 body.desktop-app .debug-toggle-notification {
   top: calc(20px + var(--titlebar-height));
 }

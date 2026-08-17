@@ -118,6 +118,7 @@ function setupQuickAccessTargets(openSettingsAndSwitch: (tabId: string) => void)
     { selector: "#rail-brand", tabId: "tab-about" },
     { selector: "#header-title", tabId: "tab-model" },
     { selector: "#model-info", tabId: "tab-personality" },
+    { selector: "#rail-status", tabId: "tab-model" },
   ];
 
   targets.forEach(({ selector, tabId }) => {

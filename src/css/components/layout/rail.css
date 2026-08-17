@@ -210,6 +210,14 @@
   color: var(--text-secondary);
   white-space: nowrap;
   overflow: hidden;
+  cursor: pointer;
+  transition: background 0.16s ease, color 0.16s ease;
+}
+
+#rail-status:hover,
+#rail-status:focus-visible {
+  background: rgba(var(--text-primary-rgb), 0.13);
+  color: var(--text-primary);
 }
 
 #rail-status .rail-status-dot {
