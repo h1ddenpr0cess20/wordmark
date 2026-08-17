@@ -1,57 +1,79 @@
 # UI & UX
 
-Panels & Controls
+## App shell
 
-- Header: shows current model and prompt info (from `components/settings.ts:updateHeaderInfo`).
-  - Header shortcuts:
-    - Click the logo to open Settings → About.
-    - Click the model name to open Settings → Model.
-    - Click the personality/prompt line to open Settings → Personality.
-  - Provider tooltip:
-    - Hover the model name to see whether you're using OpenAI, xAI, LM Studio, or Ollama.
-  - Feature badges (under the prompt line):
-    - Shows status for Location, Memory, and Tools.
-    - Click the dot to quickly toggle a feature on/off.
-    - Click the badge label to open the relevant Settings tab.
-    - On mobile, badges are compact and wrap to fit; they remain tappable.
-- Settings panel: model/service selectors, parameters, system/personality prompt, API keys, Tools, TTS, Location, etc.
-- History panel: lists saved conversations, supports load/rename/delete; powered by IndexedDB (`services/history.ts`).
-- Gallery panel: shows generated images and associated metadata; lazy-loaded on first open.
+Wordmark uses a two-column rail layout on desktop and a drawer layout on smaller screens.
 
-Hidden Shortcuts
+- **Desktop rail** — a 264px left rail carries the Wordmark mark, **New chat**, the 20 most recently updated conversations, History, Gallery, Settings, and provider status. The active conversation is highlighted. Conversations are loaded or deleted directly from the rail; it reads the same IndexedDB conversation store as the History panel.
+- **Chat column** — the main column contains a header, a centered reading column, messages, and the composer.
+- **Responsive drawer** — below 860px the rail collapses into an overlay drawer opened with the header hamburger. Panels layer over the shell with a scrim.
+- **Header** — shows the active model and personality/system-prompt summary. Clicking the model or prompt opens the corresponding Settings section. Feature badges expose Location, Memory, and Tools status and provide shortcuts into Settings.
 
-- Triple‑click the About tab header to toggle Debug Mode. This enables verbose, timestamped console logging and briefly shows a toast indicator. It’s session‑only; reload to reset, or use `localStorage.enableLogging = 'true'` to keep logs visible when not in debug.
+## Panels & controls
 
-Messages
+- **Settings** — model/service selectors, parameters, system/personality prompt, API keys, Tools, TTS, Location, Storage, and other configuration. Settings uses a vertical navigation pane rather than a horizontal tab strip; on narrow phones the pane becomes compact while retaining all section labels.
+- **History** — lists saved conversations and supports load, rename, delete, and bulk actions. The rail's recent-conversation list is a compact view of the same conversation data.
+- **Gallery** — shows generated images and associated metadata and is lazy-loaded when opened.
+- **Data** — import/export controls allow local application data to be backed up and restored. Imported data is merged into the existing local store rather than sent to a server.
 
-- Rendering: `components/messages.ts` (and streaming updates in `services/streaming.ts`).
-- Markdown: parsed via the bundled `marked` library.
-- Sanitization: DOMPurify; YouTube iframes allowed via a constrained allowlist.
-- Syntax highlight: the bundled `highlight.js` library with copy buttons per-code block.
-- Reasoning: Model “thinking” is separated from main text. It supports both `<think>...</think>` and `<|begin_of_thought|>/.../solution` marker styles. A collapsible “Reasoning” block is rendered above the main content.
-- Images: When tools generate images, they are displayed as thumbnails above the answer and saved to IndexedDB. History keeps `[[IMAGE: filename]]` placeholders.
-- Message actions (`components/messageActions.ts`): every message has a copy button. Assistant messages also get a **branch** button — forking the conversation into a new one up to that point — and the most recent assistant message gets a **regenerate** button. Regeneration is limited to the latest message; each regeneration is stored as an additional version and a `‹ 1 / N ›` navigator under the bubble cycles between them. The active version persists with the conversation.
-- Stopping: pressing Stop mid-response keeps the partial assistant message (marked incomplete) rather than discarding the bubble; stopping before any text streams clears the placeholder.
+## Composer
 
-Uploads
+The composer is a card at the bottom of the chat column. The textarea is followed by an action row containing attachment controls, a keyboard hint, and Send.
 
-- Image attachments: The input bar includes an image upload button; images are passed as `image_url` parts to providers that support multimodal content.
+## Empty state
 
-TTS
+A new conversation with no messages shows the Wordmark mark, a reminder that conversation data remains on the local machine, and starter prompts that can be inserted into the composer.
 
-- Toggle via the header TTS badge or in Settings → TTS. A provider selector lets you choose between OpenAI and xAI (Grok) for speech generation.
-- **OpenAI**: 13 voices organized by gender (neutral: fable; male: ash, ballad, cedar, echo, onyx, verse; female: alloy, coral, marin, nova, sage, shimmer). Uses the `gpt-4o-mini-tts` model. Optional voice instructions let you customize speech style (e.g. "Speak cheerfully"); falls back to the active personality prompt if set.
-- **xAI**: 26 voices — the original 5 (male: leo, rex, sal; female: ara, eve) plus the 21 flagship voices xAI shipped on 2026-07-06, sorted into the selector's gender groups: male (Altair, Atlas, Castor, Cosmo, Helios, Kepler, Naksh, Orion, Perseus, Rigel, Sirius, Zagan), female (Carina, Celeste, Iris, Luna, Ursa), and neutral (Helix, Lumen, Lux, Zenith). xAI's `/v1/tts/voices` endpoint does not report a gender for built-in voices, so these groupings are **inferred from the voice names and may not match how each voice actually sounds** — pick by ear. Uses the xAI TTS API at `api.x.ai/v1/tts` with automatic language detection. Voice instructions are not supported.
-- Autoplay mode queues and plays new assistant messages sequentially. Per-message controls provide play/pause, stop, and download (WAV).
-- Audio is cached in IndexedDB (last 15 files kept). The voice selector updates dynamically when switching providers.
+## Messages
 
-Party Mode
+- Assistant replies are rendered as unbubbled prose beneath a metadata row containing the Wordmark mark, model information, and per-message actions.
+- User turns remain right-aligned bubbles with an asymmetric radius.
+- Markdown is parsed with the bundled `marked` library and sanitized with DOMPurify. YouTube iframes use a constrained allowlist.
+- Syntax highlighting uses the bundled `highlight.js` library with copy buttons for code blocks.
+- Reasoning is separated from the main response. Supported provider markers include `<think>...</think>` and `<|begin_of_thought|>/.../solution`; reasoning is rendered in a collapsible block.
+- Generated images appear with the assistant response and are persisted to IndexedDB. Conversation history uses media placeholders rather than embedding image data directly in message text.
+- Assistant messages have copy, branch, and (for the latest response) regenerate actions. Regenerations are stored as versions and can be selected with the version navigator; the active version persists with the conversation.
+- Stopping a response keeps partial streamed content as an incomplete assistant turn. If stopped before any response content is produced, the placeholder is removed.
 
-- A third prompt mode under Settings → Personality: build a cast of AI personas and a scenario, then **Start Party** to launch an autonomous multi-character group chat. Each turn streams into its own bubble labeled with the speaker's name.
-- Type into the normal input bar at any time to interject — no pause required; the cast addresses you by the configured name.
-- A control bar above the input offers Pause / Resume / Stop while a party runs; a stopped party can be resumed with the same cast and scenario.
-- See [docs/party-mode.md](./party-mode.md) for the full feature reference.
+## Lightbox
 
-Mobile
+The image viewer behaves as a dialog and supports zoom and pan. Zoom is available through the controls, mouse wheel, `+`, `-`, and `0`; double-click toggles zoom. When zoomed, the image can be dragged. `Home` and `End` jump to the first and last gallery item. Focus is moved into the dialog when it opens and returned when it closes, and background scrolling is locked while it is open.
 
-- Mobile keyboard handling and layout helpers are provided in `utils/mobileHandling.ts` and wired by `init/ttsInitialization.ts`.
+## Uploads
+
+- Image attachments are sent as `image_url` content parts to providers that support multimodal input.
+- Documents and folders can be attached from the composer. See [Documents & Attachments](documents.md) for provider-specific handling and supported formats.
+
+## TTS
+
+- Toggle TTS from the header badge or Settings → TTS.
+- OpenAI and xAI provide speech generation and provider-specific voice lists.
+- Autoplay queues new assistant messages sequentially. Per-message controls provide play/pause, stop, and download.
+- Audio is cached locally in IndexedDB, with old cached files periodically removed.
+
+## Party Mode
+
+- Settings → Personality provides a Party mode that builds a cast of AI personas and a scenario, then runs an autonomous multi-character conversation.
+- Each turn has its own speaker-labeled message. The normal input remains available for interjections.
+- Pause, Resume, and Stop controls appear above the composer while a party runs.
+- See [Party Mode](party-mode.md) for the full reference.
+
+## Hidden shortcuts
+
+Triple-click the About tab header to toggle Debug Mode. This enables verbose timestamped console logging and briefly shows a toast. Debug Mode is session-only; reload to reset it. `localStorage.enableLogging = 'true'` can keep logging enabled outside Debug Mode.
+
+## Mobile
+
+Mobile keyboard and viewport handling is wired through `src/ts/utils/mobileHandling.ts`. The mobile layout uses dynamic viewport sizing and adapts the rail into the navigation drawer below the desktop breakpoint. Touch and orientation handling are enabled during startup.
+
+## Implementation pointers
+
+- `src/ts/components/rail.ts` — rail and recent-conversation navigation
+- `src/ts/components/messages.ts` — message rendering
+- `src/ts/components/messageActions.ts` — message actions and versions
+- `src/ts/components/gallery/gallery.ts` and `src/ts/components/gallery/galleryItem.ts` — gallery/lightbox behavior
+- `src/ts/services/streaming/` — streaming message lifecycle
+- `src/ts/services/history/` — conversation history state, persistence, and rendering
+- `src/ts/components/settings.ts` — settings UI and header information
+- `src/ts/services/dataImport.ts` and `src/ts/components/dataImportControls.ts` — local data import/export
+- `src/ts/utils/storage/` — IndexedDB persistence
