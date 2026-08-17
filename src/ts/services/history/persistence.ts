@@ -119,6 +119,8 @@ function resetConversationState() {
   clearLocalDocIndex();
   state.conversationHistory = [];
   state.generatedImages = [];
+  state.compactedSummary = undefined;
+  state.compactedThroughId = undefined;
   state.currentConversationId = null;
   state.currentConversationName = null;
   state.lastUsedModel = null;
@@ -174,6 +176,10 @@ export function saveCurrentConversation(meta: { name?: string; created?: string 
       type: promptType,
       content: promptContent,
     },
+    // The summary stands in for turns that are no longer resent, so it has to
+    // outlive the session alongside the messages it replaced.
+    compactedSummary: state.compactedSummary,
+    compactedThroughId: state.compactedThroughId,
   };
 
   if (state.activePartyConfig) {
@@ -246,6 +252,7 @@ export function startNewConversation(name: string | null = null) {
   }
 
   uiHooks.refreshRailConversations?.();
+  uiHooks.refreshHistoryMeter?.();
 
   logHistory("Started new conversation");
 };
@@ -295,6 +302,11 @@ function loadConversationIntoUI(convo: ConversationRecord, imageCache: Map<strin
   state.lastUsedModel = convo.model && convo.model !== "Unknown" ? convo.model : null;
   state.lastUsedService = convo.service && convo.service !== "Unknown" ? convo.service : null;
   state.loadedSystemPrompt = convo.systemPrompt || null;
+  // Restore compaction state with the transcript: without it the summary would
+  // be gone from the developer message while the turns it stands in for stay
+  // trimmed out of the request.
+  state.compactedSummary = convo.compactedSummary || undefined;
+  state.compactedThroughId = convo.compactedThroughId || undefined;
   state.userThinkingState = {};
   state.messageImages = {};
   state.variantImages = {};
@@ -324,4 +336,5 @@ function loadConversationIntoUI(convo: ConversationRecord, imageCache: Map<strin
   }
 
   renderConversationMessages(convo, imageCache);
+  uiHooks.refreshHistoryMeter?.();
 }

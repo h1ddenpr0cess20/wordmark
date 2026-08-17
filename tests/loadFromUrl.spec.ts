@@ -77,7 +77,7 @@ test("loadFromUrl asks for confirmation and no-ops when declined", () => {
   confirmResponse = true;
 });
 
-test("loadFromUrl drops system/developer roles and non-string content", () => {
+test("loadFromUrl drops system/developer roles and non-string content", async () => {
   state.conversationHistory = [];
   confirmResponse = true;
   setSearch("?chat=" + encodeURIComponent(JSON.stringify({
@@ -89,7 +89,7 @@ test("loadFromUrl drops system/developer roles and non-string content", () => {
       { role: "assistant", content: "hi there" },
     ],
   })));
-  loadFromUrl();
+  await loadFromUrl();
   assert.equal(state.conversationHistory.length, 2);
   assert.deepEqual(
     state.conversationHistory.map((m) => m.role),

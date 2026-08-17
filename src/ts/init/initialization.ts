@@ -29,6 +29,7 @@ import { initializeAboutTab } from "./aboutTab.ts";
 import { initPartyTab } from "../components/party/partyTab.ts";
 import { initializeRail } from "../components/rail.ts";
 import { refreshEmptyState } from "../components/ui/emptyState.ts";
+import { initDataImportControls } from "../components/dataImportControls.ts";
 import { initializeMarked } from "./marked.ts";
 import { createScopedLogger } from "../utils/logger.ts";
 import {
@@ -107,6 +108,13 @@ export async function initialize() {
       logInit("Storage settings initialized.");
     } catch (e) {
       console.error("Storage settings initialization failed:", e);
+    }
+
+    try {
+      initDataImportControls();
+      logInit("Data import controls initialized.");
+    } catch (e) {
+      console.error("Data import controls initialization failed:", e);
     }
 
     try {

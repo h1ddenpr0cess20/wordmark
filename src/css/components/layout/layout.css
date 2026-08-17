@@ -226,3 +226,15 @@
   border-color: var(--accent-color);
   color: var(--accent-color);
 }
+
+.chat-empty-suggestion:focus-visible {
+  border-color: var(--accent-color);
+  color: var(--accent-color);
+  outline: 2px solid var(--accent-color);
+  outline-offset: 2px;
+}
+
+.chat-empty-suggestion:active {
+  border-color: var(--accent-color);
+  background: rgba(var(--text-primary-rgb), 0.07);
+}

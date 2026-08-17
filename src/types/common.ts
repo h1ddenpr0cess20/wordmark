@@ -26,6 +26,18 @@ export interface ConversationRecord {
   userName?: string;
   /** Party mode: documents the observer shared into the conversation's context. */
   documents?: PartyDocument[];
+  /**
+   * Running summary of the turns compaction has folded away.
+   *
+   * @remarks
+   * Persisted with the conversation rather than derived on load: it is the
+   * output of a model call that cost tokens to produce, and the verbatim turns
+   * it replaces are no longer resent, so losing it would silently drop the
+   * early history from every future turn.
+   */
+  compactedSummary?: string;
+  /** Id of the last message covered by {@link ConversationRecord.compactedSummary}. */
+  compactedThroughId?: string;
   [key: string]: unknown;
 }
 

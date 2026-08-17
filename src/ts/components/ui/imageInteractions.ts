@@ -13,8 +13,20 @@ import { isMobileDevice } from "../../utils/dom/mobileHandling.ts";
 import { escapeHtml } from "../../utils/sanitize.ts";
 import { detectMediaType, downloadMediaSource } from "../../services/mediaTools.ts";
 import { copyTextToClipboard } from "../../utils/dom/clipboard.ts";
+import { confirmAction, alertMessage } from "../../utils/dialogs.ts";
 
-let activeSlideshowKeydown: ((event: KeyboardEvent) => void) | null = null;
+/**
+ * Tears down the slideshow that is currently open, if any.
+ *
+ * @remarks
+ * Held at module scope so a second `createImageSlideshow` call can run the
+ * previous viewer's full cleanup (listeners, `body` overflow, focus restore)
+ * instead of just yanking its element out of the DOM.
+ */
+let activeSlideshowCleanup: (() => void) | null = null;
+
+/** Elements inside the viewer that Tab is allowed to reach. */
+const FOCUSABLE_SELECTOR = "button:not([disabled]), [href], video[controls], [tabindex]:not([tabindex=\"-1\"])";
 
 /** Normalized media descriptor consumed by the slideshow viewer. */
 interface ViewerItem {
@@ -219,14 +231,10 @@ export function createImageSlideshow(images: any[], startIndex: number, isGaller
     return;
   }
 
-  const existingSlideshow = document.querySelector(".gallery-slideshow");
-  if (existingSlideshow) {
-    if (activeSlideshowKeydown) {
-      document.removeEventListener("keydown", activeSlideshowKeydown);
-      activeSlideshowKeydown = null;
-    }
-    document.body.removeChild(existingSlideshow);
-  }
+  // Close any viewer that is still open first, so its listeners are detached and
+  // the `body` overflow it saved is restored before this one saves its own.
+  activeSlideshowCleanup?.();
+  document.querySelector(".gallery-slideshow")?.remove();
 
   let currentIndex = startIndex || 0;
   const isMobile = isMobileDevice();
@@ -268,52 +276,61 @@ export function createImageSlideshow(images: any[], startIndex: number, isGaller
     const deleteBtn = createSlideshowIconButton("slideshow-delete", "Delete this media permanently", "trash");
     controlsBar.appendChild(deleteBtn);
 
-    deleteBtn.addEventListener("click", () => {
+    deleteBtn.addEventListener("click", async () => {
       const image = state.galleryImages[currentIndex];
+      // The filename is the storage key, so bail before asking rather than
+      // confirming a delete that could never happen.
+      if (!image?.filename) {
+        return;
+      }
+
       const mediaType = detectMediaType(image);
-      if (!confirm(`Delete this ${mediaType}?`)) {
+      const confirmed = await confirmAction({
+        message: `Delete this ${mediaType}?`,
+        detail: "This permanently removes it from your gallery.",
+        confirmLabel: "Delete",
+        destructive: true,
+      });
+      if (!confirmed) {
         return;
       }
-      if (!image.filename) {
-        return;
+
+      try {
+        await deleteImageFromDb?.(image.filename);
+
+        state.galleryImages.splice(currentIndex, 1);
+
+        const galleryItem = document.querySelector(`.gallery-item[data-filename="${image.filename}"]`);
+        if (galleryItem) {
+          galleryItem.remove();
+        }
+
+        const galleryCount = document.getElementById("gallery-count");
+        if (galleryCount) {
+          const currentCount = parseInt(galleryCount.textContent || "0", 10);
+          galleryCount.textContent = String(Math.max(0, currentCount - 1));
+        }
+
+        const activeTabCountId = state.currentGalleryTab === "uploaded" ? "uploaded-count" : "generated-count";
+        const activeTabCount = document.getElementById(activeTabCountId);
+        if (activeTabCount) {
+          const tabCount = parseInt(activeTabCount.textContent || "0", 10);
+          activeTabCount.textContent = String(Math.max(0, tabCount - 1));
+        }
+
+        if (!state.galleryImages.length) {
+          closeSlideshow();
+          const galleryGrid = document.getElementById("gallery-grid");
+          if (galleryGrid) {
+            galleryGrid.innerHTML = "<div class=\"gallery-empty\">No media found in gallery</div>";
+          }
+        } else {
+          showSlide(Math.min(currentIndex, state.galleryImages.length - 1));
+        }
+      } catch (error) {
+        console.error("Error deleting media:", error);
+        await alertMessage("Failed to delete the media item.", "Please try again.", "error");
       }
-
-      deleteImageFromDb?.(image.filename)
-        .then(() => {
-          state.galleryImages.splice(currentIndex, 1);
-
-          const galleryItem = document.querySelector(`.gallery-item[data-filename="${image.filename}"]`);
-          if (galleryItem) {
-            galleryItem.remove();
-          }
-
-          const galleryCount = document.getElementById("gallery-count");
-          if (galleryCount) {
-            const currentCount = parseInt(galleryCount.textContent || "0", 10);
-            galleryCount.textContent = String(Math.max(0, currentCount - 1));
-          }
-
-          const activeTabCountId = state.currentGalleryTab === "uploaded" ? "uploaded-count" : "generated-count";
-          const activeTabCount = document.getElementById(activeTabCountId);
-          if (activeTabCount) {
-            const tabCount = parseInt(activeTabCount.textContent || "0", 10);
-            activeTabCount.textContent = String(Math.max(0, tabCount - 1));
-          }
-
-          if (!state.galleryImages.length) {
-            closeSlideshow();
-            const galleryGrid = document.getElementById("gallery-grid");
-            if (galleryGrid) {
-              galleryGrid.innerHTML = "<div class=\"gallery-empty\">No media found in gallery</div>";
-            }
-          } else {
-            showSlide(Math.min(currentIndex, state.galleryImages.length - 1));
-          }
-        })
-        .catch((error) => {
-          console.error("Error deleting media:", error);
-          alert("Failed to delete the media item. Please try again.");
-        });
     });
   }
 
@@ -329,8 +346,24 @@ export function createImageSlideshow(images: any[], startIndex: number, isGaller
   controlsBar.appendChild(downloadBtn);
   controlsBar.appendChild(closeBtn);
 
+  // The heading (and its counter) is a sibling of the scrolling body so it stays
+  // pinned while long prompts scroll underneath it.
   const infoPanel = document.createElement("div");
   infoPanel.className = "gallery-slideshow-info";
+
+  const infoHeading = document.createElement("h3");
+  infoHeading.className = "gallery-slideshow-info-heading";
+  infoHeading.textContent = "Media Details";
+
+  const infoCounter = document.createElement("span");
+  infoCounter.className = "gallery-slideshow-counter";
+  infoHeading.appendChild(infoCounter);
+
+  const infoBody = document.createElement("div");
+  infoBody.className = "gallery-slideshow-info-body";
+
+  infoPanel.appendChild(infoHeading);
+  infoPanel.appendChild(infoBody);
 
   slideshowContainer.appendChild(controlsBar);
   slideshow.appendChild(slideshowContainer);
@@ -347,21 +380,31 @@ export function createImageSlideshow(images: any[], startIndex: number, isGaller
 
   state.isSlideshowOpen = true;
 
+  let closed = false;
   const closeSlideshow = () => {
+    if (closed) {
+      return;
+    }
+    closed = true;
     document.removeEventListener("keydown", handleKeydown);
-    if (activeSlideshowKeydown === handleKeydown) {
-      activeSlideshowKeydown = null;
+    if (activeSlideshowCleanup === closeSlideshow) {
+      activeSlideshowCleanup = null;
     }
-    if (slideshow.parentNode) {
-      document.body.removeChild(slideshow);
-    }
+    slideshow.remove();
     document.body.style.overflow = previousBodyOverflow;
     previouslyFocused?.focus?.({ preventScroll: true });
 
+    // Deferred so the click that closed the viewer finishes bubbling to the
+    // document-level outside-click handler, which would otherwise also close the
+    // gallery panel behind it. Guarded because a viewer reopened inside that
+    // window must not have its own open flag cleared by this timer.
     setTimeout(() => {
-      state.isSlideshowOpen = false;
+      if (!document.querySelector(".gallery-slideshow")) {
+        state.isSlideshowOpen = false;
+      }
     }, 50);
   };
+  activeSlideshowCleanup = closeSlideshow;
 
   const MAX_SCALE = 6;
   const MIN_SCALE = 1;
@@ -369,11 +412,25 @@ export function createImageSlideshow(images: any[], startIndex: number, isGaller
   let panX = 0;
   let panY = 0;
 
+  /**
+   * Clamps the pan offsets so the scaled media can never be dragged past its own
+   * edges. `offsetWidth`/`offsetHeight` are the untransformed layout size, so the
+   * on-screen size is that times `scale`; anything the host already shows has no
+   * slack and stays pinned at 0.
+   */
+  const clampPan = (media: HTMLElement) => {
+    const maxX = Math.max(0, (media.offsetWidth * scale - mediaHost.clientWidth) / 2);
+    const maxY = Math.max(0, (media.offsetHeight * scale - mediaHost.clientHeight) / 2);
+    panX = Math.min(maxX, Math.max(-maxX, panX));
+    panY = Math.min(maxY, Math.max(-maxY, panY));
+  };
+
   const applyTransform = () => {
     const media = mediaHost.querySelector<HTMLElement>(".gallery-slideshow-media");
     if (!media) {
       return;
     }
+    clampPan(media);
     media.style.transform = `translate(${panX}px, ${panY}px) scale(${scale})`;
     mediaHost.classList.toggle("is-zoomed", scale > 1);
     zoomOutBtn.disabled = scale <= MIN_SCALE;
@@ -429,13 +486,14 @@ export function createImageSlideshow(images: any[], startIndex: number, isGaller
 
     const formattedPrompt = escapeHtml(displayPrompt || "");
 
-    infoPanel.innerHTML = `
-      <h3>Media Details <span class="gallery-slideshow-counter">${currentIndex + 1} / ${images.length}</span></h3>
+    infoCounter.textContent = `${currentIndex + 1} / ${images.length}`;
+    infoBody.innerHTML = `
       <p><strong>${item.uploaded ? "Type:" : "Prompt:"}</strong><br><span class="prompt-text ${item.uploaded ? "uploaded-info" : ""}">${formattedPrompt || "No prompt available"}</span></p>
       <p><strong>Media Type:</strong> ${escapeHtml(item.mediaType)}</p>
       <p><strong>Date:</strong> ${date}</p>
       <p><strong>Filename:</strong> ${escapeHtml(item.filename || "Unknown")}</p>
     `;
+    infoBody.scrollTop = 0;
   };
 
   showSlide(currentIndex);
@@ -444,9 +502,38 @@ export function createImageSlideshow(images: any[], startIndex: number, isGaller
   nextBtn.addEventListener("click", () => showSlide(currentIndex + 1));
 
   const handleKeydown = (event: KeyboardEvent) => {
+    if (event.key === "Tab") {
+      // `aria-modal` alone does not stop Tab from reaching the page behind the
+      // overlay, so the viewer cycles focus through its own controls.
+      const focusable = Array.from(slideshow.querySelectorAll<HTMLElement>(FOCUSABLE_SELECTOR));
+      if (!focusable.length) {
+        return;
+      }
+      const first = focusable[0];
+      const last = focusable[focusable.length - 1];
+      const active = document.activeElement as HTMLElement | null;
+      const outside = !active || !slideshow.contains(active);
+      if (event.shiftKey && (outside || active === first)) {
+        event.preventDefault();
+        last.focus();
+      } else if (!event.shiftKey && (outside || active === last)) {
+        event.preventDefault();
+        first.focus();
+      }
+      return;
+    }
+
+    // A focused <video> uses the arrow keys to seek and adjust volume; paging the
+    // viewer at the same time would fight its own controls.
+    if (event.target instanceof HTMLVideoElement && event.key.startsWith("Arrow")) {
+      return;
+    }
+
     if (event.key === "ArrowLeft") {
+      event.preventDefault();
       showSlide(currentIndex - 1);
     } else if (event.key === "ArrowRight") {
+      event.preventDefault();
       showSlide(currentIndex + 1);
     } else if (event.key === "Home") {
       event.preventDefault();
@@ -465,7 +552,6 @@ export function createImageSlideshow(images: any[], startIndex: number, isGaller
     }
   };
 
-  activeSlideshowKeydown = handleKeydown;
   document.addEventListener("keydown", handleKeydown);
 
   slideshow.addEventListener("click", (event) => {
@@ -550,6 +636,9 @@ export function createImageSlideshow(images: any[], startIndex: number, isGaller
     if (scale <= 1 || !mediaHost.querySelector(".gallery-slideshow-image")) {
       return;
     }
+    // Without this the browser starts its own image drag-and-drop instead of
+    // letting the pointer move events pan.
+    event.preventDefault();
     panning = true;
     panStartX = event.clientX - panX;
     panStartY = event.clientY - panY;

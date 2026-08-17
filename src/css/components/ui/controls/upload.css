@@ -20,55 +20,35 @@
   transform: scale(0.95);
 }
 
+/*
+ * Pending-attachment row above the composer. The chips themselves live in
+ * `../file-attachments.css`, shared with the chips rendered inside messages.
+ */
 .upload-previews {
   display: flex;
   flex-wrap: wrap;
+  align-items: flex-start;
   gap: 6px;
   margin-bottom: 6px;
+  max-height: 30vh;
+  overflow-y: auto;
 }
 
 .upload-previews:empty {
   margin-bottom: 0;
 }
 
-.upload-preview-container {
-  position: relative;
-  display: inline-block;
+/* Every preview chip carries a remove button, so tighten the trailing padding. */
+.upload-previews .attachment-chip {
+  padding-right: 4px;
 }
 
-.upload-preview-img {
-  width: 40px;
-  height: 40px;
-  object-fit: cover;
-  border-radius: 4px;
-  display: block;
+.upload-previews .attachment-chip-directory {
+  padding-right: 0;
 }
 
-.upload-preview-remove {
-  position: absolute;
-  top: -6px;
-  right: -6px;
-  width: 20px;
-  height: 20px;
-  border-radius: 50%;
-  background-color: var(--error-bg);
-  color: var(--error-text);
-  border: 2px solid var(--bg-primary);
-  font-size: 12px;
-  font-weight: bold;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: all 0.2s ease;
-  line-height: 1;
-  padding: 0;
-}
-
-.upload-preview-remove:hover {
-  background-color: var(--error-color);
-  color: var(--error-color-text);
-  transform: scale(1.1);
+.upload-previews .attachment-chip:hover {
+  border-color: var(--accent-color);
 }
 
 .input-wrapper.drag-over {

@@ -145,6 +145,10 @@
               <svg class="upload-icon" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><use href="#upload"></use></svg>
             </button>
             <span class="composer-hint" aria-hidden="true">⏎ send · ⇧⏎ newline</span>
+            <div id="history-meter" class="history-meter" role="img" aria-label="History usage" hidden>
+              <span id="history-meter-fill" class="history-meter-fill"></span>
+            </div>
+            <button id="compact-history-button" class="history-compact-button" type="button" aria-label="Compact conversation history" title="Compact conversation history" hidden></button>
             <input type="file" id="image-upload" accept="image/*,.c,.cpp,.cs,.css,.doc,.docx,.go,.html,.java,.js,.json,.md,.pdf,.php,.pptx,.py,.rb,.sh,.tex,.ts,.txt" multiple style="display:none">
             <input type="file" id="directory-upload" webkitdirectory directory multiple style="display:none">
             <button id="send-button" type="button" aria-label="Send message" title="Send message">

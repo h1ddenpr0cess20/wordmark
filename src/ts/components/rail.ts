@@ -25,6 +25,10 @@ import { renderChatHistoryList } from "../services/history/list.ts";
 import { extractConversationTitle } from "../services/history/historyRow.ts";
 import { updateBrowserHistory } from "../services/history/state.ts";
 import { updateHeaderInfo, serviceStatusLabel } from "./settings.ts";
+import { isCloudService, isLocalService } from "../services/providers.ts";
+import { getApiKey } from "../services/apiKeyStorage.ts";
+import { isSelectableModelId } from "../services/api/clientConfig.ts";
+import { confirmAction, alertMessage } from "../utils/dialogs.ts";
 
 /** Viewport width at or below which the rail collapses into a drawer. */
 const RAIL_BREAKPOINT = 860;
@@ -50,9 +54,69 @@ function closeRailAfterNavigation() {
   }
 }
 
+/** Whether the selected provider can actually be used, and why not when it cannot. */
+interface ServiceAvailability {
+  /** `true` when the provider is configured and has answered with real models. */
+  usable: boolean;
+  /** Short status word for the pill's text, e.g. `"offline"`. Empty when usable. */
+  shortStatus: string;
+  /** Sentence explaining the state, used in the pill's tooltip. */
+  reason: string;
+}
+
 /**
- * The service line shown at the foot of the rail: the active provider and where
- * it is reached.
+ * Derives whether the active provider is usable from data the app already
+ * holds — no extra probing.
+ *
+ * @remarks
+ * Two things make a provider unusable: a cloud provider with no stored API key,
+ * and a provider whose last model fetch produced only the placeholder strings
+ * `config.ts` writes on failure (`"Error: …"`, `"No models found"`, `"Set API
+ * key to load models"`), which {@link isSelectableModelId} already recognises.
+ * An empty model list means the provider has simply not been fetched yet, so it
+ * is left alone rather than reported as broken; the same goes for a fetch that
+ * is still in flight.
+ *
+ * @param serviceKey - The active service key (e.g. `"lmstudio"`).
+ * @returns The provider's usability and the wording that explains it.
+ */
+function serviceAvailability(serviceKey: string): ServiceAvailability {
+  const usable: ServiceAvailability = { usable: true, shortStatus: "", reason: "" };
+
+  const service = serviceKey ? config?.services?.[serviceKey] : null;
+  if (!serviceKey || !service) {
+    return { usable: false, shortStatus: "not configured", reason: "No provider is selected" };
+  }
+
+  const label = serviceStatusLabel(serviceKey);
+
+  if (isCloudService(serviceKey) && !(getApiKey(serviceKey) || "").trim()) {
+    return { usable: false, shortStatus: "no API key", reason: `No ${label} API key` };
+  }
+
+  if (service.modelsFetching) {
+    return usable;
+  }
+
+  const models = Array.isArray(service.models) ? service.models : [];
+  if (models.length > 0 && !models.some(isSelectableModelId)) {
+    return isLocalService(serviceKey)
+      ? { usable: false, shortStatus: "offline", reason: `${label} unreachable` }
+      : { usable: false, shortStatus: "unavailable", reason: `${label} returned no usable models` };
+  }
+
+  return usable;
+}
+
+/**
+ * The service line shown at the foot of the rail: the active provider, where it
+ * is reached, and whether it is actually usable.
+ *
+ * @remarks
+ * The status dot is filled while the provider is usable and rendered as a
+ * hollow ring when it is not. The dot is `aria-hidden`, so the same state is
+ * carried by the pill's text and its tooltip, which keeps the existing "Change
+ * model" affordance.
  */
 export function updateRailServiceLine() {
   const line = elements.railServiceLine;
@@ -73,33 +137,51 @@ export function updateRailServiceLine() {
     }
   }
 
-  const text = `${label} · ${where}`;
+  const availability = serviceAvailability(serviceKey);
+
+  const text = availability.usable ? `${label} · ${where}` : `${label} · ${availability.shortStatus}`;
+  const tooltip = availability.usable
+    ? `${label} · ${where} — Change model`
+    : `${availability.reason} (${where}) — Change model`;
+
   line.textContent = text;
-  line.title = text;
+  line.title = tooltip;
+
+  const pill = line.closest("#rail-status") || document.getElementById("rail-status");
+  if (pill instanceof HTMLElement) {
+    pill.dataset.state = availability.usable ? "ready" : "unavailable";
+    pill.title = tooltip;
+  }
 }
 
 /** Removes a conversation from storage and refreshes both conversation lists. */
-function deleteConversation(id: string, title: string) {
-  if (!confirm(`Delete "${title}"?`)) {
+async function deleteConversation(id: string, title: string) {
+  const confirmed = await confirmAction({
+    message: `Delete "${title}"?`,
+    detail: "This conversation and anything indexed from its attachments will be removed from this device.",
+    confirmLabel: "Delete",
+    destructive: true,
+  });
+  if (!confirmed) {
     return;
   }
 
-  Promise.all([
-    deleteConversationFromDb?.(id),
-    deleteDocChunks(id).catch(() => undefined),
-  ])
-    .then(() => {
-      if (state.currentConversationId === id) {
-        state.currentConversationId = null;
-        state.currentConversationName = null;
-      }
-      renderRailConversations();
-      renderChatHistoryList();
-    })
-    .catch((err) => {
-      console.error("Failed to delete conversation:", err);
-      alert("Error deleting conversation. Please try again.");
-    });
+  try {
+    await Promise.all([
+      deleteConversationFromDb?.(id),
+      deleteDocChunks(id).catch(() => undefined),
+    ]);
+
+    if (state.currentConversationId === id) {
+      state.currentConversationId = null;
+      state.currentConversationName = null;
+    }
+    renderRailConversations();
+    renderChatHistoryList();
+  } catch (err) {
+    console.error("Failed to delete conversation:", err);
+    await alertMessage("Error deleting conversation.", "Please try again.", "error");
+  }
 }
 
 /** Builds one row of the rail's recent list. */
@@ -124,7 +206,9 @@ function railRow(id: string, title: string): HTMLElement {
   remove.innerHTML = icon("trash", { width: 13, height: 13 });
   remove.addEventListener("click", (event) => {
     event.stopPropagation();
-    deleteConversation(id, title);
+    deleteConversation(id, title).catch((err) => {
+      console.error("Failed to delete conversation:", err);
+    });
   });
 
   row.addEventListener("click", () => {

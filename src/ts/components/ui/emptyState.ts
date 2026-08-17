@@ -13,11 +13,53 @@ import { elements } from "../../init/state.ts";
 import { uiHooks } from "../../init/uiHooks.ts";
 import { renderWordmarkLogo } from "../logo.ts";
 
+/**
+ * Starter prompts.
+ *
+ * @remarks
+ * Each one has to stand on its own: the chips only prefill the composer, so a
+ * prompt that points at context the conversation does not have ("this code",
+ * "the document I attach") sends the model a request it cannot answer. These
+ * are complete questions that work verbatim, short enough to fit a chip.
+ */
 const SUGGESTIONS = [
-  "Explain what this code does",
-  "Summarize a document I attach",
-  "Draft a reply to this email",
+  "Explain how HTTPS keeps a page secure",
+  "Write a polite email to reschedule a meeting",
+  "Plan a 3-day itinerary for Kyoto",
 ];
+
+/** Collapsed height of the composer, matching its auto-grow floor. */
+const COMPOSER_MIN_HEIGHT = 56;
+
+/**
+ * Prefills the composer with a starter prompt and leaves it ready to send.
+ *
+ * @remarks
+ * Deliberately does not send: a chip is a starting point the user is expected
+ * to edit, so the caret is placed at the end of the text instead. The composer
+ * grows with its content from an `input` listener
+ * (`initializeConversationInput`); that listener is dispatched to for anything
+ * else that watches the field, but the height is also set here so the box
+ * visibly grows even if the listener has not been wired yet.
+ *
+ * @param text - The suggestion to drop into the composer.
+ */
+function useSuggestion(text: string) {
+  const input = elements.userInput;
+  if (!input) {
+    return;
+  }
+
+  input.value = text;
+  input.dispatchEvent(new Event("input", { bubbles: true }));
+
+  input.style.height = `${COMPOSER_MIN_HEIGHT}px`;
+  input.style.height = `${Math.max(COMPOSER_MIN_HEIGHT, input.scrollHeight)}px`;
+
+  input.focus();
+  input.setSelectionRange(text.length, text.length);
+  input.scrollTop = input.scrollHeight;
+}
 
 /** Whether the chat box currently holds at least one message. */
 function hasMessages(chatBox: HTMLElement): boolean {
@@ -66,20 +108,15 @@ export function refreshEmptyState() {
 
   const chips = document.createElement("div");
   chips.className = "chat-empty-suggestions";
+  chips.setAttribute("role", "group");
+  chips.setAttribute("aria-label", "Starter prompts");
   SUGGESTIONS.forEach((text) => {
     const chip = document.createElement("button");
     chip.type = "button";
     chip.className = "chat-empty-suggestion";
     chip.textContent = text;
-    chip.addEventListener("click", () => {
-      const input = elements.userInput;
-      if (!input) {
-        return;
-      }
-      input.value = text;
-      input.focus();
-      input.dispatchEvent(new Event("input", { bubbles: true }));
-    });
+    chip.title = `Put "${text}" in the message box`;
+    chip.addEventListener("click", () => useSuggestion(text));
     chips.appendChild(chip);
   });
 

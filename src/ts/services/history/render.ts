@@ -25,6 +25,10 @@ import {
   resolveMediaSource,
   createMediaElement,
 } from "./renderMedia.ts";
+import {
+  attachedDocumentsMarkup,
+  documentChipsFromAttachments,
+} from "../../components/attachments/attachmentChips.ts";
 import { refreshToolSettingsUI } from "../../components/tools.ts";
 import { updateReasoningAvailability } from "../../init/modelSettings.ts";
 import type { ConversationRecord } from "../../../types/common.ts";
@@ -112,7 +116,11 @@ export function renderConversationMessages(convo: ConversationRecord, imageCache
 
     if (msg.role === "user") {
       const processed = replaceImagePlaceholders(msg.content, convo, imageCache);
-      const userElement = appendMessage("You", processed, "user", true);
+      // Document chips live only on `msg.attachments` — the persisted content
+      // carries image placeholders and text — so rebuild them here.
+      const documents = attachedDocumentsMarkup(documentChipsFromAttachments(msg.attachments));
+      const body = documents ? `${documents}\n\n${processed}` : processed;
+      const userElement = appendMessage("You", body, "user", true);
       if (userElement) {
         const messageId = msg.id || userElement.id;
         if (msg.id) {

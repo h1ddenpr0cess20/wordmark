@@ -196,8 +196,9 @@ let getToolsDescription: () => string;
       return;
     }
     const label = tool.key.replace(/^mcp:/, "");
-    requestMcpServerRemoval(label, tool.displayName);
-
+    // Removal is confirmed through an async native dialog; the caller does not
+    // use the result, so the promise is explicitly discarded.
+    void requestMcpServerRemoval(label, tool.displayName);
   }
 
   function renderToolList() {

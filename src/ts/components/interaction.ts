@@ -38,6 +38,8 @@ import { RETRIEVED_CONTEXT_MARKER } from "../utils/retrievedContext.ts";
 import { buildRetrievalQuery } from "../utils/retrievalQuery.ts";
 import { getDocumentSourceName } from "../utils/documentPaths.ts";
 import { messageActionHost, setAssistantMetaText } from "./ui/messageShell.ts";
+import { maybeAutoCompactHistory, refreshHistoryMeter } from "./compaction.ts";
+import { uncompactedMessages } from "../services/api/compaction.ts";
 
 const logInteraction = createScopedLogger("interaction");
 
@@ -473,6 +475,11 @@ export async function sendMessage() {
 
   logInteraction("New message send initiated:", message);
 
+  // Runs before the new user message is recorded so the summary describes the
+  // conversation as it stood when the question was asked, rather than folding
+  // in a question that has not been answered yet.
+  await maybeAutoCompactHistory();
+
   enterStopMode();
 
   const uploads = state.pendingUploads || [];
@@ -539,6 +546,7 @@ export async function sendMessage() {
   }
   logInteraction("User message added to conversation history.");
   saveCurrentConversation();
+  refreshHistoryMeter();
 
   userInput.value = "";
   userInput.style.height = "56px";
@@ -627,9 +635,15 @@ async function executeTurn(
     state.activeAbortController = abortController;
     state.currentGeneratedImageHtml = [];
 
-    const requestMessages = Array.isArray(state.conversationHistory)
-      ? [...state.conversationHistory]
-      : [];
+    // Only the tail after the compaction marker is resent; the turns before it
+    // travel as the summary injected into the developer message by
+    // `buildDeveloperMessage`. Trimming here is what makes compaction actually
+    // save tokens — without it the summary would be pure overhead on top of a
+    // history that still carries every original turn.
+    const requestMessages = uncompactedMessages(
+      Array.isArray(state.conversationHistory) ? state.conversationHistory : [],
+      state.compactedThroughId,
+    ).slice();
 
     const result = await responsesClient.runTurn({
       inputMessages: requestMessages,
@@ -696,6 +710,7 @@ async function executeTurn(
     state.currentGeneratedImageHtml = [];
     state.activeAbortController = null;
     resetSendButton();
+    refreshHistoryMeter();
   }
 }
 

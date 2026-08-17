@@ -12,7 +12,7 @@
 import { state } from "../../init/state.ts";
 import { imagePlaceholder } from "../../utils/placeholders.ts";
 import { formatFileSize } from "../../utils/utils.ts";
-import { escapeHtml } from "../../utils/sanitize.ts";
+import { documentChipMarkup, formatDirectoryMeta } from "./attachmentChips.ts";
 import type { Attachment } from "../../../types/api.ts";
 import type { PendingDocument, PendingUpload } from "../../../types/attachments.ts";
 
@@ -70,19 +70,14 @@ export function buildOutgoingAttachments(uploads: PendingUpload[], documents: Pe
   let documentsHtml = "";
 
   documents.forEach(doc => {
-    const icon = doc.isDirectory ? "📁" : "📄";
-
     if (doc.isDirectory) {
       const directoryFiles = doc.files || [];
       const totalSize = directoryFiles.reduce((sum, f) => sum + f.size, 0);
-      const directoryMarkup = [
-        "<div class=\"attached-document\">",
-        `<span class="doc-icon">${icon}</span>`,
-        `<span class="doc-name">${escapeHtml(doc.directoryName)}</span>`,
-        `<span class="doc-size">${directoryFiles.length} file${directoryFiles.length !== 1 ? "s" : ""} (${formatFileSize(totalSize)})</span>`,
-        "</div>",
-      ].join("\n");
-      documentsHtml += directoryMarkup;
+      documentsHtml += documentChipMarkup({
+        name: doc.directoryName || "",
+        meta: formatDirectoryMeta(directoryFiles.length, totalSize),
+        isDirectory: true,
+      });
       directoryFiles.forEach(file => {
         attachmentsForHistory.push({
           type: "document",
@@ -96,14 +91,10 @@ export function buildOutgoingAttachments(uploads: PendingUpload[], documents: Pe
         });
       });
     } else {
-      const fileMarkup = [
-        "<div class=\"attached-document\">",
-        `<span class="doc-icon">${icon}</span>`,
-        `<span class="doc-name">${escapeHtml(doc.name)}</span>`,
-        `<span class="doc-size">${formatFileSize(doc.size || 0)}</span>`,
-        "</div>",
-      ].join("\n");
-      documentsHtml += fileMarkup;
+      documentsHtml += documentChipMarkup({
+        name: doc.name || "",
+        meta: formatFileSize(doc.size || 0),
+      });
       attachmentsForHistory.push({
         type: "document",
         filename: doc.name,

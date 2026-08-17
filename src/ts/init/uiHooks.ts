@@ -20,6 +20,13 @@ export interface UiHooks {
   updateRailServiceLine?: () => void;
   /** Show or hide the transcript's empty state to match the chat box. */
   refreshEmptyState?: () => void;
+  /**
+   * Redraw the composer's history-usage meter. Registered by the compaction
+   * component; called from persistence so loading or starting a conversation
+   * repoints the meter at the new transcript without persistence having to
+   * import the component graph.
+   */
+  refreshHistoryMeter?: () => void;
 }
 
 /** The shared UI hook registry instance. */

@@ -206,7 +206,7 @@ export async function refreshVectorStoreList(applyCooldown = true) {
     listContainer.querySelectorAll(".btn-view").forEach(btn => {
       btn.addEventListener("click", (e) => {
         const storeId = (e.target as HTMLElement).getAttribute("data-store-id");
-        viewVectorStoreDetails(storeId);
+        void viewVectorStoreDetails(storeId);
       });
     });
 

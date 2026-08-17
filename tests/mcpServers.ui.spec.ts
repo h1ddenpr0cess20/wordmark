@@ -91,7 +91,7 @@ test("addMCPServer persists unique servers and rejects duplicates", () => {
   assert.equal(stored.length, 1);
 });
 
-test("requestMcpServerRemoval removes confirmed servers and refreshes UI", () => {
+test("requestMcpServerRemoval removes confirmed servers and refreshes UI", async () => {
   const servers = [
     { displayName: "First Server", server_label: "first", server_url: "http://localhost:9001/mcp", require_approval: "always" },
     { displayName: "Second Server", server_label: "second", server_url: "http://localhost:9002/mcp", require_approval: "always" },
@@ -100,10 +100,10 @@ test("requestMcpServerRemoval removes confirmed servers and refreshes UI", () =>
   globalThis.__mcpContainer = createListContainer();
 
   const confirmCalls: Array<string | undefined> = [];
-  globalThis.confirm = (message?: string) => { confirmCalls.push(message); return true; };
+  globalThis.window.confirm = (message?: string) => { confirmCalls.push(message); return true; };
   (globalThis.window as unknown as { icon: () => string }).icon = () => "";
 
-  const removed = requestMcpServerRemoval("first");
+  const removed = await requestMcpServerRemoval("first");
   assert.equal(removed, true);
   assert.equal(confirmCalls.length, 1);
   assert.match(confirmCalls[0]!, /First Server/);
@@ -113,7 +113,7 @@ test("requestMcpServerRemoval removes confirmed servers and refreshes UI", () =>
   assert.equal(stored[0].server_label, "second");
 });
 
-test("requestMcpServerRemoval uses fallback label and does nothing when cancelled", () => {
+test("requestMcpServerRemoval uses fallback label and does nothing when cancelled", async () => {
   const servers = [
     { displayName: "First Server", server_label: "first", server_url: "http://localhost:9001/mcp", require_approval: "always" },
   ];
@@ -121,9 +121,9 @@ test("requestMcpServerRemoval uses fallback label and does nothing when cancelle
   globalThis.__mcpContainer = createListContainer();
 
   const confirmCalls: Array<string | undefined> = [];
-  globalThis.confirm = (message?: string) => { confirmCalls.push(message); return false; };
+  globalThis.window.confirm = (message?: string) => { confirmCalls.push(message); return false; };
 
-  const result = requestMcpServerRemoval("missing", "Fallback Server");
+  const result = await requestMcpServerRemoval("missing", "Fallback Server");
   assert.equal(result, false);
   assert.equal(confirmCalls.length, 1);
   assert.match(confirmCalls[0]!, /Fallback Server/);
