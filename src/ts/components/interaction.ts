@@ -37,6 +37,7 @@ import type { PartyDocument } from "../services/party/partyTypes.ts";
 import { RETRIEVED_CONTEXT_MARKER } from "../utils/retrievedContext.ts";
 import { buildRetrievalQuery } from "../utils/retrievalQuery.ts";
 import { getDocumentSourceName } from "../utils/documentPaths.ts";
+import { messageActionHost } from "./ui/messageShell.ts";
 
 const logInteraction = createScopedLogger("interaction");
 
@@ -712,7 +713,7 @@ function addUserRetryButton(userId: string) {
   retryButton.addEventListener("click", () => {
     retryUserMessage(userId);
   });
-  userElement.appendChild(retryButton);
+  messageActionHost(userElement).appendChild(retryButton);
 }
 
 /**

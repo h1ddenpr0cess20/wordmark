@@ -50,9 +50,9 @@ export function renderWordmarkLogo(target?: Element | null) {
 
   buildWordmarkLogo(svgContainer);
 
-  const logoContainer = document.getElementById("logo-container");
-  if (logoContainer) {
-    logoContainer.classList.add("logo-ready");
+  const brand = document.getElementById("rail-brand");
+  if (brand) {
+    brand.classList.add("logo-ready");
   }
 }
 

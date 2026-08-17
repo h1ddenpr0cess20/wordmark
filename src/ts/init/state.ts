@@ -109,4 +109,12 @@ export const elements: Elements = {
   galleryPanel: null,
   closeGalleryButton: null,
   galleryGrid: null,
+
+  rail: null,
+  railToggle: null,
+  railClose: null,
+  railScrim: null,
+  railConversations: null,
+  railServiceLine: null,
+  newChatButton: null,
 };

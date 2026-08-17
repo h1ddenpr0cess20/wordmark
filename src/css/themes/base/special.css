@@ -5,6 +5,7 @@
   --text-secondary: #33cc33;
   --accent-color: #55ff55;
   --accent-hover: #88ff88;
+  --on-accent: var(--bg-primary);
   --border-color: #224422;
   --user-bg: #002200;
   --assistant-bg: #001100;
@@ -203,6 +204,7 @@
   --text-secondary: #9fc3e8;
   --accent-color: #7fd4ff;
   --accent-hover: #b3e6ff;
+  --on-accent: #000000;
   --border-color: #3d6ea5;
   --user-bg: #123a6b;
   --assistant-bg: #0d3260;
@@ -350,6 +352,7 @@
   --text-secondary: #6b5a3e;
   --accent-color: #8b5a2b;
   --accent-hover: #a8703a;
+  --on-accent: #ffffff;
   --border-color: #c9b68c;
   --user-bg: #e7dabb;
   --assistant-bg: #f0e7d0;
@@ -459,6 +462,7 @@
   --text-secondary: #4d4d4d;
   --accent-color: #2b2b2b;
   --accent-hover: #000000;
+  --on-accent: #ffffff;
   --border-color: #b9b9b6;
   --user-bg: #e2e2df;
   --assistant-bg: #f0f0ee;
@@ -574,6 +578,7 @@
   --text-secondary: #c6a3ff;
   --accent-color: #ff2e97;
   --accent-hover: #ff6ec7;
+  --on-accent: #000000;
   --border-color: #6a2c9c;
   --user-bg: #2d1b4e;
   --assistant-bg: #1f1235;
@@ -671,6 +676,7 @@
   --text-secondary: #839496;
   --accent-color: #268bd2;
   --accent-hover: #2aa198;
+  --on-accent: #000000;
   --border-color: #586e75;
   --user-bg: #073642;
   --assistant-bg: #00252e;
@@ -741,6 +747,7 @@
   --text-secondary: #d8dee9;
   --accent-color: #88c0d0;
   --accent-hover: #8fbcbb;
+  --on-accent: #000000;
   --border-color: #434c5e;
   --user-bg: #3b4252;
   --assistant-bg: #343b48;
@@ -811,6 +818,7 @@
   --text-secondary: #bcc2cd;
   --accent-color: #bd93f9;
   --accent-hover: #ff79c6;
+  --on-accent: #000000;
   --border-color: #44475a;
   --user-bg: #343746;
   --assistant-bg: #21222c;
@@ -881,6 +889,7 @@
   --text-secondary: #7fb8b0;
   --accent-color: #2fd6c3;
   --accent-hover: #5fe8d8;
+  --on-accent: #000000;
   --border-color: #164048;
   --user-bg: #103840;
   --assistant-bg: #0a2228;
@@ -914,6 +923,7 @@
   --text-secondary: #b08d78;
   --accent-color: #ff6a2b;
   --accent-hover: #ff9152;
+  --on-accent: #000000;
   --border-color: #3a2a20;
   --user-bg: #2a1c14;
   --assistant-bg: #1d1410;
@@ -968,6 +978,7 @@
   --text-secondary: #8fa3c8;
   --accent-color: #4ffbb0;
   --accent-hover: #7dffc8;
+  --on-accent: #000000;
   --border-color: #233152;
   --user-bg: #16233f;
   --assistant-bg: #0f1626;
@@ -1026,6 +1037,7 @@
   --text-secondary: #8a8780;
   --accent-color: #e0a94e;
   --accent-hover: #f0c069;
+  --on-accent: #000000;
   --border-color: #2a2a2c;
   --user-bg: #1a1a1c;
   --assistant-bg: #121213;
@@ -1090,6 +1102,7 @@
   --text-secondary: #a89878;
   --accent-color: #6fc6a5;
   --accent-hover: #8ad9bb;
+  --on-accent: #000000;
   --border-color: #3a2f22;
   --user-bg: #241c14;
   --assistant-bg: #1a140e;
@@ -1150,6 +1163,7 @@
   --text-secondary: #c2a6b8;
   --accent-color: #ff9e57;
   --accent-hover: #ffb877;
+  --on-accent: #000000;
   --border-color: #3d2b4f;
   --user-bg: #2e2142;
   --assistant-bg: #1f1730;
@@ -1197,6 +1211,7 @@
   --text-secondary: #c2a08a;
   --accent-color: #d4af37;
   --accent-hover: #e8c75a;
+  --on-accent: #000000;
   --border-color: #5a2230;
   --user-bg: #451824;
   --assistant-bg: #33121c;
@@ -1255,6 +1270,7 @@
   --text-secondary: #b89a7e;
   --accent-color: #d97a36;
   --accent-hover: #ec9551;
+  --on-accent: #000000;
   --border-color: #43301f;
   --user-bg: #2e2117;
   --assistant-bg: #241a12;
@@ -1297,6 +1313,7 @@
   --text-secondary: #9a96c8;
   --accent-color: #b08cff;
   --accent-hover: #c8aaff;
+  --on-accent: #000000;
   --border-color: #2a2552;
   --user-bg: #1c1840;
   --assistant-bg: #110f28;
@@ -1350,6 +1367,7 @@
   --text-secondary: #b87a00;
   --accent-color: #ffb000;
   --accent-hover: #ffc740;
+  --on-accent: #000000;
   --border-color: #3a2600;
   --user-bg: #241700;
   --assistant-bg: #1a1000;
@@ -1415,6 +1433,7 @@
   --text-secondary: #9aa6c0;
   --accent-color: #e0b341;
   --accent-hover: #f0c860;
+  --on-accent: #000000;
   --border-color: #05070c;
   --user-bg: #3a1230;
   --assistant-bg: #0e2236;
@@ -1461,6 +1480,7 @@
   --text-secondary: #9bb89a;
   --accent-color: #6cc24a;
   --accent-hover: #8fd86a;
+  --on-accent: #000000;
   --border-color: #2a3d2c;
   --user-bg: #1c2e20;
   --assistant-bg: #131f16;
@@ -1514,6 +1534,7 @@
   --text-secondary: #555555;
   --accent-color: #e63946;
   --accent-hover: #ff5a67;
+  --on-accent: #000000;
   --border-color: #1a1a1a;
   --user-bg: #ffe08a;
   --assistant-bg: #ffffff;
@@ -1591,6 +1612,7 @@
   --text-secondary: #c0c4d8;
   --accent-color: #b31942;
   --accent-hover: #d62450;
+  --on-accent: var(--button-text-color);
   --border-color: #2c3e71;
   --user-bg: #b31942;
   --assistant-bg: #0a3161;

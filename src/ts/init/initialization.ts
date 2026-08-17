@@ -27,6 +27,9 @@ import { setupEventListeners } from "./eventListeners.ts";
 import { initializeDOMReferences } from "./dom.ts";
 import { initializeAboutTab } from "./aboutTab.ts";
 import { initPartyTab } from "../components/party/partyTab.ts";
+import { initializeRail } from "../components/rail.ts";
+import { refreshEmptyState } from "../components/ui/emptyState.ts";
+import { initDataImportControls } from "../components/dataImportControls.ts";
 import { initializeMarked } from "./marked.ts";
 import { createScopedLogger } from "../utils/logger.ts";
 import {
@@ -108,6 +111,13 @@ export async function initialize() {
     }
 
     try {
+      initDataImportControls();
+      logInit("Data import controls initialized.");
+    } catch (e) {
+      console.error("Data import controls initialization failed:", e);
+    }
+
+    try {
       initMCPServers();
       logInit("MCP servers initialized.");
     } catch (e) {
@@ -168,6 +178,9 @@ export async function initialize() {
     } catch (error) {
       console.warn("Failed to apply data-settings state on init:", error);
     }
+
+    initializeRail();
+    refreshEmptyState();
 
     renderChatHistoryList();
 

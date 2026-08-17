@@ -2,6 +2,7 @@
   transform: scale(1.02);
 }
 
+/* Per-code-block copy button, pinned inside the <pre>. */
 .copy-btn {
   position: absolute;
   top: 5px;
@@ -27,85 +28,49 @@
   color: var(--accent-color);
 }
 
-.message-copy-btn {
-  position: absolute;
-  bottom: 8px;
-  background: var(--bg-secondary);
-  border: 1px solid var(--border-color);
-  color: var(--text-primary);
-  border-radius: 50%;
-  padding: 6px;
-  font-size: 12px;
-  cursor: pointer;
-  opacity: 0.7;
-  transition: all 0.2s ease;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 28px;
-  height: 28px;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-  z-index: 2;
-}
-
-.message-copy-btn:hover {
-  opacity: 1;
-  color: var(--accent-color);
-  border-color: var(--accent-color);
-  transform: scale(1.05);
-}
-
-.message.assistant .message-copy-btn {
-  right: -38px;
-}
-
-.message.user .message-copy-btn {
-  left: -38px;
-}
-
+/* Per-message controls. They live inline in .message-actions — in the meta row
+   for assistant turns, in a trailing row for user turns — rather than floating
+   outside the bubble. */
+.message-copy-btn,
 .message-regen-btn,
 .message-branch-btn,
 .message-retry-btn {
-  position: absolute;
-  background: var(--bg-secondary);
-  border: 1px solid var(--border-color);
-  color: var(--text-primary);
-  border-radius: 50%;
-  padding: 6px;
+  position: static;
+  width: 26px;
+  height: 26px;
+  background: transparent;
+  border: none;
+  border-radius: 6px;
+  color: var(--text-secondary);
+  padding: 5px;
+  font-size: 12px;
   cursor: pointer;
-  opacity: 0.7;
-  transition: all 0.2s ease;
+  opacity: 0.75;
+  transition: opacity 0.2s ease, color 0.2s ease, background-color 0.2s ease;
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 28px;
-  height: 28px;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-  z-index: 2;
+  flex: none;
 }
 
+.message-copy-btn:hover,
 .message-regen-btn:hover,
 .message-branch-btn:hover,
 .message-retry-btn:hover {
   opacity: 1;
   color: var(--accent-color);
-  border-color: var(--accent-color);
-  transform: scale(1.05);
+  background: rgba(var(--text-primary-rgb), 0.08);
 }
 
-.message.user .message-retry-btn {
-  left: -38px;
-  bottom: 44px;
+/* User-turn controls stay quiet until the message is hovered or focused. */
+.message.user .message-actions {
+  opacity: 0;
+  transition: opacity 0.16s ease;
 }
 
-.message.assistant .message-branch-btn {
-  right: -38px;
-  bottom: 44px;
-}
-
-.message.assistant .message-regen-btn {
-  right: -38px;
-  bottom: 80px;
+.message.user:hover .message-actions,
+.message.user:focus-within .message-actions {
+  opacity: 1;
 }
 
 .message-versions {
@@ -151,4 +116,3 @@
   min-width: 34px;
   text-align: center;
 }
-

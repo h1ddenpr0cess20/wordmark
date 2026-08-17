@@ -21,6 +21,7 @@ import {
   resolveConversationPrompt,
 } from "./historyRow.ts";
 import { closePanel } from "../../utils/dom/panels.ts";
+import { uiHooks } from "../../init/uiHooks.ts";
 import type { ConversationRecord } from "../../../types/common.ts";
 
 let activeHistoryKeydown: ((e: KeyboardEvent) => void) | null = null;
@@ -30,6 +31,8 @@ let activeHistoryKeydown: ((e: KeyboardEvent) => void) | null = null;
  * load-on-click, per-row rename/delete, and bulk selection.
  */
 export function renderChatHistoryList() {
+  uiHooks.refreshRailConversations?.();
+
   const historyList = elements.historyList;
   if (!historyList) {
     return;

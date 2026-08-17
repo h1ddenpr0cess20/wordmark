@@ -12,6 +12,7 @@ import { deleteImageFromDb } from "../../utils/storage/imageStorage.ts";
 import { isMobileDevice } from "../../utils/dom/mobileHandling.ts";
 import { escapeHtml } from "../../utils/sanitize.ts";
 import { detectMediaType, downloadMediaSource } from "../../services/mediaTools.ts";
+import { copyTextToClipboard } from "../../utils/dom/clipboard.ts";
 
 let activeSlideshowKeydown: ((event: KeyboardEvent) => void) | null = null;
 
@@ -316,6 +317,15 @@ export function createImageSlideshow(images: any[], startIndex: number, isGaller
     });
   }
 
+  const zoomOutBtn = createSlideshowIconButton("slideshow-zoom-out", "Zoom out", "minus");
+  const zoomResetBtn = createSlideshowIconButton("slideshow-zoom-reset", "Fit to screen", "maximize");
+  const zoomInBtn = createSlideshowIconButton("slideshow-zoom-in", "Zoom in", "plus");
+  const copyPromptBtn = createSlideshowIconButton("slideshow-copy-prompt", "Copy prompt", "copy");
+
+  controlsBar.appendChild(zoomOutBtn);
+  controlsBar.appendChild(zoomResetBtn);
+  controlsBar.appendChild(zoomInBtn);
+  controlsBar.appendChild(copyPromptBtn);
   controlsBar.appendChild(downloadBtn);
   controlsBar.appendChild(closeBtn);
 
@@ -325,7 +335,15 @@ export function createImageSlideshow(images: any[], startIndex: number, isGaller
   slideshowContainer.appendChild(controlsBar);
   slideshow.appendChild(slideshowContainer);
   slideshow.appendChild(infoPanel);
+  slideshow.setAttribute("role", "dialog");
+  slideshow.setAttribute("aria-modal", "true");
+  slideshow.setAttribute("aria-label", "Media viewer");
   document.body.appendChild(slideshow);
+
+  const previouslyFocused = document.activeElement as HTMLElement | null;
+  const previousBodyOverflow = document.body.style.overflow;
+  document.body.style.overflow = "hidden";
+  closeBtn.focus({ preventScroll: true });
 
   state.isSlideshowOpen = true;
 
@@ -337,10 +355,49 @@ export function createImageSlideshow(images: any[], startIndex: number, isGaller
     if (slideshow.parentNode) {
       document.body.removeChild(slideshow);
     }
+    document.body.style.overflow = previousBodyOverflow;
+    previouslyFocused?.focus?.({ preventScroll: true });
 
     setTimeout(() => {
       state.isSlideshowOpen = false;
     }, 50);
+  };
+
+  const MAX_SCALE = 6;
+  const MIN_SCALE = 1;
+  let scale = 1;
+  let panX = 0;
+  let panY = 0;
+
+  const applyTransform = () => {
+    const media = mediaHost.querySelector<HTMLElement>(".gallery-slideshow-media");
+    if (!media) {
+      return;
+    }
+    media.style.transform = `translate(${panX}px, ${panY}px) scale(${scale})`;
+    mediaHost.classList.toggle("is-zoomed", scale > 1);
+    zoomOutBtn.disabled = scale <= MIN_SCALE;
+    zoomInBtn.disabled = scale >= MAX_SCALE;
+  };
+
+  const resetZoom = () => {
+    scale = 1;
+    panX = 0;
+    panY = 0;
+    applyTransform();
+  };
+
+  const zoomTo = (next: number) => {
+    const clamped = Math.min(MAX_SCALE, Math.max(MIN_SCALE, next));
+    if (clamped === scale) {
+      return;
+    }
+    scale = clamped;
+    if (scale === MIN_SCALE) {
+      panX = 0;
+      panY = 0;
+    }
+    applyTransform();
   };
 
   const showSlide = (index: number) => {
@@ -356,6 +413,11 @@ export function createImageSlideshow(images: any[], startIndex: number, isGaller
     const item = normalizeViewerItem(images[currentIndex], isGalleryMode);
     mediaHost.innerHTML = "";
     mediaHost.appendChild(buildViewerMediaElement(item));
+    resetZoom();
+
+    const promptText = item.uploaded ? "" : (item.prompt || "");
+    copyPromptBtn.disabled = !promptText;
+    copyPromptBtn.dataset.prompt = promptText;
 
     const date = item.timestamp
       ? `${new Date(item.timestamp).toLocaleDateString()} ${new Date(item.timestamp).toLocaleTimeString()}`
@@ -386,6 +448,18 @@ export function createImageSlideshow(images: any[], startIndex: number, isGaller
       showSlide(currentIndex - 1);
     } else if (event.key === "ArrowRight") {
       showSlide(currentIndex + 1);
+    } else if (event.key === "Home") {
+      event.preventDefault();
+      showSlide(0);
+    } else if (event.key === "End") {
+      event.preventDefault();
+      showSlide(images.length - 1);
+    } else if (event.key === "+" || event.key === "=") {
+      zoomTo(scale * 1.4);
+    } else if (event.key === "-" || event.key === "_") {
+      zoomTo(scale / 1.4);
+    } else if (event.key === "0") {
+      resetZoom();
     } else if (event.key === "Escape") {
       closeSlideshow();
     }
@@ -431,6 +505,78 @@ export function createImageSlideshow(images: any[], startIndex: number, isGaller
     downloadMediaSource(item.url, item.filename || fallbackName)
       .catch(error => console.error(`Failed to download ${item.mediaType}:`, error));
   });
+
+  copyPromptBtn.addEventListener("click", () => {
+    const promptText = copyPromptBtn.dataset.prompt || "";
+    if (!promptText) {
+      return;
+    }
+    copyTextToClipboard(promptText).then((success) => {
+      copyPromptBtn.innerHTML = icon(success ? "check" : "x", { width: 24, height: 24 });
+      setTimeout(() => {
+        copyPromptBtn.innerHTML = icon("copy", { width: 24, height: 24 });
+      }, 1500);
+    });
+  });
+
+  zoomInBtn.addEventListener("click", () => zoomTo(scale * 1.4));
+  zoomOutBtn.addEventListener("click", () => zoomTo(scale / 1.4));
+  zoomResetBtn.addEventListener("click", resetZoom);
+
+  mediaHost.addEventListener("wheel", (event) => {
+    if (!mediaHost.querySelector(".gallery-slideshow-image")) {
+      return;
+    }
+    event.preventDefault();
+    zoomTo(scale * (event.deltaY < 0 ? 1.15 : 1 / 1.15));
+  }, { passive: false });
+
+  mediaHost.addEventListener("dblclick", () => {
+    if (!mediaHost.querySelector(".gallery-slideshow-image")) {
+      return;
+    }
+    if (scale > 1) {
+      resetZoom();
+    } else {
+      zoomTo(2);
+    }
+  });
+
+  let panning = false;
+  let panStartX = 0;
+  let panStartY = 0;
+
+  mediaHost.addEventListener("pointerdown", (event) => {
+    if (scale <= 1 || !mediaHost.querySelector(".gallery-slideshow-image")) {
+      return;
+    }
+    panning = true;
+    panStartX = event.clientX - panX;
+    panStartY = event.clientY - panY;
+    mediaHost.setPointerCapture(event.pointerId);
+  });
+
+  mediaHost.addEventListener("pointermove", (event) => {
+    if (!panning) {
+      return;
+    }
+    panX = event.clientX - panStartX;
+    panY = event.clientY - panStartY;
+    applyTransform();
+  });
+
+  const endPan = (event: PointerEvent) => {
+    if (!panning) {
+      return;
+    }
+    panning = false;
+    if (mediaHost.hasPointerCapture(event.pointerId)) {
+      mediaHost.releasePointerCapture(event.pointerId);
+    }
+  };
+
+  mediaHost.addEventListener("pointerup", endPan);
+  mediaHost.addEventListener("pointercancel", endPan);
 }
 
 /**

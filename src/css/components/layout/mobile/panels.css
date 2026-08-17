@@ -103,15 +103,6 @@
   }
 }
 @media screen and (max-width: 390px) {
-  .settings-tabs .tab-button {
-    padding: 8px 6px;
-    font-size: 0.8rem;
-  }
-
-  .settings-tabs {
-    padding: 0 4px 0 2px;
-  }
-
   .gallery-tab {
     font-size: 0.75rem;
     padding: 8px 6px;
@@ -135,10 +126,6 @@
 }
 
 @media (max-width: 600px) {
-  .message.user, .message.assistant {
-    max-width: calc(100vw - 72px);
-  }
-
   .tab-content {
     padding: 16px 12px;
   }

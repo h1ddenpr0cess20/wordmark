@@ -10,6 +10,26 @@
   </div>
 </div>
 <div class="settings-group">
+  <h3>Import Data</h3>
+  <p class="info-text">Load a Wordmark export (the JSON file from Storage &rarr; Export All Data). Importing merges into what you already have: conversations are matched by id and only replaced when the file's copy is newer, memories are added without duplicates, and nothing is ever cleared.</p>
+
+  <div class="setting-item">
+    <label for="import-data-file">Export File</label>
+    <input type="file" id="import-data-file" accept="application/json,.json">
+    <div class="toggle-container with-margin">
+      <input type="checkbox" id="import-apply-settings" class="toggle-input">
+      <label for="import-apply-settings" class="toggle-switch"></label>
+      <span class="radio-text">Also apply the file's settings</span>
+    </div>
+    <p class="info-text">Off by default, so your current preferences are kept. API keys and server URLs are never included in an export.</p>
+    <div class="action-buttons with-margin">
+      <button type="button" id="import-data-button" class="primary-button" title="Merge the selected export into local storage" disabled>Import</button>
+    </div>
+    <div id="import-data-status" class="info-text" aria-live="polite"></div>
+  </div>
+</div>
+
+<div class="settings-group">
   <h3>File Manager</h3>
   <p class="info-text">Upload, list, and delete files.</p>
 

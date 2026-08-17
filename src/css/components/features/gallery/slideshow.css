@@ -263,3 +263,32 @@
 .gallery-slideshow-info::-webkit-scrollbar-thumb:hover {
   background: rgba(var(--text-primary-rgb), 0.5);
 }
+
+/* Zoom & pan: the media host clips, the media itself is transformed. */
+.gallery-slideshow-media-host {
+  overflow: hidden;
+  touch-action: none;
+}
+
+.gallery-slideshow-media-host .gallery-slideshow-media {
+  transform-origin: center center;
+  transition: transform 0.12s ease-out;
+  will-change: transform;
+}
+
+.gallery-slideshow-media-host.is-zoomed {
+  cursor: grab;
+}
+
+.gallery-slideshow-media-host.is-zoomed:active {
+  cursor: grabbing;
+}
+
+.gallery-slideshow-media-host.is-zoomed .gallery-slideshow-media {
+  transition: none;
+}
+
+.slideshow-icon-btn:disabled {
+  opacity: 0.35;
+  cursor: default;
+}

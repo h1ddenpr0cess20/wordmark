@@ -1,10 +1,11 @@
 /* Panel shell, header, and close button come from components/ui/panels.css. */
 
-/* Narrow viewports stack the tab strip above the content; from `--settings-rail`
-   up there is room to turn it into a vertical navigation pane on the left. */
+/* The tab list is a vertical navigation pane on the left of the settings body
+   at every width; the active panel fills the remaining space. Narrow viewports
+   keep the pane and shrink it rather than switching to a horizontal strip, so
+   the panel's shape is the same everywhere. */
 .settings-body {
   display: flex;
-  flex-direction: column;
   flex: 1 1 auto;
   min-height: 0;
   overflow: hidden;
@@ -12,20 +13,22 @@
 
 .settings-tabs {
   display: flex;
-  border-bottom: 1px solid var(--border-color);
+  flex-direction: column;
+  border-right: 1px solid var(--border-color);
   position: relative;
   flex: 0 0 auto;
-  flex-wrap: nowrap;
-  width: 100%;
-  overflow-x: auto;
-  overflow-y: hidden;
+  width: 150px;
+  padding: 8px 0;
+  gap: 2px;
+  overflow-x: hidden;
+  overflow-y: auto;
   background-color: var(--bg-primary);
   scrollbar-width: thin;
   scrollbar-color: var(--accent-color) var(--bg-secondary);
 }
 
 .settings-tabs::-webkit-scrollbar {
-  height: 8px;
+  width: 8px;
   background: var(--bg-secondary);
 }
 .settings-tabs::-webkit-scrollbar-thumb {
@@ -37,73 +40,57 @@
 }
 
 .tab-button {
-  padding: 10px 8px;
+  padding: 10px 14px;
   background: none;
   border: none;
   color: var(--text-secondary);
-  font-size: 0.9rem;
+  font-size: 0.85rem;
   cursor: pointer;
   transition: all 0.2s;
   position: relative;
-  bottom: -1px;
-  border-bottom: 2px solid transparent;
-  flex: 1;
-  min-width: min-content;
+  flex: 0 0 auto;
+  width: 100%;
   white-space: nowrap;
-  text-align: center;
+  text-align: left;
   overflow: hidden;
   text-overflow: ellipsis;
 }
 
 .tab-button:hover {
   color: var(--text-primary);
+  background-color: var(--bg-secondary);
 }
 
-.tab-button.active {
-  color: var(--button-text-color);
-  border-bottom: 2px solid var(--accent-color);
+/* Themes paint the active tab with `border-bottom: ... !important`, which reads
+   as a stray underline in a vertical list — the marker here is an inset bar. */
+.settings-tabs .tab-button.active {
+  color: var(--accent-color);
+  background-color: var(--bg-secondary);
+  border-bottom-color: transparent !important;
+  box-shadow: inset 3px 0 0 var(--accent-color);
 }
 
-@media (min-width: 641px) {
-  .settings-body {
-    flex-direction: row;
-  }
-
+/* On phones the panel is full-width, so the pane trades width for a smaller
+   label — enough to keep every tab name intact without starving the content. */
+@media screen and (max-width: 640px) {
   .settings-tabs {
-    flex-direction: column;
-    width: 168px;
-    padding: 8px 0;
-    gap: 2px;
-    border-right: 1px solid var(--border-color);
-    border-bottom: none;
-    overflow-x: hidden;
-    overflow-y: auto;
-  }
-
-  .settings-tabs::-webkit-scrollbar {
-    width: 8px;
-    height: auto;
+    width: 116px;
   }
 
   .settings-tabs .tab-button {
-    padding: 10px 14px;
-    bottom: 0;
-    flex: 0 0 auto;
-    width: 100%;
-    text-align: left;
+    padding: 10px 10px;
+    font-size: 0.78rem;
+  }
+}
+
+@media screen and (max-width: 390px) {
+  .settings-tabs {
+    width: 104px;
   }
 
-  .settings-tabs .tab-button:hover {
-    background-color: var(--bg-secondary);
-  }
-
-  /* Themes paint the active tab with `border-bottom: ... !important`, which reads
-     as a stray underline in a vertical list — the marker here is an inset bar. */
-  .settings-tabs .tab-button.active {
-    color: var(--accent-color);
-    background-color: var(--bg-secondary);
-    border-bottom-color: transparent !important;
-    box-shadow: inset 3px 0 0 var(--accent-color);
+  .settings-tabs .tab-button {
+    padding: 9px 8px;
+    font-size: 0.74rem;
   }
 }
 
@@ -144,4 +131,3 @@
   color: var(--text-primary);
   text-align: center;
 }
-

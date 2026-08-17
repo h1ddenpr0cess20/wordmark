@@ -14,6 +14,12 @@ export interface UiHooks {
   refreshEmbeddingModelUI?: () => void;
   /** Stop the party engine (abort in-flight turn, remove the control bar). */
   stopParty?: () => void;
+  /** Re-render the rail's recent-conversation list from the store. */
+  refreshRailConversations?: () => void;
+  /** Refresh the provider/endpoint line at the foot of the rail. */
+  updateRailServiceLine?: () => void;
+  /** Show or hide the transcript's empty state to match the chat box. */
+  refreshEmptyState?: () => void;
 }
 
 /** The shared UI hook registry instance. */

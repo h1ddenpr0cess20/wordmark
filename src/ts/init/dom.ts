@@ -71,6 +71,14 @@ export function initializeDOMReferences() {
   elements.closeGalleryButton = bySel<HTMLButtonElement>(".close-gallery");
   elements.galleryGrid = byId("gallery-grid");
 
+  elements.rail = byId("rail");
+  elements.railToggle = byId<HTMLButtonElement>("rail-toggle");
+  elements.railClose = byId<HTMLButtonElement>("rail-close");
+  elements.railScrim = byId("rail-scrim");
+  elements.railConversations = byId("rail-conversations");
+  elements.railServiceLine = byId("rail-service-line");
+  elements.newChatButton = byId<HTMLButtonElement>("new-chat-button");
+
   logVerbose("DOM references assigned:", {
     chatBox: Boolean(elements.chatBox),
     userInput: Boolean(elements.userInput),

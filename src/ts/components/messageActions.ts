@@ -17,6 +17,7 @@ import { renderChatHistoryList } from "../services/history/list.ts";
 import { updateHeaderInfo } from "./settings.ts";
 import { applyVariant, ensureVariants } from "./messageVariants.ts";
 import { buildMessageMediaHtml } from "../services/messageMedia.ts";
+import { messageActionHost } from "./ui/messageShell.ts";
 import type { Message } from "../../types/api.ts";
 
 const logRegen = createScopedLogger("regenerate");
@@ -357,7 +358,7 @@ function addBranchButton(messageElement: HTMLElement, messageId: string): void {
   btn.addEventListener("click", () => {
     branchConversation(messageId);
   });
-  messageElement.appendChild(btn);
+  messageActionHost(messageElement).appendChild(btn);
 }
 
 /** Removes the regenerate, branch, and version-navigator controls from a message. */
@@ -388,7 +389,7 @@ function addRegenerateButton(messageElement: HTMLElement, messageId: string): vo
   btn.addEventListener("click", () => {
     void regenerateMessage(messageId);
   });
-  messageElement.appendChild(btn);
+  messageActionHost(messageElement).appendChild(btn);
 }
 
 /**

@@ -285,7 +285,7 @@ test("saveCurrentConversation keeps the model/service actually used, not a dropd
 
 test("loadConversation seeds lastUsedModel/lastUsedService from the stored record", async () => {
   await resetDb({
-    chatBox: { innerHTML: "", appendChild: () => {} },
+    chatBox: { innerHTML: "", appendChild: () => {}, querySelector: () => null },
   });
   await saveConversationToDb({
     id: "convo-2",
@@ -318,7 +318,7 @@ test("loadConversation hydrates UI, preloads images, and filters developer messa
   };
 
   await resetDb({
-    chatBox: { innerHTML: "old", appendChild: () => {} },
+    chatBox: { innerHTML: "old", appendChild: () => {}, querySelector: () => null },
   });
 
   await saveConversationToDb(conversationRecord);
@@ -336,7 +336,7 @@ test("loadConversation hydrates UI, preloads images, and filters developer messa
 
 test("startNewConversation saves existing session and resets state", async () => {
   await resetDb({
-    chatBox: { innerHTML: "<p>old</p>" },
+    chatBox: { innerHTML: "<p>old</p>", appendChild: () => {}, querySelector: () => null },
     conversationHistory: [{ role: "user", content: "hello" }],
     generatedImages: [],
     currentConversationId: "existing",
@@ -368,7 +368,7 @@ test("startNewConversation persists an active party's metadata, then tears down 
   uiHooks.stopParty = () => { stopPartyCalls++; };
   try {
     await resetDb({
-      chatBox: { innerHTML: "" },
+      chatBox: { innerHTML: "", appendChild: () => {}, querySelector: () => null },
       conversationHistory: [{ role: "assistant", content: "Let's begin", character: { name: "Ada" } }],
       currentConversationId: "party-1",
       currentConversationName: "Party chat",

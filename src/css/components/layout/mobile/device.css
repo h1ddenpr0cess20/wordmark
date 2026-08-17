@@ -1,8 +1,8 @@
 @supports (-webkit-touch-callout: none) {
   .input-container {
-    padding-bottom: env(safe-area-inset-bottom);
+    padding-bottom: max(12px, env(safe-area-inset-bottom));
   }
-  #chat-container {
+  #app-shell {
     height: 100dvh;
   }
 }

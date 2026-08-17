@@ -34,6 +34,7 @@ import "./components/attachments/attachments.ts";
 import "./components/tools.ts";
 import "./components/memory.ts";
 import "./components/logo.ts";
+import "./components/rail.ts";
 import "./components/aboutPopups.ts";
 
 import "./services/memory.ts";

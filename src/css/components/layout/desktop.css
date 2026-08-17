@@ -38,33 +38,13 @@ body.desktop-app #desktop-titlebar span {
   white-space: nowrap;
 }
 
-body.desktop-app #logo-container {
-  top: calc(24px + var(--titlebar-height));
-}
-
-body.desktop-app #chat-container {
-  top: max(calc(10vh + var(--titlebar-height)), calc(104px + var(--titlebar-height)));
+/* The shell is pinned to the viewport, so the titlebar is cleared once on the
+   shell instead of on each element inside it. */
+body.desktop-app #app-shell {
+  top: var(--titlebar-height);
 }
 
 body.desktop-app .notification-container,
 body.desktop-app .debug-toggle-notification {
   top: calc(20px + var(--titlebar-height));
-}
-
-@media screen and (max-width: 768px) {
-  body.desktop-app #chat-container {
-    top: var(--titlebar-height);
-    height: auto;
-  }
-
-  body.desktop-app #logo-container {
-    top: calc(12px + var(--titlebar-height));
-  }
-}
-
-@media screen and (orientation: landscape) and (max-height: 500px) {
-  body.desktop-app #chat-container {
-    top: var(--titlebar-height);
-    height: auto;
-  }
 }

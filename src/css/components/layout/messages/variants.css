@@ -28,29 +28,20 @@
   display: none !important;
 }
 
+/* Both forms are a column spanning the reading width; what differs is which
+   edge they hang from. Sizing comes from .message in bubbles.css. */
 .message.user {
-  display: flex;
-  flex-direction: row-reverse;
-  align-items: flex-start;
+  align-items: flex-end;
   text-align: right;
-  align-self: flex-end;
-  max-width: 60vw;
-  width: auto;
   min-width: 0;
-  gap: 12px;
 }
 
 .message.assistant {
-  display: flex;
-  flex-direction: row;
-  align-items: flex-start;
+  align-items: stretch;
   text-align: left;
-  align-self: flex-start;
-  max-width: 60vw;
-  width: auto;
   min-width: 0;
-  gap: 12px;
 }
+
 .message.user .message-content {
   margin-right: 0;
 }

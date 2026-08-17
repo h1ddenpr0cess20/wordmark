@@ -1,8 +1,10 @@
+/* Composer: a rounded card sharing the transcript's reading column, with the
+   textarea stacked over an action row (attach, hint, send). */
 .input-container {
+  flex: none;
   display: flex;
-  padding: 14px 16px;
-  background-color: var(--bg-primary);
-  border-top: 1px solid var(--border-color);
+  padding: 0 20px 20px;
+  background-color: transparent;
   position: relative;
   z-index: 10;
 }
@@ -10,47 +12,97 @@
 .input-wrapper {
   position: relative;
   flex: 1;
+  min-width: 0;
+  max-width: 760px;
+  margin-inline: auto;
+  background-color: var(--bg-primary);
+  border: 1px solid var(--border-color);
+  border-radius: 16px;
+  padding: 12px 14px 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  transition: border-color 0.2s ease;
+}
+
+.input-wrapper:focus-within {
+  border-color: var(--accent-color);
 }
 
 #user-input {
   width: 100%;
-  border: 1px solid var(--border-color);
-  background-color: var(--bg-secondary);
+  border: none;
+  background: transparent;
   color: var(--text-primary);
-  border-radius: 8px;
-  padding: 16px 108px 16px 16px;
+  border-radius: 0;
+  padding: 0;
   resize: none;
-  height: 56px;
-  max-height: 160px;
+  min-height: 26px;
+  height: 26px;
+  max-height: 150px;
   overflow-y: auto;
   font-family: inherit;
-  font-size: 1rem;
+  font-size: 0.94rem;
+  line-height: 1.5;
   outline: none;
-  transition: border-color 0.2s;
   box-sizing: border-box;
 }
 
-#user-input:focus {
-  border-color: var(--accent-color);
+.composer-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
 }
 
-#send-button {
-  position: absolute;
-  right: 5px;
-  bottom: 5px;
+.composer-hint {
+  font-family: 'Roboto Mono', ui-monospace, Menlo, monospace;
+  font-size: 0.68rem;
+  color: var(--text-secondary);
+  opacity: 0.65;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+#upload-button {
+  flex: none;
+  position: static;
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  border: 1px solid var(--border-color);
   background: transparent;
-  color: var(--accent-color);
-  border: none;
-  border-radius: 6px;
-  width: 48px;
-  height: 48px;
+  color: var(--text-secondary);
   display: flex;
   justify-content: center;
   align-items: center;
   cursor: pointer;
-  transition: all 0.2s ease;
-  z-index: 2;
+  padding: 0;
   margin: 0;
+  transition: color 0.2s ease, border-color 0.2s ease;
+}
+
+#upload-button:hover {
+  color: var(--accent-color);
+  border-color: var(--accent-color);
+}
+
+#send-button {
+  position: relative;
+  flex: none;
+  margin-left: auto;
+  background: transparent;
+  color: var(--accent-color);
+  border: none;
+  border-radius: 50%;
+  width: 36px;
+  height: 36px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  cursor: pointer;
+  transition: color 0.2s ease, transform 0.2s ease;
+  z-index: 2;
   padding: 0;
 }
 
@@ -74,8 +126,10 @@
   animation: spin 1s linear infinite;
 }
 
-#send-button.stop-mode {
-  color: var(--error-bg);
+/* While streaming, the send button reads as a stop control. */
+#send-button.stop-mode,
+#send-button.stopping {
+  color: var(--error-color);
 }
 
 #send-button.stop-mode .send-icon {
@@ -87,7 +141,6 @@
 }
 
 #send-button.stopping {
-  color: var(--error-bg);
   opacity: 0.7;
   cursor: not-allowed;
 }
@@ -102,11 +155,10 @@
 }
 
 #send-button:hover {
-  color: var(--accent-color);
+  color: var(--accent-hover);
   transform: scale(1.05);
 }
 
 #send-button:active {
   transform: scale(0.95);
 }
-

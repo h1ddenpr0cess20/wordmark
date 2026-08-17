@@ -18,10 +18,10 @@ import { createScopedLogger } from "../../utils/logger.ts";
 import { loadImageFromDb } from "../../utils/storage/imageStorage.ts";
 import { ensureImagesHaveMessageIds } from "../streaming/imageGeneration.ts";
 import { renderChatHistoryList } from "./list.ts";
+import { uiHooks } from "../../init/uiHooks.ts";
 import { renderConversationMessages } from "./render.ts";
 import { processImageForStorage, markMessagesWithImages } from "./persistenceImages.ts";
 import { hydrateMediaUrls } from "./renderMedia.ts";
-import { uiHooks } from "../../init/uiHooks.ts";
 import { clearLocalDocIndex, persistLocalDocIndex, restoreLocalDocIndex } from "../localDocRetrieval.ts";
 import { stripRetrievedContextFromMessages } from "../../utils/retrievedContext.ts";
 import type { ConversationRecord } from "../../../types/common.ts";
@@ -204,6 +204,7 @@ export function saveCurrentConversation(meta: { name?: string; created?: string 
   saveConversationToDb?.(conversation)
     .then((id) => {
       logHistory("Saved conversation to IndexedDB:", id);
+      uiHooks.refreshRailConversations?.();
     })
     .catch((err) => {
       console.error("Failed to save conversation to IndexedDB:", err);
@@ -241,7 +242,10 @@ export function startNewConversation(name: string | null = null) {
 
   if (elements.chatBox) {
     elements.chatBox.innerHTML = "";
+    uiHooks.refreshEmptyState?.();
   }
+
+  uiHooks.refreshRailConversations?.();
 
   logHistory("Started new conversation");
 };
@@ -263,6 +267,7 @@ export function loadConversation(id: string) {
       return ensureLibrariesLoaded().then(() => preloadImages(convo)
         .then((imageCache) => {
           loadConversationIntoUI(convo, imageCache);
+          uiHooks.refreshRailConversations?.();
           return true;
         }));
     })

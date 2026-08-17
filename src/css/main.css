@@ -10,6 +10,7 @@
 @import url('./themes/code/special.css');
 @import url('./global.css');
 @import url('./components/layout/layout.css');
+@import url('./components/layout/rail.css');
 @import url('./components/layout/messages/bubbles.css');
 @import url('./components/layout/messages/markdown.css');
 @import url('./components/layout/messages/media.css');

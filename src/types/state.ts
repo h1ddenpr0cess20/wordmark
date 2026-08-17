@@ -121,4 +121,12 @@ export interface Elements {
   galleryPanel: HTMLElement | null;
   closeGalleryButton: HTMLButtonElement | null;
   galleryGrid: HTMLElement | null;
+
+  rail: HTMLElement | null;
+  railToggle: HTMLButtonElement | null;
+  railClose: HTMLButtonElement | null;
+  railScrim: HTMLElement | null;
+  railConversations: HTMLElement | null;
+  railServiceLine: HTMLElement | null;
+  newChatButton: HTMLButtonElement | null;
 }
