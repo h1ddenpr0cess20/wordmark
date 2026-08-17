@@ -28,6 +28,7 @@
 @import url('./components/ui/controls/toggles.css');
 @import url('./components/ui/controls/tts.css');
 @import url('./components/ui/controls/upload.css');
+@import url('./components/ui/controls/confirm-dialog.css');
 @import url('./components/ui/controls/compaction.css');
 @import url('./components/ui/panels.css');
 @import url('./components/ui/settings/panel.css');

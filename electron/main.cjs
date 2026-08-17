@@ -1,4 +1,4 @@
-const { app, BrowserWindow, clipboard, dialog, ipcMain, protocol, shell } = require("electron");
+const { app, BrowserWindow, clipboard, ipcMain, protocol, shell } = require("electron");
 const path = require("node:path");
 const fs = require("node:fs");
 
@@ -148,44 +148,6 @@ if (!gotLock) {
         height: TITLEBAR_HEIGHT,
       });
     } catch {}
-  });
-
-  // Window-modal native message boxes, replacing window.confirm/alert in the
-  // desktop build. Everything the renderer sends is treated as untrusted: only
-  // the known message-box fields are forwarded, strings are capped, and the
-  // button list is clamped so a malformed payload cannot wedge the dialog.
-  ipcMain.handle("dialog:message-box", async (event, options) => {
-    const win = BrowserWindow.fromWebContents(event.sender);
-    if (!win) {
-      return { response: -1 };
-    }
-
-    const opts = options && typeof options === "object" ? options : {};
-    const text = (value, max) => (typeof value === "string" ? value.slice(0, max) : undefined);
-    const allowedTypes = ["none", "info", "error", "question", "warning"];
-
-    const buttons = (Array.isArray(opts.buttons) ? opts.buttons : [])
-      .filter(button => typeof button === "string" && button.trim())
-      .slice(0, 4)
-      .map(button => button.slice(0, 64));
-    if (buttons.length === 0) {
-      buttons.push("OK");
-    }
-
-    const clampIndex = (value, fallback) =>
-      Number.isInteger(value) && value >= 0 && value < buttons.length ? value : fallback;
-
-    const result = await dialog.showMessageBox(win, {
-      type: allowedTypes.includes(opts.type) ? opts.type : "none",
-      message: text(opts.message, 512) || "",
-      detail: text(opts.detail, 2048),
-      buttons,
-      defaultId: clampIndex(opts.defaultId, 0),
-      cancelId: clampIndex(opts.cancelId, buttons.length - 1),
-      noLink: true,
-    });
-
-    return { response: result.response };
   });
 
   ipcMain.handle("clipboard:write-text", (_event, text) => {

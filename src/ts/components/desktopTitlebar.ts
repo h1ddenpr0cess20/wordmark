@@ -17,15 +17,6 @@ declare global {
       platform: string;
       setTitleBarColors: (colors: { color: string; symbolColor: string }) => Promise<void>;
       writeText: (text: string) => Promise<void>;
-      /** Shows a window-modal native message box; see `utils/dialogs.ts`. */
-      showMessageBox?: (options: {
-        type: "none" | "info" | "error" | "question" | "warning";
-        message: string;
-        detail?: string;
-        buttons: string[];
-        defaultId: number;
-        cancelId: number;
-      }) => Promise<{ response: number }>;
     };
   }
 }

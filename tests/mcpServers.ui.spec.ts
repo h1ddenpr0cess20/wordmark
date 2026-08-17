@@ -1,4 +1,4 @@
-import test from "node:test";
+import test, { mock } from "node:test";
 import assert from "node:assert/strict";
 
 declare global {
@@ -59,6 +59,20 @@ globalThis.document = {
   addEventListener() {},
 } as unknown as Document;
 
+let dialogResponse = true;
+const dialogMessages: string[] = [];
+// Confirmations render through the in-app modal now; fake it so the stubbed
+// DOM does not have to dispatch real button clicks.
+mock.module(new URL("../src/ts/components/ui/appDialog.ts", import.meta.url).href, {
+  namedExports: {
+    canShowAppDialog: () => true,
+    showAppDialog: async (options: { message: string; detail?: string }) => {
+      dialogMessages.push(`${options.message} ${options.detail ?? ""}`);
+      return dialogResponse;
+    },
+  },
+});
+
 const { getMCPServers, addMCPServer, requestMcpServerRemoval } =
   await import("../src/ts/services/mcpServers.ts");
 
@@ -99,14 +113,14 @@ test("requestMcpServerRemoval removes confirmed servers and refreshes UI", async
   globalThis.localStorage = createLocalStorage({ mcp_servers: JSON.stringify(servers) });
   globalThis.__mcpContainer = createListContainer();
 
-  const confirmCalls: Array<string | undefined> = [];
-  globalThis.window.confirm = (message?: string) => { confirmCalls.push(message); return true; };
+  dialogMessages.length = 0;
+  dialogResponse = true;
   (globalThis.window as unknown as { icon: () => string }).icon = () => "";
 
   const removed = await requestMcpServerRemoval("first");
   assert.equal(removed, true);
-  assert.equal(confirmCalls.length, 1);
-  assert.match(confirmCalls[0]!, /First Server/);
+  assert.equal(dialogMessages.length, 1);
+  assert.match(dialogMessages[0], /First Server/);
 
   const stored = JSON.parse(globalThis.localStorage.getItem("mcp_servers")!);
   assert.equal(stored.length, 1);
@@ -120,13 +134,13 @@ test("requestMcpServerRemoval uses fallback label and does nothing when cancelle
   globalThis.localStorage = createLocalStorage({ mcp_servers: JSON.stringify(servers) });
   globalThis.__mcpContainer = createListContainer();
 
-  const confirmCalls: Array<string | undefined> = [];
-  globalThis.window.confirm = (message?: string) => { confirmCalls.push(message); return false; };
+  dialogMessages.length = 0;
+  dialogResponse = false;
 
   const result = await requestMcpServerRemoval("missing", "Fallback Server");
   assert.equal(result, false);
-  assert.equal(confirmCalls.length, 1);
-  assert.match(confirmCalls[0]!, /Fallback Server/);
+  assert.equal(dialogMessages.length, 1);
+  assert.match(dialogMessages[0], /Fallback Server/);
 
   const stored = JSON.parse(globalThis.localStorage.getItem("mcp_servers")!);
   assert.equal(stored.length, 1);

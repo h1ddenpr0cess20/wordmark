@@ -2,20 +2,20 @@
  * Confirmation, alert, and choice dialogs.
  *
  * @remarks
- * In the desktop app these are real native message boxes, driven over the
- * `wordmarkDesktop` preload bridge (`electron/preload.cjs` →
- * `dialog:message-box` in `electron/main.cjs`). A native box is window-modal
- * rather than page-modal, so it is themed by the OS, cannot be suppressed by
- * the "prevent this page from creating additional dialogs" checkbox, and does
- * not freeze the renderer the way `window.confirm` does.
+ * These render through the in-app modal in `components/ui/appDialog.ts` rather
+ * than `window.confirm`/`window.alert`, which show an unthemed browser popup
+ * captioned with the page's origin ("example.com says"), pin it to the top of
+ * the viewport, and block the renderer while it is open.
  *
- * In a plain browser the bridge is absent and each helper falls back to the
- * matching `window.*` primitive, so behavior is unchanged on the web build.
+ * The same modal is used in the browser and in the desktop shell, so a
+ * confirmation looks identical in both. The `window.*` primitives remain only
+ * as a fallback for environments with no DOM, such as the unit tests.
  *
- * Every helper is async — callers must `await` (or `.then`) the result even
- * though the web fallback resolves synchronously, because the desktop path
- * genuinely round-trips through IPC.
+ * Every helper is async — callers must `await` (or `.then`) the result, since
+ * the modal resolves only once the user picks a button.
  */
+
+import { canShowAppDialog, showAppDialog } from "../components/ui/appDialog.ts";
 
 /** Buttons and framing for a confirmation dialog. */
 export interface ConfirmOptions {
@@ -29,38 +29,6 @@ export interface ConfirmOptions {
   cancelLabel?: string;
   /** Renders the affirmative button as destructive and defaults focus to Cancel. */
   destructive?: boolean;
-}
-
-/** The desktop bridge's message-box request shape. */
-interface NativeMessageBoxRequest {
-  type: "none" | "info" | "error" | "question" | "warning";
-  message: string;
-  detail?: string;
-  buttons: string[];
-  defaultId: number;
-  cancelId: number;
-}
-
-/**
- * The desktop bridge, when running inside Electron.
- *
- * @remarks
- * Read lazily on each call rather than cached at module load, because this
- * module is imported before the preload script has necessarily run in some
- * bundling orders.
- */
-type MessageBoxFn = (options: NativeMessageBoxRequest) => Promise<{ response: number }>;
-
-function desktopBridge(): MessageBoxFn | null {
-  if (typeof window === "undefined") {
-    return null;
-  }
-  // Read through a local cast rather than the ambient Window augmentation in
-  // components/desktopTitlebar.ts: the tests tsconfig does not pull that module
-  // in, so relying on it breaks `npm run typecheck:tests`.
-  const bridge = (window as { wordmarkDesktop?: { showMessageBox?: MessageBoxFn } }).wordmarkDesktop;
-  const showMessageBox = bridge?.showMessageBox;
-  return typeof showMessageBox === "function" ? showMessageBox : null;
 }
 
 /**
@@ -84,26 +52,19 @@ export async function confirmAction(options: ConfirmOptions | string): Promise<b
   const confirmLabel = opts.confirmLabel || "OK";
   const cancelLabel = opts.cancelLabel || "Cancel";
 
-  const showMessageBox = desktopBridge();
-  if (showMessageBox) {
-    try {
-      // Cancel is listed first so it takes index 0; a native box dismissed with
-      // Esc or the window close button reports cancelId, which must not be the
-      // destructive action.
-      const response = await showMessageBox({
-        type: opts.destructive ? "warning" : "question",
-        message: opts.message,
-        detail: opts.detail,
-        buttons: [cancelLabel, confirmLabel],
-        defaultId: opts.destructive ? 0 : 1,
-        cancelId: 0,
-      });
-      return response?.response === 1;
-    } catch (error) {
-      console.error("Native confirm failed, falling back to window.confirm:", error);
-    }
+  if (canShowAppDialog()) {
+    return showAppDialog({
+      message: opts.message,
+      detail: opts.detail,
+      buttons: [
+        { label: cancelLabel, value: false },
+        { label: confirmLabel, value: true, primary: !opts.destructive, destructive: opts.destructive },
+      ],
+      cancelValue: false,
+    });
   }
 
+  // No DOM (unit tests, SSR): fall back to the platform primitive.
   if (typeof window === "undefined" || typeof window.confirm !== "function") {
     return false;
   }
@@ -115,28 +76,21 @@ export async function confirmAction(options: ConfirmOptions | string): Promise<b
  *
  * @param message - The primary line.
  * @param detail - Optional secondary line.
- * @param type - Visual tone of the native box; ignored on the web.
+ * @param type - Retained for call-site intent; the modal renders one style.
  */
 export async function alertMessage(
   message: string,
   detail?: string,
-  type: "info" | "error" | "warning" = "info",
+  _type: "info" | "error" | "warning" = "info",
 ): Promise<void> {
-  const showMessageBox = desktopBridge();
-  if (showMessageBox) {
-    try {
-      await showMessageBox({
-        type,
-        message,
-        detail,
-        buttons: ["OK"],
-        defaultId: 0,
-        cancelId: 0,
-      });
-      return;
-    } catch (error) {
-      console.error("Native alert failed, falling back to window.alert:", error);
-    }
+  if (canShowAppDialog()) {
+    await showAppDialog({
+      message,
+      detail,
+      buttons: [{ label: "OK", value: true, primary: true }],
+      cancelValue: true,
+    });
+    return;
   }
 
   if (typeof window !== "undefined" && typeof window.alert === "function") {
@@ -148,11 +102,11 @@ export async function alertMessage(
  * A confirmation for an irreversible, wide-reaching action.
  *
  * @remarks
- * The web build historically gated these behind a "type YES to confirm"
- * `window.prompt`. A native message box has no text field, so the equivalent
- * friction comes from an explicit, named destructive button (e.g. "Delete all
- * files") rather than a generic "OK" — the user has to read what they are
- * agreeing to. On the web this still falls back to the typed confirmation.
+ * These were historically gated behind a "type YES to confirm"
+ * `window.prompt`. The modal has no text field, so the equivalent friction
+ * comes from an explicit, named destructive button (e.g. "Delete all files")
+ * rather than a generic "OK" — the user has to read what they are agreeing to.
+ * The typed confirmation survives only in the no-DOM fallback.
  *
  * @param options - `message`/`detail` as usual, plus the destructive button's
  *   label and the word the web fallback asks the user to type.
@@ -165,7 +119,7 @@ export async function confirmDestructive(options: {
   /** Word the browser fallback requires the user to type. Defaults to `"YES"`. */
   typedWord?: string;
 }): Promise<boolean> {
-  if (desktopBridge()) {
+  if (canShowAppDialog()) {
     return confirmAction({
       message: options.message,
       detail: options.detail,
