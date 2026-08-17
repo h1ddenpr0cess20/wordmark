@@ -2,6 +2,12 @@
 
 All notable changes to Wordmark are documented here. Earlier versions didn't follow proper semver — this changelog reflects what actually shipped, not what the version numbers said at the time.
 
+## [Unreleased]
+
+### Fixed
+- **Settings panel unusable on phones after the list-pane change** — 3.15.0 turned the settings tabs into a vertical list pane at every width, including phones, where it took a fixed 108–132px out of a viewport that is only 360–390px wide. The remaining content column was too narrow for the panels it had to hold: tool cards wrapped their titles and pushed their badges onto their own line, the theme preview's caption squeezed into a six-line sliver beside the swatches, and the list's own labels were clipped to "Personali…". The list pane is now scoped to viewports 641px and up — desktop, tablet, and landscape phones keep it — while narrower screens go back to the horizontal tab strip and get the full panel width for content.
+- **Dead small-screen tab sizing rule** — the `.tab-button` padding/font-size override in the ≤390px block was outranked by the equally specific base rule in `settings/panel.css`, which is imported later, so phone tabs always rendered at the desktop size. The override is now scoped under `.settings-tabs` so it applies, fitting more sections into the strip before it has to scroll.
+
 ## [3.15.0] - 2026-08-17
 
 Adds OpenRouter as a provider, a real app manifest and icon set for installs, a settings panel reorganized around a left-hand list, and a batch of image/media and mobile fixes. Backward-compatible.
