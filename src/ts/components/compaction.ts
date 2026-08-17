@@ -145,15 +145,31 @@ export async function compactConversationHistory(): Promise<CompactionResult | n
       inputMessages: [{ role: "user", content: buildCompactionRequestContent(state.compactedSummary, tail) }],
       instructions: COMPACTION_SYSTEM_INSTRUCTIONS,
       model: getActiveModel(),
-      reasoningEffort: "low",
       verbosity: "low",
       maxOutputTokens: SUMMARY_MAX_OUTPUT_TOKENS,
       stream: false,
+      // A reasoning model spends max_output_tokens on reasoning tokens first
+      // and can hit the cap before emitting any message text, which surfaced
+      // as a successful request that produced an empty summary. Summarizing a
+      // transcript does not need reasoning, so it is suppressed outright.
+      suppressReasoning: true,
+      // This is not the user's turn; it must not become the model the
+      // transcript attributes replies to.
+      trackLastUsed: false,
     });
     const response = await executeNonStreamingRequest(body);
     const summary = (extractOutputText(response) || "").trim();
     if (!summary) {
-      showError("Compaction produced no summary.");
+      // Name the failure rather than leaving the user with a dead end: an
+      // incomplete response reports why it stopped.
+      const status = (response as { status?: string })?.status;
+      const reason = (response as { incomplete_details?: { reason?: string } })?.incomplete_details?.reason;
+      logCompaction("Empty summary. status:", status, "reason:", reason, "response:", response);
+      showError(
+        reason === "max_output_tokens"
+          ? "Compaction hit the output limit before writing a summary. Try again, or use a different model."
+          : "Compaction produced no summary.",
+      );
       return null;
     }
 

@@ -157,6 +157,10 @@ export interface BuildRequestOptions {
   previousResponseId?: string | null;
   temperature?: number;
   maxOutputTokens?: number;
+  /** Omit the reasoning block even when the model supports it. */
+  suppressReasoning?: boolean;
+  /** Whether to record this as the last used model/service. Defaults to true. */
+  trackLastUsed?: boolean;
 }
 
 /** Options for `runTurn`. */
