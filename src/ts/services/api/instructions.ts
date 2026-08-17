@@ -16,6 +16,7 @@ import { getMediaToolInstructions } from "../mediaTools.ts";
 import { getToolsDescription } from "../../components/tools.ts";
 import { getSkillsDescription } from "../skills/skills.ts";
 import { getEnabledToolDefinitions, supportsClientSideTools } from "./toolManager.ts";
+import { buildCompactedSummaryBlock } from "./compaction.ts";
 import { DEFAULT_PERSONALITY, DEFAULT_SYSTEM_PROMPT, PERSONALITY_PROMPT_TEMPLATE, config } from "../../../config/config.ts";
 
 /**
@@ -43,6 +44,17 @@ export function buildInstructions() {
  * Builds the developer/system message: the active instructions augmented with
  * location context and the current timestamp. Returns `""` when there are no
  * instructions.
+ *
+ * @remarks
+ * When the conversation has been compacted, the running summary is appended
+ * last. It rides here rather than in the message list because the turns it
+ * replaces have been trimmed out of the request (see
+ * {@link ../../components/interaction.ts}) — the developer message is the only
+ * channel that survives the history window. Last position is deliberate: the
+ * block's framing tells the model to follow "the instructions above", so
+ * everything it defers to must already have been emitted. It is appended even
+ * in "no prompt" mode, where it becomes the whole developer message, since
+ * dropping it would lose the conversation's earlier context outright.
  */
 export function buildDeveloperMessage() {
   const instructions = buildInstructions();
@@ -80,6 +92,11 @@ export function buildDeveloperMessage() {
     if (memories) {
       developerBlock += `\n${memories.trim()}`;
     }
+  }
+
+  const summaryBlock = buildCompactedSummaryBlock(state.compactedSummary);
+  if (summaryBlock) {
+    developerBlock += `\n\n${summaryBlock}`;
   }
 
   const trimmed = developerBlock.trim();

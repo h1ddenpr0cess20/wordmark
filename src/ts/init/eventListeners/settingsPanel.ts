@@ -65,9 +65,12 @@ function restoreOriginalValues(panelState: PanelState) {
 }
 
 /**
- * Opens the settings panel: closes the other panels so they never stack, marks
- * it visible, and hides the header settings/history/gallery buttons while it
- * is open.
+ * Opens the settings panel, closing the other panels so they never stack.
+ *
+ * @remarks
+ * The panel buttons live in the rail and the panel layers over it, so they stay
+ * put while a panel is open — their `aria-expanded` state is the only thing that
+ * changes, and the rail's own styling reflects it.
  */
 function showSettingsPanel() {
   if (!elements.settingsPanel || !elements.settingsButton) {
@@ -76,30 +79,16 @@ function showSettingsPanel() {
   closePanel({ panel: elements.historyPanel, button: elements.historyButton });
   closePanel({ panel: elements.galleryPanel, button: elements.galleryButton });
   openPanel({ panel: elements.settingsPanel, button: elements.settingsButton });
-  elements.settingsButton.style.display = "none";
-  if (elements.historyButton) {
-    elements.historyButton.style.display = "none";
-  }
-  if (elements.galleryButton) {
-    elements.galleryButton.style.display = "none";
-  }
 }
 
 /**
- * Closes the settings panel and restores the header buttons.
+ * Closes the settings panel.
  *
  * @param focusButton - When `true`, returns focus to the settings button.
  */
 function hideSettingsPanel({ focusButton = false } = {}) {
   if (!elements.settingsPanel || !elements.settingsButton) {
     return;
-  }
-  elements.settingsButton.style.display = "";
-  if (elements.historyButton) {
-    elements.historyButton.style.display = "";
-  }
-  if (elements.galleryButton) {
-    elements.galleryButton.style.display = "";
   }
   closePanel({ panel: elements.settingsPanel, button: elements.settingsButton }, { focusButton });
 }
@@ -126,10 +115,10 @@ export function closeSettingsPanelIfOpen({ focusButton = false } = {}) {
  */
 function setupQuickAccessTargets(openSettingsAndSwitch: (tabId: string) => void) {
   const targets = [
-    { selector: "#wordmark-logo", tabId: "tab-about" },
-    { selector: "#logo-wordmark", tabId: "tab-about" },
+    { selector: "#rail-brand", tabId: "tab-about" },
     { selector: "#header-title", tabId: "tab-model" },
     { selector: "#model-info", tabId: "tab-personality" },
+    { selector: "#rail-status", tabId: "tab-model" },
   ];
 
   targets.forEach(({ selector, tabId }) => {

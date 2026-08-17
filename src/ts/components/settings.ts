@@ -165,6 +165,8 @@ export function updateHeaderInfo() {
 
   try { updateFeatureStatus(); } catch { /* noop */ }
 
+  try { uiHooks.updateRailServiceLine?.(); } catch { /* noop */ }
+
   updateReasoningAvailability();
 }
 
@@ -462,6 +464,10 @@ export function updateModelSelector() {
     option.value = "error";
     option.textContent = "Error loading models";
     elements.modelSelector.appendChild(option);
+  } finally {
+    // Runs on the early-return paths too (loading / no models available), which
+    // are exactly the states the rail's provider dot has to reflect.
+    try { uiHooks.updateRailServiceLine?.(); } catch { /* noop */ }
   }
 }
 

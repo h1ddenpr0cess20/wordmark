@@ -33,6 +33,17 @@ export interface AppState {
   currentReasoningEffort: string;
   currentVerbosity: string;
   historyTokenBudget?: number;
+  /**
+   * Running summary of the turns already folded away by compaction. Injected
+   * into the developer message; mirrors the active conversation record's
+   * `compactedSummary` and is restored when a conversation is loaded.
+   */
+  compactedSummary?: string;
+  /**
+   * Id of the last message covered by {@link AppState.compactedSummary}.
+   * Everything after it is still resent verbatim.
+   */
+  compactedThroughId?: string;
   imageDataCache: Map<string, string>;
 
   pendingUploads: PendingUpload[];
@@ -121,4 +132,12 @@ export interface Elements {
   galleryPanel: HTMLElement | null;
   closeGalleryButton: HTMLButtonElement | null;
   galleryGrid: HTMLElement | null;
+
+  rail: HTMLElement | null;
+  railToggle: HTMLButtonElement | null;
+  railClose: HTMLButtonElement | null;
+  railScrim: HTMLElement | null;
+  railConversations: HTMLElement | null;
+  railServiceLine: HTMLElement | null;
+  newChatButton: HTMLButtonElement | null;
 }

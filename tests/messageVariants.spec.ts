@@ -26,6 +26,7 @@ test("snapshotVariant copies the entry's renderable fields", () => {
     codeInterpreterOutputs: undefined,
     hasImages: true,
     incomplete: true,
+    model: undefined,
   });
 });
 

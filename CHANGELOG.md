@@ -2,6 +2,28 @@
 
 All notable changes to Wordmark are documented here. Earlier versions didn't follow proper semver — this changelog reflects what actually shipped, not what the version numbers said at the time.
 
+## [4.0.0] - 2026-08-17
+
+A full redesign of the app shell around a left rail. The chat, settings, history and gallery features are unchanged in behavior; what changed is the frame they sit in.
+
+### Changed
+- **The app shell is now the Rail layout** — the floating 80vw card, the centered logo above it and the three icon buttons floating over the chat are gone. In their place is a full-bleed two-column shell: a 264px rail on the left carrying the mark, a New chat button, the recent-conversation list, the history/gallery/settings buttons and a provider status line; and a chat column with a header, a 760px reading column and the composer. Below 860px the rail collapses into an overlay drawer opened from a hamburger in the header.
+- **Conversations are reachable without opening a panel** — the rail lists the 20 most recently updated conversations, highlights the current one, and loads or deletes on click. It is a view of the same IndexedDB store the history panel renders, so the two never disagree.
+- **The header pairs the model with the prompt** — the model name and the personality/system-prompt line sit together on the left, with the feature badges right-aligned. Clicking either still jumps to its settings tab.
+- **Assistant replies are unbubbled** — an assistant turn is prose under a meta row carrying the mark, a `WORDMARK` label, the model line and the per-message actions (copy, branch, regenerate). User turns keep their bubble, right-aligned with an asymmetric radius. Per-message controls now sit inline in that row instead of floating outside the bubble, so they no longer collide with the reading column at narrow widths.
+- **The composer is a card** — the textarea sits over an action row holding attach, a keyboard hint and send. The attach button is a flow item in that row rather than an overlay pinned inside the textarea.
+- **Panels layer over the whole shell** — settings, history and gallery slide in at 560px over a scrim that covers the rail too, and no longer hide the rail's buttons while open.
+- **Settings keeps its vertical tab pane at every width** — 3.15.1 fell back to a horizontal strip below 641px; the pane now trades width for a smaller label instead (116px, then 104px on the narrowest phones), which keeps every tab name intact without starving the content column.
+
+### Added
+- **A real lightbox for images** — the media viewer gains zoom and pan (wheel, the new zoom buttons, `+`/`-`/`0`, double-click to toggle, drag to pan when zoomed), a copy-prompt button, and `Home`/`End` to jump to the first or last item. It also behaves like a dialog now: it declares `role="dialog"`/`aria-modal`, takes focus when it opens, returns focus where it came from when it closes, and locks background scrolling while open.
+- **Empty-state for a new conversation** — the mark, a reminder that everything stays on this machine, and starter prompts that drop into the composer.
+
+### Fixed
+- **Unreadable text on accent-filled controls** — `--on-accent` previously resolved to `--button-text-color`, which is white in most themes. That was tuned for the old mid-grey accent and failed badly on themes whose accent is bright: white on Aurora's `#4ffbb0` measured 1.5:1. Every theme now declares the higher-contrast of its own background, button text, black or white; the worst case across all 41 themes is now 5.0:1.
+- **Theme backdrops no longer cut off** — the header and composer painted opaque `--bg-secondary` over the per-theme `#chat-container` gradients. They are transparent now, so those backdrops run edge to edge.
+- **Theme preview no longer collapses** — its caption wraps below the swatches in a narrow content column instead of squeezing into a sliver beside them.
+
 ## [3.15.1] - 2026-08-17
 
 Fixes the settings panel on phones after 3.15.0 turned its tabs into a list pane at every width.

@@ -10,7 +10,48 @@ test("extractOutputText returns output_text when it is a string", () => {
   assert.equal(extractOutputText(make({ output_text: "hello" })), "hello");
 });
 
-test("extractOutputText returns empty string when output_text is missing or non-string", () => {
+test("extractOutputText reads raw Responses API output message content", () => {
+  assert.equal(
+    extractOutputText(make({
+      output: [{
+        type: "message",
+        role: "assistant",
+        content: [{ type: "output_text", text: "hello from raw JSON" }],
+      }],
+    })),
+    "hello from raw JSON",
+  );
+});
+
+test("extractOutputText joins multiple raw output text parts", () => {
+  assert.equal(
+    extractOutputText(make({
+      output: [{
+        type: "message",
+        role: "assistant",
+        content: [
+          { type: "output_text", text: "first " },
+          { type: "output_text", text: "second" },
+        ],
+      }],
+    })),
+    "first second",
+  );
+});
+
+test("extractOutputText ignores non-message output items", () => {
+  assert.equal(
+    extractOutputText(make({
+      output: [
+        { type: "reasoning", summary: [{ text: "not assistant output" }] },
+        { type: "function_call", name: "foo", arguments: "{}" },
+      ],
+    })),
+    "",
+  );
+});
+
+test("extractOutputText returns empty string when output_text is missing or non-string and output is absent", () => {
   assert.equal(extractOutputText(make({})), "");
   assert.equal(extractOutputText(make({ output_text: 42 })), "");
 });

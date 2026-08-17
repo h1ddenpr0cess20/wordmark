@@ -18,6 +18,7 @@ export function snapshotVariant(entry: Message): MessageVariant {
     codeInterpreterOutputs: entry.codeInterpreterOutputs,
     hasImages: entry.hasImages,
     incomplete: entry.incomplete,
+    model: entry.model,
   };
 }
 
@@ -29,6 +30,7 @@ export function applyVariant(entry: Message, variant: MessageVariant): void {
   entry.codeInterpreterOutputs = variant.codeInterpreterOutputs;
   entry.hasImages = variant.hasImages;
   entry.incomplete = variant.incomplete;
+  entry.model = variant.model;
 }
 
 /**

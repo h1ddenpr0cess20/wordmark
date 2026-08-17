@@ -1,57 +1,114 @@
+/* Message forms in the Rail shell: user turns stay bubbled and right-aligned;
+   assistant turns are unbubbled under a labeled meta row so long answers read
+   as prose rather than as a card. */
 .message {
   display: flex;
-  align-items: flex-start;
-  margin-bottom: 16px;
+  flex-direction: column;
+  margin-bottom: 24px;
   width: 100%;
-  gap: 12px;
+  gap: 10px;
   animation: fadeIn 0.3s ease-out;
   position: relative;
 }
 
 .message-content {
-  padding: 24px 20px;
-  border-radius: 12px;
   color: var(--text-primary);
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
-  flex: 1;
   min-width: 0;
   position: relative;
+  font-size: 0.94rem;
+  line-height: 1.65;
+  text-wrap: pretty;
+}
+
+.message.user {
+  align-items: flex-end;
 }
 
 .user .message-content {
+  align-self: flex-end;
+  max-width: 82%;
   background-color: var(--user-bg);
+  border-radius: 14px 14px 4px 14px;
+  padding: 14px 18px;
+  line-height: 1.55;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
 }
 
 .assistant .message-content {
-  background-color: var(--assistant-bg);
+  background-color: transparent;
+  padding: 0 0 0 32px;
 }
 
 .error .message-content {
   background-color: var(--error-bg);
   color: var(--error-text);
+  border-radius: 12px;
+  padding: 16px 18px;
 }
+
+/* Assistant meta row: mark, WORDMARK label, model/service line, actions. */
+.message-meta {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+}
+
+.message-label {
+  font-family: 'Roboto Mono', ui-monospace, Menlo, monospace;
+  font-size: 0.69rem;
+  font-weight: 500;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--text-secondary);
+  white-space: nowrap;
+}
+
+.message-meta-info {
+  font-family: 'Roboto Mono', ui-monospace, Menlo, monospace;
+  font-size: 0.69rem;
+  color: var(--text-secondary);
+  opacity: 0.6;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.message-actions {
+  margin-left: auto;
+  flex: none;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
 .message-sender {
   display: flex;
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
-  margin-top: 4px;
 }
 
 .sender-icon {
-  width: 32px;
-  height: 32px;
+  width: 22px;
+  height: 22px;
   flex-shrink: 0;
   transition: transform 0.2s ease, opacity 0.2s ease;
 }
 
 .user-icon {
   color: var(--accent-color);
-  width: 24px;
-  height: 24px;
+  width: 22px;
+  height: 22px;
 }
 
 .assistant-icon {
-  color: var(--accent-hover);
+  color: var(--accent-color);
 }
 
+/* Party mode keeps the meta row but labels it with the character's name. */
+.message.party .message-label {
+  letter-spacing: 0.08em;
+  color: var(--accent-color);
+}

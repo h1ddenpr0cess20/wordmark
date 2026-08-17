@@ -72,6 +72,11 @@ const DEFAULT_INCLUDE_FIELDS = [
  * @param options.previousResponseId - Prior response id for multi-turn chaining.
  * @param options.temperature - Sampling temperature; included only when finite.
  * @param options.maxOutputTokens - Output-token cap; included only when finite.
+ * @param options.suppressReasoning - Omit the reasoning block even on a model
+ *   that supports it, for side requests where reasoning tokens would eat the
+ *   output budget and leave the response empty.
+ * @param options.trackLastUsed - Whether to record the model/service as the
+ *   last used ones; defaults to `true`. Side requests should pass `false`.
  * @returns The JSON-serializable request body.
  */
 export function buildRequestBody({
@@ -85,12 +90,18 @@ export function buildRequestBody({
   previousResponseId,
   temperature,
   maxOutputTokens,
+  suppressReasoning,
+  trackLastUsed = true,
 }: BuildRequestOptions): Record<string, unknown> {
   const targetModel = model || getActiveModel();
-  const allowReasoning = supportsReasoningEffort(targetModel);
+  const allowReasoning = !suppressReasoning && supportsReasoningEffort(targetModel);
   const serviceKey = getActiveServiceKey();
-  state.lastUsedModel = targetModel;
-  state.lastUsedService = serviceKey;
+  // Side requests (e.g. history compaction) are not the user's turn, so they
+  // must not overwrite the model/service the transcript attributes replies to.
+  if (trackLastUsed) {
+    state.lastUsedModel = targetModel;
+    state.lastUsedService = serviceKey;
+  }
   const payload: Record<string, unknown> = {
     model: targetModel,
     text: {

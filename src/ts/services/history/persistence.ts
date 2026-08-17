@@ -18,10 +18,10 @@ import { createScopedLogger } from "../../utils/logger.ts";
 import { loadImageFromDb } from "../../utils/storage/imageStorage.ts";
 import { ensureImagesHaveMessageIds } from "../streaming/imageGeneration.ts";
 import { renderChatHistoryList } from "./list.ts";
+import { uiHooks } from "../../init/uiHooks.ts";
 import { renderConversationMessages } from "./render.ts";
 import { processImageForStorage, markMessagesWithImages } from "./persistenceImages.ts";
 import { hydrateMediaUrls } from "./renderMedia.ts";
-import { uiHooks } from "../../init/uiHooks.ts";
 import { clearLocalDocIndex, persistLocalDocIndex, restoreLocalDocIndex } from "../localDocRetrieval.ts";
 import { stripRetrievedContextFromMessages } from "../../utils/retrievedContext.ts";
 import type { ConversationRecord } from "../../../types/common.ts";
@@ -119,6 +119,8 @@ function resetConversationState() {
   clearLocalDocIndex();
   state.conversationHistory = [];
   state.generatedImages = [];
+  state.compactedSummary = undefined;
+  state.compactedThroughId = undefined;
   state.currentConversationId = null;
   state.currentConversationName = null;
   state.lastUsedModel = null;
@@ -174,6 +176,10 @@ export function saveCurrentConversation(meta: { name?: string; created?: string 
       type: promptType,
       content: promptContent,
     },
+    // The summary stands in for turns that are no longer resent, so it has to
+    // outlive the session alongside the messages it replaced.
+    compactedSummary: state.compactedSummary,
+    compactedThroughId: state.compactedThroughId,
   };
 
   if (state.activePartyConfig) {
@@ -204,6 +210,7 @@ export function saveCurrentConversation(meta: { name?: string; created?: string 
   saveConversationToDb?.(conversation)
     .then((id) => {
       logHistory("Saved conversation to IndexedDB:", id);
+      uiHooks.refreshRailConversations?.();
     })
     .catch((err) => {
       console.error("Failed to save conversation to IndexedDB:", err);
@@ -241,7 +248,11 @@ export function startNewConversation(name: string | null = null) {
 
   if (elements.chatBox) {
     elements.chatBox.innerHTML = "";
+    uiHooks.refreshEmptyState?.();
   }
+
+  uiHooks.refreshRailConversations?.();
+  uiHooks.refreshHistoryMeter?.();
 
   logHistory("Started new conversation");
 };
@@ -263,6 +274,7 @@ export function loadConversation(id: string) {
       return ensureLibrariesLoaded().then(() => preloadImages(convo)
         .then((imageCache) => {
           loadConversationIntoUI(convo, imageCache);
+          uiHooks.refreshRailConversations?.();
           return true;
         }));
     })
@@ -290,6 +302,11 @@ function loadConversationIntoUI(convo: ConversationRecord, imageCache: Map<strin
   state.lastUsedModel = convo.model && convo.model !== "Unknown" ? convo.model : null;
   state.lastUsedService = convo.service && convo.service !== "Unknown" ? convo.service : null;
   state.loadedSystemPrompt = convo.systemPrompt || null;
+  // Restore compaction state with the transcript: without it the summary would
+  // be gone from the developer message while the turns it stands in for stay
+  // trimmed out of the request.
+  state.compactedSummary = convo.compactedSummary || undefined;
+  state.compactedThroughId = convo.compactedThroughId || undefined;
   state.userThinkingState = {};
   state.messageImages = {};
   state.variantImages = {};
@@ -319,4 +336,5 @@ function loadConversationIntoUI(convo: ConversationRecord, imageCache: Map<strin
   }
 
   renderConversationMessages(convo, imageCache);
+  uiHooks.refreshHistoryMeter?.();
 }

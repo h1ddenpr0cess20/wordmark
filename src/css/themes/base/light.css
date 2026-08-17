@@ -5,6 +5,7 @@
   --text-secondary: #666666;
   --accent-color: #999999;
   --accent-hover: #777777;
+  --on-accent: #000000;
   --border-color: #cccccc;
   --bg-primary-rgb: 240, 240, 240;
   --bg-secondary-rgb: 224, 224, 224;
@@ -30,6 +31,7 @@
   --text-secondary: #775050;
   --accent-color: #ffb0b0;
   --accent-hover: #ff9090;
+  --on-accent: #000000;
   --border-color: #ffcccc;
   --user-bg: #ffe0e0;
   --assistant-bg: #fff0f0;
@@ -47,6 +49,7 @@
   --text-secondary: #775e50;
   --accent-color: #ffcc99;
   --accent-hover: #ffbb77;
+  --on-accent: #000000;
   --border-color: #ffe0bb;
   --user-bg: #ffeed3;
   --assistant-bg: #fff5e8;
@@ -64,6 +67,7 @@
   --text-secondary: #777550;
   --accent-color: #ffe58a;
   --accent-hover: #ffd450;
+  --on-accent: #000000;
   --border-color: #ffefb3;
   --user-bg: #fff7c2;
   --assistant-bg: #ffffee;
@@ -81,6 +85,7 @@
   --text-secondary: #567d46;
   --accent-color: #85bb65;
   --accent-hover: #6fae55;
+  --on-accent: #000000;
   --border-color: #c7e9c0;
   --user-bg: #eaf7e5;
   --assistant-bg: #f4fbf2;
@@ -98,6 +103,7 @@
   --text-secondary: #506a77;
   --accent-color: #b0d8ff;
   --accent-hover: #90c8ff;
+  --on-accent: #000000;
   --border-color: #cce5ff;
   --user-bg: #e0f0ff;
   --assistant-bg: #f0f8ff;
@@ -115,6 +121,7 @@
   --text-secondary: #6a5077;
   --accent-color: #d8b0ff;
   --accent-hover: #c890ff;
+  --on-accent: #000000;
   --border-color: #e5ccff;
   --user-bg: #f0e0ff;
   --assistant-bg: #f8f0ff;
@@ -132,6 +139,7 @@
   --text-secondary: #775066;
   --accent-color: #ffb0d8;
   --accent-hover: #ff90c8;
+  --on-accent: #000000;
   --border-color: #ffcce5;
   --user-bg: #ffe0f0;
   --assistant-bg: #fff0f8;
@@ -149,6 +157,7 @@
   --text-secondary: #666666;
   --accent-color: #dddddd;
   --accent-hover: #cccccc;
+  --on-accent: #000000;
   --border-color: #eeeeee;
   --user-bg: #f0f0f0;
   --assistant-bg: #fcfcfc;

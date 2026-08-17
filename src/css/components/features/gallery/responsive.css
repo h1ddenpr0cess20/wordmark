@@ -12,7 +12,11 @@
     min-width: 300px;
     max-width: none;
     padding: 15px;
-    max-height: 40vh;
+    /* Still a fixed height, just a smaller one — the panel must not resize with
+       the prompt length on mobile either. */
+    height: 32vh;
+    min-height: 150px;
+    max-height: 260px;
   }
 }
 
@@ -22,5 +26,8 @@
     min-width: 280px;
     padding: 12px;
     font-size: 0.9rem;
+    height: 30vh;
+    min-height: 130px;
+    max-height: 220px;
   }
 }

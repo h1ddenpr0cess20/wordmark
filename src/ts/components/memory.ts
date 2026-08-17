@@ -10,6 +10,7 @@ import { getMemoryConfig, setMemoryEnabled, setMemoryLimit, getMemories, addMemo
 import { updateFeatureStatus } from "./settings.ts";
 import { updateToolDefinitions } from "./tools.ts";
 import { createMemoryRow } from "./memoryRow.ts";
+import { confirmAction } from "../utils/dialogs.ts";
 
 /** Initializes the memory settings panel and binds its controls. */
 export function initMemorySettings() {
@@ -51,10 +52,16 @@ export function initMemorySettings() {
   });
 
   if (clearBtn) {
-    clearBtn.addEventListener("click", (e: Event) => {
+    clearBtn.addEventListener("click", async (e: Event) => {
       if (e && typeof e.stopPropagation === "function") e.stopPropagation();
       if (e && typeof e.preventDefault === "function") e.preventDefault();
-      if (confirm("Clear all saved memories? This cannot be undone.")) {
+      const confirmed = await confirmAction({
+        message: "Clear all saved memories?",
+        detail: "This cannot be undone.",
+        confirmLabel: "Clear memories",
+        destructive: true,
+      });
+      if (confirmed) {
         if (clearAllMemories) clearAllMemories();
         renderList();
       }

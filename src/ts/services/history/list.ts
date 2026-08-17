@@ -21,6 +21,8 @@ import {
   resolveConversationPrompt,
 } from "./historyRow.ts";
 import { closePanel } from "../../utils/dom/panels.ts";
+import { uiHooks } from "../../init/uiHooks.ts";
+import { alertMessage, confirmAction } from "../../utils/dialogs.ts";
 import type { ConversationRecord } from "../../../types/common.ts";
 
 let activeHistoryKeydown: ((e: KeyboardEvent) => void) | null = null;
@@ -30,6 +32,8 @@ let activeHistoryKeydown: ((e: KeyboardEvent) => void) | null = null;
  * load-on-click, per-row rename/delete, and bulk selection.
  */
 export function renderChatHistoryList() {
+  uiHooks.refreshRailConversations?.();
+
   const historyList = elements.historyList;
   if (!historyList) {
     return;
@@ -107,34 +111,39 @@ export function renderChatHistoryList() {
         deleteButton.textContent = count > 1 ? `Delete (${count})` : "Delete";
       };
 
-      const deleteConversations = (conversationIds: string[]) => {
+      const deleteConversations = async (conversationIds: string[]) => {
         if (!conversationIds.length) {
           return;
         }
         const confirmMessage = conversationIds.length === 1
           ? "Delete this conversation?"
           : `Delete ${conversationIds.length} conversations?`;
-        if (!confirm(confirmMessage)) {
+        const confirmed = await confirmAction({
+          message: confirmMessage,
+          detail: "This cannot be undone.",
+          confirmLabel: "Delete",
+          destructive: true,
+        });
+        if (!confirmed) {
           return;
         }
 
-        Promise.all(conversationIds.map(id => Promise.all([
-          deleteConversationFromDb?.(id),
-          deleteDocChunks(id).catch(() => undefined),
-        ])))
-          .then(() => {
-            conversationIds.forEach((id) => {
-              if (state.currentConversationId === id) {
-                state.currentConversationId = null;
-                state.currentConversationName = null;
-              }
-            });
-            renderChatHistoryList();
-          })
-          .catch((err) => {
-            console.error("Failed to delete conversations:", err);
-            alert("Error deleting conversations. Please try again.");
+        try {
+          await Promise.all(conversationIds.map(id => Promise.all([
+            deleteConversationFromDb?.(id),
+            deleteDocChunks(id).catch(() => undefined),
+          ])));
+          conversationIds.forEach((id) => {
+            if (state.currentConversationId === id) {
+              state.currentConversationId = null;
+              state.currentConversationName = null;
+            }
           });
+          renderChatHistoryList();
+        } catch (err) {
+          console.error("Failed to delete conversations:", err);
+          await alertMessage("Error deleting conversations. Please try again.", undefined, "error");
+        }
       };
 
       newButton.onclick = () => {
@@ -174,7 +183,7 @@ export function renderChatHistoryList() {
         const conversationIds = selectedRows()
           .map((row) => row.dataset.conversationId)
           .filter((id): id is string => Boolean(id));
-        deleteConversations(conversationIds);
+        void deleteConversations(conversationIds);
       };
 
       const handleKeydown = (e: KeyboardEvent) => {
@@ -297,7 +306,7 @@ export function renderChatHistoryList() {
         deleteAction.onclick = (e) => {
           e.stopPropagation();
           if (convo.id) {
-            deleteConversations([convo.id]);
+            void deleteConversations([convo.id]);
           }
         };
 

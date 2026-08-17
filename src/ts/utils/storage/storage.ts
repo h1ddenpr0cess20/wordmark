@@ -44,6 +44,7 @@ export const STORAGE_KEYS = {
   reasoningEffort: "reasoningEffort",
   responseVerbosity: "responseVerbosity",
   historyTokenBudget: "historyTokenBudget",
+  autoCompactHistory: "autoCompactHistory",
 
   selectedTheme: "selectedTheme",
   enableLogging: "enableLogging",

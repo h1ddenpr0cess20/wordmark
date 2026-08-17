@@ -1,0 +1,96 @@
+/*
+ * History-usage meter and compact button in the composer.
+ *
+ * Sized to read as a hint rather than a control: the meter is a 3px rule that
+ * sits in the composer's action row next to the send-hint, so a user glancing
+ * at the composer can see how full the history budget is without the chrome
+ * competing with the send button.
+ */
+
+.history-meter {
+  flex: none;
+  width: 56px;
+  height: 3px;
+  border-radius: 999px;
+  background: var(--border-color);
+  overflow: hidden;
+  opacity: 0.75;
+}
+
+.history-meter[hidden] {
+  display: none;
+}
+
+.history-meter-fill {
+  display: block;
+  height: 100%;
+  width: 0;
+  border-radius: inherit;
+  background: var(--accent-color);
+  transition: width 0.25s ease;
+}
+
+/* A summary is in play: the filled portion is hatched so the meter itself,
+   not only its tooltip, shows that part of the history is condensed. */
+.history-meter.has-summary .history-meter-fill {
+  background-image: repeating-linear-gradient(
+    45deg,
+    rgb(255 255 255 / 45%) 0 2px,
+    transparent 2px 4px
+  );
+}
+
+.history-meter.is-warn {
+  opacity: 1;
+}
+
+.history-meter.is-warn .history-meter-fill {
+  background: var(--warning-color);
+}
+
+.history-compact-button {
+  flex: none;
+  width: 26px;
+  height: 26px;
+  padding: 0;
+  margin: 0;
+  border: none;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--text-secondary);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  cursor: pointer;
+  opacity: 0.65;
+  transition: color 0.2s ease, opacity 0.2s ease;
+}
+
+.history-compact-button[hidden] {
+  display: none;
+}
+
+.history-compact-button:hover:not(:disabled) {
+  color: var(--accent-color);
+  opacity: 1;
+}
+
+.history-compact-button:disabled {
+  cursor: default;
+  opacity: 0.3;
+}
+
+.history-compact-button.is-compacting {
+  color: var(--accent-color);
+  animation: history-compact-pulse 1s ease-in-out infinite alternate;
+}
+
+@keyframes history-compact-pulse {
+  from {
+    opacity: 0.35;
+  }
+
+  to {
+    opacity: 1;
+  }
+}

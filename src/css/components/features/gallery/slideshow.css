@@ -87,7 +87,7 @@
   backface-visibility: hidden;
 }
 
-.slideshow-icon-btn:hover {
+.slideshow-icon-btn:hover:not(:disabled) {
   background-color: var(--accent-color);
   color: var(--button-text-color);
   border-color: var(--accent-color);
@@ -95,7 +95,10 @@
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.6);
 }
 
-.slideshow-icon-btn:focus {
+/* :focus-visible, not :focus — a mouse click leaves focus on the button, which
+   would otherwise leave the accent highlight stuck there after the pointer
+   moves away. Keyboard users still get a clear ring. */
+.slideshow-icon-btn:focus-visible {
   outline: 2px solid var(--accent-color);
   outline-offset: 2px;
   background-color: var(--accent-color);
@@ -131,7 +134,7 @@
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.6);
 }
 
-.gallery-slideshow-nav:focus {
+.gallery-slideshow-nav:focus-visible {
   outline: 2px solid var(--accent-color);
   outline-offset: 2px;
   background-color: var(--accent-color);
@@ -145,6 +148,9 @@
 .gallery-slideshow-next {
   right: 20px;
 }
+/* Fixed height, not max-height: the panel must not resize with the length of the
+   prompt, or the media above it jumps as you page through the gallery. The
+   heading stays put and only the body scrolls, so the counter is always visible. */
 .gallery-slideshow-info {
   margin-top: 15px;
   padding: 20px;
@@ -155,8 +161,13 @@
   width: 60vw;
   min-width: 400px;
   max-width: 800px;
-  overflow-y: auto;
-  max-height: 35vh;
+  flex: 0 0 auto;
+  height: 30vh;
+  min-height: 160px;
+  max-height: 300px;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
   position: relative;
   z-index: 1010;
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
@@ -166,9 +177,21 @@
   line-height: 1.5;
 }
 
+.gallery-slideshow-info-body {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
+  /* The overlay sets touch-action: none for the swipe/pan gestures; the caption
+     body has to opt back into vertical touch scrolling. */
+  touch-action: pan-y;
+}
+
 .gallery-slideshow-info h3 {
   margin-top: 0;
   margin-bottom: 12px;
+  flex: 0 0 auto;
   color: var(--text-primary);
   border-bottom: 1px solid var(--text-primary);
   padding-bottom: 8px;
@@ -176,6 +199,7 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
+  gap: 10px;
 }
 .gallery-slideshow-info h3 .gallery-slideshow-counter {
   font-size: 0.8rem;
@@ -245,21 +269,52 @@
     background-position: -200% 0;
   }
 }
-.gallery-slideshow-info::-webkit-scrollbar {
+.gallery-slideshow-info-body::-webkit-scrollbar {
   width: 8px;
 }
 
-.gallery-slideshow-info::-webkit-scrollbar-track {
+.gallery-slideshow-info-body::-webkit-scrollbar-track {
   background: rgba(var(--text-primary-rgb), 0.1);
   border-radius: 4px;
 }
 
-.gallery-slideshow-info::-webkit-scrollbar-thumb {
+.gallery-slideshow-info-body::-webkit-scrollbar-thumb {
   background: rgba(var(--text-primary-rgb), 0.3);
   border-radius: 4px;
   transition: background 0.2s ease;
 }
 
-.gallery-slideshow-info::-webkit-scrollbar-thumb:hover {
+.gallery-slideshow-info-body::-webkit-scrollbar-thumb:hover {
   background: rgba(var(--text-primary-rgb), 0.5);
+}
+
+/* Zoom & pan: the media host clips, the media itself is transformed. */
+.gallery-slideshow-media-host {
+  overflow: hidden;
+  touch-action: none;
+}
+
+.gallery-slideshow-media-host .gallery-slideshow-media {
+  transform-origin: center center;
+  transition: transform 0.12s ease-out;
+  will-change: transform;
+  user-select: none;
+  -webkit-user-drag: none;
+}
+
+.gallery-slideshow-media-host.is-zoomed {
+  cursor: grab;
+}
+
+.gallery-slideshow-media-host.is-zoomed:active {
+  cursor: grabbing;
+}
+
+.gallery-slideshow-media-host.is-zoomed .gallery-slideshow-media {
+  transition: none;
+}
+
+.slideshow-icon-btn:disabled {
+  opacity: 0.35;
+  cursor: default;
 }

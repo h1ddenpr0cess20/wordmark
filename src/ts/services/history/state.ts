@@ -12,6 +12,7 @@ import { saveConversationToDb } from "../../utils/storage/conversationStorage.ts
 import { appendMessage } from "../../components/ui/chatMessages.ts";
 import { updateHeaderInfo } from "../../components/settings.ts";
 import { config } from "../../../config/config.ts";
+import { confirmAction } from "../../utils/dialogs.ts";
 import type { Message } from "../../../types/api.ts";
 
 /**
@@ -57,8 +58,11 @@ export function updateBrowserHistory() {
  * import is gated behind an explicit confirmation, only `user`/`assistant`
  * messages are accepted (no `system`/`developer` roles), and the imported
  * conversation never carries a system prompt.
+ *
+ * @returns A promise that settles once the import has been confirmed and
+ *   rendered, or declined.
  */
-export function loadFromUrl() {
+export async function loadFromUrl() {
   if (!window.location.search) {
     return;
   }
@@ -82,9 +86,11 @@ export function loadFromUrl() {
       return;
     }
 
-    const confirmed = window.confirm(
-      "This link contains a shared conversation. Import it into your chat history?",
-    );
+    const confirmed = await confirmAction({
+      message: "Import the shared conversation from this link?",
+      detail: "The link's messages are added to your chat history. Only import links you trust.",
+      confirmLabel: "Import",
+    });
     if (!confirmed) {
       return;
     }

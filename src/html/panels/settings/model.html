@@ -44,5 +44,13 @@
     <input type="number" id="history-token-budget" min="0" step="1000" placeholder="16384">
     <p class="info-text">Caps the conversation history sent each turn to control cost. When the estimated token count exceeds this budget, the oldest messages are dropped first (the latest turn and system prompt are always kept). Default is 16384; set 0 to send the full history.</p>
   </div>
+  <div class="setting-item">
+    <label for="auto-compact-toggle">Auto-Compact History</label>
+    <div class="toggle-container">
+      <input type="checkbox" id="auto-compact-toggle" class="toggle-input">
+      <label for="auto-compact-toggle" class="toggle-switch"></label>
+    </div>
+    <p class="info-text">When the history exceeds the budget above, fold the older turns into a running summary carried in the system prompt instead of dropping them. Compact manually anytime with the button beside the composer's history meter.</p>
+  </div>
 
 </div>

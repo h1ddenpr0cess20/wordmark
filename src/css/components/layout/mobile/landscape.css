@@ -1,50 +1,17 @@
 /* Phones in landscape: wide but short. Width-based breakpoints don't capture
-   this, so collapse the chrome and give the chat the full viewport here. */
+   this, so tighten the vertical chrome and give the transcript the height. */
 @media screen and (orientation: landscape) and (max-height: 500px) {
-  #chat-container {
-    width: 100%;
-    height: 100vh;
-    height: 100dvh;
-    border-radius: 0;
-    margin: 0;
-    position: fixed;
-    top: 0;
-    bottom: 0;
-    left: 0;
-    display: flex;
-    flex-direction: column;
+  #chat-box {
+    padding: 8px 0 12px;
   }
 
-  #chat-box {
-    flex: 1;
-    overflow-y: auto;
-    padding: 8px 16px 12px;
+  #chat-box > * {
+    padding-inline: 16px;
   }
 
   #header {
-    padding: 36px 120px 6px 12px;
-    gap: 0;
-  }
-
-  #logo-container {
-    top: calc(env(safe-area-inset-top, 0) + 6px);
-    left: calc(env(safe-area-inset-left, 0) + 8px);
-    transform: none;
-    padding: 2px 8px;
-    gap: 8px;
-    max-width: calc(100vw - 180px);
-    justify-content: flex-start;
-  }
-
-  #wordmark-logo {
-    width: 26px;
-    height: 26px;
-    margin-top: 0;
-  }
-
-  #logo-wordmark {
-    font-size: 0.8rem;
-    letter-spacing: 0.12em;
+    min-height: 46px;
+    padding: 6px 12px;
   }
 
   #header #header-title {
@@ -55,33 +22,28 @@
     max-height: 1.3rem;
     -webkit-line-clamp: 1;
     line-clamp: 1;
-    font-size: 0.78rem !important;
+    font-size: 0.7rem !important;
   }
 
-  .feature-status {
-    margin-top: 2px;
+  #model-info::after {
+    display: none;
   }
 
-  #settings-button,
-  #history-button,
-  #gallery-button {
-    top: calc(env(safe-area-inset-top, 0) + 8px);
-    width: 34px;
-    height: 34px;
-    font-size: 15px;
+  .message {
+    margin-bottom: 16px;
   }
 
   .input-container {
+    padding: 0 12px 8px;
+  }
+
+  .input-wrapper {
     padding: 8px 12px;
+    border-radius: 12px;
   }
 
-  #user-input {
-    height: 44px;
-    padding: 10px 96px 10px 14px;
-  }
-
-  #send-button {
-    width: 44px;
-    height: 44px;
+  #rail {
+    padding: 12px;
+    gap: 10px;
   }
 }

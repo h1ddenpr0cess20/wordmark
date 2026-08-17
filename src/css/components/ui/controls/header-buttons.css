@@ -1,34 +1,21 @@
+/* The three panel buttons sit in the rail's action row (#rail-actions) and
+   split its width evenly. */
 #settings-button,
 #history-button,
 #gallery-button {
-  position: absolute;
-  top: 20px;
+  flex: 1;
+  min-width: 0;
+  height: 34px;
   border: 1px solid var(--border-color);
   color: var(--text-secondary);
-  background-color: var(--bg-secondary);
-  border-radius: 50%;
-  width: 38px;
-  height: 38px;
-  font-size: 18px;
+  background-color: transparent;
+  border-radius: 8px;
   display: flex;
   justify-content: center;
   align-items: center;
   cursor: pointer;
-  transition: all 0.2s;
-  z-index: 100;
-  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-}
-
-#settings-button {
-  right: 20px;
-}
-
-#history-button {
-  right: 68px;
-}
-
-#gallery-button {
-  right: 118px;
+  padding: 0;
+  transition: color 0.2s ease, border-color 0.2s ease, background-color 0.2s ease;
 }
 
 #settings-button:hover,
@@ -38,3 +25,10 @@
   color: var(--accent-color);
 }
 
+#settings-button[aria-expanded="true"],
+#history-button[aria-expanded="true"],
+#gallery-button[aria-expanded="true"] {
+  border-color: var(--accent-color);
+  color: var(--accent-color);
+  background-color: rgba(var(--accent-color-rgb, 102, 102, 102), 0.12);
+}

@@ -1,0 +1,286 @@
+/* Left rail: brand, new-chat, the recent-conversation list, the panel buttons
+   and the service status line. Above --rail-breakpoint it is a static column;
+   below it becomes an overlay drawer toggled by #rail-toggle (body.rail-open),
+   with #rail-scrim catching outside clicks. */
+#rail {
+  position: relative;
+  flex: none;
+  width: 264px;
+  background-color: var(--bg-primary);
+  border-right: 1px solid var(--border-color);
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  padding: 18px 14px;
+  z-index: 25;
+}
+
+#rail-brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 0 4px 2px;
+  cursor: pointer;
+}
+
+#wordmark-logo {
+  display: block;
+  width: 26px;
+  height: 26px;
+  flex: none;
+  cursor: pointer;
+  transition: filter 0.16s ease-out, transform 0.16s ease-out;
+}
+
+#logo-wordmark {
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.24em;
+  text-transform: uppercase;
+  color: var(--accent-color);
+  line-height: 1;
+  white-space: nowrap;
+  font-family: 'Roboto', 'Segoe UI', Arial, sans-serif;
+  cursor: pointer;
+  transition: color 0.16s ease, text-shadow 0.16s ease;
+}
+
+#rail-brand:not(.logo-ready) #logo-wordmark {
+  visibility: hidden;
+  pointer-events: none;
+}
+
+#rail-brand:hover #logo-wordmark,
+#rail-brand:focus-within #logo-wordmark {
+  color: var(--accent-hover, var(--accent-color));
+  text-shadow: 0 0 18px rgba(var(--accent-color-rgb, 102, 102, 102), 0.65);
+}
+
+#rail-brand:hover #wordmark-logo,
+#rail-brand:focus-within #wordmark-logo {
+  filter: drop-shadow(0 0 14px rgba(var(--accent-color-rgb, 102, 102, 102), 0.55));
+  transform: scale(1.02);
+}
+
+/* Only present in the drawer form of the rail. */
+#rail-close {
+  display: none;
+  margin-left: auto;
+  flex: none;
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  border: 1px solid var(--border-color);
+  background: transparent;
+  color: var(--text-secondary);
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+
+#rail-close:hover {
+  color: var(--accent-color);
+  border-color: var(--accent-color);
+}
+
+#new-chat-button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  flex: none;
+  height: 40px;
+  border: none;
+  border-radius: 10px;
+  background: var(--accent-color);
+  color: var(--on-accent);
+  font-size: 0.88rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+#new-chat-button:hover {
+  background: var(--accent-hover);
+}
+
+#rail-recent-label {
+  flex: none;
+  font-family: 'Roboto Mono', ui-monospace, Menlo, monospace;
+  font-size: 0.62rem;
+  font-weight: 500;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--text-secondary);
+  opacity: 0.7;
+  padding: 6px 6px 2px;
+}
+
+#rail-conversations {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  margin: 0 -4px;
+  padding: 0 4px;
+}
+
+.rail-conversation {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 9px 10px;
+  border-radius: 8px;
+  font-size: 0.81rem;
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: background-color 0.16s ease, color 0.16s ease;
+}
+
+.rail-conversation:hover {
+  background: rgba(var(--text-primary-rgb), 0.08);
+  color: var(--text-primary);
+}
+
+.rail-conversation.current-conversation {
+  background: rgba(var(--text-primary-rgb), 0.12);
+  box-shadow: inset 2px 0 0 var(--accent-color);
+  color: var(--text-primary);
+}
+
+.rail-conversation-title {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.rail-conversation-delete {
+  flex: none;
+  width: 22px;
+  height: 22px;
+  border: none;
+  border-radius: 5px;
+  background: transparent;
+  color: var(--text-secondary);
+  opacity: 0;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: opacity 0.16s ease, color 0.16s ease;
+}
+
+.rail-conversation:hover .rail-conversation-delete,
+.rail-conversation-delete:focus-visible {
+  opacity: 0.65;
+}
+
+.rail-conversation-delete:hover {
+  opacity: 1;
+  color: var(--error-color);
+}
+
+.rail-empty {
+  padding: 10px;
+  font-size: 0.78rem;
+  color: var(--text-secondary);
+  opacity: 0.7;
+}
+
+#rail-actions {
+  flex: none;
+  display: flex;
+  gap: 8px;
+}
+
+#rail-status {
+  flex: none;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 10px;
+  border-radius: 8px;
+  background: rgba(var(--text-primary-rgb), 0.07);
+  font-family: 'Roboto Mono', ui-monospace, Menlo, monospace;
+  font-size: 0.68rem;
+  color: var(--text-secondary);
+  white-space: nowrap;
+  overflow: hidden;
+  cursor: pointer;
+  transition: background 0.16s ease, color 0.16s ease;
+}
+
+#rail-status:hover,
+#rail-status:focus-visible {
+  background: rgba(var(--text-primary-rgb), 0.13);
+  color: var(--text-primary);
+}
+
+#rail-status .rail-status-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--accent-color);
+  display: block;
+  flex: none;
+  transition: background 0.16s ease, box-shadow 0.16s ease;
+}
+
+/* Provider offline or missing its API key: an unfilled ring instead of a dot.
+   `currentColor` keeps the ring in step with the pill's hover state. */
+#rail-status[data-state="unavailable"] .rail-status-dot {
+  background: transparent;
+  box-shadow: inset 0 0 0 1.5px currentColor;
+}
+
+#rail-service-line {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+#rail-scrim {
+  display: none;
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.5);
+  z-index: 20;
+}
+
+@media screen and (max-width: 860px) {
+  #rail {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    width: 270px;
+    border-right: none;
+    box-shadow: 18px 0 40px rgba(0, 0, 0, 0.45);
+    transform: translateX(-100%);
+    transition: transform 0.25s ease;
+    will-change: transform;
+  }
+
+  body.rail-open #rail {
+    transform: translateX(0);
+  }
+
+  body.rail-open #rail-scrim {
+    display: block;
+  }
+
+  #rail-close,
+  #rail-toggle {
+    display: flex;
+  }
+}
+
+/* Matches the panel rule in global.css: suppress the slide transition while the
+   viewport is resizing so the closed rail does not animate into view. */
+body.panels-no-transition #rail {
+  transition: none;
+}

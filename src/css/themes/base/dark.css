@@ -5,6 +5,7 @@
   --text-secondary: #b3b3b3;
   --accent-color: #666666;
   --accent-hover: #888888;
+  --on-accent: var(--button-text-color);
   --border-color: #404040;
   --bg-primary-rgb: 18, 18, 18;
   --bg-secondary-rgb: 33, 33, 33;
@@ -30,6 +31,7 @@
   --text-secondary: #ccb3b3;
   --accent-color: #a83232;
   --accent-hover: #c64141;
+  --on-accent: var(--button-text-color);
   --border-color: #5e2c2c;
   --user-bg: #612d2d;
   --assistant-bg: #421c1c;
@@ -47,6 +49,7 @@
   --text-secondary: #a0a0a0;
   --accent-color: #cc1a1a;
   --accent-hover: #ee2222;
+  --on-accent: var(--button-text-color);
   --border-color: #333333;
   --user-bg: #222222;
   --assistant-bg: #151515;
@@ -64,6 +67,7 @@
   --text-secondary: #d1c0ad;
   --accent-color: #b36a22;
   --accent-hover: #d67e2a;
+  --on-accent: #000000;
   --border-color: #5e4626;
   --user-bg: #634927;
   --assistant-bg: #3d2916;
@@ -81,6 +85,7 @@
   --text-secondary: #d1cead;
   --accent-color: #b3a922;
   --accent-hover: #d6c82a;
+  --on-accent: #000000;
   --border-color: #5e5826;
   --user-bg: #635927;
   --assistant-bg: #383016;
@@ -98,6 +103,7 @@
   --text-secondary: #aed1c0;
   --accent-color: #22b36a;
   --accent-hover: #2ad67e;
+  --on-accent: #000000;
   --border-color: #265e46;
   --user-bg: #276349;
   --assistant-bg: #153828;
@@ -115,6 +121,7 @@
   --text-secondary: #b3c2d1;
   --accent-color: #2259b3;
   --accent-hover: #2a6cd6;
+  --on-accent: var(--button-text-color);
   --border-color: #26425e;
   --user-bg: #274563;
   --assistant-bg: #172838;
@@ -132,6 +139,7 @@
   --text-secondary: #c3b3d1;
   --accent-color: #6822b3;
   --accent-hover: #7e2ad6;
+  --on-accent: var(--button-text-color);
   --border-color: #46265e;
   --user-bg: #492763;
   --assistant-bg: #281637;
@@ -149,6 +157,7 @@
   --text-secondary: #d1b3cd;
   --accent-color: #b32282;
   --accent-hover: #d62a9c;
+  --on-accent: var(--button-text-color);
   --border-color: #5e265a;
   --user-bg: #632761;
   --assistant-bg: #37163d;
@@ -166,6 +175,7 @@
   --text-secondary: #aaaaaa;
   --accent-color: #444444;
   --accent-hover: #555555;
+  --on-accent: var(--button-text-color);
   --border-color: #2c2c2c;
   --user-bg: #2a2a2a;
   --assistant-bg: #1a1a1a;

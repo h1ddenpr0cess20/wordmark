@@ -7,6 +7,7 @@ import { state } from "../init/state.ts";
 import { icon } from "../utils/icons.ts";
 import { addCopyButton } from "../utils/highlight.ts";
 import { copyTextToClipboard } from "../utils/dom/clipboard.ts";
+import { messageActionHost } from "./ui/messageShell.ts";
 
 /**
  * Highlights code blocks in a message element and adds copy buttons.
@@ -126,5 +127,5 @@ export function addMessageCopyButton(messageElement: HTMLElement | null, message
       }, 1500);
     });
   });
-  messageElement.appendChild(btn);
+  messageActionHost(messageElement).appendChild(btn);
 }

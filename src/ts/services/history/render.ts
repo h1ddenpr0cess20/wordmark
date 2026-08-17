@@ -12,7 +12,7 @@ import { updatePromptVisibility, updateParameterControls } from "../../component
 import { highlightAndAddCopyButtons, addMessageCopyButton, generateMessageId } from "../../components/messages.ts";
 import { appendMessage } from "../../components/ui/chatMessages.ts";
 import { partyEngine, applyPartyNameLabel } from "../party/partyEngine.ts";
-import { renderWordmarkLogo } from "../../components/logo.ts";
+import { createMessageShell, assistantMetaText } from "../../components/ui/messageShell.ts";
 import { setupImageInteractions } from "../../components/ui/imageInteractions.ts";
 import { updateHeaderInfo, updateModelSelector } from "../../components/settings.ts";
 import { config } from "../../../config/config.ts";
@@ -25,6 +25,10 @@ import {
   resolveMediaSource,
   createMediaElement,
 } from "./renderMedia.ts";
+import {
+  attachedDocumentsMarkup,
+  documentChipsFromAttachments,
+} from "../../components/attachments/attachmentChips.ts";
 import { refreshToolSettingsUI } from "../../components/tools.ts";
 import { updateReasoningAvailability } from "../../init/modelSettings.ts";
 import type { ConversationRecord } from "../../../types/common.ts";
@@ -112,7 +116,11 @@ export function renderConversationMessages(convo: ConversationRecord, imageCache
 
     if (msg.role === "user") {
       const processed = replaceImagePlaceholders(msg.content, convo, imageCache);
-      const userElement = appendMessage("You", processed, "user", true);
+      // Document chips live only on `msg.attachments` — the persisted content
+      // carries image placeholders and text — so rebuild them here.
+      const documents = attachedDocumentsMarkup(documentChipsFromAttachments(msg.attachments));
+      const body = documents ? `${documents}\n\n${processed}` : processed;
+      const userElement = appendMessage("You", body, "user", true);
       if (userElement) {
         const messageId = msg.id || userElement.id;
         if (msg.id) {
@@ -127,25 +135,11 @@ export function renderConversationMessages(convo: ConversationRecord, imageCache
       return;
     }
 
-    const messageElement = document.createElement("div");
-    messageElement.classList.add("message", "assistant");
+    const { messageElement, contentElement: contentWrapper } = createMessageShell("Assistant", "assistant", {
+      meta: assistantMetaText(msg.model || convo.model),
+    });
     const messageId = msg.id || generateMessageId();
     messageElement.id = messageId;
-
-    const sender = document.createElement("div");
-    sender.className = "message-sender";
-    sender.innerHTML = `
-      <svg class="sender-icon assistant-icon" width="32" height="32" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
-        <g stroke="var(--accent-color)" stroke-width="1"></g>
-      </svg>
-    `;
-    renderWordmarkLogo(sender.querySelector("g"));
-
-    messageElement.appendChild(sender);
-
-    const contentWrapper = document.createElement("div");
-    contentWrapper.className = "message-content";
-    messageElement.appendChild(contentWrapper);
     chatBox.appendChild(messageElement);
 
     let displayContent = typeof msg.content === "string" ? msg.content : "";

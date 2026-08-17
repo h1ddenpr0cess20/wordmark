@@ -24,6 +24,7 @@ import { clearLocalDocIndex } from "../services/localDocRetrieval.ts";
 import { renderChatHistoryList } from "../services/history/list.ts";
 import { triggerAnchorDownload } from "../utils/dom/download.ts";
 import { showInfo, showError } from "../utils/notifications.ts";
+import { confirmAction } from "../utils/dialogs.ts";
 
 const CREDENTIAL_KEY_PREFIXES = [
   STORAGE_KEYS.apiKeyPrefix,
@@ -161,7 +162,13 @@ function renderCategoryRow(category: StorageCategory): HTMLDivElement {
   clearButton.addEventListener("click", async (e) => {
     e.stopPropagation();
     e.preventDefault();
-    if (!confirm(`Clear ${category.label.toLowerCase()}? This cannot be undone.`)) return;
+    const confirmed = await confirmAction({
+      message: `Clear ${category.label.toLowerCase()}?`,
+      detail: "This cannot be undone.",
+      confirmLabel: `Clear ${category.label.toLowerCase()}`,
+      destructive: true,
+    });
+    if (!confirmed) return;
     try {
       await category.clear();
       showInfo?.(`${category.label} cleared`);
@@ -177,7 +184,14 @@ function renderCategoryRow(category: StorageCategory): HTMLDivElement {
   return row;
 }
 
-function renderCategoryList() {
+/**
+ * Redraws the stored-data category rows and the usage summary.
+ *
+ * @remarks
+ * Exported so anything that changes what is stored — clearing a category, or
+ * importing a backup from the same tab — can refresh the counts in place.
+ */
+export function renderCategoryList() {
   const list = document.getElementById("storage-category-list");
   if (!list) return;
   list.innerHTML = "";
@@ -232,7 +246,13 @@ async function exportAllData() {
 }
 
 async function clearAllStorage() {
-  if (!confirm("Delete ALL locally stored data (conversations, images, audio, memories, settings, API keys)? This cannot be undone.")) {
+  const confirmed = await confirmAction({
+    message: "Delete ALL locally stored data?",
+    detail: "Conversations, images, audio, memories, settings, and API keys will all be removed. This cannot be undone.",
+    confirmLabel: "Delete all data",
+    destructive: true,
+  });
+  if (!confirmed) {
     return;
   }
   for (const category of CATEGORIES) {
