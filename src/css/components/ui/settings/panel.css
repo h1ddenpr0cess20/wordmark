@@ -131,3 +131,55 @@
   color: var(--text-primary);
   text-align: center;
 }
+
+/* Native file inputs do not inherit the app's button treatment. Keep the input
+   itself aligned with the settings column and style the browser-provided
+   "Choose File" control to match the rest of Wordmark's compact controls. */
+.settings-group input[type="file"] {
+  display: block;
+  width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
+  margin-top: 8px;
+  padding: 6px;
+  border: 1px solid var(--border-color);
+  border-radius: 7px;
+  background: var(--bg-primary);
+  color: var(--text-secondary);
+  font: inherit;
+  font-size: 0.82rem;
+  cursor: pointer;
+}
+
+.settings-group input[type="file"]::file-selector-button {
+  margin-right: 10px;
+  padding: 6px 10px;
+  border: 1px solid var(--border-color);
+  border-radius: 6px;
+  background: var(--bg-secondary);
+  color: var(--text-primary);
+  font: inherit;
+  font-size: 0.8rem;
+  cursor: pointer;
+  transition: color 0.15s ease, border-color 0.15s ease, background-color 0.15s ease;
+}
+
+.settings-group input[type="file"]:hover {
+  border-color: var(--accent-color);
+}
+
+.settings-group input[type="file"]:hover::file-selector-button {
+  border-color: var(--accent-color);
+  color: var(--accent-color);
+  background: var(--bg-tertiary);
+}
+
+.settings-group input[type="file"]:focus-visible {
+  outline: 2px solid var(--accent-color);
+  outline-offset: 2px;
+}
+
+.settings-group input[type="file"]:disabled {
+  opacity: 0.55;
+  cursor: default;
+}
