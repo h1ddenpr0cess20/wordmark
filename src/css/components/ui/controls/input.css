@@ -1,9 +1,21 @@
 /* Composer: a rounded card sharing the transcript's reading column, with the
-   textarea stacked over an action row (attach, hint, send). */
+   textarea stacked over an action row (attach, hint, send).
+
+   The card's geometry is published as custom properties on #chat-container so
+   siblings of the composer — the autonomous-run control bar — can line their
+   edges up with it instead of hard-coding a width that drifts. They live on the
+   container rather than on .input-container because that is the nearest
+   ancestor those siblings share. The card is border-box, so --composer-column
+   is its outer edge-to-edge width, not just its text column. */
+#chat-container {
+  --composer-gutter: 20px;
+  --composer-column: 760px;
+}
+
 .input-container {
   flex: none;
   display: flex;
-  padding: 0 20px 20px;
+  padding: 0 var(--composer-gutter) 20px;
   background-color: transparent;
   position: relative;
   z-index: 10;
@@ -13,7 +25,7 @@
   position: relative;
   flex: 1;
   min-width: 0;
-  max-width: 760px;
+  max-width: var(--composer-column);
   margin-inline: auto;
   background-color: var(--bg-primary);
   border: 1px solid var(--border-color);

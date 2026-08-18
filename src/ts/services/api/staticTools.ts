@@ -4,6 +4,7 @@
  * Pure data extracted from toolManager.ts so the catalog contents live in one
  * place, separate from catalog mutation, preference, and MCP-availability logic.
  */
+import { isAgentModeEnabled } from "../agent/agentSettings.ts";
 import type { ToolDefinition, ToolEntry } from "../../../types/tools.ts";
 
 /** The built-in and function tool entries seeded into the catalog at load. */
@@ -31,6 +32,37 @@ export const STATIC_TOOLS: ToolEntry[] = [
           },
         },
         required: ["city", "days"],
+        additionalProperties: false,
+      },
+      strict: true,
+    },
+  },
+  {
+    key: "function:queue_followup",
+    type: "function",
+    displayName: "Queue Follow-Up Work",
+    description: "Schedule your own next steps; each is sent back to you as a separate turn.",
+    defaultEnabled: true,
+    // Only offered while autonomous work is switched on. Nothing drains an
+    // agent-authored queue entry outside a run, so advertising the tool
+    // otherwise would let the model queue steps that never get sent.
+    isAvailable: () => isAgentModeEnabled(),
+    definition: {
+      type: "function",
+      name: "queue_followup",
+      description: "Queue follow-up instructions for yourself. Each step is sent back as its own turn, in order, once the current turn ends. Write each one as a self-contained instruction — the turn that receives it sees the conversation, not your reasoning for scheduling it. Use this when you already know what the next pieces of work are; do not use it to ask the user questions.",
+      parameters: {
+        type: "object",
+        properties: {
+          steps: {
+            type: "array",
+            description: "The follow-up instructions, in the order they should run.",
+            items: {
+              type: "string",
+            },
+          },
+        },
+        required: ["steps"],
         additionalProperties: false,
       },
       strict: true,

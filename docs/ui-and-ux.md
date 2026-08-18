@@ -24,6 +24,8 @@ The composer is a card at the bottom of the chat column. The textarea is followe
 
 Pressing Enter while a response is still streaming queues the message instead of discarding it. Queued messages appear as numbered chips above the composer, each with a remove button, and are sent one at a time as each response finishes. A queued message carries its attachments with it. Stopping generation or starting a new conversation clears the queue.
 
+With [Autonomous Work](autonomous-work.md) enabled, the assistant queues steps of its own alongside yours. Its chips carry a solid accent edge and a `step` badge; yours keep the dashed border. A message you type is always sent before any step the assistant scheduled, so a correction never waits behind the model's plan. The queue holds at most 25 entries and says so when it refuses more.
+
 ## Empty state
 
 A new conversation with no messages shows the Wordmark mark, a reminder that conversation data remains on the local machine, and starter prompts that can be inserted into the composer.
@@ -61,6 +63,13 @@ The image viewer behaves as a dialog and supports zoom and pan. Zoom is availabl
 - Each turn has its own speaker-labeled message. The normal input remains available for interjections.
 - Pause, Resume, and Stop controls appear above the composer while a party runs.
 - See [Party Mode](party-mode.md) for the full reference.
+
+## Autonomous Work
+
+- Settings → Agent provides an Autonomous Work switch that turns each message into a goal the assistant keeps working toward across several turns.
+- A control bar above the composer shows the run's status and turn budget, with Pause, Resume/Continue, and Stop.
+- Queued steps appear as accent-edged chips in the composer's queue; typing takes priority over them.
+- See [Autonomous Work](autonomous-work.md) for the full reference.
 
 ## Hidden shortcuts
 

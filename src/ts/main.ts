@@ -37,6 +37,7 @@ import "./components/logo.ts";
 import "./components/rail.ts";
 import "./components/aboutPopups.ts";
 
+import "./services/agent/agentTools.ts";
 import "./services/memory.ts";
 import "./services/apiKeys.ts";
 import "./services/grokImageTool.ts";

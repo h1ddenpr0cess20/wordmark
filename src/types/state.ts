@@ -6,6 +6,7 @@ import type { Message } from "./api.ts";
 import type { GeneratedImage } from "./common.ts";
 import type { PendingDocument, PendingUpload } from "./attachments.ts";
 import type { PartyConfig } from "../ts/services/party/partyTypes.ts";
+import type { AgentRunState } from "./agent.ts";
 
 /** A conversation's stored system-prompt selection. */
 export interface SystemPrompt {
@@ -72,6 +73,14 @@ export interface AppState {
   shortResponseGuideline: string;
 
   /** Whether Party mode is currently the active chat mode. */
+  /**
+   * The autonomous run in progress, or `null` when none is. Lives on the
+   * shared state rather than inside the engine so the developer-message
+   * builder can read it without importing the engine — which would close a
+   * cycle through the request client.
+   */
+  agentRun: AgentRunState | null;
+
   partyMode: boolean;
   /** The cast + scenario for the active/loaded party conversation, if any. */
   activePartyConfig: PartyConfig | null;

@@ -1,9 +1,13 @@
 @media screen and (max-width: 768px) {
+  #chat-container {
+    --composer-gutter: 12px;
+  }
+
   .input-container {
     position: sticky;
     bottom: 0;
     background-color: transparent;
-    padding: 0 12px 12px;
+    padding: 0 var(--composer-gutter) 12px;
   }
 
   #user-input {

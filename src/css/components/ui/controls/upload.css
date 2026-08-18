@@ -178,3 +178,25 @@
   opacity: 0.8;
   font-size: 0.75rem;
 }
+
+/*
+ * Agent-authored entries — steps an autonomous run scheduled for itself. A
+ * solid accent edge separates them at a glance from the dashed chips holding
+ * the user's own type-ahead, since the two drain under different rules.
+ */
+.queued-prompt.agent {
+  border-style: solid;
+  border-left: 3px solid var(--accent-color);
+}
+
+.queued-prompt-badge {
+  flex: none;
+  padding: 1px 6px;
+  border-radius: 8px;
+  background-color: rgba(var(--accent-color-rgb), 0.18);
+  color: var(--accent-color);
+  font-size: 0.65rem;
+  font-weight: 600;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+}

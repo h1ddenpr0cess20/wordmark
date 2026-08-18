@@ -31,6 +31,13 @@ export interface ToolEntry {
   requiresApiKeyService?: string;
   hidden?: boolean;
   isOnline?: boolean | null;
+  /**
+   * Optional runtime gate, evaluated whenever availability is resolved. Lets a
+   * tool that only makes sense under a feature switch (autonomous work, say)
+   * disappear from the catalog, the settings list, and the request together,
+   * rather than being offered as a toggle that does nothing.
+   */
+  isAvailable?: () => boolean;
   definition: ToolDefinition;
 }
 
