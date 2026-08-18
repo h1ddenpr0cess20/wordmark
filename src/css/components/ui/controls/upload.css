@@ -87,6 +87,9 @@
   padding: 4px;
   z-index: 1000;
   min-width: 180px;
+  /* Positioned in JS and clamped to the viewport; cap the width so the menu
+     still fits on narrow phone screens. */
+  max-width: calc(100vw - 16px);
 }
 
 .upload-menu-item {
