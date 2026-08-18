@@ -50,6 +50,8 @@ export const state: AppState = {
   verboseLogging: false,
   shortResponseGuideline: "",
 
+  agentRun: null,
+
   partyMode: false,
   activePartyConfig: null,
 };

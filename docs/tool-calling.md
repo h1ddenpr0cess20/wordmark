@@ -38,6 +38,7 @@ Built-in Tools
 - `file_search` (type: `builtin`) — Vector store search across uploaded documents (OpenAI only). Rendered in reasoning timeline. xAI uses direct `input_file` references instead.
 - MCP connectors (type: `mcp`) — User-supplied servers registered in Settings → Tools. Availability depends on the external MCP server responding to ping checks.
 - `activate_skill` / `read_skill_resource` (type: `function`) — Added automatically when one or more **skills** are enabled, so the model can load a skill's instructions and bundled resources on demand. See docs/skills.md.
+- `queue_followup` (type: `function`) — Lets the model schedule its own next turns while an autonomous run is in progress. Offered only while Settings → Model → Autonomous Work is on; the entry carries an `isAvailable` predicate, so with the feature off it is filtered out of the request, the settings list, and the developer message's tool blurb alike. Handler in `src/ts/services/agent/agentTools.ts`. See docs/autonomous-work.md.
 
 Credentials
 
@@ -47,6 +48,7 @@ Credentials
 Adding Tools
 
 - Extend the `STATIC_TOOLS` list in `src/ts/services/api/staticTools.ts` with metadata (`key`, `type`, `displayName`, `description`, and the Responses definition).
-- For local functions, add an entry to `TOOL_HANDLERS` in `toolManager.ts` (see `src/ts/services/weather.ts` for an example) and keep results serialisable.
+- For local functions, add an entry to `TOOL_HANDLERS` in `toolManager.ts` (see `src/ts/services/weather.ts` for an example) and keep results serialisable. A handler that needs modules the request client already imports should register into the shared `toolImplementations` registry instead (see `src/ts/services/agent/agentTools.ts`), which the client checks as a fallback — `TOOL_HANDLERS` lives in `toolManager.ts` and importing back into it from a service closes a cycle.
+- To gate a tool behind a feature switch, give its catalog entry an `isAvailable` predicate. It is evaluated wherever availability is resolved, so the tool disappears from the request, the settings list, and the tool blurb together rather than lingering as a toggle that does nothing.
 - For MCP servers, use the Settings → Tools form or call `registerMcpServer` (from `tools/mcp.ts`, re-exported by `toolManager.ts`) so the UI surfaces a toggle and auto-disables it if the server is unreachable.
 - To change what a provider supports (e.g. a new provider's reasoning/server-tool quirks), edit the capability predicates in `src/ts/services/providers.ts`.

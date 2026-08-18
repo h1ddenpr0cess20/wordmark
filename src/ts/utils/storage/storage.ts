@@ -45,6 +45,8 @@ export const STORAGE_KEYS = {
   responseVerbosity: "responseVerbosity",
   historyTokenBudget: "historyTokenBudget",
   autoCompactHistory: "autoCompactHistory",
+  agentModeEnabled: "agentModeEnabled",
+  agentMaxTurns: "agentMaxTurns",
 
   selectedTheme: "selectedTheme",
   enableLogging: "enableLogging",

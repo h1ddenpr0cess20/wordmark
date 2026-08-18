@@ -255,3 +255,30 @@ test('code interpreter container is omitted for xAI', () => {
   assert.ok(xaiCodeTool, 'xAI should include code interpreter');
   assert.equal(xaiCodeTool.container, undefined, 'xAI code interpreter should omit container metadata');
 });
+
+test('queue_followup is hidden and unsent while autonomous work is off', () => {
+  toolManagerStore.agentModeEnabled = 'false';
+
+  const entry = getToolCatalog().find(tool => tool.key === 'function:queue_followup');
+  assert.ok(entry, 'the entry stays in the catalog');
+  assert.equal(entry.hidden, true, 'but is reported hidden so the settings list drops it');
+
+  const defs = getEnabledToolDefinitions('openai', 'gpt-5');
+  assert.equal(defs.some(def => def.name === 'queue_followup'), false);
+});
+
+test('queue_followup is offered once autonomous work is switched on', () => {
+  toolManagerStore.agentModeEnabled = 'true';
+  setToolEnabled('function:queue_followup', true);
+
+  const entry = getToolCatalog().find(tool => tool.key === 'function:queue_followup');
+  assert.ok(entry);
+  assert.equal(entry.hidden, false);
+
+  const defs = getEnabledToolDefinitions('openai', 'gpt-5');
+  const queueTool = defs.find(def => def.name === 'queue_followup');
+  assert.ok(queueTool, 'the definition is sent with the request');
+  assert.deepEqual(queueTool.parameters?.required, ['steps']);
+
+  delete toolManagerStore.agentModeEnabled;
+});

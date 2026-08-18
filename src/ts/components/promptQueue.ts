@@ -1,31 +1,61 @@
 /**
- * Prompt queuing: lets the user line up follow-up messages while a response is
- * still streaming.
+ * The work queue: prompts waiting to be sent as their own turns.
  *
  * @remarks
- * A send attempted during an in-flight turn is parked here instead of being
- * dropped. Each queued entry captures the composer's full payload — the typed
- * text plus the pending image/document attachments — so restoring it later is
+ * Two producers feed it. A send attempted while a response is still streaming
+ * is parked here instead of being dropped — ordinary type-ahead. An autonomous
+ * run adds entries of its own, either because the model called `queue_followup`
+ * or because the continuation decision picked the next step; those carry
+ * `origin: "agent"` and only drain while {@link ../services/agent/agentRunner.ts
+ * | a run} says they may.
+ *
+ * Each entry captures the composer's full payload — the typed text plus the
+ * pending image/document attachments — so restoring it later is
  * indistinguishable from the user having typed it at that moment. The queue is
- * runtime-only: it is never persisted, and stopping generation clears it.
+ * runtime-only: it is never persisted, and clearing the conversation empties it.
  */
 
 import { elements, state } from "../init/state.ts";
 import { icon } from "../utils/icons.ts";
 import { escapeHtml } from "../utils/sanitize.ts";
 import { createScopedLogger } from "../utils/logger.ts";
-import { showInfo } from "../utils/notifications.ts";
+import { showInfo, showError } from "../utils/notifications.ts";
 import { showPendingUploadPreviews } from "./attachments/attachmentPreviews.ts";
 import type { PendingDocument, PendingUpload } from "../../types/attachments.ts";
+import type { QueuedPromptOrigin } from "../../types/agent.ts";
 
 const logQueue = createScopedLogger("promptQueue");
 
-/** A composer payload parked while an earlier turn is still running. */
+/**
+ * Hard ceiling on parked prompts.
+ *
+ * @remarks
+ * Type-ahead never approaches this. It exists because a model that can enqueue
+ * its own work can also enqueue it faster than the queue drains — a plan that
+ * plans more planning. The cap turns that into a visible refusal rather than an
+ * unbounded backlog billed one turn at a time.
+ */
+export const MAX_QUEUE_DEPTH = 25;
+
+/** A composer payload parked until it can be sent as its own turn. */
 export interface QueuedPrompt {
   id: string;
   text: string;
   uploads: PendingUpload[];
   documents: PendingDocument[];
+  /** Who produced this entry; governs whether it may drain unattended. */
+  origin: QueuedPromptOrigin;
+  /** Short human-readable step name, shown on the chip instead of the text. */
+  label?: string;
+  /** The run that produced the entry, for agent-origin prompts. */
+  runId?: string;
+}
+
+/** Provenance and presentation options for a queued entry. */
+export interface EnqueueOptions {
+  origin?: QueuedPromptOrigin;
+  label?: string;
+  runId?: string;
 }
 
 const queue: QueuedPrompt[] = [];
@@ -36,22 +66,33 @@ export function queuedPrompts(): readonly QueuedPrompt[] {
   return queue;
 }
 
-/** Number of prompts waiting to be sent. */
-export function queuedPromptCount(): number {
-  return queue.length;
+/** Number of prompts waiting to be sent, optionally limited to one origin. */
+export function queuedPromptCount(origin?: QueuedPromptOrigin): number {
+  if (!origin) {
+    return queue.length;
+  }
+  return queue.filter(entry => entry.origin === origin).length;
 }
 
 /**
  * Parks a composer payload at the back of the queue.
  *
- * @returns The queued entry, or `null` when there is nothing to queue.
+ * @param options - Provenance; defaults to a user-composed entry.
+ * @returns The queued entry, or `null` when there is nothing to queue or the
+ * queue is full.
  */
 export function enqueuePrompt(
   text: string,
   uploads: PendingUpload[] = [],
   documents: PendingDocument[] = [],
+  options: EnqueueOptions = {},
 ): QueuedPrompt | null {
   if (!text && uploads.length === 0 && documents.length === 0) {
+    return null;
+  }
+  if (queue.length >= MAX_QUEUE_DEPTH) {
+    logQueue("Refused to queue: at the", MAX_QUEUE_DEPTH, "prompt ceiling");
+    showError?.(`Queue is full (${MAX_QUEUE_DEPTH} messages). Let some send first.`);
     return null;
   }
   const entry: QueuedPrompt = {
@@ -59,16 +100,37 @@ export function enqueuePrompt(
     text,
     uploads: [...uploads],
     documents: [...documents],
+    origin: options.origin || "user",
+    label: options.label,
+    runId: options.runId,
   };
   queue.push(entry);
-  logQueue("Queued prompt:", entry.id, "queue length:", queue.length);
+  logQueue("Queued prompt:", entry.id, `(${entry.origin})`, "queue length:", queue.length);
   renderPromptQueue();
   return entry;
 }
 
-/** Removes the oldest queued prompt and returns it, or `null` when empty. */
-export function dequeuePrompt(): QueuedPrompt | null {
-  const entry = queue.shift() ?? null;
+/**
+ * Removes the next prompt to send and returns it, or `null` when empty.
+ *
+ * @remarks
+ * User entries are taken before agent entries regardless of insertion order:
+ * someone who types during a run is redirecting it, and making them wait behind
+ * a queue of the model's own follow-ups would bury the correction. Within an
+ * origin the order is FIFO.
+ *
+ * @param allowAgentEntries - When `false`, agent-origin entries are left in
+ * place; the drain skips them unless a run has authorized them.
+ */
+export function dequeuePrompt(allowAgentEntries = true): QueuedPrompt | null {
+  let index = queue.findIndex(entry => entry.origin === "user");
+  if (index === -1 && allowAgentEntries) {
+    index = queue.findIndex(entry => entry.origin === "agent");
+  }
+  if (index === -1) {
+    return null;
+  }
+  const [entry] = queue.splice(index, 1);
   renderPromptQueue();
   return entry;
 }
@@ -83,13 +145,23 @@ export function removeQueuedPrompt(id: string): void {
   renderPromptQueue();
 }
 
-/** Empties the queue (used when generation is stopped or a chat is cleared). */
-export function clearPromptQueue(): void {
-  if (queue.length === 0) {
-    return;
+/**
+ * Empties the queue, or just the entries of one origin.
+ *
+ * @param origin - Limits the clear, so ending a run can discard its planned
+ * steps without throwing away messages the user typed alongside them.
+ * @returns How many entries were removed.
+ */
+export function clearPromptQueue(origin?: QueuedPromptOrigin): number {
+  const before = queue.length;
+  const kept = origin ? queue.filter(entry => entry.origin !== origin) : [];
+  if (kept.length === before) {
+    return 0;
   }
   queue.length = 0;
+  queue.push(...kept);
   renderPromptQueue();
+  return before - queue.length;
 }
 
 /** Summarizes an entry's attachments for its chip, e.g. `2 files`. */
@@ -123,6 +195,22 @@ function queueContainer(): HTMLElement | null {
   return container;
 }
 
+/**
+ * The queue in the order it will actually drain: user entries, then agent
+ * entries, each FIFO within its group.
+ *
+ * @remarks
+ * Mirrors {@link dequeuePrompt}'s priority so the numbers on the chips mean
+ * what they look like they mean. Numbering the raw array instead would show a
+ * message the user just typed as "3" and then send it first.
+ */
+function drainOrder(): QueuedPrompt[] {
+  return [
+    ...queue.filter(entry => entry.origin === "user"),
+    ...queue.filter(entry => entry.origin === "agent"),
+  ];
+}
+
 /** Repaints the queued-prompt chips from the current queue. */
 export function renderPromptQueue(): void {
   const container = queueContainer();
@@ -130,16 +218,18 @@ export function renderPromptQueue(): void {
     return;
   }
   container.innerHTML = "";
-  queue.forEach((entry, index) => {
+  drainOrder().forEach((entry, index) => {
     const chip = document.createElement("div");
-    chip.className = "queued-prompt";
+    chip.className = entry.origin === "agent" ? "queued-prompt agent" : "queued-prompt";
     chip.dataset.queuedId = entry.id;
+    chip.dataset.origin = entry.origin;
 
     const meta = attachmentSummary(entry);
-    const label = entry.text || meta || "Attachment";
+    const label = entry.label || entry.text || meta || "Attachment";
     chip.innerHTML = [
       `<span class="queued-prompt-index">${index + 1}</span>`,
       `<span class="queued-prompt-text" title="${escapeHtml(entry.text)}">${escapeHtml(label)}</span>`,
+      entry.origin === "agent" ? "<span class=\"queued-prompt-badge\">step</span>" : "",
       entry.text && meta ? `<span class="queued-prompt-meta">${escapeHtml(meta)}</span>` : "",
     ].join("");
 
@@ -161,15 +251,16 @@ export function renderPromptQueue(): void {
 }
 
 /**
- * Restores the oldest queued prompt into the composer so the caller can send it
+ * Restores the next queued prompt into the composer so the caller can send it
  * as an ordinary message.
  *
- * @returns `true` when a prompt was restored, `false` when the queue is empty.
+ * @param allowAgentEntries - Passed through to {@link dequeuePrompt}.
+ * @returns The restored entry, or `null` when nothing was eligible.
  */
-export function restoreNextPrompt(): boolean {
-  const entry = dequeuePrompt();
+export function restoreNextPrompt(allowAgentEntries = true): QueuedPrompt | null {
+  const entry = dequeuePrompt(allowAgentEntries);
   if (!entry) {
-    return false;
+    return null;
   }
   state.pendingUploads = entry.uploads;
   state.pendingDocuments = entry.documents;
@@ -179,18 +270,14 @@ export function restoreNextPrompt(): boolean {
     userInput.value = entry.text;
     userInput.style.height = "56px";
   }
-  logQueue("Restored queued prompt:", entry.id);
-  return true;
+  logQueue("Restored queued prompt:", entry.id, `(${entry.origin})`);
+  return entry;
 }
 
 /** Clears the queue and tells the user, when stopping discards pending sends. */
 export function discardQueueOnStop(): void {
-  if (queue.length === 0) {
-    return;
-  }
-  const count = queue.length;
-  clearPromptQueue();
-  if (showInfo) {
+  const count = clearPromptQueue();
+  if (count > 0 && showInfo) {
     showInfo(`Discarded ${count} queued message${count === 1 ? "" : "s"}`);
   }
 }

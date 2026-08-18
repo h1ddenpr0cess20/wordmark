@@ -41,6 +41,8 @@ import { getDocumentSourceName } from "../utils/documentPaths.ts";
 import { messageActionHost, setAssistantMetaText } from "./ui/messageShell.ts";
 import { maybeAutoCompactHistory, refreshHistoryMeter } from "./compaction.ts";
 import { discardQueueOnStop, enqueuePrompt, queuedPromptCount, restoreNextPrompt } from "./promptQueue.ts";
+import { agentRunner, type TurnOutcome } from "../services/agent/agentRunner.ts";
+import { isAgentModeEnabled } from "../services/agent/agentSettings.ts";
 import { uncompactedMessages } from "../services/api/compaction.ts";
 
 const logInteraction = createScopedLogger("interaction");
@@ -488,6 +490,15 @@ export async function sendMessage() {
 
   state.shouldStopGeneration = false;
 
+  // A send while no run is mid-flight is the user's, so it opens a new run:
+  // agent-authored steps only leave the queue while a run is running, which
+  // makes "not running" a reliable stand-in for "a person typed this". A
+  // finished or paused run is replaced — typing a new instruction is a new job.
+  if (isAgentModeEnabled() && !state.partyMode && !agentRunner.isRunning()) {
+    agentRunner.start(message);
+  }
+  agentRunner.noteTurnStarted();
+
   logInteraction("New message send initiated:", message);
 
   // Runs before the new user message is recorded so the summary describes the
@@ -593,7 +604,7 @@ export async function sendMessage() {
     }
     resetSendButton();
     queueMicrotask(() => {
-      void flushPromptQueue();
+      void advanceAfterTurn("failed");
     });
   };
 
@@ -644,6 +655,10 @@ async function executeTurn(
   vectorStoreId: string | null,
   onSettled?: () => void,
 ) {
+  // Starts pessimistic: every early return below is a turn that produced
+  // nothing usable, and a run must not send its next step into whatever went
+  // wrong. Only a finalized, unstopped response upgrades it.
+  let outcome: TurnOutcome = "failed";
   try {
     if (!responsesClient || typeof responsesClient.runTurn !== "function") {
       throw new Error("Responses client is not available. Check that services/api.js is loaded.");
@@ -707,6 +722,8 @@ async function executeTurn(
       incomplete: wasStopped,
     });
 
+    outcome = wasStopped ? "failed" : "ok";
+
     if (wasStopped && showInfo) {
       showInfo("Generation stopped");
     }
@@ -732,20 +749,48 @@ async function executeTurn(
     // Deferred so the current turn has fully unwound before the next send
     // starts, keeping the two turns from overlapping in the DOM or in state.
     queueMicrotask(() => {
-      void flushPromptQueue();
+      void advanceAfterTurn(outcome);
     });
   }
 }
 
 /**
- * Sends the next queued prompt, if any, once no response is in flight. A stop
- * clears the queue, so nothing is auto-sent after the user halts a turn.
+ * Settles the turn's aftermath: lets an autonomous run decide what happens
+ * next, then drains whatever that leaves in the queue.
+ *
+ * @remarks
+ * The run gets first refusal because its decision can put a new entry in the
+ * queue — a drain that ran first would find it empty and stop the run dead.
+ *
+ * @param outcome - How the turn that just ended fared. A failure stops the run
+ * from queueing further work, so an outage or a stop costs one turn rather
+ * than the whole budget.
+ */
+async function advanceAfterTurn(outcome: TurnOutcome) {
+  if (state.isResponsePending || state.activeAbortController) {
+    return;
+  }
+  try {
+    await agentRunner.afterTurn(outcome);
+  } catch (error) {
+    console.error("Autonomous run failed to advance:", error);
+  }
+  await flushPromptQueue();
+}
+
+/**
+ * Sends the next queued prompt, if any, once no response is in flight.
+ *
+ * @remarks
+ * User-composed entries always go. Agent-authored ones need the run's
+ * permission, so a paused, exhausted, or finished run leaves its planned steps
+ * sitting in the queue instead of sending them unattended.
  */
 async function flushPromptQueue() {
   if (state.isResponsePending || state.activeAbortController || queuedPromptCount() === 0) {
     return;
   }
-  if (!restoreNextPrompt()) {
+  if (!restoreNextPrompt(agentRunner.mayDrainAgentEntries())) {
     return;
   }
   await sendMessage();
@@ -821,6 +866,10 @@ export function stopGeneration() {
   }
 
   state.shouldStopGeneration = true;
+  // Ends the run first so its planned steps are gone before the queue reports
+  // what it discarded — the user hears about their own messages, not the
+  // model's bookkeeping.
+  agentRunner.stop("");
   discardQueueOnStop();
 
   if (state.activeAbortController) {

@@ -51,6 +51,7 @@ Fully responsive on mobile, with a range of built-in color schemes:
 - [Tool Calling](docs/tool-calling.md)
 - [Skills](docs/skills.md)
 - [Party Mode](docs/party-mode.md)
+- [Autonomous Work](docs/autonomous-work.md)
 - [Streaming](docs/streaming.md)
 - [Memory](docs/memory.md)
 - [Security](docs/security.md)
@@ -68,6 +69,7 @@ Fully responsive on mobile, with a range of built-in color schemes:
 - **Skills** — uploadable `SKILL.md` instruction packages the assistant loads on demand to specialize for a task; ships with example skills ([Skills](docs/skills.md))
 - **Streaming & reasoning** — dedicated reasoning panel, rich tool timelines, inline code previews, automatic image capture ([Streaming](docs/streaming.md))
 - **Party mode** — autonomous multi-character group chat over your chosen provider; build a cast and scenario, then interject any time without pausing ([Party Mode](docs/party-mode.md))
+- **Autonomous work** — opt in and a message becomes a goal: the assistant queues its own next steps and keeps taking turns until the work is done, inside a turn budget you set, with pause/resume/stop controls ([Autonomous Work](docs/autonomous-work.md))
 - **TTS** — OpenAI (13 voices) and xAI (5 voices) providers, optional autoplay, per-message controls, audio cached locally
 - **UX** — themes, responsive layout, syntax highlighting, markdown, image gallery ([UI & UX](docs/ui-and-ux.md))
 - **Local-only storage** — conversations, images, and audio via IndexedDB; keys stay in the browser ([Storage](docs/storage.md))

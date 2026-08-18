@@ -9,7 +9,7 @@ globalThis.localStorage = {
   removeItem(key: string) { delete store[key]; },
 } as unknown as Storage;
 
-const { elements } = await import("../src/ts/init/state.js");
+const { elements, state } = await import("../src/ts/init/state.js");
 const { buildDeveloperMessage } = await import("../src/ts/services/api/instructions.js");
 const { addUserSkill, setSkillEnabled, removeUserSkill } = await import("../src/ts/services/skills/skillsStore.js");
 
@@ -50,4 +50,47 @@ test("buildDeveloperMessage starts with the prompt and includes a generated-on t
   const result = buildDeveloperMessage();
   assert.ok(typeof result === "string" && result.startsWith("BE BRIEF"));
   assert.match(result as string, /\(Generated on .+\)/);
+});
+
+test("buildDeveloperMessage carries the run's goal and budget while a run is active", () => {
+  el.noPromptRadio = { checked: false };
+  el.customPromptRadio = { checked: true };
+  el.personalityPromptRadio = { checked: false };
+  el.systemPromptCustom = { value: "BE BRIEF" };
+  state.agentRun = {
+    id: "run-1",
+    goal: "Draft the launch checklist",
+    status: "running",
+    turnsUsed: 2,
+    maxTurns: 5,
+  };
+
+  try {
+    const result = buildDeveloperMessage();
+    assert.match(result as string, /Autonomous work in progress/);
+    assert.match(result as string, /Draft the launch checklist/);
+    assert.match(result as string, /turn 2 of at most 5/);
+  } finally {
+    state.agentRun = null;
+  }
+});
+
+test("buildDeveloperMessage says nothing about a run that is not running", () => {
+  el.noPromptRadio = { checked: false };
+  el.customPromptRadio = { checked: true };
+  el.personalityPromptRadio = { checked: false };
+  el.systemPromptCustom = { value: "BE BRIEF" };
+  state.agentRun = {
+    id: "run-1",
+    goal: "Draft the launch checklist",
+    status: "paused",
+    turnsUsed: 2,
+    maxTurns: 5,
+  };
+
+  try {
+    assert.doesNotMatch(buildDeveloperMessage() as string, /Autonomous work in progress/);
+  } finally {
+    state.agentRun = null;
+  }
 });

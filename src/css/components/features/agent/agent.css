@@ -1,0 +1,75 @@
+/*
+ * Autonomous-run control bar, sitting between the transcript and the composer.
+ * Mirrors the party control bar's geometry so the two features read as the same
+ * kind of thing; the status colour is what distinguishes a run that is working
+ * from one that is waiting on the user.
+ */
+#agent-control-bar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 8px 12px;
+  margin: 0 auto 8px;
+  max-width: 900px;
+  width: 100%;
+  border: 1px solid var(--border-color);
+  border-radius: 6px;
+  background-color: var(--bg-secondary);
+  box-sizing: border-box;
+}
+
+#agent-control-bar[data-status="running"] {
+  border-color: rgba(var(--accent-color-rgb), 0.55);
+}
+
+#agent-control-bar .agent-status {
+  flex: 1;
+  min-width: 0;
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+}
+
+#agent-control-bar[data-status="running"] .agent-status {
+  color: var(--text-primary);
+}
+
+#agent-control-bar .agent-budget {
+  flex: none;
+  padding: 2px 8px;
+  border-radius: 10px;
+  background-color: rgba(var(--accent-color-rgb), 0.15);
+  color: var(--accent-color);
+  font-size: 0.75rem;
+  font-variant-numeric: tabular-nums;
+}
+
+#agent-control-bar button {
+  padding: 6px 14px;
+  border: 1px solid var(--border-color);
+  border-radius: 4px;
+  background-color: transparent;
+  color: var(--text-primary);
+  cursor: pointer;
+  font-size: 0.85rem;
+  transition: border-color 0.2s, background-color 0.2s;
+}
+
+#agent-control-bar button:hover {
+  border-color: var(--accent-color);
+}
+
+#agent-control-bar button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+@media (max-width: 600px) {
+  #agent-control-bar {
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  #agent-control-bar .agent-status {
+    flex: 1 0 100%;
+  }
+}

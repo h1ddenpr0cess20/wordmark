@@ -23,6 +23,7 @@ import { setupLocationEventListeners } from "./eventListeners/location.ts";
 import { setupChatHistoryEventListeners } from "./eventListeners/history.ts";
 import { setupDebugEventListeners } from "./eventListeners/debug.ts";
 import { initCompactionControls } from "../components/compaction.ts";
+import { initAgentControls } from "../components/agentControls.ts";
 import { DEFAULT_SHORT_RESPONSE_GUIDELINE } from "../../config/config.ts";
 
 /** Aggregator that wires every feature area's event listeners during startup. */
@@ -46,6 +47,7 @@ export function setupEventListeners() {
   setupChatHistoryEventListeners();
   setupDebugEventListeners();
   initCompactionControls();
+  initAgentControls();
 
   if (elements.verboseModeToggle) {
     elements.verboseModeToggle.addEventListener("change", (e) => {

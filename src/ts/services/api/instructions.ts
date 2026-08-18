@@ -17,6 +17,7 @@ import { getToolsDescription } from "../../components/tools.ts";
 import { getSkillsDescription } from "../skills/skills.ts";
 import { getEnabledToolDefinitions, supportsClientSideTools } from "./toolManager.ts";
 import { buildCompactedSummaryBlock } from "./compaction.ts";
+import { buildRunInstructions } from "../agent/agentPrompts.ts";
 import { DEFAULT_PERSONALITY, DEFAULT_SYSTEM_PROMPT, PERSONALITY_PROMPT_TEMPLATE, config } from "../../../config/config.ts";
 
 /**
@@ -94,6 +95,13 @@ export function buildDeveloperMessage() {
     }
   }
 
+  // Ahead of the summary because it frames what the turn is for; the summary's
+  // closing block defers to "the instructions above" and must stay last.
+  const runBlock = buildActiveRunBlock();
+  if (runBlock) {
+    developerBlock += `\n\n${runBlock}`;
+  }
+
   const summaryBlock = buildCompactedSummaryBlock(state.compactedSummary);
   if (summaryBlock) {
     developerBlock += `\n\n${summaryBlock}`;
@@ -101,6 +109,31 @@ export function buildDeveloperMessage() {
 
   const trimmed = developerBlock.trim();
   return trimmed ? trimmed : "";
+}
+
+/**
+ * Builds the autonomous-run guidance for the developer message, or `""` when no
+ * run is in progress.
+ *
+ * @remarks
+ * Reads the run straight off {@link state} rather than from the run engine:
+ * the engine imports the request client, which imports this module, so an
+ * import here would close the cycle.
+ */
+function buildActiveRunBlock(): string {
+  const run = state.agentRun;
+  if (!run || run.status !== "running") {
+    return "";
+  }
+  return buildRunInstructions(run.goal, run.turnsUsed, run.maxTurns, hasQueueFollowupTool());
+}
+
+/** Reports whether `queue_followup` will actually be offered in this request. */
+function hasQueueFollowupTool(): boolean {
+  if (config?.enableFunctionCalling === false) {
+    return false;
+  }
+  return getEnabledToolDefinitions().some(def => def.type === "function" && def.name === "queue_followup");
 }
 
 const IMAGE_EDIT_TOOL_NAMES = new Set(["grok_edit_image", "openai_edit_image"]);

@@ -133,7 +133,9 @@ export function getToolCatalog(): ToolCatalogEntry[] {
       }
       return typeof tool.isOnline === "boolean" ? tool.isOnline : null;
     })(),
-    hidden: tool.hidden === true,
+    // A tool gated off by its own predicate is reported as hidden so the
+    // settings list and the developer-message tool blurb drop it together.
+    hidden: tool.hidden === true || tool.isAvailable?.() === false,
     serverUrl: tool.type === "mcp" ? tool.definition?.server_url : undefined,
   }));
 }
@@ -141,7 +143,7 @@ export function getToolCatalog(): ToolCatalogEntry[] {
 /**
  * Reports whether a single catalog tool is available for the given
  * provider/model, applying the compatibility gates (but not per-tool user
- * preferences): hidden flag, service allow-list, client-side support, MCP
+ * preferences): hidden flag, the entry's own availability predicate, service allow-list, client-side support, MCP
  * local-network/online rules, required API keys, and the Codex
  * image-generation exclusion.
  *
@@ -160,6 +162,9 @@ function isToolAvailableForProvider(
   modelIsCodex: boolean,
 ): boolean {
   if (tool.hidden) {
+    return false;
+  }
+  if (tool.isAvailable && !tool.isAvailable()) {
     return false;
   }
   if (tool.onlyServices && !tool.onlyServices.includes(serviceKey)) {

@@ -14,6 +14,12 @@ export interface UiHooks {
   refreshEmbeddingModelUI?: () => void;
   /** Stop the party engine (abort in-flight turn, remove the control bar). */
   stopParty?: () => void;
+  /**
+   * Clear any autonomous run and its planned steps. Registered by the agent
+   * controls; called from persistence so starting or loading a conversation
+   * never inherits the previous one's run.
+   */
+  resetAgentRun?: () => void;
   /** Re-render the rail's recent-conversation list from the store. */
   refreshRailConversations?: () => void;
   /** Refresh the provider/endpoint line at the foot of the rail. */

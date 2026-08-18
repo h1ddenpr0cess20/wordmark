@@ -112,12 +112,13 @@ function withoutDeveloperMessages<T extends { role?: string }>(messages: T[] | n
 
 /**
  * Clears the in-memory conversation state (history, images, ids, prompt,
- * thinking) and tears down any active party. Party teardown lives here — rather
+ * thinking) and tears down any active party or autonomous run. Party teardown lives here — rather
  * than on the prompt-type radio change — so merely drafting a different prompt
  * never ends the open party; it ends only when a new conversation is started.
  */
 function resetConversationState() {
   clearLocalDocIndex();
+  uiHooks.resetAgentRun?.();
   clearPromptQueue();
   state.conversationHistory = [];
   state.generatedImages = [];
