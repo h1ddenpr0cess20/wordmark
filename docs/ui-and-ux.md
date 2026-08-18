@@ -20,6 +20,10 @@ Wordmark uses a two-column rail layout on desktop and a drawer layout on smaller
 
 The composer is a card at the bottom of the chat column. The textarea is followed by an action row containing attachment controls, a keyboard hint, and Send.
 
+### Prompt queuing
+
+Pressing Enter while a response is still streaming queues the message instead of discarding it. Queued messages appear as numbered chips above the composer, each with a remove button, and are sent one at a time as each response finishes. A queued message carries its attachments with it. Stopping generation or starting a new conversation clears the queue.
+
 ## Empty state
 
 A new conversation with no messages shows the Wordmark mark, a reminder that conversation data remains on the local machine, and starter prompts that can be inserted into the composer.

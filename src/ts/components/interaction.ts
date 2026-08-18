@@ -31,6 +31,7 @@ import { appendMessage } from "./ui/chatMessages.ts";
 import { getVerbosity, getReasoningEffort, getHistoryTokenBudget } from "../init/modelSettings.ts";
 import { isSelectableModelId } from "../services/api/clientConfig.ts";
 import { buildOutgoingAttachments } from "./attachments/outgoingAttachments.ts";
+import { showPendingUploadPreviews } from "./attachments/attachmentPreviews.ts";
 import { extractDocumentText, isExtractableDocument } from "../services/parsers/index.ts";
 import type { PendingDocument } from "../../types/attachments.ts";
 import type { PartyDocument } from "../services/party/partyTypes.ts";
@@ -39,6 +40,7 @@ import { buildRetrievalQuery } from "../utils/retrievalQuery.ts";
 import { getDocumentSourceName } from "../utils/documentPaths.ts";
 import { messageActionHost, setAssistantMetaText } from "./ui/messageShell.ts";
 import { maybeAutoCompactHistory, refreshHistoryMeter } from "./compaction.ts";
+import { discardQueueOnStop, enqueuePrompt, queuedPromptCount, restoreNextPrompt } from "./promptQueue.ts";
 import { uncompactedMessages } from "../services/api/compaction.ts";
 
 const logInteraction = createScopedLogger("interaction");
@@ -454,6 +456,19 @@ export async function sendMessage() {
     return;
   }
 
+  // A send attempted mid-turn is queued rather than dropped; the composer is
+  // cleared so the user can keep typing, and the queue drains when the
+  // in-flight turn settles. Party mode runs its own interjection queue.
+  if (!state.partyMode && (state.isResponsePending || state.activeAbortController)) {
+    enqueuePrompt(message, state.pendingUploads || [], state.pendingDocuments || []);
+    state.pendingUploads = [];
+    state.pendingDocuments = [];
+    showPendingUploadPreviews();
+    userInput.value = "";
+    userInput.style.height = "56px";
+    return;
+  }
+
   if (state.partyMode && state.activePartyConfig) {
     userInput.value = "";
     userInput.style.height = "56px";
@@ -577,6 +592,9 @@ export async function sendMessage() {
       stripBase64FromHistory(userId, placeholders);
     }
     resetSendButton();
+    queueMicrotask(() => {
+      void flushPromptQueue();
+    });
   };
 
   if (extractsDocumentsClientSide(activeServiceKey) && usesEmbeddingRetrieval(activeServiceKey)) {
@@ -711,7 +729,26 @@ async function executeTurn(
     state.activeAbortController = null;
     resetSendButton();
     refreshHistoryMeter();
+    // Deferred so the current turn has fully unwound before the next send
+    // starts, keeping the two turns from overlapping in the DOM or in state.
+    queueMicrotask(() => {
+      void flushPromptQueue();
+    });
   }
+}
+
+/**
+ * Sends the next queued prompt, if any, once no response is in flight. A stop
+ * clears the queue, so nothing is auto-sent after the user halts a turn.
+ */
+async function flushPromptQueue() {
+  if (state.isResponsePending || state.activeAbortController || queuedPromptCount() === 0) {
+    return;
+  }
+  if (!restoreNextPrompt()) {
+    return;
+  }
+  await sendMessage();
 }
 
 /**
@@ -784,6 +821,7 @@ export function stopGeneration() {
   }
 
   state.shouldStopGeneration = true;
+  discardQueueOnStop();
 
   if (state.activeAbortController) {
     try {

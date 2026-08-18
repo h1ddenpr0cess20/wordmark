@@ -23,6 +23,7 @@ import { renderConversationMessages } from "./render.ts";
 import { processImageForStorage, markMessagesWithImages } from "./persistenceImages.ts";
 import { hydrateMediaUrls } from "./renderMedia.ts";
 import { clearLocalDocIndex, persistLocalDocIndex, restoreLocalDocIndex } from "../localDocRetrieval.ts";
+import { clearPromptQueue } from "../../components/promptQueue.ts";
 import { stripRetrievedContextFromMessages } from "../../utils/retrievedContext.ts";
 import type { ConversationRecord } from "../../../types/common.ts";
 
@@ -117,6 +118,7 @@ function withoutDeveloperMessages<T extends { role?: string }>(messages: T[] | n
  */
 function resetConversationState() {
   clearLocalDocIndex();
+  clearPromptQueue();
   state.conversationHistory = [];
   state.generatedImages = [];
   state.compactedSummary = undefined;

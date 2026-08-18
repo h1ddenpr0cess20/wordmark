@@ -21,11 +21,12 @@ export function initializeConversationInput() {
   userInput.addEventListener("keydown", (e) => {
     if (e.key === "Enter" && !e.shiftKey) {
       e.preventDefault();
-      if (!state.activeAbortController && !state.isResponsePending) {
-        sendMessage();
-      } else {
-        logVerbose("Message sending prevented - generation in progress");
+      // Sending mid-turn is allowed: `sendMessage` queues the prompt and drains
+      // the queue once the in-flight response finishes.
+      if (state.isResponsePending || state.activeAbortController) {
+        logVerbose("Generation in progress - queueing message");
       }
+      void sendMessage();
     }
   });
 
