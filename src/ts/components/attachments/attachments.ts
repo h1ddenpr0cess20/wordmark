@@ -79,11 +79,14 @@ function showUploadMenu(button: HTMLElement, fileInput: HTMLInputElement, direct
   menu.className = "upload-menu";
 
   let closeMenu: ((e: MouseEvent) => void) | null = null;
+  const reposition = () => positionUploadMenu(menu, button);
   const removeMenu = () => {
     menu.remove();
     if (closeMenu) {
       document.removeEventListener("click", closeMenu);
     }
+    window.removeEventListener("resize", reposition);
+    window.visualViewport?.removeEventListener("resize", reposition);
     activeUploadMenuCleanup = null;
   };
   activeUploadMenuCleanup = removeMenu;
@@ -118,21 +121,59 @@ function showUploadMenu(button: HTMLElement, fileInput: HTMLInputElement, direct
   menu.appendChild(filesOption);
   menu.appendChild(directoryOption);
 
-  const rect = button.getBoundingClientRect();
-  menu.style.position = "absolute";
-  menu.style.bottom = (window.innerHeight - rect.top + 5) + "px";
-  menu.style.right = (window.innerWidth - rect.right) + "px";
-
+  menu.style.position = "fixed";
+  menu.style.visibility = "hidden";
   document.body.appendChild(menu);
+  positionUploadMenu(menu, button);
+  menu.style.visibility = "";
+
+  // The on-screen keyboard resizes the viewport under the open menu on mobile.
+  window.addEventListener("resize", reposition);
+  window.visualViewport?.addEventListener("resize", reposition);
 
   setTimeout(() => {
     closeMenu = (e: MouseEvent) => {
-      if (!menu.contains(e.target as Node) && e.target !== button) {
+      if (!menu.contains(e.target as Node) && !button.contains(e.target as Node)) {
         removeMenu();
       }
     };
     document.addEventListener("click", closeMenu);
   }, 0);
+}
+
+/**
+ * Place the upload menu next to its button without letting it run off screen.
+ *
+ * The button sits at the left edge of a narrow composer, so anchoring the menu
+ * to the button's right edge pushed it past the viewport on phones. Anchor to
+ * the left edge instead, clamp both axes to the viewport, and drop the menu
+ * below the button when there is no room above it.
+ */
+function positionUploadMenu(menu: HTMLElement, button: HTMLElement) {
+  const margin = 8;
+  const gap = 5;
+  const rect = button.getBoundingClientRect();
+  const viewportWidth = document.documentElement.clientWidth || window.innerWidth;
+  const viewportHeight = document.documentElement.clientHeight || window.innerHeight;
+  const menuRect = menu.getBoundingClientRect();
+
+  const maxLeft = Math.max(margin, viewportWidth - menuRect.width - margin);
+  const left = Math.min(Math.max(rect.left, margin), maxLeft);
+
+  const spaceAbove = rect.top - gap - margin;
+  let top: number;
+  if (menuRect.height <= spaceAbove) {
+    top = rect.top - gap - menuRect.height;
+  } else {
+    const below = rect.bottom + gap;
+    const maxTop = Math.max(margin, viewportHeight - menuRect.height - margin);
+    top = Math.min(below, maxTop);
+  }
+
+  menu.style.left = left + "px";
+  menu.style.top = Math.max(margin, top) + "px";
+  menu.style.right = "auto";
+  menu.style.bottom = "auto";
 }
 
 function readFileAsDataURL(file: File): Promise<string> {
