@@ -1,0 +1,16 @@
+<div class="settings-group">
+  <h3>Autonomous Work</h3>
+  <div class="setting-item">
+    <label for="agent-mode-toggle">Keep Working Toward the Goal</label>
+    <div class="toggle-container">
+      <input type="checkbox" id="agent-mode-toggle" class="toggle-input">
+      <label for="agent-mode-toggle" class="toggle-switch"></label>
+    </div>
+    <p class="info-text">Treat each message you send as a goal to work through rather than a single question. After every reply the assistant either schedules its own next step or decides the work is done, and the queued steps run as ordinary turns. A control bar above the composer shows progress and lets you pause, resume, or stop; type any time to redirect. Off by default — each step is a billed request. Turning this on also turns on Auto-Compact History (Settings &rarr; Model), which a long run needs to keep its earlier turns.</p>
+  </div>
+  <div class="setting-item">
+    <label for="agent-max-turns">Turn Budget</label>
+    <input type="number" id="agent-max-turns" min="2" max="50" step="1" placeholder="8">
+    <p class="info-text">How many turns a run may take before it pauses and asks whether to continue. Default is 8.</p>
+  </div>
+</div>

@@ -6,10 +6,12 @@ Off by default. Every step is a billed request, so nothing runs unattended until
 
 ## Turning it on
 
-**Settings → Model → Autonomous Work**:
+**Settings → Agent**:
 
 - **Keep Working Toward the Goal** — the switch. While it is off, no run starts and the `queue_followup` tool is not offered to the model at all.
 - **Turn Budget** — how many turns a run may take before it pauses and asks whether to continue. Default 8, range 2–50.
+
+Switching the feature on also switches on **Auto-Compact History** (Settings → Model) if it was off, and says so. A run spends many turns on one conversation and will outgrow the history budget partway through; without compaction the oldest turns are dropped outright, which is how a run forgets the goal it was given. It stays a normal checkbox — turn it back off if you want, and switching autonomous work off again leaves it on.
 
 Switching the feature off ends any run in progress.
 
@@ -73,7 +75,7 @@ Beyond those: agent-authored queue entries only leave the queue while a run is r
 - **Runs are runtime-only.** A run is not saved with the conversation. Reloading the page, or switching to another conversation, ends it — the transcript survives, the run does not.
 - **Party mode takes precedence.** No run starts while a party is active; Party mode has its own turn loop and its own interjection queue.
 - **Every turn counts against the budget**, including messages you type mid-run. They are turns of the run.
-- **Compaction matters.** A long run will outgrow the history budget. Turn on **Auto-Compact History** in the same settings section so older turns fold into a running summary instead of being dropped.
+- **Compaction matters.** A long run will outgrow the history budget, which is why enabling autonomous work enables **Auto-Compact History** too. If you turn that back off, expect a long run to lose its earliest turns — including the goal.
 
 ## Where it lives
 

@@ -66,7 +66,7 @@ The image viewer behaves as a dialog and supports zoom and pan. Zoom is availabl
 
 ## Autonomous Work
 
-- Settings → Model provides an Autonomous Work switch that turns each message into a goal the assistant keeps working toward across several turns.
+- Settings → Agent provides an Autonomous Work switch that turns each message into a goal the assistant keeps working toward across several turns.
 - A control bar above the composer shows the run's status and turn budget, with Pause, Resume/Continue, and Stop.
 - Queued steps appear as accent-edged chips in the composer's queue; typing takes priority over them.
 - See [Autonomous Work](autonomous-work.md) for the full reference.

@@ -1,19 +1,20 @@
 /*
  * Autonomous-run control bar, sitting between the transcript and the composer.
- * Mirrors the party control bar's geometry so the two features read as the same
- * kind of thing; the status colour is what distinguishes a run that is working
- * from one that is waiting on the user.
+ * Its edges line up with the composer card below it: same gutters, same outer
+ * width, both read from the custom properties the composer publishes on
+ * #chat-container. The status colour is what distinguishes a run that is
+ * working from one that is waiting on the user.
  */
 #agent-control-bar {
   display: flex;
   align-items: center;
   gap: 12px;
-  padding: 8px 12px;
+  padding: 8px 14px;
   margin: 0 auto 8px;
-  max-width: 900px;
-  width: 100%;
+  width: calc(100% - (var(--composer-gutter, 20px) * 2));
+  max-width: var(--composer-column, 760px);
   border: 1px solid var(--border-color);
-  border-radius: 6px;
+  border-radius: 12px;
   background-color: var(--bg-secondary);
   box-sizing: border-box;
 }

@@ -10,6 +10,8 @@
 
 import { uiHooks } from "../init/uiHooks.ts";
 import { createScopedLogger } from "../utils/logger.ts";
+import { showInfo } from "../utils/notifications.ts";
+import { isAutoCompactEnabled, setAutoCompactEnabled } from "./compaction.ts";
 import { agentRunner } from "../services/agent/agentRunner.ts";
 import {
   DEFAULT_AGENT_MAX_TURNS,
@@ -23,6 +25,31 @@ import {
 
 const logAgent = createScopedLogger("agent");
 
+/**
+ * Turns auto-compaction on alongside autonomous work, when it is not already.
+ *
+ * @remarks
+ * A run spends many turns on one conversation and will outgrow the history
+ * budget partway through; without compaction the oldest turns are dropped
+ * outright, which is how a run forgets the goal it was given. Switching it on
+ * here rather than forcing it at run time keeps it a visible, revertible
+ * setting — the companion checkbox flips where the user can see it, and the
+ * notification says why. Switching autonomous work back off leaves it on,
+ * since by then it may be wanted for its own sake.
+ */
+function enableAutoCompactForRuns(): void {
+  if (isAutoCompactEnabled()) {
+    return;
+  }
+  setAutoCompactEnabled(true);
+  const compactToggle = document.getElementById("auto-compact-toggle") as HTMLInputElement | null;
+  if (compactToggle) {
+    compactToggle.checked = true;
+  }
+  logAgent("Enabled auto-compaction to go with autonomous work");
+  showInfo?.("Auto-Compact History turned on — long runs outgrow the history budget without it.");
+}
+
 /** Wires the autonomous-work settings and the run-teardown hook. */
 export function initAgentControls(): void {
   uiHooks.resetAgentRun = () => agentRunner.reset();
@@ -34,7 +61,9 @@ export function initAgentControls(): void {
       toggle.addEventListener("change", () => {
         setAgentModeEnabled(toggle.checked);
         logAgent("Autonomous work", toggle.checked ? "enabled" : "disabled");
-        if (!toggle.checked) {
+        if (toggle.checked) {
+          enableAutoCompactForRuns();
+        } else {
           agentRunner.stop("");
         }
       });

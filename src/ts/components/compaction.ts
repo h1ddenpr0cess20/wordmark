@@ -71,7 +71,7 @@ export function isAutoCompactEnabled(): boolean {
 }
 
 /** Persists the auto-compaction preference (best-effort). */
-function persistAutoCompact(enabled: boolean): void {
+export function setAutoCompactEnabled(enabled: boolean): void {
   try {
     localStorage.setItem(STORAGE_KEYS.autoCompactHistory, String(enabled));
   } catch (error) {
@@ -309,7 +309,7 @@ export function initCompactionControls(): void {
     toggle.checked = isAutoCompactEnabled();
     if (!toggle.dataset.bound) {
       toggle.addEventListener("change", () => {
-        persistAutoCompact(toggle.checked);
+        setAutoCompactEnabled(toggle.checked);
       });
       toggle.dataset.bound = "true";
     }

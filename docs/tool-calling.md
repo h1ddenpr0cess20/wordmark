@@ -38,7 +38,7 @@ Built-in Tools
 - `file_search` (type: `builtin`) — Vector store search across uploaded documents (OpenAI only). Rendered in reasoning timeline. xAI uses direct `input_file` references instead.
 - MCP connectors (type: `mcp`) — User-supplied servers registered in Settings → Tools. Availability depends on the external MCP server responding to ping checks.
 - `activate_skill` / `read_skill_resource` (type: `function`) — Added automatically when one or more **skills** are enabled, so the model can load a skill's instructions and bundled resources on demand. See docs/skills.md.
-- `queue_followup` (type: `function`) — Lets the model schedule its own next turns while an autonomous run is in progress. Offered only while Settings → Model → Autonomous Work is on; the entry carries an `isAvailable` predicate, so with the feature off it is filtered out of the request, the settings list, and the developer message's tool blurb alike. Handler in `src/ts/services/agent/agentTools.ts`. See docs/autonomous-work.md.
+- `queue_followup` (type: `function`) — Lets the model schedule its own next turns while an autonomous run is in progress. Offered only while Settings → Agent is on; the entry carries an `isAvailable` predicate, so with the feature off it is filtered out of the request, the settings list, and the developer message's tool blurb alike. Handler in `src/ts/services/agent/agentTools.ts`. See docs/autonomous-work.md.
 
 Credentials
 
