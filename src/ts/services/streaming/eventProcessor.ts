@@ -111,6 +111,7 @@ export function createStreamingEventProcessor(runtime: StreamingRuntime) {
   let finalResponsePayload: any = null;
   let responseStartOffset = 0;
   let expectNewResponse = false;
+  let reasoningSegmentKey: string | null = null;
 
   /**
    * Builds the four lifecycle handlers (in_progress/searching/completed/failed)
@@ -252,6 +253,54 @@ export function createStreamingEventProcessor(runtime: StreamingRuntime) {
     }
   }
 
+  /**
+   * Identifies which reasoning part an event belongs to.
+   *
+   * @remarks
+   * A response can carry several reasoning summaries — one per stretch of
+   * thinking between tool calls — and each is a separate part with its own
+   * item/output/summary indices. Providers that omit those fields collapse to a
+   * single key, which leaves the previous concatenating behavior untouched.
+   */
+  function reasoningSegmentKeyFor(payload: any): string {
+    const item = payload?.item_id ?? payload?.id ?? "";
+    const output = payload?.output_index ?? "";
+    const summary = payload?.summary_index ?? payload?.content_index ?? "";
+    return `${item}#${output}#${summary}`;
+  }
+
+  /**
+   * Inserts a paragraph break before more reasoning text is appended, unless the
+   * panel is empty or already ends in one.
+   */
+  function separateReasoning() {
+    const current = runtime.getReasoningText();
+    if (current.trim().length === 0 || current.endsWith("\n\n")) {
+      return;
+    }
+    runtime.appendReasoningDelta(current.endsWith("\n") ? "\n" : "\n\n");
+  }
+
+  /**
+   * Opens the reasoning part `key` belongs to, breaking the paragraph when it is
+   * a different part than the text already in the panel.
+   *
+   * @remarks
+   * Without this, consecutive summaries run together mid-sentence ("…from
+   * that.Got the profile…"): `reasoning_summary_part.added` is the event that
+   * used to mark the boundary, and providers that stream summary parts without
+   * it — xAI (Grok) among them — never announced one. Keying off the part
+   * indices carried by the delta events themselves covers those providers, and
+   * the first call on a resumed panel breaks after the previous turn's text.
+   */
+  function beginReasoningSegment(key: string) {
+    if (reasoningSegmentKey === key) {
+      return;
+    }
+    reasoningSegmentKey = key;
+    separateReasoning();
+  }
+
   function ensureResponseSegment() {
     if (!expectNewResponse) return;
     const current = runtime.getOutputText();
@@ -311,6 +360,7 @@ export function createStreamingEventProcessor(runtime: StreamingRuntime) {
     case "response.reasoning_summary_text.delta": {
       const delta = extractDeltaText(payload);
       if (delta) {
+        beginReasoningSegment(reasoningSegmentKeyFor(payload));
         runtime.appendReasoningDelta(delta);
       }
       break;
@@ -320,21 +370,21 @@ export function createStreamingEventProcessor(runtime: StreamingRuntime) {
     case "response.reasoning_summary_text.done": {
       const full = extractReasoningText(payload);
       if (typeof full === "string" && full.trim().length > 0) {
-        const current = runtime.getReasoningText();
-        if (!current.includes(full.trim())) {
-          if (current.trim().length > 0) {
-            runtime.appendReasoningDelta(current.endsWith("\n") ? "\n" : "\n\n");
-          }
+        // The deltas for this part already delivered the text unless the
+        // provider streams nothing and only sends the finished summary.
+        if (!runtime.getReasoningText().includes(full.trim())) {
+          separateReasoning();
           runtime.appendReasoningDelta(full);
         }
+        reasoningSegmentKey = reasoningSegmentKeyFor(payload);
       }
       break;
     }
     case "response.reasoning_summary_part.added": {
-      const current = runtime.getReasoningText();
-      if (current.trim().length > 0 && !current.endsWith("\n\n")) {
-        runtime.appendReasoningDelta(current.endsWith("\n") ? "\n" : "\n\n");
-      }
+      // An announced boundary is authoritative even from a provider that sends
+      // no part indices, so break first and adopt the part the deltas will use.
+      separateReasoning();
+      reasoningSegmentKey = reasoningSegmentKeyFor(payload);
       break;
     }
     case "response.reasoning_summary_part.done":
@@ -348,6 +398,7 @@ export function createStreamingEventProcessor(runtime: StreamingRuntime) {
       const deltaText = extractDeltaText(payload);
       if (innerType.includes("reasoning")) {
         if (deltaText) {
+          beginReasoningSegment(reasoningSegmentKeyFor(payload));
           runtime.appendReasoningDelta(deltaText);
         }
         break;

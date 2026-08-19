@@ -35,12 +35,12 @@ instead of re-deriving `serviceKey === …` checks at each call site.
   - File attachments use direct `input_file` references (uploaded via `/v1/files`, referenced by `file_id` in message content) instead of vector stores
 - **LM Studio** (`lmstudio`) - Local OpenAI-compatible server
   - Models fetched dynamically via `<baseUrl>/models`
-  - No API key required
+  - API key optional — sent as a bearer token when set, omitted entirely when blank
   - Base URL configurable in Settings
   - Documents are extracted and searched in-browser via embeddings, not uploaded ([Documents & Attachments](documents.md))
 - **Ollama** (`ollama`) - Local OpenAI-compatible Responses server
   - Models fetched dynamically via `<baseUrl>/models` (falls back to `/api/tags`)
-  - No API key required
+  - API key optional — sent as a bearer token when set, omitted entirely when blank
   - Base URL configurable in Settings → API Keys (default `http://localhost:11434/v1`)
   - Documents are extracted and searched in-browser via embeddings, not uploaded ([Documents & Attachments](documents.md))
 

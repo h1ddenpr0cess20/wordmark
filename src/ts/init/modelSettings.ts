@@ -1,12 +1,17 @@
 /**
  * Model settings initialization: reasoning effort, verbosity, and history budget.
+ *
+ * @remarks
+ * The history budget defaults per provider — see {@link defaultHistoryTokenBudget}
+ * — so cloud models use their large context windows while local servers keep the
+ * conservative ceiling. An explicit user value overrides both.
  */
 
 import { state, elements } from "./state.ts";
 import { logVerbose } from "../utils/logger.ts";
 import { config } from "../../config/config.ts";
 import { STORAGE_KEYS } from "../utils/storage/storage.ts";
-import { serviceSupportsReasoning } from "../services/providers.ts";
+import { isLocalService, serviceSupportsReasoning } from "../services/providers.ts";
 import { supportsReasoningEffort } from "../services/api/clientConfig.ts";
 
 const REASONING_EFFORT_STORAGE_KEY = STORAGE_KEYS.reasoningEffort;
@@ -24,13 +29,42 @@ const VALID_VERBOSITY_LEVELS = ["low", "medium", "high"];
 const HISTORY_TOKEN_BUDGET_STORAGE_KEY = STORAGE_KEYS.historyTokenBudget;
 
 /**
- * Default history token budget.
+ * Default history token budget for local providers (LM Studio, Ollama).
  *
  * @remarks
- * A balanced ~16k tokens of recent history keeps plenty of context (~20-40
- * exchanges) while capping cost on long threads. `0` means no limit.
+ * Local servers are usually loaded with a modest context window, so ~16k tokens
+ * of recent history (~20-40 exchanges) is as much as they can absorb. `0` means
+ * no limit.
  */
-export const DEFAULT_HISTORY_TOKEN_BUDGET = 16384;
+export const DEFAULT_LOCAL_HISTORY_TOKEN_BUDGET = 16384;
+
+/**
+ * Default history token budget for hosted providers (OpenAI, xAI, OpenRouter).
+ *
+ * @remarks
+ * Cloud models carry context windows measured in the hundreds of thousands of
+ * tokens, so the local ~16k ceiling threw away history they could comfortably
+ * hold. ~64k keeps long threads intact while still capping what an unbounded
+ * conversation can cost per turn.
+ */
+export const DEFAULT_CLOUD_HISTORY_TOKEN_BUDGET = 65536;
+
+/** The service key the budget controls should follow. */
+function activeServiceKey(): string {
+  const selected = elements.serviceSelector?.value;
+  return selected || (config && config.defaultService) || "openai";
+}
+
+/**
+ * The history token budget used when the user has not set one, which depends on
+ * the active provider: local servers keep the conservative
+ * {@link DEFAULT_LOCAL_HISTORY_TOKEN_BUDGET}, hosted ones get the larger
+ * {@link DEFAULT_CLOUD_HISTORY_TOKEN_BUDGET}.
+ */
+export function defaultHistoryTokenBudget(serviceKey?: string | null): number {
+  const key = serviceKey === undefined ? activeServiceKey() : serviceKey;
+  return isLocalService(key) ? DEFAULT_LOCAL_HISTORY_TOKEN_BUDGET : DEFAULT_CLOUD_HISTORY_TOKEN_BUDGET;
+}
 
 /** Returns `value` if it is a valid reasoning effort, else {@link DEFAULT_REASONING_EFFORT}. */
 function normalizeReasoningEffort(value: string) {
@@ -136,39 +170,79 @@ function persistVerbosity(value: string) {
  *
  * @remarks
  * `0` is a valid, explicit "no limit"; blank, negative, or invalid values fall
- * back to {@link DEFAULT_HISTORY_TOKEN_BUDGET}.
+ * back to `fallback`, which defaults to the active provider's
+ * {@link defaultHistoryTokenBudget}.
  */
-function normalizeHistoryTokenBudget(value: string | number | undefined) {
+function normalizeHistoryTokenBudget(value: string | number | undefined, fallback = defaultHistoryTokenBudget()) {
   const parsed = parseInt(String(value), 10);
   if (!Number.isFinite(parsed) || parsed < 0) {
-    return DEFAULT_HISTORY_TOKEN_BUDGET;
+    return fallback;
   }
   return parsed;
 }
 
-/** Reads the persisted history token budget from localStorage, falling back to the default. */
-function loadHistoryTokenBudgetFromStorage() {
+/**
+ * Reads the persisted history token budget from localStorage.
+ *
+ * @returns The stored budget, or `null` when the user has not set one — the
+ * caller then follows the provider default rather than pinning a number.
+ */
+function loadHistoryTokenBudgetFromStorage(): number | null {
   try {
     const stored = localStorage.getItem(HISTORY_TOKEN_BUDGET_STORAGE_KEY);
-    if (stored !== null) {
-      return normalizeHistoryTokenBudget(stored);
+    if (stored !== null && stored.trim() !== "") {
+      const parsed = parseInt(stored, 10);
+      if (Number.isFinite(parsed) && parsed >= 0) {
+        return parsed;
+      }
     }
   } catch (error) {
     if (state.verboseLogging) {
       console.warn("Unable to load history token budget from storage:", error);
     }
   }
-  return DEFAULT_HISTORY_TOKEN_BUDGET;
+  return null;
 }
 
-/** Persists the history token budget to localStorage (best-effort). */
-function persistHistoryTokenBudget(value: number) {
+/**
+ * Persists the history token budget to localStorage (best-effort). `null`
+ * clears the override so the provider default applies again.
+ */
+function persistHistoryTokenBudget(value: number | null) {
   try {
-    localStorage.setItem(HISTORY_TOKEN_BUDGET_STORAGE_KEY, String(value));
+    if (value === null) {
+      localStorage.removeItem(HISTORY_TOKEN_BUDGET_STORAGE_KEY);
+    } else {
+      localStorage.setItem(HISTORY_TOKEN_BUDGET_STORAGE_KEY, String(value));
+    }
   } catch (error) {
     if (state.verboseLogging) {
       console.warn("Unable to save history token budget preference:", error);
     }
+  }
+}
+
+/**
+ * Redraws the budget input and its help text against the active provider, so a
+ * user who has not set a budget sees the provider default they will actually
+ * get. Called on init and whenever the service changes.
+ */
+export function refreshHistoryTokenBudgetControl(): void {
+  const fallback = defaultHistoryTokenBudget();
+  const input = elements.historyTokenBudgetInput;
+  if (input) {
+    input.value = state.historyTokenBudget === undefined ? "" : String(state.historyTokenBudget);
+    input.placeholder = String(fallback);
+  }
+  if (typeof document === "undefined") {
+    return;
+  }
+  const help = document.getElementById("history-token-budget-help");
+  if (help) {
+    const providerLabel = isLocalService(activeServiceKey()) ? "local servers" : "cloud providers";
+    help.textContent = "Caps the conversation history sent each turn to control cost. When the estimated token count "
+      + "exceeds this budget, the oldest messages are dropped first (the latest turn and system prompt are always kept). "
+      + `Leave blank for the ${providerLabel} default of ${fallback.toLocaleString()}; set 0 to send the full history.`;
   }
 }
 
@@ -182,7 +256,7 @@ export function initializeModelSettings() {
   const storedVerbosity = loadVerbosityFromStorage();
   state.currentVerbosity = storedVerbosity;
   const storedBudget = loadHistoryTokenBudgetFromStorage();
-  state.historyTokenBudget = storedBudget;
+  state.historyTokenBudget = storedBudget === null ? undefined : storedBudget;
 
   if (elements.reasoningEffortSelector) {
     elements.reasoningEffortSelector.value = storedEffort;
@@ -211,11 +285,19 @@ export function initializeModelSettings() {
   }
 
   if (elements.historyTokenBudgetInput) {
-    elements.historyTokenBudgetInput.value = String(storedBudget);
+    refreshHistoryTokenBudgetControl();
 
     if (!elements.historyTokenBudgetInput.dataset.bound) {
       elements.historyTokenBudgetInput.addEventListener("change", (event) => {
         const budgetInput = event.target as HTMLInputElement;
+        // A cleared field drops the override rather than pinning a number, so
+        // the budget keeps following whichever provider is active.
+        if (budgetInput.value.trim() === "") {
+          state.historyTokenBudget = undefined;
+          persistHistoryTokenBudget(null);
+          refreshHistoryTokenBudgetControl();
+          return;
+        }
         const budget = normalizeHistoryTokenBudget(budgetInput.value);
         state.historyTokenBudget = budget;
         persistHistoryTokenBudget(budget);
@@ -247,8 +329,14 @@ export function getReasoningEffort() {
   return normalizeReasoningEffort(state.currentReasoningEffort);
 }
 
-/** Returns the normalized conversation-history token budget. */
+/**
+ * Returns the conversation-history token budget in effect: the user's stored
+ * value when they set one, otherwise the active provider's default.
+ */
 export function getHistoryTokenBudget() {
+  if (state.historyTokenBudget === undefined || state.historyTokenBudget === null) {
+    return defaultHistoryTokenBudget();
+  }
   return normalizeHistoryTokenBudget(state.historyTokenBudget);
 }
 

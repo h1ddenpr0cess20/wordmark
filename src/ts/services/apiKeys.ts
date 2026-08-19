@@ -5,6 +5,10 @@
  * Wires the API-keys settings tab: reads/writes keys and the LM Studio/Ollama
  * base URLs to localStorage, mirrors them onto the {@link config} object, and
  * refreshes dependent UI (model selector, tool settings, feature status).
+ *
+ * Local providers carry an optional key of their own — LM Studio and Ollama can
+ * both be started behind one — saved from their block alongside the base URL
+ * rather than with the cloud keys, since it is a property of that server.
  */
 
 import { icon } from "../utils/icons.ts";
@@ -37,8 +41,10 @@ const apiKeyInputs: Record<string, HTMLInputElement | null> = {
 let saveApiKeysButton: HTMLElement | null = null;
 let embeddingModelSelect: HTMLSelectElement | null = null;
 let lmStudioServerUrlInput: HTMLInputElement | null = null;
+let lmStudioApiKeyInput: HTMLInputElement | null = null;
 let saveLmStudioUrlButton: HTMLElement | null = null;
 let ollamaServerUrlInput: HTMLInputElement | null = null;
+let ollamaApiKeyInput: HTMLInputElement | null = null;
 let saveOllamaUrlButton: HTMLElement | null = null;
 let apiKeysEventHandlersApplied = false;
 let shownApiKeyWarnings: Set<string> | null = null;
@@ -74,8 +80,10 @@ function initApiKeys(retryCount: number = 0) {
   const openrouterInput = document.getElementById("openrouter-api-key") as HTMLInputElement | null;
   const saveKeysButton = document.getElementById("save-api-keys");
   const lmStudioUrlInput = document.getElementById("lmstudio-server-url") as HTMLInputElement | null;
+  const lmStudioKeyInput = document.getElementById("lmstudio-api-key") as HTMLInputElement | null;
   const saveLmStudioButton = document.getElementById("save-lmstudio-url");
   const ollamaUrlInput = document.getElementById("ollama-server-url") as HTMLInputElement | null;
+  const ollamaKeyInput = document.getElementById("ollama-api-key") as HTMLInputElement | null;
   const saveOllamaButton = document.getElementById("save-ollama-url");
   const embeddingSelect = document.getElementById("embedding-model") as HTMLSelectElement | null;
 
@@ -95,8 +103,10 @@ function initApiKeys(retryCount: number = 0) {
   apiKeyInputs.openrouter = openrouterInput;
   saveApiKeysButton = saveKeysButton;
   lmStudioServerUrlInput = lmStudioUrlInput;
+  lmStudioApiKeyInput = lmStudioKeyInput;
   saveLmStudioUrlButton = saveLmStudioButton;
   ollamaServerUrlInput = ollamaUrlInput;
+  ollamaApiKeyInput = ollamaKeyInput;
   saveOllamaUrlButton = saveOllamaButton;
   embeddingModelSelect = embeddingSelect;
 
@@ -109,15 +119,12 @@ function initApiKeys(retryCount: number = 0) {
       }
     });
 
-    if (lmStudioServerUrlInput) {
-      lmStudioServerUrlInput.addEventListener("click", (event: Event) => {
-        event.stopPropagation();
-      });
-    }
-    if (ollamaServerUrlInput) {
-      ollamaServerUrlInput.addEventListener("click", (event: Event) => {
-        event.stopPropagation();
-      });
+    for (const input of [lmStudioServerUrlInput, lmStudioApiKeyInput, ollamaServerUrlInput, ollamaApiKeyInput]) {
+      if (input) {
+        input.addEventListener("click", (event: Event) => {
+          event.stopPropagation();
+        });
+      }
     }
     if (embeddingModelSelect) {
       embeddingModelSelect.addEventListener("click", (event: Event) => {
@@ -182,9 +189,10 @@ function initApiKeys(retryCount: number = 0) {
   loadApiKeys();
 };
 
-/** Identifies a local provider whose base URL is user-configurable. */
-interface LocalServerUrlConfig {
+/** Identifies a local provider whose base URL and optional key are user-configurable. */
+interface LocalServerSettingsConfig {
   input: HTMLInputElement | null;
+  keyInput: HTMLInputElement | null;
   storageKey: string;
   serviceKey: "lmstudio" | "ollama";
   statusClass: string;
@@ -193,16 +201,45 @@ interface LocalServerUrlConfig {
 }
 
 /**
- * Persists a local provider's base URL: normalizes the input, mirrors it onto
- * the config (with a `/v1` suffix), refreshes the model list, and shows a status
- * note. Shared by the LM Studio and Ollama savers.
+ * Persists a local provider's optional API key: stores it under the same
+ * per-service prefix the cloud keys use and mirrors it onto the config. A blank
+ * field clears the key, since the common case is a server that wants none.
+ *
+ * @returns Whether a key is now set, for the status note.
  */
-function saveLocalServerUrl({ input, storageKey, serviceKey, statusClass, anchorSelector, label }: LocalServerUrlConfig) {
+function saveLocalServerApiKey(keyInput: HTMLInputElement | null, serviceKey: string): boolean {
+  if (!keyInput) {
+    return Boolean(config?.services?.[serviceKey]?.apiKey);
+  }
+  const value = keyInput.value ? keyInput.value.trim() : "";
+  if (value) {
+    localStorage.setItem(`${API_KEYS_STORAGE_PREFIX}${serviceKey}`, value);
+  } else {
+    localStorage.removeItem(`${API_KEYS_STORAGE_PREFIX}${serviceKey}`);
+  }
+  if (config && config.services && config.services[serviceKey]) {
+    config.services[serviceKey].apiKey = value;
+  }
+  return Boolean(value);
+}
+
+/**
+ * Persists a local provider's settings: normalizes the base URL, mirrors it onto
+ * the config (with a `/v1` suffix), saves the optional API key, refreshes the
+ * model list, and shows a status note. Shared by the LM Studio and Ollama savers.
+ *
+ * @remarks
+ * The key is saved before the model fetch so the refreshed request carries it,
+ * which is also how a wrong key surfaces immediately as a failed fetch.
+ */
+function saveLocalServerSettings({ input, keyInput, storageKey, serviceKey, statusClass, anchorSelector, label }: LocalServerSettingsConfig) {
   try {
     if (input && input.value) {
       const serverUrl = normalizeServerBaseUrl(input.value);
 
       localStorage.setItem(storageKey, serverUrl);
+
+      const hasKey = saveLocalServerApiKey(keyInput, serviceKey);
 
       const service = config && config.services && config.services[serviceKey];
       if (service) {
@@ -215,15 +252,22 @@ function saveLocalServerUrl({ input, storageKey, serviceKey, statusClass, anchor
         }
       }
 
-      showInlineStatus(statusClass, anchorSelector, `${label} Base URL saved successfully!`, "success");
+      refreshApiDependentUi();
 
-      logApiKeys(`${label} Base URL saved to localStorage:`, serverUrl);
+      showInlineStatus(
+        statusClass,
+        anchorSelector,
+        hasKey ? `${label} URL and API key saved successfully!` : `${label} settings saved successfully!`,
+        "success",
+      );
+
+      logApiKeys(`${label} settings saved to localStorage:`, serverUrl, hasKey ? "(with API key)" : "(no API key)");
     } else {
       showInlineStatus(statusClass, anchorSelector, `Please enter a valid ${label} Base URL`, "error");
     }
   } catch (error) {
-    console.error(`Error saving ${label} Base URL:`, error);
-    showInlineStatus(statusClass, anchorSelector, `Error saving ${label} Base URL`, "error");
+    console.error(`Error saving ${label} settings:`, error);
+    showInlineStatus(statusClass, anchorSelector, `Error saving ${label} settings`, "error");
   }
 }
 
@@ -231,14 +275,28 @@ function saveLocalServerUrl({ input, storageKey, serviceKey, statusClass, anchor
  * Populates a local provider's URL input from localStorage (mirroring the value
  * onto the config with a `/v1` suffix and refreshing models), or, when nothing
  * is stored, back-fills the input from the config's existing base URL with the
- * `/v1` suffix stripped. Shared by the LM Studio and Ollama loaders.
+ * `/v1` suffix stripped. The optional API key field is filled from the same
+ * per-service storage the cloud keys use. Shared by the LM Studio and Ollama
+ * loaders.
  */
-function loadLocalServerUrl(
+function loadLocalServerSettings(
   input: HTMLInputElement | null,
+  keyInput: HTMLInputElement | null,
   storageKey: string,
   serviceKey: "lmstudio" | "ollama",
   label: string,
 ) {
+  if (keyInput) {
+    const storedKey = localStorage.getItem(`${API_KEYS_STORAGE_PREFIX}${serviceKey}`);
+    if (storedKey) {
+      keyInput.value = storedKey;
+      if (config && config.services && config.services[serviceKey]) {
+        config.services[serviceKey].apiKey = storedKey;
+      }
+    } else {
+      keyInput.value = config?.services?.[serviceKey]?.apiKey || "";
+    }
+  }
   if (!input) return;
   const storedUrl = localStorage.getItem(storageKey);
   const service = config && config.services && config.services[serviceKey];
@@ -262,12 +320,14 @@ function loadLocalServerUrl(
 }
 
 /**
- * Persists the LM Studio base URL, normalizing it, mirroring it onto the config
- * (with a `/v1` suffix), refreshing the model list, and showing a status note.
+ * Persists the LM Studio base URL and optional API key, normalizing the URL,
+ * mirroring it onto the config (with a `/v1` suffix), refreshing the model list,
+ * and showing a status note.
  */
 function saveLmStudioServerUrl() {
-  saveLocalServerUrl({
+  saveLocalServerSettings({
     input: lmStudioServerUrlInput,
+    keyInput: lmStudioApiKeyInput,
     storageKey: LMSTUDIO_SERVER_URL_KEY,
     serviceKey: "lmstudio",
     statusClass: "lmstudio-status",
@@ -277,12 +337,14 @@ function saveLmStudioServerUrl() {
 };
 
 /**
- * Persists the Ollama base URL, normalizing it, mirroring it onto the config
- * (with a `/v1` suffix), refreshing the model list, and showing a status note.
+ * Persists the Ollama base URL and optional API key, normalizing the URL,
+ * mirroring it onto the config (with a `/v1` suffix), refreshing the model list,
+ * and showing a status note.
  */
 function saveOllamaServerUrl() {
-  saveLocalServerUrl({
+  saveLocalServerSettings({
     input: ollamaServerUrlInput,
+    keyInput: ollamaApiKeyInput,
     storageKey: OLLAMA_SERVER_URL_KEY,
     serviceKey: "ollama",
     statusClass: "ollama-status",
@@ -416,8 +478,8 @@ function loadApiKeys() {
         }
       }
     }
-    loadLocalServerUrl(lmStudioServerUrlInput, LMSTUDIO_SERVER_URL_KEY, "lmstudio", "LM Studio");
-    loadLocalServerUrl(ollamaServerUrlInput, OLLAMA_SERVER_URL_KEY, "ollama", "Ollama");
+    loadLocalServerSettings(lmStudioServerUrlInput, lmStudioApiKeyInput, LMSTUDIO_SERVER_URL_KEY, "lmstudio", "LM Studio");
+    loadLocalServerSettings(ollamaServerUrlInput, ollamaApiKeyInput, OLLAMA_SERVER_URL_KEY, "ollama", "Ollama");
     refreshEmbeddingModelUI();
     logApiKeys("API keys loaded from localStorage");
 

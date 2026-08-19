@@ -118,6 +118,31 @@ function notifyModelsUpdated(service: unknown, fetchError?: boolean): void {
 }
 
 /**
+ * Authorization headers for a provider request, or `{}` when no key is set.
+ *
+ * @remarks
+ * LM Studio and Ollama can both be put behind an API key now (`lms server
+ * start --api-key`, `OLLAMA_API_KEY`), but the key stays optional: a server
+ * without one must keep receiving unauthenticated requests, and sending no
+ * header also avoids forcing a CORS preflight on those installs. Reads the
+ * stored key when the service object hasn't been hydrated yet, the same way the
+ * cloud providers do, since models can be fetched before the settings UI loads.
+ */
+function providerAuthHeaders(service: { apiKey?: string }, serviceKey: string): Record<string, string> {
+    if (!service.apiKey) {
+        try {
+            const stored = localStorage.getItem(apiKeyStorageKey(serviceKey));
+            if (stored) service.apiKey = stored;
+        } catch {
+            // localStorage can be unavailable (private mode, file://); an
+            // unauthenticated request is the right fallback.
+        }
+    }
+    const trimmed = typeof service.apiKey === "string" ? service.apiKey.trim() : "";
+    return trimmed ? { "Authorization": `Bearer ${trimmed}` } : {};
+}
+
+/**
  * The application configuration: provider definitions plus the helper methods
  * that resolve the currently active service.
  */
@@ -213,10 +238,11 @@ export const config: Config = {
                 this.modelsFetching = true;
                 let apiRoot = this.baseUrl.replace(/\/+$/, "");
                 const endpoint = `${apiRoot}/models`;
+                const headers = providerAuthHeaders(this, "lmstudio");
                 console.info(`Fetching LM Studio models from: ${endpoint}`);
                 let fetchError = false;
                 try {
-                    const response = await fetch(endpoint);
+                    const response = await fetch(endpoint, { headers });
                     if (!response.ok) {
                         console.error(`Error fetching LM Studio models: ${response.status} ${response.statusText}. Response:`, await response.text());
                         this.models = ["Error: Could not fetch models"];
@@ -283,6 +309,7 @@ export const config: Config = {
                 this.modelsFetching = true;
                 let apiRoot = this.baseUrl.replace(/\/+$/, "");
                 const endpoint = `${apiRoot}/models`;
+                const headers = providerAuthHeaders(this, "ollama");
                 console.info(`Fetching Ollama models from: ${endpoint}`);
                 let fetchError = false;
 
@@ -309,7 +336,7 @@ export const config: Config = {
 
                 let models = null;
                 try {
-                    const response = await fetch(endpoint);
+                    const response = await fetch(endpoint, { headers });
                     if (!response.ok) {
                         console.error(`Error fetching Ollama models: ${response.status} ${response.statusText}. Response:`, await response.text());
                     } else {
@@ -328,7 +355,7 @@ export const config: Config = {
                     const tagsEndpoint = `${tagsRoot}/api/tags`;
                     console.info(`Falling back to Ollama tags endpoint: ${tagsEndpoint}`);
                     try {
-                        const response = await fetch(tagsEndpoint);
+                        const response = await fetch(tagsEndpoint, { headers });
                         if (!response.ok) {
                             console.error(`Error fetching Ollama tags: ${response.status} ${response.statusText}. Response:`, await response.text());
                         } else {

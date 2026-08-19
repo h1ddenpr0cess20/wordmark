@@ -53,7 +53,7 @@
 
   <div class="setting-item local-server-settings">
     <h3>Local Server Configuration</h3>
-    <p class="info-text">Set the base URL for local providers.</p>
+    <p class="info-text">Set the base URL for local providers, and an API key if the server is configured to require one.</p>
     <div class="local-server-grid">
       <div class="local-server-block">
         <label for="lmstudio-server-url">LM Studio Base URL</label>
@@ -61,8 +61,16 @@
           <input type="text" id="lmstudio-server-url" placeholder="http://localhost:1234">
         </div>
         <p class="info-text">Default is http://localhost:1234 for local instances.</p>
+        <label for="lmstudio-api-key">LM Studio API Key <span class="optional-label">(optional)</span></label>
+        <div class="api-key-input-container">
+          <input type="text" id="lmstudio-api-key" class="secret-input masked" placeholder="Only if the server requires one" autocomplete="off" data-1p-ignore data-lpignore="true" data-bwignore="true">
+          <button type="button" class="toggle-password" data-for="lmstudio-api-key" title="Show/Hide API Key" aria-label="Show or hide LM Studio API key">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><use href="#eye"></use></svg>
+          </button>
+        </div>
+        <p class="info-text">Leave blank unless you started the server with a key (lms server start --api-key). Sent as a bearer token.</p>
         <div class="lmstudio-action-buttons">
-          <button type="button" id="save-lmstudio-url" class="primary-button" title="Save LM Studio Base URL">Save LM Studio URL</button>
+          <button type="button" id="save-lmstudio-url" class="primary-button" title="Save LM Studio URL and API key">Save LM Studio Settings</button>
         </div>
       </div>
 
@@ -72,8 +80,16 @@
           <input type="text" id="ollama-server-url" placeholder="http://localhost:11434">
         </div>
         <p class="info-text">Default is http://localhost:11434 for local instances.</p>
+        <label for="ollama-api-key">Ollama API Key <span class="optional-label">(optional)</span></label>
+        <div class="api-key-input-container">
+          <input type="text" id="ollama-api-key" class="secret-input masked" placeholder="Only if the server requires one" autocomplete="off" data-1p-ignore data-lpignore="true" data-bwignore="true">
+          <button type="button" class="toggle-password" data-for="ollama-api-key" title="Show/Hide API Key" aria-label="Show or hide Ollama API key">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><use href="#eye"></use></svg>
+          </button>
+        </div>
+        <p class="info-text">Leave blank unless your server requires one, such as an OLLAMA_API_KEY or a proxy in front of it. Sent as a bearer token.</p>
         <div class="ollama-action-buttons">
-          <button type="button" id="save-ollama-url" class="primary-button" title="Save Ollama Base URL">Save Ollama URL</button>
+          <button type="button" id="save-ollama-url" class="primary-button" title="Save Ollama URL and API key">Save Ollama Settings</button>
         </div>
       </div>
     </div>
