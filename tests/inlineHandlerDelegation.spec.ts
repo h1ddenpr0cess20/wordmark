@@ -40,8 +40,9 @@ function dispatchClick(event: unknown) {
 test("clicking a .thinking-title toggles its thinking container's collapsed class", () => {
   const container = {
     id: "thinking-1",
+    dataset: {} as Record<string, string>,
     classList: fakeClassList(["thinking-container", "collapsed"]),
-    querySelector: () => ({ scrollTop: 0 }),
+    querySelector: () => ({ scrollTop: 0, scrollHeight: 0 }),
   };
   elementsById.set("thinking-1", container);
 

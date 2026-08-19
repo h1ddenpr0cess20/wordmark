@@ -125,9 +125,10 @@ test("toggleThinking toggles collapsed state and scrolls on expand", async () =>
     querySelectorAll: () => [],
   } as unknown as Document;
 
-  const contentDiv = { scrollTop: 5 };
+  const contentDiv = { scrollTop: 5, scrollHeight: 400 };
   const node = {
     id: "thinking-1",
+    dataset: {} as Record<string, string>,
     classList: fakeClassList(["thinking-container", "collapsed"]),
     querySelector: (sel: string) => (sel === ".thinking-content" ? contentDiv : null),
   };
@@ -135,10 +136,14 @@ test("toggleThinking toggles collapsed state and scrolls on expand", async () =>
 
   toggleThinking("thinking-1", { stopPropagation() {}, preventDefault() {} } as unknown as Event);
   assert.equal(node.classList.contains("collapsed"), false);
-  await new Promise(r => setTimeout(r, 120));
+  // Opened for the first time on a settled turn: the top, and no later jump.
   assert.equal(contentDiv.scrollTop, 0);
+  contentDiv.scrollTop = 120;
+  await new Promise(r => setTimeout(r, 120));
+  assert.equal(contentDiv.scrollTop, 120);
 
   toggleThinking("thinking-1");
   assert.equal(node.classList.contains("collapsed"), true);
+  assert.equal(node.dataset.scrollTop, "120", "collapsing saves the reading position");
 });
 

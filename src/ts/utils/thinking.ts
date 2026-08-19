@@ -31,6 +31,14 @@ export function toggleThinking(id: string, event?: Event) {
   }
 
   const wasCollapsed = thinkingContainer.classList.contains("collapsed");
+  const contentDiv = thinkingContainer.querySelector<HTMLElement>(".thinking-content");
+
+  // Collapsing hides the panel, and a hidden element reports (and keeps) a
+  // scroll position of zero, so where the reader had got to has to be saved
+  // before the class lands rather than restored after it.
+  if (!wasCollapsed && contentDiv) {
+    thinkingContainer.dataset.scrollTop = String(contentDiv.scrollTop);
+  }
 
   thinkingContainer.classList.toggle("collapsed");
 
@@ -41,14 +49,29 @@ export function toggleThinking(id: string, event?: Event) {
 
   logVerbose(`Toggled thinking container ${id}: ${wasCollapsed ? "expanded" : "collapsed"}`);
 
-  if (wasCollapsed) {
-    const contentDiv = thinkingContainer.querySelector(".thinking-content");
-    if (contentDiv) {
-      setTimeout(() => {
-        contentDiv.scrollTop = 0;
-      }, 100);
-    }
+  if (wasCollapsed && contentDiv) {
+    positionExpandedPanel(thinkingContainer, contentDiv);
   }
+}
+
+/**
+ * Places a just-expanded reasoning panel.
+ *
+ * @remarks
+ * Reopening returns to wherever the reader left off; a panel opened for the
+ * first time starts at the top, unless the turn is still running, in which case
+ * it opens on the newest reasoning so it follows the stream instead of sitting
+ * at text that has already scrolled away. This used to be an unconditional jump
+ * to the top scheduled 100ms out, which threw away the saved position and
+ * yanked the panel back from wherever the reader had scrolled in the meantime.
+ */
+function positionExpandedPanel(container: HTMLElement, contentDiv: HTMLElement) {
+  const remembered = Number(container.dataset.scrollTop);
+  if (Number.isFinite(remembered) && remembered > 0) {
+    contentDiv.scrollTop = remembered;
+    return;
+  }
+  contentDiv.scrollTop = state.isResponsePending ? contentDiv.scrollHeight : 0;
 }
 
 if (typeof document !== "undefined" && typeof document.addEventListener === "function") {
