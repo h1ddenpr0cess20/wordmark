@@ -100,6 +100,8 @@ mockModule("../src/ts/services/history/state.ts", { updateBrowserHistory: () => 
 mockModule("../src/ts/components/compaction.ts", {
   maybeAutoCompactHistory: async () => {},
   refreshHistoryMeter: () => {},
+  isAutoCompactEnabled: () => true,
+  setAutoCompactEnabled: () => {},
 });
 mockModule("../src/ts/services/streaming/messageLifecycle.ts", {
   finalizeStreamedResponse: (_element: unknown, content: { content?: string }) => {

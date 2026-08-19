@@ -14,6 +14,8 @@ import { ttsConfig } from "../services/tts.ts";
 import { updateReasoningAvailability } from "../init/modelSettings.ts";
 import { isSelectableModelId } from "../services/api/clientConfig.ts";
 import { openSettingsAndSwitch } from "../init/eventListeners/settingsPanel.ts";
+import { isAgentModeEnabled } from "../services/agent/agentSettings.ts";
+import { setAgentMode } from "./agentControls.ts";
 
 /** Form controls that share a `disabled` property, toggled when enabling/disabling tab UI. */
 type FormControl = HTMLInputElement | HTMLButtonElement | HTMLSelectElement | HTMLTextAreaElement;
@@ -274,7 +276,7 @@ export function updateFeatureStatus() {
     location: Boolean(locationState && locationState.enabled),
     memory: (() => { try { return Boolean(getMemoryConfig && getMemoryConfig().enabled); } catch { return false; } })(),
     tools: Boolean(config && config.enableFunctionCalling !== false),
-    data: getDataSettingsEnabled(),
+    agent: (() => { try { return isAgentModeEnabled(); } catch { return false; } })(),
     tts: Boolean(ttsConfig.enabled),
   };
 
@@ -342,8 +344,8 @@ export function updateFeatureStatus() {
         }
         break;
       }
-      case "data": {
-        setDataSettingsEnabled(!isOn);
+      case "agent": {
+        setAgentMode(!isOn);
         break;
       }
       case "tts": {
@@ -376,7 +378,7 @@ export function updateFeatureStatus() {
   el.appendChild(makeBadge("Location", "location", state.location, "tab-location"));
   el.appendChild(makeBadge("Memory", "memory", state.memory, "tab-memory"));
   el.appendChild(makeBadge("Tools", "tools", state.tools, "tab-tools"));
-  el.appendChild(makeBadge("Data", "data", state.data, "tab-data"));
+  el.appendChild(makeBadge("Agent", "agent", state.agent, "tab-agent"));
   el.appendChild(makeBadge("TTS", "tts", state.tts, "tab-tts"));
 }
 

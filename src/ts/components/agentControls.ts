@@ -50,6 +50,31 @@ function enableAutoCompactForRuns(): void {
   showInfo?.("Auto-Compact History turned on — long runs outgrow the history budget without it.");
 }
 
+/**
+ * Turns autonomous work on or off from anywhere in the UI.
+ *
+ * @remarks
+ * The settings switch is not the only control — the header status row toggles
+ * the same feature — and the side effects (auto-compaction, ending a live run,
+ * keeping the checkbox in step) belong to the feature rather than to whichever
+ * control was clicked.
+ */
+export function setAgentMode(enabled: boolean): void {
+  setAgentModeEnabled(enabled);
+
+  const toggle = document.getElementById("agent-mode-toggle") as HTMLInputElement | null;
+  if (toggle && toggle.checked !== enabled) {
+    toggle.checked = enabled;
+  }
+
+  logAgent("Autonomous work", enabled ? "enabled" : "disabled");
+  if (enabled) {
+    enableAutoCompactForRuns();
+  } else {
+    agentRunner.stop("");
+  }
+}
+
 /** Wires the autonomous-work settings and the run-teardown hook. */
 export function initAgentControls(): void {
   uiHooks.resetAgentRun = () => agentRunner.reset();
@@ -59,13 +84,7 @@ export function initAgentControls(): void {
     toggle.checked = isAgentModeEnabled();
     if (!toggle.dataset.bound) {
       toggle.addEventListener("change", () => {
-        setAgentModeEnabled(toggle.checked);
-        logAgent("Autonomous work", toggle.checked ? "enabled" : "disabled");
-        if (toggle.checked) {
-          enableAutoCompactForRuns();
-        } else {
-          agentRunner.stop("");
-        }
+        setAgentMode(toggle.checked);
       });
       toggle.dataset.bound = "true";
     }

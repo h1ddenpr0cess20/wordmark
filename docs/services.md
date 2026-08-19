@@ -32,7 +32,7 @@ instead of re-deriving `serviceKey === …` checks at each call site.
   - Supports MCP connectors; local-network servers remain blocked for security when using xAI
   - Requires `text.format` removal when using server-side tools (web/X search, Code Interpreter, MCP connectors)
   - Provider-managed Code Interpreter ignores OpenAI-specific container options
-  - File attachments use direct `input_file` references (uploaded via `/v1/files`, referenced by `file_id` in message content) instead of vector stores
+  - File attachments use direct `input_file` references (uploaded via `/v1/files`, referenced by `file_id` in message content), as they do for OpenAI
 - **LM Studio** (`lmstudio`) - Local OpenAI-compatible server
   - Models fetched dynamically via `<baseUrl>/models`
   - API key optional — sent as a bearer token when set, omitted entirely when blank
@@ -139,8 +139,9 @@ See [Streaming](./streaming.md) for details on reasoning display formatting.
 
 Document attachments are handled differently per provider:
 
-- **OpenAI**: Files are uploaded to `/v1/files`, attached to a vector store, and searched via the `file_search` tool. Requires the File Search tool to be enabled in Settings.
-- **xAI**: Files are uploaded to `/v1/files` and referenced directly in message content as `input_file` parts with the returned `file_id`. No vector stores or file_search tool needed.
+- **OpenAI**: Files are uploaded to `/v1/files` with purpose `user_data` and referenced directly in message content as `input_file` parts with the returned `file_id`. No vector store is created for an attachment.
+- **xAI**: Files are uploaded to `/v1/files` and referenced directly in message content as `input_file` parts with the returned `file_id`.
+- Vector stores remain available behind the `file_search` tool for corpora too large to attach whole; `uploadAndAttachFiles()` is that path.
 
 Shared infrastructure in `src/ts/services/vectorStore.ts`:
   - `uploadFile()` uploads a file to the active provider's `/files` endpoint (used by both OpenAI and xAI)

@@ -4,9 +4,7 @@
 
 import { state } from "../../init/state.ts";
 import { showInfo } from "../../utils/notifications.ts";
-import { filterSupportedFiles } from "../../services/vectorStore.ts";
-import { isExtractableDocument } from "../../services/parsers/index.ts";
-import { extractsDocumentsClientSide } from "../../services/providers.ts";
+import { canAttachDocument, isModelViewableImage } from "../../services/fileSupport.ts";
 import { getActiveServiceKey } from "../../services/api/clientConfig.ts";
 import type { DirectoryFile, FileWithRelativePath } from "../../../types/attachments.ts";
 import { showPendingUploadPreviews } from "./attachmentPreviews.ts";
@@ -189,15 +187,11 @@ function readFileAsDataURL(file: File): Promise<string> {
 }
 
 /**
- * Check if a file is a supported document type. Local providers extract text in
- * the browser and accept any document format or non-binary (text/code/data)
- * file; cloud providers keep their native upload allowlist.
+ * Check if a file is a supported document type for the active provider. See
+ * {@link canAttachDocument} for what each provider path accepts.
  */
 function isSupportedDocument(file: File) {
-  if (extractsDocumentsClientSide(getActiveServiceKey())) {
-    return isExtractableDocument(file.name);
-  }
-  return filterSupportedFiles([file]).supported.length > 0;
+  return canAttachDocument(file.name, getActiveServiceKey());
 }
 
 /**
@@ -265,7 +259,7 @@ async function handleFiles(files: File[], options: { isDirectory?: boolean } = {
         name: file.name,
         size: file.size,
         type: file.type,
-        isImage: file.type?.startsWith("image/") || false,
+        isImage: isModelViewableImage(file),
         relativePath: innerRel,
       });
     }
@@ -295,7 +289,7 @@ async function handleFiles(files: File[], options: { isDirectory?: boolean } = {
     const unsupportedFiles: string[] = [];
 
     for (const file of files) {
-      if (file.type?.startsWith("image/")) {
+      if (isModelViewableImage(file)) {
         imageFiles.push(file);
       } else if (isSupportedDocument(file)) {
         documentFiles.push(file);

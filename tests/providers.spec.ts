@@ -10,6 +10,7 @@ import {
   instructionMessageRole,
   ttsSupportsInstructions,
   usesDirectFileUpload,
+  directUploadPurpose,
   extractsDocumentsClientSide,
   supportsResponseStorage,
   usesEmbeddingRetrieval,
@@ -77,13 +78,19 @@ test("ttsSupportsInstructions is false only for xai", () => {
   assert.equal(ttsSupportsInstructions(undefined), true);
 });
 
-test("usesDirectFileUpload is true only for xai", () => {
+test("usesDirectFileUpload is true for the hosted Responses API providers", () => {
   assert.equal(usesDirectFileUpload("xai"), true);
-  assert.equal(usesDirectFileUpload("openai"), false);
+  assert.equal(usesDirectFileUpload("openai"), true);
   assert.equal(usesDirectFileUpload("openrouter"), false);
   assert.equal(usesDirectFileUpload("lmstudio"), false);
   assert.equal(usesDirectFileUpload(null), false);
   assert.equal(usesDirectFileUpload(undefined), false);
+});
+
+test("directUploadPurpose scopes OpenAI model inputs to user_data", () => {
+  assert.equal(directUploadPurpose("openai"), "user_data");
+  assert.equal(directUploadPurpose("xai"), "assistants");
+  assert.equal(directUploadPurpose(null), "assistants");
 });
 
 test("supportsResponseStorage is false only for openrouter", () => {
