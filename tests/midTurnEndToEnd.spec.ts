@@ -3,9 +3,14 @@ import assert from "node:assert/strict";
 import { JSDOM } from "jsdom";
 
 /**
- * The whole seam in one test: the real composer calling the real `runTurn`,
- * with only the network and the streaming reader stubbed. Each half is covered
- * on its own elsewhere; this is what proves they are actually connected.
+ * The whole seam: the real composer calling the real `runTurn`, with only the
+ * network and the streaming reader stubbed. Each half is covered on its own
+ * elsewhere; this is what proves they are connected — and it is the only place
+ * an interruption can be exercised, since it takes both ends to make one.
+ *
+ * The streaming stub stands in for a reader that was cut short: the real one
+ * catches the abort and returns what it had read, which is what makes an
+ * interruption free of lost content.
  */
 
 const dom = new JSDOM(
@@ -44,18 +49,26 @@ function mockModule(rel: string, namedExports: Record<string, unknown>): void {
 
 /** Request bodies seen by the transport, in order. */
 const bodies: Array<{ input: Array<{ role?: string; type?: string; content?: unknown }> }> = [];
+/** The assistant text each finished turn committed to the transcript. */
+const finalized: string[] = [];
 /** Runs while the first response is "streaming", standing in for the user typing. */
 let whileStreaming: () => void = () => {};
 let responseIndex = 0;
 
-/** First response calls a client-side tool; the second answers. */
+/** What each successive response should be; set per test. */
+let responses: Array<{ output: unknown[]; output_text: string }> = [];
+
 function nextResponse() {
+  const response = responses[responseIndex] ?? { output: [], output_text: "done" };
   responseIndex += 1;
-  if (responseIndex === 1) {
-    return { output: [{ type: "function_call", name: "note_it", arguments: "{}", call_id: "call_1" }], output_text: "" };
-  }
-  return { output: [], output_text: "done" };
+  return response;
 }
+
+const toolCall = {
+  output: [{ type: "function_call", name: "note_it", arguments: "{}", call_id: "call_1" }],
+  output_text: "",
+};
+const answers = (text: string) => ({ output: [], output_text: text });
 
 mockModule("../src/ts/services/api/requestTransport.ts", {
   buildHeaders: () => ({}),
@@ -89,7 +102,9 @@ mockModule("../src/ts/components/compaction.ts", {
   refreshHistoryMeter: () => {},
 });
 mockModule("../src/ts/services/streaming/messageLifecycle.ts", {
-  finalizeStreamedResponse: () => {},
+  finalizeStreamedResponse: (_element: unknown, content: { content?: string }) => {
+    finalized.push(content?.content ?? "");
+  },
   removeLoadingIndicator: () => {},
   updateFinalMessage: () => {},
   updateMessageContent: () => {},
@@ -115,7 +130,9 @@ toolImplementations.note_it = async () => "noted";
 function reset() {
   clearPromptQueue();
   bodies.length = 0;
+  finalized.length = 0;
   responseIndex = 0;
+  responses = [toolCall, answers("done")];
   state.conversationHistory = [];
   state.pendingUploads = [];
   state.pendingDocuments = [];
@@ -125,6 +142,23 @@ function reset() {
   elements.chatBox!.innerHTML = "";
   elements.userInput!.value = "";
   whileStreaming = () => {};
+}
+
+/**
+ * Types a message into the composer and sends it, mid-turn. `sendMessage` parks
+ * it and asks the running turn to take it — the queue branch runs to completion
+ * synchronously, so the interruption lands before this returns.
+ */
+function typeMidTurn(text: string): void {
+  elements.userInput!.value = text;
+  void sendMessage();
+}
+
+/** The user messages in a captured request body, in order. */
+function userTexts(body: { input: Array<{ role?: string; content?: unknown }> }): string[] {
+  return body.input
+    .filter(msg => msg.role === "user" && typeof msg.content === "string")
+    .map(msg => String(msg.content));
 }
 
 test("typing during a tool-using turn reaches that turn's next request", async () => {
@@ -140,11 +174,91 @@ test("typing during a tool-using turn reaches that turn's next request", async (
   await sendMessage();
 
   assert.equal(bodies.length, 2, "the tool call should have earned a second request");
-  const second = bodies[1].input;
-  const texts = second.map(msg => (typeof msg.content === "string" ? msg.content : ""));
   assert.ok(
-    texts.includes("actually, keep it short"),
-    `the queued message should be in the second request, got: ${JSON.stringify(texts)}`,
+    userTexts(bodies[1]).includes("actually, keep it short"),
+    `the queued message should be in the second request, got: ${JSON.stringify(userTexts(bodies[1]))}`,
   );
   assert.equal(queuedPromptCount(), 0, "and should have left the queue");
+});
+
+test("typing during a plain answer interrupts it and keeps what was written", async () => {
+  reset();
+  // No tools: without an interruption this turn would have no second request
+  // at all, and the message would have waited for the whole answer.
+  responses = [answers("Here is the first half"), answers(" and the rest.")];
+  elements.userInput!.value = "write me a summary";
+  whileStreaming = () => {
+    whileStreaming = () => {};
+    typeMidTurn("keep it to three lines");
+  };
+
+  await sendMessage();
+
+  assert.equal(bodies.length, 2, "the answer in flight should have been cut short");
+  const resumed = bodies[1].input;
+  assert.ok(
+    resumed.some(msg => msg.role === "assistant" && msg.content === "Here is the first half"),
+    "the half-written answer travels with the resumed request",
+  );
+  const partial = resumed.findIndex(msg => msg.role === "assistant" && msg.content === "Here is the first half");
+  const message = resumed.findIndex(msg => msg.role === "user" && msg.content === "keep it to three lines");
+  assert.ok(message > partial, "the new message reads as arriving after what had been written");
+  assert.deepEqual(
+    state.conversationHistory.map(msg => msg.content),
+    ["write me a summary", "keep it to three lines"],
+    "and the message is recorded in the conversation",
+  );
+  assert.equal(queuedPromptCount(), 0);
+});
+
+test("an interrupted turn finishes as one answer, both stretches kept", async () => {
+  reset();
+  responses = [answers("Here is the first half"), answers(" and the rest.")];
+  elements.userInput!.value = "write me a summary";
+  whileStreaming = () => {
+    whileStreaming = () => {};
+    typeMidTurn("keep it to three lines");
+  };
+
+  await sendMessage();
+
+  assert.equal(finalized.length, 1, "one assistant message, not two");
+  assert.equal(finalized[0], "Here is the first half\n\n and the rest.");
+});
+
+test("stopping still stops, and is not mistaken for an interruption", async () => {
+  reset();
+  responses = [answers("Half an answer"), answers("should never be requested")];
+  elements.userInput!.value = "write me a summary";
+  whileStreaming = () => {
+    whileStreaming = () => {};
+    state.shouldStopGeneration = true;
+    state.activeAbortController?.abort();
+  };
+
+  await sendMessage();
+
+  assert.equal(bodies.length, 1, "a stop ends the turn rather than resuming it");
+  state.shouldStopGeneration = false;
+});
+
+test("a queued attachment is not worth interrupting for", async () => {
+  reset();
+  responses = [answers("A whole answer"), answers("should never be requested")];
+  elements.userInput!.value = "write me a summary";
+  let queuedDuringTurn = 0;
+  whileStreaming = () => {
+    whileStreaming = () => {};
+    state.pendingDocuments = [{ name: "report.pdf", size: 10, type: "application/pdf" }];
+    typeMidTurn("look at this");
+    queuedDuringTurn = queuedPromptCount();
+    // Left to the post-turn drain in the app; dropped here so this test does
+    // not start a second turn behind its own back.
+    clearPromptQueue();
+  };
+
+  await sendMessage();
+
+  assert.equal(queuedDuringTurn, 1, "the entry waits rather than interrupting");
+  assert.equal(bodies.length, 1, "and the turn runs to its end uninterrupted");
 });

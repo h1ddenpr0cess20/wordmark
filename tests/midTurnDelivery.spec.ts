@@ -52,8 +52,8 @@ let saves = 0;
 
 mockModule("../src/ts/services/api.ts", {
   responsesClient: {
-    runTurn: async ({ collectInterjections }: { collectInterjections?: () => unknown }) => {
-      duringTurn(() => (collectInterjections ? collectInterjections() : []));
+    runTurn: async ({ interjections }: { interjections?: { take: () => unknown } }) => {
+      duringTurn(() => (interjections ? interjections.take() : []));
       return { response: {}, outputText: "all done", reasoningText: "" };
     },
     isToolEnabled: () => false,

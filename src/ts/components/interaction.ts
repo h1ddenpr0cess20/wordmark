@@ -33,7 +33,7 @@ import { isSelectableModelId } from "../services/api/clientConfig.ts";
 import { buildOutgoingAttachments } from "./attachments/outgoingAttachments.ts";
 import { showPendingUploadPreviews } from "./attachments/attachmentPreviews.ts";
 import { extractDocumentText, isExtractableDocument } from "../services/parsers/index.ts";
-import type { Message } from "../../types/api.ts";
+import type { InterjectionChannel, Message } from "../../types/api.ts";
 import type { PendingDocument } from "../../types/attachments.ts";
 import type { PartyDocument } from "../services/party/partyTypes.ts";
 import { RETRIEVED_CONTEXT_MARKER } from "../utils/retrievedContext.ts";
@@ -45,6 +45,7 @@ import {
   discardQueueOnStop,
   enqueuePrompt,
   queuedPromptCount,
+  hasInterjections,
   restoreNextPrompt,
   takeInterjections,
 } from "./promptQueue.ts";
@@ -475,6 +476,9 @@ export async function sendMessage() {
     showPendingUploadPreviews();
     userInput.value = "";
     userInput.style.height = "56px";
+    // Sending it to the turn that is running beats waiting for that turn to
+    // end. Nothing to interrupt for is a no-op, and the queue drains as usual.
+    requestInterjectionDelivery();
     return;
   }
 
@@ -651,6 +655,57 @@ export async function sendMessage() {
 }
 
 /**
+ * The turn in flight's interruption controller, or `null` between turns.
+ *
+ * @remarks
+ * Module-level because the composer and the turn never meet: `sendMessage`
+ * parks a message and has to reach whatever turn is running to say so. Replaced
+ * rather than reset each time the channel is drained, so the abort that ended
+ * one request cannot end the next.
+ */
+let openInterrupt: AbortController | null = null;
+
+/**
+ * Builds the channel a turn listens on for messages typed while it works.
+ *
+ * @param loadingId - The turn's assistant bubble, for placing the messages.
+ */
+function openInterjectionChannel(loadingId: string): InterjectionChannel {
+  openInterrupt = new AbortController();
+  return {
+    get signal() {
+      return (openInterrupt ??= new AbortController()).signal;
+    },
+    pending: () => Boolean(openInterrupt?.signal.aborted),
+    take: () => {
+      // Rearmed before anything else: the request that follows must not start
+      // life under the signal that ended the one before it.
+      openInterrupt = new AbortController();
+      return deliverInterjections(loadingId);
+    },
+  };
+}
+
+/**
+ * Tells the turn in flight that a message is waiting, cutting its current
+ * request short so the message goes in now rather than after the answer.
+ *
+ * @remarks
+ * Only for entries that can actually travel mid-turn — attachments and a run's
+ * own steps would be left queued on arrival, so interrupting for them would
+ * spend a request and change nothing. The interruption itself costs no content:
+ * the streaming reader keeps everything it has read, and the turn resumes from
+ * its own partial answer.
+ */
+function requestInterjectionDelivery(): void {
+  if (!openInterrupt || openInterrupt.signal.aborted || !hasInterjections()) {
+    return;
+  }
+  logInteraction("Interrupting the turn in flight to deliver a queued message");
+  openInterrupt.abort();
+}
+
+/**
  * Hands the messages the user queued during this turn to the turn itself.
  *
  * @remarks
@@ -741,7 +796,7 @@ async function executeTurn(
       abortController,
       vectorStoreId,
       historyTokenBudget: getHistoryTokenBudget(),
-      collectInterjections: () => deliverInterjections(loadingId),
+      interjections: openInterjectionChannel(loadingId),
     });
 
     const wasStopped = Boolean(result?.stopped) || state.shouldStopGeneration;
@@ -796,6 +851,9 @@ async function executeTurn(
     if (onSettled) {
       onSettled();
     }
+    // Nothing is listening any more; a later abort would be aimed at a turn
+    // that has already ended.
+    openInterrupt = null;
     state.currentGeneratedImageHtml = [];
     state.activeAbortController = null;
     resetSendButton();

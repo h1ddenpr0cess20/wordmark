@@ -2,10 +2,10 @@ import test from "node:test";
 import assert from "node:assert/strict";
 
 /**
- * Mid-turn delivery at the request-client level: a message the user queues
- * while a turn is running is appended behind the tool results and travels on
- * the very next request of the same turn, rather than waiting for a turn of
- * its own.
+ * Mid-turn delivery at the request-client level, on the free path: at a tool
+ * boundary the turn is between requests anyway, so a queued message is appended
+ * behind the tool results with nothing interrupted. The interrupting path is
+ * covered in midTurnEndToEnd.spec.ts.
  */
 
 globalThis.window = globalThis.window || ({} as Window & typeof globalThis);
@@ -43,6 +43,11 @@ function stubTwoStepTurn(bodies: RequestBody[]): void {
   }) as unknown as typeof fetch;
 }
 
+/** A channel that never interrupts: it only answers when the turn asks. */
+function quietChannel(take: () => Array<{ role: string; content: string }>) {
+  return { signal: new AbortController().signal, pending: () => false, take };
+}
+
 test("a message queued mid-turn rides along on the next request of the same turn", async () => {
   toolImplementations.note_it = async () => "noted";
   const bodies: RequestBody[] = [];
@@ -53,10 +58,10 @@ test("a message queued mid-turn rides along on the next request of the same turn
     inputMessages: [{ role: "user", content: "start the report" }],
     model: "gpt-4o",
     stream: false,
-    collectInterjections: () => {
+    interjections: quietChannel(() => {
       handedOver += 1;
       return handedOver === 1 ? [{ role: "user", content: "actually, keep it short" }] : [];
-    },
+    }),
   });
 
   assert.equal(bodies.length, 2, "the turn should have made two requests");
@@ -76,7 +81,7 @@ test("a turn with nothing queued sends exactly what it would have sent anyway", 
     inputMessages: [{ role: "user", content: "start the report" }],
     model: "gpt-4o",
     stream: false,
-    collectInterjections: () => [],
+    interjections: quietChannel(() => []),
   });
 
   assert.equal(bodies.length, 2);

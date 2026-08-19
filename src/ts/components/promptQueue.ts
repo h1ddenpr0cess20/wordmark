@@ -153,11 +153,7 @@ export function dequeuePrompt(allowAgentEntries = true): QueuedPrompt | null {
  * a turn of its own, not an interruption of this one.
  */
 export function takeInterjections(): QueuedPrompt[] {
-  const eligible = queue.filter(entry =>
-    entry.origin === "user"
-    && Boolean(entry.text)
-    && entry.uploads.length === 0
-    && entry.documents.length === 0);
+  const eligible = queue.filter(isDeliverableMidTurn);
   if (eligible.length === 0) {
     return [];
   }
@@ -167,6 +163,19 @@ export function takeInterjections(): QueuedPrompt[] {
   logQueue("Delivering", eligible.length, "queued message(s) into the running turn");
   renderPromptQueue();
   return eligible;
+}
+
+/** Whether anything queued is eligible for delivery inside a running turn. */
+export function hasInterjections(): boolean {
+  return queue.some(isDeliverableMidTurn);
+}
+
+/** The rule {@link takeInterjections} and {@link hasInterjections} share. */
+function isDeliverableMidTurn(entry: QueuedPrompt): boolean {
+  return entry.origin === "user"
+    && Boolean(entry.text)
+    && entry.uploads.length === 0
+    && entry.documents.length === 0;
 }
 
 /** Drops a queued prompt by id. */

@@ -66,6 +66,25 @@ export function createStreamingRuntime({
     accumulatedReasoning = existingThinkingContainer.dataset.accumulatedReasoning;
   }
 
+  /**
+   * What earlier stretches of this same turn already wrote.
+   *
+   * @remarks
+   * A turn can stream in more than one stretch — a tool call splits it, and so
+   * does an interruption. Each stretch gets a new runtime, and without picking
+   * up what the last one wrote the answer on screen would appear to be erased
+   * and rewritten every time the turn resumed. The reasoning panel above has
+   * always been carried over this way.
+   *
+   * Kept apart from {@link accumulatedContent} rather than prepended to it:
+   * this stretch's text is what the caller aggregates into the finished
+   * message, and what the event processor's offsets index into. Folding the
+   * two together would report the earlier stretch a second time.
+   */
+  const carriedContent = mainContentContainer?.dataset.accumulatedContent
+    ? `${mainContentContainer.dataset.accumulatedContent}\n\n`
+    : "";
+
   function removePlaceholder() {
     if (placeholderCleared) return;
     placeholderCleared = true;
@@ -122,7 +141,8 @@ export function createStreamingRuntime({
   }
 
   function performRender() {
-    const parsedThinking = separateThinkingSegments(accumulatedContent);
+    const renderedContent = carriedContent + accumulatedContent;
+    const parsedThinking = separateThinkingSegments(renderedContent);
     const processedText = parsedThinking.content;
     let thinkingContent = accumulatedReasoning;
 
@@ -163,6 +183,7 @@ export function createStreamingRuntime({
 
     if (mainContentContainer) {
       mainContentContainer.innerHTML = processMainContentMarkdown(processedText);
+      mainContentContainer.dataset.accumulatedContent = renderedContent.trimEnd();
     }
 
     if (processedText && processedText.trim().length > 0) {

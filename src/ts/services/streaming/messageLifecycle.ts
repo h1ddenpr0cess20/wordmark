@@ -316,6 +316,10 @@ export function finalizeStreamedResponse(loadingMessage: HTMLElement | null, con
     contentWrapper.appendChild(finalMainContentContainer);
   }
   finalMainContentContainer.innerHTML = processMainContentMarkdown(processedText);
+  // Only the streaming runtime needs the running text, to pick the answer back
+  // up when a turn resumes after a tool call or an interruption. The turn is
+  // over, so drop it rather than leave a copy of the answer in the DOM.
+  delete finalMainContentContainer.dataset.accumulatedContent;
   renderCodeInterpreterOutputs(loadingMessage, codeInterpreterOutputs);
 
   if (existingEntry) {
