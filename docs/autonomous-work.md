@@ -47,7 +47,7 @@ The composer's own stop button ends the run too, along with everything in the qu
 
 ## Redirecting a run
 
-Type any time. Your message is queued like any other, and it **jumps ahead of the steps the run scheduled for itself** — a correction should not wait behind the model's own plan. Queued messages are shown as chips above the composer: your own with a dashed border, the run's steps with a solid accent edge and a `step` badge. Any chip can be removed individually.
+Type any time. Your message is queued like any other: if the current turn stops to call a tool, it is handed to that turn on the spot, and otherwise it **jumps ahead of the steps the run scheduled for itself** — a correction should not wait behind the model's own plan. Queued messages are shown as chips above the composer: your own with a dashed border, the run's steps with a solid accent edge and a `step` badge. Any chip can be removed individually.
 
 ## The `queue_followup` tool
 

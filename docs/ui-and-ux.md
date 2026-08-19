@@ -22,7 +22,14 @@ The composer is a card at the bottom of the chat column. The textarea is followe
 
 ### Prompt queuing
 
-Pressing Enter while a response is still streaming queues the message instead of discarding it. Queued messages appear as numbered chips above the composer, each with a remove button, and are sent one at a time as each response finishes. A queued message carries its attachments with it. Stopping generation or starting a new conversation clears the queue.
+Pressing Enter while a response is still streaming queues the message instead of discarding it. Queued messages appear as numbered chips above the composer, each with a remove button. A queued message carries its attachments with it. Stopping generation or starting a new conversation clears the queue.
+
+A queued message leaves the queue one of two ways:
+
+- **Into the turn already running.** Whenever the assistant pauses to call a tool, anything plain text you have queued is handed straight to it, behind the tool's results — so a correction reaches the model while it is still working rather than after it finishes. The message appears in the transcript above the answer being written, where you said it.
+- **As a turn of its own.** Anything left when the response finishes is sent as the next message, one at a time. Messages carrying attachments always take this route: uploads and document indexing happen as a turn is assembled, not inside one.
+
+A turn that answers without calling any tools has no pause to slip into, so its queue drains the ordinary way once it ends.
 
 With [Autonomous Work](autonomous-work.md) enabled, the assistant queues steps of its own alongside yours. Its chips carry a solid accent edge and a `step` badge; yours keep the dashed border. A message you type is always sent before any step the assistant scheduled, so a correction never waits behind the model's plan. The queue holds at most 25 entries and says so when it refuses more.
 

@@ -11,7 +11,7 @@ import { updateBrowserHistory } from "../services/history/state.ts";
 import { saveCurrentConversation } from "../services/history/persistence.ts";
 import { getVerbosity, getReasoningEffort, getHistoryTokenBudget } from "../init/modelSettings.ts";
 import { isSelectableModelId } from "../services/api/clientConfig.ts";
-import { sendMessage, stopGeneration, resetSendButton } from "./interaction.ts";
+import { flushPromptQueue, sendMessage, stopGeneration, resetSendButton } from "./interaction.ts";
 import { finalizeStreamedResponse, updateMessageContent } from "../services/streaming/messageLifecycle.ts";
 import { renderChatHistoryList } from "../services/history/list.ts";
 import { updateHeaderInfo } from "./settings.ts";
@@ -254,6 +254,15 @@ export async function regenerateMessage(messageId: string): Promise<void> {
     state.currentGeneratedImageHtml = [];
     state.activeAbortController = null;
     resetSendButton();
+    // A regeneration is a turn like any other as far as the composer is
+    // concerned: anything typed while it streamed was parked, and this is the
+    // ending that has to let it go. Only what the user typed, though — a
+    // regeneration is not one of an autonomous run's turns, so it must not be
+    // what releases a step the run planned. Deferred so the turn has fully
+    // unwound before the next send starts.
+    queueMicrotask(() => {
+      void flushPromptQueue(false);
+    });
   }
 }
 

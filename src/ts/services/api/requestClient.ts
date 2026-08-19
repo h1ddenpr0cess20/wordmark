@@ -175,6 +175,7 @@ export async function runTurn({
   systemOverride,
   allowedTools,
   temperature,
+  collectInterjections,
 }: RunTurnOptions): Promise<RunTurnResult> {
   const baseMessages = stripSkillToolMessages(
     Array.isArray(inputMessages)
@@ -316,6 +317,17 @@ export async function runTurn({
     } finally {
       if (awaitingImage) {
         hideImageWaitSpinnerById(loadingId || "");
+      }
+    }
+
+    // A tool boundary is the one place a running turn can take on new input:
+    // the model is between calls, so anything the user queued while it worked
+    // goes in behind the tool results and is read on the very next request
+    // instead of waiting for a turn of its own.
+    if (collectInterjections) {
+      const interjections = await collectInterjections();
+      if (Array.isArray(interjections) && interjections.length > 0) {
+        workingMessages.push(...serializeMessagesForRequest(interjections));
       }
     }
   }

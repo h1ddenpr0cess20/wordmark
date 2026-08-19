@@ -187,6 +187,15 @@ export interface RunTurnOptions {
   allowedTools?: string[];
   /** Optional sampling temperature (set only when provided). */
   temperature?: number;
+  /**
+   * Called at each tool-call boundary, after the tool results have been added
+   * to the request and before the model is asked to continue. Whatever it
+   * returns is appended to the working messages, which is how a message the
+   * user queued mid-turn reaches the turn already in progress rather than
+   * waiting for a turn of its own. Turns with no composer behind them (party
+   * speakers, regeneration, the continuation decision) omit it.
+   */
+  collectInterjections?: () => Message[] | Promise<Message[]>;
 }
 
 /** Result of a completed `runTurn` cycle. */
