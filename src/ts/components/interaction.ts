@@ -15,7 +15,8 @@ import { saveCurrentConversation } from "../services/history/persistence.ts";
 import { responsesClient } from "../services/api.ts";
 import { partyEngine } from "../services/party/partyEngine.ts";
 import { uploadFile, uploadAndAttachFiles, saveVectorStoreMetadata } from "../services/vectorStore.ts";
-import { usesDirectFileUpload, extractsDocumentsClientSide, usesEmbeddingRetrieval } from "../services/providers.ts";
+import { usesDirectFileUpload, directUploadPurpose, extractsDocumentsClientSide, usesEmbeddingRetrieval } from "../services/providers.ts";
+import { toUploadableFile } from "../services/fileSupport.ts";
 import {
   indexDocuments,
   retrieveRelevantChunks,
@@ -90,8 +91,9 @@ interface DocumentUploadResult {
  * turn runs.
  *
  * @remarks
- * For xAI, each file is uploaded and its id appended to the last user message
- * as `input_file` content parts. For other providers, files are pushed into a
+ * For providers that take direct uploads (OpenAI, xAI), each file is uploaded
+ * and its id appended to the last user message as `input_file` content parts.
+ * For other providers, files are pushed into a
  * (newly created) vector store for File Search — but only when the File Search
  * tool is enabled; if it is disabled the upload is skipped and the turn still
  * proceeds. Flattens directory entries into their constituent files.
@@ -304,9 +306,10 @@ async function uploadPendingDocuments(
         showInfo("Uploading files...");
       }
 
+      const purpose = directUploadPurpose(activeServiceKey);
       const fileIds = [];
       for (const file of files) {
-        const uploaded = await uploadFile(file);
+        const uploaded = await uploadFile(toUploadableFile(file, activeServiceKey), purpose);
         fileIds.push(uploaded.id);
       }
 
@@ -321,7 +324,7 @@ async function uploadPendingDocuments(
         }
       }
 
-      logInteraction("Files uploaded for xAI:", fileIds);
+      logInteraction("Files uploaded as direct attachments:", fileIds);
       if (showInfo) {
         showInfo(`${fileIds.length} file(s) uploaded`);
       }

@@ -112,6 +112,7 @@ export function createStreamingEventProcessor(runtime: StreamingRuntime) {
   let responseStartOffset = 0;
   let expectNewResponse = false;
   let reasoningSegmentKey: string | null = null;
+  let outputSegmentKey: string | null = null;
 
   /**
    * Builds the four lifecycle handlers (in_progress/searching/completed/failed)
@@ -254,15 +255,16 @@ export function createStreamingEventProcessor(runtime: StreamingRuntime) {
   }
 
   /**
-   * Identifies which reasoning part an event belongs to.
+   * Identifies which part of the response an event belongs to.
    *
    * @remarks
-   * A response can carry several reasoning summaries — one per stretch of
-   * thinking between tool calls — and each is a separate part with its own
-   * item/output/summary indices. Providers that omit those fields collapse to a
-   * single key, which leaves the previous concatenating behavior untouched.
+   * A response can carry several reasoning summaries and several stretches of
+   * visible text — one of each per round between tool calls — and every one is a
+   * separate part with its own item/output/summary indices. Providers that omit
+   * those fields collapse to a single key, which leaves the previous
+   * concatenating behavior untouched.
    */
-  function reasoningSegmentKeyFor(payload: any): string {
+  function segmentKeyFor(payload: any): string {
     const item = payload?.item_id ?? payload?.id ?? "";
     const output = payload?.output_index ?? "";
     const summary = payload?.summary_index ?? payload?.content_index ?? "";
@@ -301,14 +303,72 @@ export function createStreamingEventProcessor(runtime: StreamingRuntime) {
     separateReasoning();
   }
 
+  /**
+   * Inserts a paragraph break before more visible text is appended, unless the
+   * message is empty or already ends in one.
+   */
+  function separateOutput() {
+    const current = runtime.getOutputText();
+    if (current.trim().length === 0 || current.endsWith("\n\n")) {
+      return;
+    }
+    runtime.appendOutputText(current.endsWith("\n") ? "\n" : "\n\n");
+  }
+
   function ensureResponseSegment() {
     if (!expectNewResponse) return;
-    const current = runtime.getOutputText();
-    if (current.trim().length > 0 && !current.endsWith("\n\n")) {
-      runtime.appendOutputText(current.endsWith("\n") ? "\n" : "\n\n");
-    }
+    separateOutput();
     responseStartOffset = runtime.getOutputLength();
     expectNewResponse = false;
+  }
+
+  /**
+   * Opens the visible-text part `key` belongs to, breaking the paragraph when it
+   * is a different part than the text already in the message.
+   *
+   * @remarks
+   * The counterpart to {@link beginReasoningSegment}, and needed for the same
+   * reason: consecutive stretches of output otherwise run together mid-sentence
+   * ("…plug in cleanly.The browse tool…"). Only `response.output_text.done`
+   * marked those boundaries, and xAI (Grok) streams parts without emitting it.
+   * Keying off the part indices on the deltas themselves covers those providers,
+   * and moving the segment start with the break keeps a later `done` event
+   * replacing its own part rather than everything before it.
+   */
+  function beginOutputSegment(key: string) {
+    ensureResponseSegment();
+    if (outputSegmentKey === key) {
+      return;
+    }
+    const hadSegment = outputSegmentKey !== null;
+    outputSegmentKey = key;
+    if (!hadSegment) {
+      return;
+    }
+    separateOutput();
+    responseStartOffset = runtime.getOutputLength();
+  }
+
+  /**
+   * Whether a generically-typed delta is carrying reasoning rather than visible
+   * text.
+   *
+   * @remarks
+   * A `response.delta` envelope labels its content in one of several places
+   * depending on the provider, and the outer `type` is the envelope's own name.
+   * Checking every candidate keeps reasoning out of the message body; reading
+   * only the outer `type` (which is always present) let it through.
+   */
+  function carriesReasoning(payload: any): boolean {
+    const candidates = [
+      payload?.type,
+      payload?.delta?.type,
+      payload?.item?.type,
+      payload?.item_type,
+      payload?.part?.type,
+      payload?.content_type,
+    ];
+    return candidates.some(candidate => typeof candidate === "string" && candidate.toLowerCase().includes("reasoning"));
   }
 
   function processEvent(eventType: string | null, dataLines: string[]) {
@@ -350,7 +410,7 @@ export function createStreamingEventProcessor(runtime: StreamingRuntime) {
     case "response.output_text.delta": {
       const delta = extractDeltaText(payload);
       if (delta) {
-        ensureResponseSegment();
+        beginOutputSegment(segmentKeyFor(payload));
         runtime.appendOutputText(delta);
       }
       break;
@@ -360,7 +420,7 @@ export function createStreamingEventProcessor(runtime: StreamingRuntime) {
     case "response.reasoning_summary_text.delta": {
       const delta = extractDeltaText(payload);
       if (delta) {
-        beginReasoningSegment(reasoningSegmentKeyFor(payload));
+        beginReasoningSegment(segmentKeyFor(payload));
         runtime.appendReasoningDelta(delta);
       }
       break;
@@ -376,7 +436,7 @@ export function createStreamingEventProcessor(runtime: StreamingRuntime) {
           separateReasoning();
           runtime.appendReasoningDelta(full);
         }
-        reasoningSegmentKey = reasoningSegmentKeyFor(payload);
+        reasoningSegmentKey = segmentKeyFor(payload);
       }
       break;
     }
@@ -384,7 +444,7 @@ export function createStreamingEventProcessor(runtime: StreamingRuntime) {
       // An announced boundary is authoritative even from a provider that sends
       // no part indices, so break first and adopt the part the deltas will use.
       separateReasoning();
-      reasoningSegmentKey = reasoningSegmentKeyFor(payload);
+      reasoningSegmentKey = segmentKeyFor(payload);
       break;
     }
     case "response.reasoning_summary_part.done":
@@ -394,17 +454,16 @@ export function createStreamingEventProcessor(runtime: StreamingRuntime) {
       break;
     }
     case "response.delta": {
-      const innerType = payload.type || (payload.delta && payload.delta.type) || "";
       const deltaText = extractDeltaText(payload);
-      if (innerType.includes("reasoning")) {
+      if (carriesReasoning(payload)) {
         if (deltaText) {
-          beginReasoningSegment(reasoningSegmentKeyFor(payload));
+          beginReasoningSegment(segmentKeyFor(payload));
           runtime.appendReasoningDelta(deltaText);
         }
         break;
       }
       if (deltaText) {
-        ensureResponseSegment();
+        beginOutputSegment(segmentKeyFor(payload));
         runtime.appendOutputText(deltaText);
       }
       break;
@@ -799,9 +858,7 @@ export function createStreamingEventProcessor(runtime: StreamingRuntime) {
     case "response.output_text.done": {
       const fullText = extractDeltaText(payload);
       if (fullText) {
-        if (expectNewResponse) {
-          ensureResponseSegment();
-        }
+        beginOutputSegment(segmentKeyFor(payload));
         runtime.replaceOutputSegment(responseStartOffset, fullText);
         expectNewResponse = true;
       }

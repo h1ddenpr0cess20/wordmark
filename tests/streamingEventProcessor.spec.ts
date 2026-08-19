@@ -89,6 +89,75 @@ test('response.output_text.delta appends streamed text', () => {
   assert.equal(runtime.state.output, 'Hello world!');
 });
 
+test('output text parts are separated without per-part done events', () => {
+  const runtime = createRuntimeStub();
+  const processor = createStreamingEventProcessor(runtime as unknown as StreamingRuntimeArg);
+
+  processor.processEvent('response.output_text.delta', [
+    JSON.stringify({ item_id: 'msg-1', output_index: 0, content_index: 0, delta: { text: 'so flight over terrain can plug in cleanly.' } }),
+  ]);
+  processor.processEvent('response.output_text.delta', [
+    JSON.stringify({ item_id: 'msg-2', output_index: 1, content_index: 0, delta: { text: 'The browse tool can\'t see local files.' } }),
+  ]);
+
+  assert.equal(
+    runtime.state.output,
+    'so flight over terrain can plug in cleanly.\n\nThe browse tool can\'t see local files.',
+  );
+});
+
+test('output text deltas of one part stay in one paragraph', () => {
+  const runtime = createRuntimeStub();
+  const processor = createStreamingEventProcessor(runtime as unknown as StreamingRuntimeArg);
+
+  processor.processEvent('response.output_text.delta', [
+    JSON.stringify({ item_id: 'msg-1', output_index: 0, content_index: 0, delta: { text: 'Hello ' } }),
+  ]);
+  processor.processEvent('response.output_text.delta', [
+    JSON.stringify({ item_id: 'msg-1', output_index: 0, content_index: 0, delta: { text: 'world!' } }),
+  ]);
+
+  assert.equal(runtime.state.output, 'Hello world!');
+});
+
+test('a done event replaces only its own output part', () => {
+  const runtime = createRuntimeStub();
+  const processor = createStreamingEventProcessor(runtime as unknown as StreamingRuntimeArg);
+
+  processor.processEvent('response.output_text.delta', [
+    JSON.stringify({ item_id: 'msg-1', output_index: 0, content_index: 0, delta: { text: 'First part.' } }),
+  ]);
+  processor.processEvent('response.output_text.delta', [
+    JSON.stringify({ item_id: 'msg-2', output_index: 1, content_index: 0, delta: { text: 'Second par' } }),
+  ]);
+  processor.processEvent('response.output_text.done', [
+    JSON.stringify({ item_id: 'msg-2', output_index: 1, content_index: 0, text: 'Second part.' }),
+  ]);
+
+  assert.equal(runtime.state.output, 'First part.\n\nSecond part.');
+});
+
+test('generic response.delta keeps reasoning out of the message body', () => {
+  const runtime = createRuntimeStub();
+  const processor = createStreamingEventProcessor(runtime as unknown as StreamingRuntimeArg);
+
+  processor.processEvent('response.delta', [
+    JSON.stringify({ type: 'response.delta', delta: { type: 'reasoning_text', text: 'weighing the options' } }),
+  ]);
+  processor.processEvent('response.delta', [
+    JSON.stringify({ type: 'response.delta', item: { type: 'reasoning' }, delta: { text: ' still weighing' } }),
+  ]);
+  processor.processEvent('response.delta', [
+    JSON.stringify({ type: 'response.delta', delta: { type: 'output_text', text: 'Here is the answer.' } }),
+  ]);
+
+  assert.equal(runtime.state.output, 'Here is the answer.');
+  assert.ok(
+    runtime.state.reasoningDelta.includes('weighing the options'),
+    'reasoning-typed deltas belong in the reasoning panel',
+  );
+});
+
 test('web search events annotate reasoning with queued query', () => {
   const runtime = createRuntimeStub();
   const processor = createStreamingEventProcessor(runtime as unknown as StreamingRuntimeArg);

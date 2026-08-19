@@ -10,11 +10,18 @@ Folder uploads keep each file's relative path so files with the same basename re
 
 | Provider | How documents are handled |
 | --- | --- |
-| **OpenAI** | Uploaded to a vector store and searched with the `file_search` tool. Requires the File Search tool to be enabled in Settings → Tools. |
+| **OpenAI** | Uploaded via `/v1/files` (purpose `user_data`) and referenced as `input_file` parts on the message. PDFs go in as extracted text plus page images; documents, text, and code are text-extracted; spreadsheets use the provider's tabular flow. |
 | **xAI (Grok)** | Uploaded via `/v1/files` and referenced as `input_file` parts on the message. |
+| **OpenRouter** | Extracted to text in the browser and injected under a character budget. |
 | **LM Studio / Ollama** | Extracted to text and searched **in the browser** via embeddings — nothing is uploaded anywhere. See [Local retrieval](#local-retrieval-lm-studio--ollama). |
 
-The provider capability that selects the local path is `extractsDocumentsClientSide()` in `src/ts/services/providers.ts` (true for local servers).
+The provider capabilities behind this are `usesDirectFileUpload()` and `extractsDocumentsClientSide()` in `src/ts/services/providers.ts`.
+
+Vector stores are no longer part of attaching a file. They remain available for corpora too large to send whole: enable **File Search** in Settings → Tools and manage stores in Settings → Data, and the tool searches them on every turn. An attached file goes to the model in full, which is what makes it answerable without a retrieval step, and it stays on the message for the rest of the conversation.
+
+### Files renamed for upload
+
+A Files API validates the extension, not the bytes, so a `.wgsl` shader or a `.toml` config is refused even though it is plain text. Wordmark appends `.txt` to those before uploading (`terrain.wgsl` goes up as `terrain.wgsl.txt`), which gets the same bytes accepted while leaving the original name visible to the model. Formats the provider already understands are uploaded untouched. `src/ts/services/fileSupport.ts` holds the extension sets and the rename.
 
 ## Supported formats
 
@@ -30,6 +37,8 @@ Known binary document formats have dedicated dependency-free parsers (`src/ts/se
 - **Ebooks** — `.epub`, `.mobi`, `.azw`, `.azw3`
 - **Rich text** — `.rtf`
 - **Archives** — `.zip` (extracts text from each supported file inside)
+
+SVG is markup, so it is attached as a document rather than sent as an image — vision endpoints refuse it, as they do TIFF, HEIC, and BMP. PNG, JPEG, GIF, and WebP are the image formats sent as images.
 
 Genuine binaries (images, audio/video, executables, fonts) are rejected rather than dumped as garbage — a binary-extension denylist plus a NUL-byte sniff. `isExtractableDocument(name)` in `src/ts/services/parsers/index.ts` is the single source of truth for what is accepted.
 
@@ -70,4 +79,5 @@ For local providers, document contents never leave your machine — extraction, 
 - `src/ts/services/localDocRetrieval.ts` — the in-memory index (`indexDocuments`, `retrieveRelevantChunks`, `clearLocalDocIndex`)
 - `src/ts/utils/documentPaths.ts` — relative-path normalization and dependency/cache filtering for folder uploads
 - `src/ts/components/interaction.ts` — `indexDocumentsLocally` and `injectRetrievedContext` wire retrieval into the send flow
-- `src/ts/services/providers.ts` — `extractsDocumentsClientSide`, `usesDirectFileUpload`
+- `src/ts/services/providers.ts` — `extractsDocumentsClientSide`, `usesDirectFileUpload`, `directUploadPurpose`
+- `src/ts/services/fileSupport.ts` — which formats each provider path accepts (`canAttachDocument`), the upload rename (`toUploadableFile`), and which images are sent as images (`isModelViewableImage`)

@@ -42,6 +42,33 @@ function getExt(name: string): string {
 }
 
 /**
+ * The file's extension, or `""` when it has none.
+ *
+ * @remarks
+ * Unlike the internal {@link getExt}, an extensionless name (`Makefile`) and a
+ * dotfile (`.gitignore`) both report no extension rather than reporting their
+ * whole name as one, which is what an extension allowlist has to see to treat
+ * them as the unlabeled text files they are.
+ */
+export function documentExtension(name: string): string {
+  const base = name.split("/").pop() || name;
+  const dot = base.lastIndexOf(".");
+  return dot > 0 ? base.slice(dot + 1).toLowerCase() : "";
+}
+
+/**
+ * Whether the file's bytes are plain text, so it can be uploaded under a `.txt`
+ * name for a provider that does not recognize its extension.
+ *
+ * @param name - The file name (or path).
+ */
+export function isPlainTextDocument(name: string): boolean {
+  const ext = getExt(name);
+  if (BINARY_DOC_EXTENSIONS.has(ext)) return false;
+  return !UNSUPPORTED_BINARY_EXTENSIONS.has(ext);
+}
+
+/**
  * Whether {@link extractDocumentText} can extract text from this file. Known
  * binary document formats and any non-binary (text/code/data) file qualify;
  * images, media, executables, and unhandled archives do not.

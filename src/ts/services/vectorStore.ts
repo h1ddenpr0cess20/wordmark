@@ -8,7 +8,10 @@
  */
 
 import { showInfo } from "../utils/notifications.ts";
-import { ensureApiKey, getBaseUrl } from "./api/clientConfig.ts";
+import { ensureApiKey, getActiveServiceKey, getBaseUrl } from "./api/clientConfig.ts";
+import { SUPPORTED_FILE_EXTENSIONS, isSupportedFileType, toUploadableFile } from "./fileSupport.ts";
+
+export { SUPPORTED_FILE_EXTENSIONS, filterSupportedFiles } from "./fileSupport.ts";
 
 export {
   MAX_ACTIVE_VECTOR_STORES,
@@ -23,49 +26,19 @@ export {
 } from "./vectorStoreMetadata.ts";
 
 /**
- * Supported file extensions for vector store uploads
+ * Upload a file to the selected service.
+ *
+ * @param file - The file to upload.
+ * @param purpose - The Files API purpose. Vector store ingestion uses
+ * `assistants`; direct `input_file` attachments pass the provider's
+ * model-input purpose instead.
  */
-const SUPPORTED_FILE_EXTENSIONS = [
-  "c", "cpp", "css", "csv", "doc", "docx", "gif", "go", "html", "java",
-  "jpeg", "jpg", "js", "json", "md", "pdf", "php", "pkl", "png", "pptx",
-  "py", "rb", "tar", "tex", "ts", "txt", "webp", "xlsx", "xml", "zip",
-];
-
-/**
- * Check if a file has a supported extension
- */
-function isSupportedFileType(filename: string) {
-  const ext = filename.split(".").pop()?.toLowerCase();
-  return ext ? SUPPORTED_FILE_EXTENSIONS.includes(ext) : false;
-}
-
-/**
- * Filter files to only include supported types
- */
-export function filterSupportedFiles(files: File[]) {
-  const supported: File[] = [];
-  const unsupported: File[] = [];
-
-  files.forEach((file) => {
-    if (isSupportedFileType(file.name)) {
-      supported.push(file);
-    } else {
-      unsupported.push(file);
-    }
-  });
-
-  return { supported, unsupported };
-}
-
-/**
- * Upload a file to the selected service
- */
-export async function uploadFile(file: File) {
+export async function uploadFile(file: File, purpose = "assistants") {
   const apiKey = ensureApiKey();
   const baseUrl = getBaseUrl();
   const formData = new FormData();
   formData.append("file", file);
-  formData.append("purpose", "assistants");
+  formData.append("purpose", purpose);
 
   const response = await fetch(`${baseUrl}/files`, {
     method: "POST",
@@ -158,7 +131,20 @@ export async function getVectorStoreFileStatus(vectorStoreId: string, fileId: st
  */
 export async function uploadAndAttachFiles(files: File[], vectorStoreName = "Chat Documents") {
   try {
-    const { supported, unsupported } = filterSupportedFiles(files);
+    const serviceKey = getActiveServiceKey();
+    const uploads: { source: File; upload: File }[] = [];
+    const unsupported: File[] = [];
+
+    for (const file of files) {
+      // A textual file outside File Search's native set uploads as `.txt`;
+      // only binaries a vector store cannot index at all are skipped.
+      const upload = toUploadableFile(file, serviceKey);
+      if (isSupportedFileType(upload.name)) {
+        uploads.push({ source: file, upload });
+      } else {
+        unsupported.push(file);
+      }
+    }
 
     if (unsupported.length > 0) {
       const unsupportedNames = unsupported.map(f => f.name).join(", ");
@@ -169,19 +155,19 @@ export async function uploadAndAttachFiles(files: File[], vectorStoreName = "Cha
       }
     }
 
-    if (supported.length === 0) {
+    if (uploads.length === 0) {
       throw new Error("No supported files to upload. Supported formats: " + SUPPORTED_FILE_EXTENSIONS.join(", "));
     }
 
     const vectorStore = await createVectorStore(vectorStoreName);
 
     const attachments: { fileId: string; fileName: string; vectorStoreId: string; status: unknown }[] = [];
-    for (const file of supported) {
-      const uploadedFile = await uploadFile(file);
+    for (const { source, upload } of uploads) {
+      const uploadedFile = await uploadFile(upload);
       const attachment = await attachFileToVectorStore(vectorStore.id, uploadedFile.id);
       attachments.push({
         fileId: uploadedFile.id,
-        fileName: file.name,
+        fileName: source.name,
         vectorStoreId: vectorStore.id,
         status: attachment.status,
       });

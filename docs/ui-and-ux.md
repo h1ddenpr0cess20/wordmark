@@ -7,7 +7,7 @@ Wordmark uses a two-column rail layout on desktop and a drawer layout on smaller
 - **Desktop rail** — a 264px left rail carries the Wordmark mark, **New chat**, the 20 most recently updated conversations, History, Gallery, Settings, and provider status. The active conversation is highlighted. Conversations are loaded or deleted directly from the rail; it reads the same IndexedDB conversation store as the History panel.
 - **Chat column** — the main column contains a header, a centered reading column, messages, and the composer.
 - **Responsive drawer** — below 860px the rail collapses into an overlay drawer opened with the header hamburger. Panels layer over the shell with a scrim.
-- **Header** — shows the active model and personality/system-prompt summary. Clicking the model or prompt opens the corresponding Settings section. Feature badges expose Location, Memory, and Tools status and provide shortcuts into Settings.
+- **Header** — shows the active model and personality/system-prompt summary. Clicking the model or prompt opens the corresponding Settings section. Feature badges expose Location, Memory, Tools, Agent, and TTS status: the dot toggles the feature, the label opens its Settings section.
 
 ## Panels & controls
 

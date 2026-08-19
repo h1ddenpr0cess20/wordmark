@@ -64,8 +64,8 @@ Fully responsive on mobile, with a range of built-in color schemes:
 ## Features
 
 - **Providers** — OpenAI Responses (hosted), xAI Grok (Responses-compatible), and local LM Studio or Ollama servers ([Services & Models](docs/services.md))
-- **Tool calling** — built-in weather, provider web + X search, Code Interpreter, image generation, file search (OpenAI), direct file attachments (xAI), and custom MCP servers ([Tool Calling](docs/tool-calling.md))
-- **Documents** — attach files or folders in any text/code format plus PDF, Office, OpenDocument, and ebooks; local providers extract and search them in-browser with embeddings, so nothing leaves your machine ([Documents & Attachments](docs/documents.md))
+- **Tool calling** — built-in weather, provider web + X search, Code Interpreter, image generation, optional file search over vector stores (OpenAI), and custom MCP servers ([Tool Calling](docs/tool-calling.md))
+- **Documents** — attach files or folders in any text/code format plus PDF, Office, OpenDocument, and ebooks; hosted providers take the file itself, local providers extract and search it in-browser with embeddings so nothing leaves your machine ([Documents & Attachments](docs/documents.md))
 - **Skills** — uploadable `SKILL.md` instruction packages the assistant loads on demand to specialize for a task; ships with example skills ([Skills](docs/skills.md))
 - **Streaming & reasoning** — dedicated reasoning panel, rich tool timelines, inline code previews, automatic image capture ([Streaming](docs/streaming.md))
 - **Party mode** — autonomous multi-character group chat over your chosen provider; build a cast and scenario, then interject any time without pausing ([Party Mode](docs/party-mode.md))

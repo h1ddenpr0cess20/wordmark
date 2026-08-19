@@ -90,11 +90,29 @@ export function ttsSupportsInstructions(serviceKey: string | null | undefined): 
 
 /**
  * Whether the provider attaches documents as direct `input_file` uploads rather
- * than through a vector store + file_search. xAI (Grok) uploads files directly;
- * other providers use a vector store.
+ * than through a vector store + file_search.
+ *
+ * @remarks
+ * Both hosted Responses API providers ingest an uploaded file id straight from
+ * the message content: xAI (Grok) has always worked this way, and OpenAI accepts
+ * `input_file` parts for PDFs (text plus page images), documents, text/code, and
+ * spreadsheets. Direct upload puts the whole file in context each turn, which is
+ * what an attached file is expected to do; the vector store remains available
+ * through the File Search tool for corpora too large to send whole.
  */
 export function usesDirectFileUpload(serviceKey: string | null | undefined): boolean {
-  return serviceKey === "xai";
+  return serviceKey === "xai" || serviceKey === "openai";
+}
+
+/**
+ * The Files API `purpose` to upload a direct-input attachment under.
+ *
+ * @remarks
+ * OpenAI scopes model-input files to `user_data` and reserves `assistants` for
+ * vector-store ingestion; xAI accepts the historical `assistants` value.
+ */
+export function directUploadPurpose(serviceKey: string | null | undefined): string {
+  return serviceKey === "openai" ? "user_data" : "assistants";
 }
 
 /**
