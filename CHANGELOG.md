@@ -2,6 +2,11 @@
 
 All notable changes to Wordmark are documented here. Earlier versions didn't follow proper semver — this changelog reflects what actually shipped, not what the version numbers said at the time.
 
+## [Unreleased]
+
+### Changed
+- **The default history token budget follows the provider** — one 16384-token default served every service, which is about right for a local server but throws away history a cloud model could comfortably hold. Hosted providers (OpenAI, xAI, OpenRouter) now default to 65536; LM Studio and Ollama keep 16384. The budget field in Settings → Model shows the active provider's default as its placeholder and updates when you switch services; typing a number still pins it for every provider, and clearing the field drops back to the per-provider default.
+
 ## [4.2.0] - 2026-08-18
 
 Prompts sent mid-turn are queued instead of dropped, and that queue grows into an optional autonomous work loop the model can schedule for itself. Backward-compatible; autonomous work is off by default.

@@ -3,7 +3,8 @@
  *
  * @remarks
  * Wires the service and model dropdowns so a change refreshes API keys, model
- * options, reasoning availability, header info, and tool/MCP settings.
+ * options, reasoning availability, the provider-dependent history budget,
+ * header info, and tool/MCP settings.
  */
 
 import { elements } from "../state.ts";
@@ -13,7 +14,8 @@ import { responsesClient } from "../../services/api.ts";
 import { updateParameterControls } from "../../components/ui/settingsControls.ts";
 import { updateHeaderInfo, updateModelSelector } from "../../components/settings.ts";
 import { refreshToolSettingsUI } from "../../components/tools.ts";
-import { updateReasoningAvailability } from "../modelSettings.ts";
+import { refreshHistoryTokenBudgetControl, updateReasoningAvailability } from "../modelSettings.ts";
+import { refreshHistoryMeter } from "../../components/compaction.ts";
 import { config } from "../../../config/config.ts";
 
 /**
@@ -66,6 +68,10 @@ export function setupSelectorEventListeners() {
       updateHeaderInfo();
 
       updateReasoningAvailability();
+      // The history budget defaults per provider, so switching services can
+      // change the effective ceiling the control and meter are drawn against.
+      refreshHistoryTokenBudgetControl();
+      refreshHistoryMeter();
       updateBrowserHistory();
 
       const refreshToolsUI = () => {
