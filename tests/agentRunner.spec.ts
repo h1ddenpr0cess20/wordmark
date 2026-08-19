@@ -11,6 +11,7 @@ import assert from "node:assert/strict";
  */
 
 let decisionReply = "";
+let decisionPrompt = "";
 let decisionCalls = 0;
 let decisionFails = false;
 let maxTurns = 4;
@@ -61,8 +62,9 @@ mockModule("../src/ts/utils/icons.ts", { icon: () => "" });
 mockModule("../src/ts/components/attachments/attachmentPreviews.ts", { showPendingUploadPreviews: () => {} });
 mockModule("../src/ts/services/api/requestClient.ts", { buildRequestBody: (opts: unknown) => opts });
 mockModule("../src/ts/services/api/requestTransport.ts", {
-  executeNonStreamingRequest: async () => {
+  executeNonStreamingRequest: async (body: { inputMessages?: { content?: string }[] }) => {
     decisionCalls += 1;
+    decisionPrompt = body?.inputMessages?.[0]?.content || "";
     if (decisionFails) {
       throw new Error("network down");
     }
@@ -92,6 +94,7 @@ function reset(): void {
   clearPromptQueue();
   (fakeState.conversationHistory as unknown[]).length = 0;
   decisionReply = "";
+  decisionPrompt = "";
   decisionCalls = 0;
   decisionFails = false;
   maxTurns = 4;
@@ -384,7 +387,7 @@ test("starting a fresh run clears the previous run's planned steps", () => {
 
 test("queueStep refuses when no run is in progress", () => {
   reset();
-  assert.equal(agentRunner.queueStep("do a thing"), false);
+  assert.equal(agentRunner.queueStep("do a thing"), "inactive");
   assert.equal(queuedPromptCount(), 0);
 });
 
@@ -428,4 +431,122 @@ test("queue_followup tells the model when the queue could not take every step", 
   assert.equal(result.queued, 25);
   assert.equal(result.rejected, 5);
   assert.match(result.note || "", /queue is full/i);
+});
+
+test("a step the run already queued is refused instead of scheduled twice", () => {
+  reset();
+  agentRunner.start("goal");
+
+  assert.equal(agentRunner.queueStep("write the summary"), "queued");
+  assert.equal(agentRunner.queueStep("Write the summary."), "duplicate");
+  assert.equal(queuedPromptCount("agent"), 1);
+});
+
+test("a step the run already sent is refused even though the queue is empty", () => {
+  reset();
+  agentRunner.start("goal");
+  agentRunner.queueStep("write the summary");
+  // The drain lifts the entry out and sends it; the run counts the turn.
+  clearPromptQueue("agent");
+  agentRunner.noteTurnStarted();
+
+  assert.equal(queuedPromptCount("agent"), 0);
+  assert.equal(agentRunner.queueStep("write the summary"), "duplicate");
+  assert.equal(queuedPromptCount("agent"), 0);
+  assert.deepEqual(agentRunner.snapshot()?.issuedSteps, ["write the summary"]);
+});
+
+test("re-queueing the goal itself is refused", () => {
+  reset();
+  agentRunner.start("Draft the launch checklist");
+
+  assert.equal(agentRunner.queueStep("draft the launch checklist"), "duplicate");
+  assert.equal(queuedPromptCount("agent"), 0);
+});
+
+test("steps discarded when a run halts are not remembered as sent", () => {
+  reset();
+  agentRunner.start("goal");
+  agentRunner.noteTurnStarted();
+  agentRunner.queueStep("write the summary");
+
+  agentRunner.pause();
+  agentRunner.resume();
+
+  assert.deepEqual(agentRunner.snapshot()?.issuedSteps, []);
+  assert.equal(agentRunner.queueStep("write the summary"), "queued");
+});
+
+test("queue_followup skips the steps it already scheduled and says which", () => {
+  reset();
+  agentRunner.start("goal");
+  queueFollowup({ steps: ["first step", "second step"] });
+
+  const result = queueFollowup({ steps: ["second step", "third step"] });
+
+  assert.equal(result.queued, 1);
+  assert.deepEqual(result.steps, ["third step"]);
+  assert.deepEqual(result.duplicates, ["second step"]);
+  assert.equal(result.rejected, 1);
+  assert.match(result.note || "", /already queued or already run/);
+  assert.deepEqual(
+    queuedPrompts().map(entry => entry.text),
+    ["first step", "second step", "third step"],
+  );
+});
+
+test("a duplicate does not stop the rest of a queue_followup batch", () => {
+  reset();
+  agentRunner.start("goal");
+  queueFollowup({ steps: ["first step"] });
+
+  const result = queueFollowup({ steps: ["first step", "second step", "third step"] });
+
+  assert.equal(result.queued, 2);
+  assert.equal(queuedPromptCount("agent"), 3);
+});
+
+test("the run tracks its plan so the developer message can list it back", () => {
+  reset();
+  agentRunner.start("goal");
+  queueFollowup({ steps: ["first step", "second step"] });
+
+  assert.deepEqual(agentRunner.snapshot()?.plannedSteps, ["first step", "second step"]);
+  assert.deepEqual(agentRunner.snapshot()?.issuedSteps, []);
+
+  clearPromptQueue("agent");
+  agentRunner.noteTurnStarted();
+
+  assert.deepEqual(agentRunner.snapshot()?.plannedSteps, []);
+  assert.deepEqual(agentRunner.snapshot()?.issuedSteps, ["first step", "second step"]);
+});
+
+test("the continuation decision sees what the run already queued and sent", async () => {
+  reset();
+  agentRunner.start("goal");
+  agentRunner.noteTurnStarted();
+  agentRunner.queueStep("write the summary");
+  clearPromptQueue("agent");
+  agentRunner.noteTurnStarted();
+  decisionReply = "DONE|Finished.";
+
+  await agentRunner.afterTurn("ok");
+
+  assert.match(decisionPrompt, /already given to the assistant/i);
+  assert.match(decisionPrompt, /- write the summary/);
+});
+
+test("a CONTINUE that repeats a finished step ends the run instead of looping", async () => {
+  reset();
+  agentRunner.start("goal");
+  agentRunner.noteTurnStarted();
+  agentRunner.queueStep("write the summary");
+  clearPromptQueue("agent");
+  agentRunner.noteTurnStarted();
+  decisionReply = "CONTINUE|Write the summary.";
+
+  await agentRunner.afterTurn("ok");
+
+  assert.equal(agentRunner.snapshot()?.status, "done");
+  assert.equal(queuedPromptCount("agent"), 0);
 });

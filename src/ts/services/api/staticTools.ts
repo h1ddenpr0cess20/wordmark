@@ -50,7 +50,7 @@ export const STATIC_TOOLS: ToolEntry[] = [
     definition: {
       type: "function",
       name: "queue_followup",
-      description: "Queue follow-up instructions for yourself. Each step is sent back as its own turn, in order, once the current turn ends. Write each one as a self-contained instruction — the turn that receives it sees the conversation, not your reasoning for scheduling it. Use this when you already know what the next pieces of work are; do not use it to ask the user questions.",
+      description: "Queue follow-up instructions for yourself. Each step is sent back as its own turn, in order, once the current turn ends. Write each one as a self-contained instruction — the turn that receives it sees the conversation, not your reasoning for scheduling it. Queue only work you are NOT doing in this turn: a step you go on to carry out here comes back to you anyway, and you will have been handed work that is already finished. The queue survives the turn, so call this once with what is genuinely left rather than re-listing the plan every turn; steps repeating something already queued or already run are refused, and the result tells you which. Do not use it to ask the user questions.",
       parameters: {
         type: "object",
         properties: {

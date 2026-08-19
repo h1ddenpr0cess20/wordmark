@@ -42,6 +42,18 @@ export interface AgentRunState {
   maxTurns: number;
   /** Why the run ended or stalled, shown on the control bar. */
   note?: string;
+  /**
+   * Steps queued for this run that have not been sent yet.
+   *
+   * @remarks
+   * Kept on the run, not derived from the queue on demand, so the
+   * developer-message builder can list them back to the model without importing
+   * the queue — and so the runner can tell a genuinely new step from the same
+   * plan being scheduled twice.
+   */
+  plannedSteps?: string[];
+  /** Steps of this run that have already gone out as turns. */
+  issuedSteps?: string[];
 }
 
 /** How the continuation decision says a run should proceed. */
