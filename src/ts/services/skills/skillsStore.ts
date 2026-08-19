@@ -24,12 +24,14 @@ import { createScopedLogger } from "../../utils/logger.ts";
 import exampleFrontendSkillMarkdown from "../../../../skills/frontend-dev.md?raw";
 import exampleEmailSkillMarkdown from "../../../../skills/email-writing.md?raw";
 import exampleBrainstormSkillMarkdown from "../../../../skills/brainstorming.md?raw";
+import exampleSkillCreatorMarkdown from "../../../../skills/skill-creator.md?raw";
 
 /** Bundled example skills seeded on first run (see {@link seedExampleSkills}). */
 const EXAMPLE_SKILL_MARKDOWN = [
   exampleFrontendSkillMarkdown,
   exampleEmailSkillMarkdown,
   exampleBrainstormSkillMarkdown,
+  exampleSkillCreatorMarkdown,
 ];
 
 const logSkills = createScopedLogger("skills");

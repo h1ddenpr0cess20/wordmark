@@ -1,5 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
+import { readFileSync, readdirSync } from 'node:fs';
 
 let skillsStore: Record<string, string> = {};
 globalThis.localStorage = {
@@ -217,4 +218,38 @@ test('seedExampleSkills tracks examples individually (no resurrection, seeds new
   assert.ok(!names.includes('Frontend Development'), 'a deleted seeded example is not resurrected');
   assert.ok(!names.includes('Brainstorming Partner'), 'a deleted seeded example is not resurrected');
   assert.ok(names.includes('Email Assistant'), 'a newly-added example is seeded for existing users');
+});
+
+test('every bundled example file parses into a usable skill', () => {
+  const files = readdirSync('skills').filter(name => name.endsWith('.md'));
+  assert.ok(files.length > 0, 'the repo ships example skills');
+
+  for (const file of files) {
+    const raw = readFileSync(`skills/${file}`, 'utf8');
+    const parsed = parseSkillMarkdown(raw);
+    assert.ok(parsed.name, `${file} declares a name`);
+    assert.ok(parsed.description, `${file} declares a description`);
+    assert.ok(parsed.instructions.trim(), `${file} has an instructions body`);
+    assert.equal(parsed.description.includes('\n'), false, `${file} keeps its description on one line`);
+    for (const resource of parsed.resources ?? []) {
+      assert.ok(resource.name && resource.content, `${file} bundles complete resources`);
+    }
+    // A resource delimiter written inside a code block as an example is still
+    // a delimiter to the parser: the block between the pair is extracted as a
+    // real resource and cut out of the skill's own instructions.
+    let inFence = false;
+    raw.split('\n').forEach((line, index) => {
+      if (line.startsWith('```')) {
+        inFence = !inFence;
+        return;
+      }
+      if (inFence) {
+        assert.equal(
+          /<!--\s*\/?\s*skill:resource/.test(line),
+          false,
+          `${file}:${index + 1} shows a resource delimiter inside a code block`,
+        );
+      }
+    });
+  }
 });
