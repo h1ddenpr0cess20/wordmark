@@ -2,7 +2,9 @@
 
 All notable changes to Wordmark are documented here. Earlier versions didn't follow proper semver — this changelog reflects what actually shipped, not what the version numbers said at the time.
 
-## [Unreleased]
+## [4.3.0] - 2026-08-19
+
+Messages typed while the assistant is working now reach the turn already in progress instead of waiting for it to finish. Local servers can be run behind an API key, and cloud providers get a history budget sized for their context windows.
 
 ### Added
 - **Queued messages reach the turn that is already running** — a message typed while a response streamed used to wait for that response to finish before being sent as a turn of its own, so a correction landed only after the work it was correcting. Every tool call is a pause in the turn, and queued text is now handed over at those pauses: it goes into the request behind the tool's results and is read on the model's very next step, with the message rendered in the transcript above the answer still being written and recorded in history where it was said. Entries carrying attachments keep the old route, since uploads and document indexing run while a turn is assembled rather than inside one, as do steps an autonomous run scheduled for itself — those are turns, not interruptions. A turn that answers without calling a tool has no pause to use, so its queue drains after it ends exactly as before.
