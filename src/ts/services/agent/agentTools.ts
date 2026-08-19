@@ -13,6 +13,12 @@
  * exactly what was accepted; when the queue's depth cap truncates a batch,
  * silently dropping the tail would leave the model believing in work that will
  * never happen.
+ *
+ * Duplicates get the same treatment for the opposite reason. Models re-emit the
+ * plan they already scheduled — often having just carried part of it out in this
+ * very turn — and every accepted copy costs a turn of the budget redoing
+ * finished work. The run refuses them; the result says so plainly, so the next
+ * call is not the same list again.
  */
 
 import { createScopedLogger } from "../../utils/logger.ts";
@@ -30,6 +36,8 @@ interface QueueFollowupResult {
   queued: number;
   rejected?: number;
   steps?: string[];
+  /** Steps refused because this run had already scheduled or sent them. */
+  duplicates?: string[];
   error?: string;
   note?: string;
 }
@@ -56,22 +64,46 @@ export function queueFollowup(args: { steps?: unknown } = {}): QueueFollowupResu
   }
 
   const accepted: string[] = [];
+  const duplicates: string[] = [];
+  let full = false;
   for (const step of steps) {
-    if (!agentRunner.queueStep(step)) {
-      break;
+    const outcome = agentRunner.queueStep(step);
+    if (outcome === "queued") {
+      accepted.push(step.trim());
+      continue;
     }
-    accepted.push(step.trim());
+    if (outcome === "duplicate") {
+      // Skipped rather than fatal: the rest of the batch may well be new work.
+      duplicates.push(step.trim());
+      continue;
+    }
+    full = true;
+    break;
   }
 
-  logAgent("queue_followup accepted", accepted.length, "of", steps.length, "step(s)");
+  logAgent(
+    "queue_followup accepted", accepted.length, "of", steps.length, "step(s);",
+    duplicates.length, "duplicate(s)",
+  );
 
   const result: QueueFollowupResult = { queued: accepted.length, steps: accepted };
+  const notes: string[] = [];
+  if (accepted.length > 0) {
+    notes.push("Queued. Each step is sent back to you as its own turn, in order, once this turn ends — do not carry them out now.");
+  }
+  if (duplicates.length > 0) {
+    result.duplicates = duplicates;
+    notes.push(
+      `${duplicates.length} step${duplicates.length === 1 ? " was" : "s were"} skipped: this run has already queued or already run ${duplicates.length === 1 ? "it" : "them"}. Do not schedule ${duplicates.length === 1 ? "it" : "them"} again — move on to work that is genuinely left.`,
+    );
+  }
+  if (full) {
+    notes.push("The queue is full; the remaining steps were not accepted. Queue them again once these have run.");
+  }
   if (accepted.length < steps.length) {
     result.rejected = steps.length - accepted.length;
-    result.note = "The queue is full; the remaining steps were not accepted. Queue them again once these have run.";
-  } else {
-    result.note = "Queued. Each step will be sent back to you as its own turn, in order.";
   }
+  result.note = notes.join(" ");
   return result;
 }
 

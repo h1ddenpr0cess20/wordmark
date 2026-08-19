@@ -21,6 +21,7 @@ const {
   removeQueuedPrompt,
   clearPromptQueue,
   restoreNextPrompt,
+  takeInterjections,
   MAX_QUEUE_DEPTH,
 } = await import("../src/ts/components/promptQueue.ts");
 
@@ -185,4 +186,32 @@ test("chips are numbered in the order the queue will actually drain", () => {
     "the user's message is listed first because it sends first",
   );
   assert.equal(chips[0].querySelector(".queued-prompt-index")?.textContent, "1");
+});
+
+test("mid-turn delivery takes the user's typed messages, oldest first", () => {
+  reset();
+  enqueuePrompt("first");
+  enqueuePrompt("second");
+
+  assert.deepEqual(takeInterjections().map(entry => entry.text), ["first", "second"]);
+  assert.equal(queuedPromptCount(), 0);
+  assert.equal(dom.window.document.querySelectorAll(".queued-prompt").length, 0);
+});
+
+test("mid-turn delivery leaves attachments and agent steps queued", () => {
+  reset();
+  enqueuePrompt("just text");
+  enqueuePrompt("with a file", [], [{ name: "report.pdf", size: 10, type: "application/pdf" }]);
+  enqueuePrompt("step one", [], [], { origin: "agent" });
+
+  assert.deepEqual(takeInterjections().map(entry => entry.text), ["just text"]);
+  assert.deepEqual(queuedPrompts().map(entry => entry.text), ["with a file", "step one"]);
+});
+
+test("mid-turn delivery with nothing eligible leaves the queue untouched", () => {
+  reset();
+  enqueuePrompt("step one", [], [], { origin: "agent" });
+
+  assert.deepEqual(takeInterjections(), []);
+  assert.equal(queuedPromptCount("agent"), 1);
 });

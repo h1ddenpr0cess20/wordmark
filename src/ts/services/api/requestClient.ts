@@ -175,6 +175,7 @@ export async function runTurn({
   systemOverride,
   allowedTools,
   temperature,
+  interjections,
 }: RunTurnOptions): Promise<RunTurnResult> {
   const baseMessages = stripSkillToolMessages(
     Array.isArray(inputMessages)
@@ -214,10 +215,45 @@ export async function runTurn({
   const MAX_TOOL_CALL_ITERATIONS = 20;
   let toolCallIteration = 0;
 
+  // Counted apart from tool calls: an interruption is the user's doing, and
+  // spending the tool budget on it would let a few corrections cut a turn's
+  // actual work short. Its own ceiling still bounds the loop.
+  const MAX_INTERJECTION_ROUNDS = 20;
+  let interjectionRounds = 0;
+
+  /**
+   * Moves whatever the user has queued into the request, oldest first.
+   *
+   * @returns Whether anything was taken; a `true` also means the channel has
+   * been rearmed, so the next request starts from an unaborted signal.
+   */
+  const takeInterjections = (): boolean => {
+    if (!interjections) {
+      return false;
+    }
+    const waiting = interjections.take();
+    if (!Array.isArray(waiting) || waiting.length === 0) {
+      return false;
+    }
+    workingMessages.push(...serializeMessagesForRequest(waiting));
+    return true;
+  };
+
   while (true) {
-    if (++toolCallIteration > MAX_TOOL_CALL_ITERATIONS) {
+    if (toolCallIteration > MAX_TOOL_CALL_ITERATIONS) {
       throw new Error(`Tool call loop exceeded maximum of ${MAX_TOOL_CALL_ITERATIONS} iterations`);
     }
+    if (interjectionRounds > MAX_INTERJECTION_ROUNDS) {
+      throw new Error(`Interjection loop exceeded maximum of ${MAX_INTERJECTION_ROUNDS} rounds`);
+    }
+
+    // Something queued while the last tool ran leaves the channel already
+    // aborted. Taking it here rearms the channel, so the request below is never
+    // sent under a signal that is spent before it starts.
+    if (interjections?.pending()) {
+      takeInterjections();
+    }
+
     const body = buildRequestBody({
       inputMessages: workingMessages,
       instructions: typeof instructions === "string" && instructions.trim() ? instructions : undefined,
@@ -234,15 +270,20 @@ export async function runTurn({
     let streamedText = "";
     let streamedReasoning = "";
 
+    // Either the user's stop or an interruption ends the request; only the
+    // first ends the turn, so they travel as one signal but are told apart
+    // afterwards by which source fired.
+    const request = linkedAbortController(abortController?.signal, interjections?.signal);
+
     try {
       if (stream) {
-        const streamResponse = await executeStreamingRequest(body, abortController);
+        const streamResponse = await executeStreamingRequest(body, request.controller);
         const result = await handleStreamedResponse(streamResponse, loadingId || "");
         responsePayload = result.response;
         streamedText = result.outputText || "";
         streamedReasoning = result.reasoningText || "";
       } else {
-        responsePayload = await executeNonStreamingRequest(body, abortController);
+        responsePayload = await executeNonStreamingRequest(body, request.controller);
         streamedText = extractOutputText(responsePayload);
         streamedReasoning = extractReasoningText(responsePayload);
       }
@@ -259,7 +300,19 @@ export async function runTurn({
         }
         continue;
       }
-      throw error;
+      // An interruption that lands before the first byte aborts the fetch
+      // itself. There is nothing to keep, but it is still not a failure — the
+      // turn carries on below with the message that caused it.
+      const interrupted = error instanceof Error
+        && error.name === "AbortError"
+        && interjections?.pending()
+        && !state.shouldStopGeneration
+        && !abortController?.signal.aborted;
+      if (!interrupted) {
+        throw error;
+      }
+    } finally {
+      request.release();
     }
 
     if (streamedText) {
@@ -281,6 +334,20 @@ export async function runTurn({
         reasoningText: aggregateReasoning,
         stopped: true,
       };
+    }
+
+    // Cut short to let the user in. What had already streamed is kept twice
+    // over: in the aggregate that becomes the finished message, and as an
+    // assistant turn in the request, so the model picks up from its own words
+    // rather than starting the answer again. Tool calls made earlier in the
+    // turn are still in `workingMessages` and travel with it.
+    if (interjections?.pending()) {
+      interjectionRounds += 1;
+      if (streamedText.trim()) {
+        workingMessages.push({ role: "assistant", content: streamedText });
+      }
+      takeInterjections();
+      continue;
     }
 
     if (!responsePayload) {
@@ -318,5 +385,36 @@ export async function runTurn({
         hideImageWaitSpinnerById(loadingId || "");
       }
     }
+
+    // A tool boundary takes new input for free: the turn is between requests
+    // anyway, so anything queued goes in behind the tool results with nothing
+    // interrupted and nothing spent.
+    takeInterjections();
+    toolCallIteration += 1;
   }
+}
+
+/**
+ * A controller that fires when any of `sources` fires.
+ *
+ * @remarks
+ * A request takes one signal, but two things can end it: the user's stop and an
+ * interruption. `release` unhooks the listeners once the request settles, so a
+ * stop controller that outlives many iterations does not collect one apiece.
+ */
+function linkedAbortController(...sources: Array<AbortSignal | null | undefined>) {
+  const controller = new AbortController();
+  const abort = () => controller.abort();
+  const linked = sources.filter((signal): signal is AbortSignal => Boolean(signal));
+  for (const signal of linked) {
+    if (signal.aborted) {
+      controller.abort();
+      continue;
+    }
+    signal.addEventListener("abort", abort);
+  }
+  return {
+    controller,
+    release: () => linked.forEach(signal => signal.removeEventListener("abort", abort)),
+  };
 }

@@ -4,7 +4,7 @@ Wordmark supports **agent skills**: named instruction packages the assistant can
 
 ## Quick Start
 - Open Settings → **Skills** tab
-- A few example skills ship pre‑loaded and enabled (Frontend Development, Email Assistant, Brainstorming Partner)
+- A few example skills ship pre‑loaded and enabled (Frontend Development, Email Assistant, Brainstorming Partner, Skill Creator — the last one writes new skills with you)
 - Toggle a skill on/off — changes take effect immediately
 - Upload your own with **Upload Skill** (a `SKILL.md` file)
 - Export any skill to get a `SKILL.md` you can edit and re‑upload

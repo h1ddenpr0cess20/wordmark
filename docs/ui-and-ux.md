@@ -22,7 +22,16 @@ The composer is a card at the bottom of the chat column. The textarea is followe
 
 ### Prompt queuing
 
-Pressing Enter while a response is still streaming queues the message instead of discarding it. Queued messages appear as numbered chips above the composer, each with a remove button, and are sent one at a time as each response finishes. A queued message carries its attachments with it. Stopping generation or starting a new conversation clears the queue.
+Pressing Enter while a response is still streaming queues the message instead of discarding it. Queued messages appear as numbered chips above the composer, each with a remove button. A queued message carries its attachments with it. Stopping generation or starting a new conversation clears the queue.
+
+A plain text message goes to the assistant **while it is still working**, not after:
+
+- **Mid-answer, the reply in flight is cut short** and immediately resumed with your message added. Nothing written so far is lost — the half-written answer stays on screen, travels with the resumed request so the model picks up from its own words, and the finished reply reads as one message.
+- **Between tool calls it costs nothing at all**: the turn is already between requests, so the message goes in behind the tool's results.
+
+Your message appears in the transcript above the answer being written, where you said it.
+
+Messages carrying attachments are the exception: uploads and document indexing happen as a turn is assembled, not inside one, so those wait and are sent as the next turn once the current one ends. The same goes for steps an autonomous run scheduled for itself.
 
 With [Autonomous Work](autonomous-work.md) enabled, the assistant queues steps of its own alongside yours. Its chips carry a solid accent edge and a `step` badge; yours keep the dashed border. A message you type is always sent before any step the assistant scheduled, so a correction never waits behind the model's plan. The queue holds at most 25 entries and says so when it refuses more.
 

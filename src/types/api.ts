@@ -187,6 +187,36 @@ export interface RunTurnOptions {
   allowedTools?: string[];
   /** Optional sampling temperature (set only when provided). */
   temperature?: number;
+  /**
+   * How a message the user queued mid-turn reaches the turn already in
+   * progress. Turns with no composer behind them (party speakers,
+   * regeneration, the continuation decision) omit it and behave as before.
+   */
+  interjections?: InterjectionChannel;
+}
+
+/**
+ * The composer's end of mid-turn delivery.
+ *
+ * @remarks
+ * A turn takes on new input at two kinds of moment: between tool calls, where
+ * it is already between requests, and mid-answer, where the request in flight
+ * has to be cut short to make one. {@link signal} covers the second — the
+ * channel aborts it when something is waiting, and `runTurn` keeps whatever had
+ * streamed by then, so interrupting costs the request but not a word of the
+ * answer.
+ *
+ * The signal is a getter because it is replaced each time the channel is
+ * drained: one abort must not carry over and cut short the request that follows
+ * it.
+ */
+export interface InterjectionChannel {
+  /** Aborts the request in flight when a message is waiting to go in. */
+  readonly signal: AbortSignal;
+  /** Whether an abort just seen was this channel's doing rather than a stop. */
+  pending: () => boolean;
+  /** Takes what is waiting and rearms the channel for the next request. */
+  take: () => Message[];
 }
 
 /** Result of a completed `runTurn` cycle. */

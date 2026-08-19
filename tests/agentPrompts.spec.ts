@@ -5,6 +5,7 @@ const {
   buildRunInstructions,
   buildContinuationPrompt,
   parseContinuationDecision,
+  stepKey,
   stepLabel,
 } = await import("../src/ts/services/agent/agentPrompts.ts");
 
@@ -94,4 +95,60 @@ test("step labels collapse whitespace and truncate to chip width", () => {
   assert.equal(stepLabel("  write   the\nsummary  "), "write the summary");
   assert.equal(stepLabel("x".repeat(80)).length, 60);
   assert.match(stepLabel("x".repeat(80)), /…$/);
+});
+
+test("run instructions list the queued plan so it is not scheduled twice", () => {
+  const text = buildRunInstructions("goal", 2, 8, true, {
+    pending: ["write the summary"],
+    issued: ["gather the numbers"],
+  });
+
+  assert.match(text, /Already queued/);
+  assert.match(text, /- write the summary/);
+  assert.match(text, /Already sent as turns of this run/);
+  assert.match(text, /- gather the numbers/);
+});
+
+test("run instructions say not to queue what this turn is already doing", () => {
+  const text = buildRunInstructions("goal", 1, 8, true);
+
+  assert.match(text, /only for work you are \*\*not\*\* doing in this turn/);
+  assert.match(text, /do not re-queue the rest of the plan each turn/i);
+});
+
+test("run instructions tell a turn not to redo work already carried out", () => {
+  assert.match(buildRunInstructions("goal", 1, 8, false), /already been carried out.*do not redo it/i);
+});
+
+test("run instructions leave the step lists out when there are none", () => {
+  const text = buildRunInstructions("goal", 1, 8, true, { pending: [], issued: [] });
+
+  assert.doesNotMatch(text, /Already queued/);
+  assert.doesNotMatch(text, /Already sent/);
+});
+
+test("a long step history is trimmed rather than resent whole", () => {
+  const text = buildRunInstructions("goal", 1, 40, true, {
+    issued: Array.from({ length: 12 }, (_, index) => `step ${index + 1}`),
+  });
+
+  assert.doesNotMatch(text, /- step 1$/m);
+  assert.match(text, /and 4 earlier steps/);
+  assert.match(text, /- step 12/);
+});
+
+test("the continuation prompt lists the steps already given to the assistant", () => {
+  const text = buildContinuationPrompt("goal", "output", 2, 6, [], ["gather the numbers"]);
+
+  assert.match(text, /already given to the assistant/i);
+  assert.match(text, /- gather the numbers/);
+  assert.match(text, /already queued or already given/i);
+});
+
+test("step keys ignore the decoration models vary when they repeat a plan", () => {
+  assert.equal(stepKey("Write the summary."), stepKey("write   the summary"));
+  assert.equal(stepKey("- **Write the summary**"), stepKey("Write the summary"));
+  assert.equal(stepKey("2. Write the summary!"), stepKey("write the summary"));
+  assert.notEqual(stepKey("Write the summary"), stepKey("Write the appendix"));
+  assert.equal(stepKey("   "), "");
 });

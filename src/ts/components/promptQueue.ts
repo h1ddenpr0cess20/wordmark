@@ -1,5 +1,5 @@
 /**
- * The work queue: prompts waiting to be sent as their own turns.
+ * The work queue: prompts waiting for their turn.
  *
  * @remarks
  * Two producers feed it. A send attempted while a response is still streaming
@@ -13,6 +13,12 @@
  * pending image/document attachments — so restoring it later is
  * indistinguishable from the user having typed it at that moment. The queue is
  * runtime-only: it is never persisted, and clearing the conversation empties it.
+ *
+ * There are two ways out. A plain text message the user typed is handed to the
+ * turn already running at its next tool-call boundary — see
+ * {@link takeInterjections} — so a correction reaches the model while it is
+ * still working. Everything else waits for the turn to end and is then sent as
+ * a turn of its own.
  */
 
 import { elements, state } from "../init/state.ts";
@@ -133,6 +139,43 @@ export function dequeuePrompt(allowAgentEntries = true): QueuedPrompt | null {
   const [entry] = queue.splice(index, 1);
   renderPromptQueue();
   return entry;
+}
+
+/**
+ * Removes and returns the entries eligible for delivery inside a turn that is
+ * already running, oldest first.
+ *
+ * @remarks
+ * Only user-composed, text-only entries qualify. An entry carrying attachments
+ * stays queued because uploads, vector stores, and client-side extraction all
+ * run while a turn is being assembled, not inside one; it goes out through the
+ * ordinary post-turn drain instead. Agent steps stay too — a run's next step is
+ * a turn of its own, not an interruption of this one.
+ */
+export function takeInterjections(): QueuedPrompt[] {
+  const eligible = queue.filter(isDeliverableMidTurn);
+  if (eligible.length === 0) {
+    return [];
+  }
+  const kept = queue.filter(entry => !eligible.includes(entry));
+  queue.length = 0;
+  queue.push(...kept);
+  logQueue("Delivering", eligible.length, "queued message(s) into the running turn");
+  renderPromptQueue();
+  return eligible;
+}
+
+/** Whether anything queued is eligible for delivery inside a running turn. */
+export function hasInterjections(): boolean {
+  return queue.some(isDeliverableMidTurn);
+}
+
+/** The rule {@link takeInterjections} and {@link hasInterjections} share. */
+function isDeliverableMidTurn(entry: QueuedPrompt): boolean {
+  return entry.origin === "user"
+    && Boolean(entry.text)
+    && entry.uploads.length === 0
+    && entry.documents.length === 0;
 }
 
 /** Drops a queued prompt by id. */
