@@ -125,7 +125,10 @@ function buildActiveRunBlock(): string {
   if (!run || run.status !== "running") {
     return "";
   }
-  return buildRunInstructions(run.goal, run.turnsUsed, run.maxTurns, hasQueueFollowupTool());
+  return buildRunInstructions(run.goal, run.turnsUsed, run.maxTurns, hasQueueFollowupTool(), {
+    pending: run.plannedSteps,
+    issued: run.issuedSteps,
+  });
 }
 
 /** Reports whether `queue_followup` will actually be offered in this request. */

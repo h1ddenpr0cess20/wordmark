@@ -26,11 +26,25 @@ Send a message while the feature is on and it becomes the run's goal.
    - **The continuation check decides.** Otherwise a cheap, non-streaming request — outside the conversation, with no tools — is asked whether the work is finished. It answers `CONTINUE` with the next instruction, `DONE` with what was accomplished, or `BLOCKED` with what it needs from you.
 4. **The queued step is sent** as a normal turn, and the loop repeats.
 
+The run remembers what it has scheduled: the steps still queued, and the ones already sent as turns. Both lists are named back in the developer message block, so the model plans around them instead of restating them, and both are what a new step is checked against.
+
 A run ends when the check says `DONE` or `BLOCKED`, when the budget is spent, when a turn fails, or when you stop it.
 
 ### The continuation check
 
-The check is deliberately asked *outside* the conversation. It sees the goal, the last reply, and the turn count — not the transcript — so an assistant turn ending in "shall I keep going?" cannot talk it into continuing. An unreadable or empty answer is treated as `DONE`: the safe failure for a loop that spends money is to stop.
+The check is deliberately asked *outside* the conversation. It sees the goal, the last reply, the turn count, and the steps the run has already queued or sent — not the transcript — so an assistant turn ending in "shall I keep going?" cannot talk it into continuing. An unreadable or empty answer is treated as `DONE`: the safe failure for a loop that spends money is to stop, and so is a `CONTINUE` that hands back an instruction the run has already worked through.
+
+### No step is scheduled twice
+
+A model cannot see the queue, so left to itself it re-plans from scratch each turn and schedules the work it just finished — or queues a step and then carries it out in the same turn, only to be handed it again afterwards. Every such copy costs a turn of the budget redoing finished work.
+
+Three things prevent it:
+
+- **The plan is listed back.** While a run is active the developer message names what is queued and what has already been sent, with instructions not to schedule either again — and not to queue work the current turn is doing.
+- **Repeats are refused.** A step matching one the run has already queued or sent — or the goal itself — is turned away rather than appended. Matching ignores case, wrapping, bullets, emphasis, numbering, and trailing punctuation, so a re-phrased copy of the same instruction still collides.
+- **Refusals are explained.** `queue_followup` reports the skipped steps in a `duplicates` list and says why, instead of silently accepting or silently dropping them. The rest of the batch still queues — a duplicate in the middle of a list of new work does not discard the work after it.
+
+A step you remove from the queue by hand counts as dealt with: the run will not schedule it again.
 
 ## The control bar
 
@@ -51,21 +65,22 @@ Type any time. Your message is queued like any other, which now means it reaches
 
 ## The `queue_followup` tool
 
-A client-side function tool, offered only while autonomous work is on. The model calls it with a list of instructions; each is queued as its own turn, in order. Steps should be self-contained — the turn that receives one sees the conversation, not the reasoning that scheduled it.
+A client-side function tool, offered only while autonomous work is on. The model calls it with a list of instructions; each is queued as its own turn, in order. Steps should be self-contained — the turn that receives one sees the conversation, not the reasoning that scheduled it — and should be work the current turn is *not* doing, since a step carried out here comes back as a turn anyway.
 
-The tool reports back exactly what was accepted. When the queue's depth cap truncates a batch, the model is told how many were rejected rather than being left believing in work that will never happen.
+The tool reports back exactly what was accepted. When the queue's depth cap truncates a batch, the model is told how many were rejected rather than being left believing in work that will never happen; when a step repeats one the run already queued or already sent, it is skipped and named in `duplicates`.
 
 It appears in **Settings → Tools** as *Queue Follow-Up Work* while the feature is on, and disappears when it is off.
 
 ## What bounds a run
 
-A loop that can feed itself can also spend money forever. Four limits apply:
+A loop that can feed itself can also spend money forever. Five limits apply:
 
 | Limit | Effect |
 | --- | --- |
 | **Turn budget** | The run pauses and asks before spending more. |
 | **Failure rule** | An errored, empty, or stopped turn pauses the run instead of sending the next step into whatever broke. |
 | **Queue depth cap** | At 25 parked prompts the queue refuses more outright, and says so. |
+| **Duplicate rule** | A step repeating one the run already queued or already sent is refused, so the budget is never spent redoing finished work. |
 | **Tool-loop cap** | Unchanged from ordinary chat: at most 20 tool-call iterations within a single turn. |
 
 Beyond those: agent-authored queue entries only leave the queue while a run is running and inside its budget. A paused, exhausted, or finished run leaves its planned steps in place rather than sending them unattended.

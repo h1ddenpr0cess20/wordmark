@@ -40,6 +40,7 @@ import {
 import {
   buildContinuationPrompt,
   parseContinuationDecision,
+  stepKey,
   stepLabel,
 } from "./agentPrompts.ts";
 import { agentMaxTurns, isAgentModeEnabled } from "./agentSettings.ts";
@@ -59,6 +60,19 @@ const DECISION_MAX_OUTPUT_TOKENS = 2048;
 
 /** How the turn that just settled ended, as far as the run is concerned. */
 export type TurnOutcome = "ok" | "failed";
+
+/**
+ * What became of an instruction handed to {@link AgentRunner.queueStep}.
+ *
+ * @remarks
+ * `duplicate` is the interesting one. A model that cannot see the queue tends
+ * to re-emit its whole remaining plan every turn, and a queue that appended
+ * those would bill a turn each for work it had already scheduled or already
+ * done. Refusing them is only half the fix; naming the refusal is what lets the
+ * caller tell the model the difference between "full" and "you already did
+ * that".
+ */
+export type QueueStepOutcome = "queued" | "duplicate" | "full" | "inactive";
 
 /** Statuses in which the run is finished and the bar offers a fresh start. */
 const TERMINAL: AgentRunStatus[] = ["done", "blocked"];
@@ -137,18 +151,29 @@ class AgentRunner {
       status: "running",
       turnsUsed: 0,
       maxTurns: agentMaxTurns(),
+      plannedSteps: [],
+      issuedSteps: [],
     };
     logAgent("Run started:", this.run.id, "budget:", this.run.maxTurns);
     this.refreshControlBar();
     return this.snapshot();
   }
 
-  /** Counts a turn against the budget. Called as each turn is dispatched. */
+  /**
+   * Counts a turn against the budget. Called as each turn is dispatched.
+   *
+   * @remarks
+   * Also the moment a planned step becomes a sent one: the drain lifts the entry
+   * out of the queue and then sends it, so a step missing from the queue here is
+   * one that has just gone out. Recording that is what stops the same
+   * instruction being accepted again later in the run.
+   */
   noteTurnStarted(): void {
     if (!this.run) {
       return;
     }
     this.run.turnsUsed += 1;
+    this.syncSteps();
     this.refreshControlBar();
   }
 
@@ -166,6 +191,7 @@ class AgentRunner {
     if (!run || run.status !== "running") {
       return;
     }
+    this.syncSteps();
 
     if (outcome === "failed") {
       this.halt("paused", "Paused after a turn failed — resume to retry.");
@@ -213,6 +239,8 @@ class AgentRunner {
             this.lastAssistantOutput(),
             run.turnsUsed,
             run.maxTurns,
+            run.plannedSteps || [],
+            run.issuedSteps || [],
           ),
         }],
         model: getActiveModel(),
@@ -233,7 +261,12 @@ class AgentRunner {
       }
 
       if (decision.verdict === "continue" && decision.detail) {
-        this.queueStep(decision.detail);
+        // A supervisor that re-issues an instruction the run already worked
+        // through has stopped supervising and started looping. Ending here
+        // costs one decision; accepting it would cost the rest of the budget.
+        if (this.queueStep(decision.detail) === "duplicate") {
+          this.halt("done", "Stopped: the next step repeated work this run had already done.");
+        }
         return;
       }
       if (decision.verdict === "blocked") {
@@ -258,25 +291,95 @@ class AgentRunner {
    *
    * @remarks
    * Also the `queue_followup` tool's landing point, which is why it tolerates
-   * being called with no run in progress (it simply refuses) and reports how
-   * many entries it actually accepted — the queue's depth cap can reject some
-   * of a batch, and the model is told the truth about that.
+   * being called with no run in progress (it simply refuses) and says which of
+   * the ways it can refuse applied — the queue's depth cap can reject part of a
+   * batch, and a step the run has already scheduled or already sent is turned
+   * away outright. The model is told the truth about both.
    */
-  queueStep(instruction: string): boolean {
+  queueStep(instruction: string): QueueStepOutcome {
     const run = this.run;
     const trimmed = (instruction || "").trim();
     if (!run || !trimmed) {
-      return false;
+      return "inactive";
+    }
+    this.syncSteps();
+    if (this.isRepeat(run, trimmed)) {
+      logAgent("Refused a step the run has already scheduled:", stepLabel(trimmed));
+      return "duplicate";
     }
     const queued = enqueuePrompt(trimmed, [], [], {
       origin: "agent",
       label: stepLabel(trimmed),
       runId: run.id,
     });
-    if (queued) {
-      this.refreshControlBar();
+    if (!queued) {
+      return "full";
     }
-    return Boolean(queued);
+    run.plannedSteps = [...(run.plannedSteps || []), trimmed];
+    this.refreshControlBar();
+    return "queued";
+  }
+
+  /**
+   * Whether `instruction` repeats something this run has already scheduled.
+   *
+   * @remarks
+   * The goal counts too: "now do <the whole goal>" as a follow-up step is the
+   * run scheduling itself, and it arrives often enough from models that treat
+   * the tool as a place to restate the assignment.
+   */
+  private isRepeat(run: AgentRunState, instruction: string): boolean {
+    const key = stepKey(instruction);
+    if (!key) {
+      return false;
+    }
+    if (stepKey(run.goal) === key) {
+      return true;
+    }
+    return [...(run.plannedSteps || []), ...(run.issuedSteps || [])]
+      .some(step => stepKey(step) === key);
+  }
+
+  /**
+   * Reconciles the run's record of its plan against the queue.
+   *
+   * @remarks
+   * The queue is the one that moves: the drain lifts an entry out and sends it,
+   * and a chip the user removed simply disappears. Anything the run planned and
+   * the queue no longer holds has therefore had its turn — or was dropped on
+   * purpose — and either way it must not be scheduled again, so it moves to the
+   * issued list rather than being forgotten. Steps discarded wholesale when a
+   * run halts do not pass through here; {@link discardPlannedSteps} clears the
+   * record with them.
+   */
+  private syncSteps(): void {
+    const run = this.run;
+    if (!run) {
+      return;
+    }
+    const planned = run.plannedSteps || [];
+    if (planned.length === 0) {
+      run.plannedSteps = [];
+      run.issuedSteps = run.issuedSteps || [];
+      return;
+    }
+    const stillQueued = new Set(
+      queuedPrompts()
+        .filter(entry => entry.origin === "agent" && entry.runId === run.id)
+        .map(entry => stepKey(entry.text)),
+    );
+    const issued = [...(run.issuedSteps || [])];
+    const pending: string[] = [];
+    for (const step of planned) {
+      const key = stepKey(step);
+      if (stillQueued.has(key)) {
+        pending.push(step);
+      } else if (!issued.some(sent => stepKey(sent) === key)) {
+        issued.push(step);
+      }
+    }
+    run.plannedSteps = pending;
+    run.issuedSteps = issued;
   }
 
   /** Requests a pause; the in-flight turn finishes, nothing new is sent. */
@@ -359,9 +462,19 @@ class AgentRunner {
     }
   }
 
-  /** Drops the run's queued steps, leaving anything the user typed alone. */
+  /**
+   * Drops the run's queued steps, leaving anything the user typed alone.
+   *
+   * @remarks
+   * Clears the run's record of them in the same breath. A discarded step was
+   * never sent, so filing it as issued would tell a resumed run it had already
+   * been attempted — and quietly refuse it if the model scheduled it again.
+   */
   private discardPlannedSteps(): void {
     const dropped = clearPromptQueue("agent");
+    if (this.run) {
+      this.run.plannedSteps = [];
+    }
     if (dropped > 0) {
       logAgent("Discarded", dropped, "planned step(s)");
     }
