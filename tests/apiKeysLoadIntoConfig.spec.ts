@@ -33,3 +33,15 @@ test("ignores blank/whitespace stored keys", () => {
 
   assert.equal(config.services.openai.apiKey, "");
 });
+
+test("loads a saved local-server key into config", () => {
+  config.services.lmstudio.apiKey = "";
+  config.services.ollama.apiKey = "";
+  store.clear();
+  store.set("wordmark_api_key_lmstudio", "lms-secret");
+
+  loadApiKeysIntoConfig();
+
+  assert.equal(config.services.lmstudio.apiKey, "lms-secret");
+  assert.equal(config.services.ollama.apiKey, "", "a local key is per-server, not shared between them");
+});

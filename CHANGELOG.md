@@ -4,6 +4,9 @@ All notable changes to Wordmark are documented here. Earlier versions didn't fol
 
 ## [Unreleased]
 
+### Added
+- **Optional API keys for LM Studio and Ollama** — both can now be started behind a key (`lms server start --api-key`, `OLLAMA_API_KEY`, or a reverse proxy), which Wordmark had no way to send. Each local block in Settings → API Keys takes an optional key alongside its base URL, saved by the same button and stored under the same per-service prefix the cloud keys use. When set it goes out as a bearer token on model, chat, and embedding requests; when blank no `Authorization` header is sent at all, so a keyless server keeps working exactly as before and no CORS preflight is introduced. The Ollama `/api/tags` fallback carries the key too.
+
 ### Changed
 - **The default history token budget follows the provider** — one 16384-token default served every service, which is about right for a local server but throws away history a cloud model could comfortably hold. Hosted providers (OpenAI, xAI, OpenRouter) now default to 65536; LM Studio and Ollama keep 16384. The budget field in Settings → Model shows the active provider's default as its placeholder and updates when you switch services; typing a number still pins it for every provider, and clearing the field drops back to the per-provider default.
 

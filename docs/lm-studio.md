@@ -12,12 +12,12 @@ Use LM Studio’s local OpenAI‑compatible server with Wordmark to run models o
 1. Open LM Studio and enable the Local Server (OpenAI‑compatible API).
 2. Download and load a model in LM Studio’s UI.
 3. In Wordmark, open Settings → API Keys → LM Studio.
-4. Set Server URL to `http://localhost:1234` and click “Save LM Studio URL”.
+4. Set Server URL to `http://localhost:1234` and click “Save LM Studio Settings”.
 5. Click “Refresh Models” to populate the model dropdown.
 6. Select your model and start chatting.
 
 Notes
-- LM Studio’s local server typically does not require an API key.
+- LM Studio’s local server typically does not require an API key. If you started it with one (`lms server start --api-key <key>`), enter it in the optional **LM Studio API Key** field in the same settings block; it is sent as a bearer token on model, chat, and embedding requests. Leave it blank otherwise — a blank key means no `Authorization` header is sent at all.
 - Tool calling requires models that support tool/function calling.
 
 ## HTTPS (Optional but Recommended)

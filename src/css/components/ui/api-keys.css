@@ -101,6 +101,18 @@
   margin-bottom: 10px;
 }
 
+/* The optional API key is a second field inside the block, so its label needs
+   the separation the block's first label gets from the heading above it. */
+.local-server-block .info-text + label {
+  display: block;
+  margin-top: 14px;
+}
+
+.optional-label {
+  color: var(--text-secondary);
+  font-weight: 400;
+}
+
 .lmstudio-action-buttons,
 .ollama-action-buttons {
   display: flex;

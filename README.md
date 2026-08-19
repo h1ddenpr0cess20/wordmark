@@ -95,6 +95,7 @@ Wordmark builds with [Vite](https://vite.dev). Use `npm run dev` for development
 
 - **LM Studio** — run the server (default `http://localhost:1234`), set the base URL in Settings → API Keys, then select LM Studio in Settings → Model ([LM Studio guide](docs/lm-studio.md))
 - **Ollama** — run the server (default `http://localhost:11434`), set the base URL in Settings → API Keys, then select Ollama in Settings → Model
+- Both take an **optional API key** in the same settings block, for a server started behind one; leave it blank and requests stay unauthenticated
 
 > **Note:** Chrome may prompt you to allow local network access. This is only used to connect to local LM Studio/Ollama servers.
 
