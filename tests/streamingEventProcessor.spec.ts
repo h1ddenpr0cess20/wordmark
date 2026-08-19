@@ -480,3 +480,104 @@ test('processEvent silently ignores the legacy [DONE] sentinel', () => {
   assert.equal(errorLogged, false, '[DONE] should not be logged as a parse error');
   assert.equal(runtime.state.output, '');
 });
+
+test('consecutive reasoning summary parts are separated without a part.added event', () => {
+  const runtime = createRuntimeStub();
+  const processor = createStreamingEventProcessor(runtime as unknown as StreamingRuntimeArg);
+
+  // xAI (Grok) streams each summary as its own part but never announces one
+  // with response.reasoning_summary_part.added.
+  for (const delta of ['I will pull the profile ', 'first.']) {
+    processor.processEvent('response.reasoning_summary_text.delta', [
+      JSON.stringify({ item_id: 'rs-1', output_index: 0, summary_index: 0, delta }),
+    ]);
+  }
+  processor.processEvent('response.reasoning_summary_text.delta', [
+    JSON.stringify({ item_id: 'rs-1', output_index: 0, summary_index: 1, delta: 'Got the profile.' }),
+  ]);
+
+  assert.equal(
+    runtime.state.reasoningDelta,
+    'I will pull the profile first.\n\nGot the profile.',
+    'a new summary part must start a new paragraph, not run onto the previous sentence',
+  );
+});
+
+test('a new reasoning item in the same stream starts a new paragraph', () => {
+  const runtime = createRuntimeStub();
+  const processor = createStreamingEventProcessor(runtime as unknown as StreamingRuntimeArg);
+
+  processor.processEvent('response.reasoning_summary_text.delta', [
+    JSON.stringify({ item_id: 'rs-1', output_index: 0, summary_index: 0, delta: 'Checked the repos.' }),
+  ]);
+  processor.processEvent('response.reasoning_summary_text.delta', [
+    JSON.stringify({ item_id: 'rs-2', output_index: 2, summary_index: 0, delta: 'Now the avatar.' }),
+  ]);
+
+  assert.equal(runtime.state.reasoningDelta, 'Checked the repos.\n\nNow the avatar.');
+});
+
+test('deltas within one reasoning part are concatenated untouched', () => {
+  const runtime = createRuntimeStub();
+  const processor = createStreamingEventProcessor(runtime as unknown as StreamingRuntimeArg);
+
+  for (const delta of ['one ', 'two ', 'three']) {
+    processor.processEvent('response.reasoning_summary_text.delta', [
+      JSON.stringify({ item_id: 'rs-1', output_index: 0, summary_index: 0, delta }),
+    ]);
+  }
+
+  assert.equal(runtime.state.reasoningDelta, 'one two three');
+});
+
+test('reasoning_summary_part.added still breaks the paragraph exactly once', () => {
+  const runtime = createRuntimeStub();
+  const processor = createStreamingEventProcessor(runtime as unknown as StreamingRuntimeArg);
+
+  processor.processEvent('response.reasoning_summary_part.added', [
+    JSON.stringify({ item_id: 'rs-1', output_index: 0, summary_index: 0 }),
+  ]);
+  processor.processEvent('response.reasoning_summary_text.delta', [
+    JSON.stringify({ item_id: 'rs-1', output_index: 0, summary_index: 0, delta: 'First thought.' }),
+  ]);
+  processor.processEvent('response.reasoning_summary_part.added', [
+    JSON.stringify({ item_id: 'rs-1', output_index: 0, summary_index: 1 }),
+  ]);
+  processor.processEvent('response.reasoning_summary_text.delta', [
+    JSON.stringify({ item_id: 'rs-1', output_index: 0, summary_index: 1, delta: 'Second thought.' }),
+  ]);
+
+  assert.equal(
+    runtime.state.reasoningDelta,
+    'First thought.\n\nSecond thought.',
+    'the announced boundary and the delta that follows it must not each insert a break',
+  );
+});
+
+test('a summary delivered only on .done is separated from the previous part', () => {
+  const runtime = createRuntimeStub();
+  const processor = createStreamingEventProcessor(runtime as unknown as StreamingRuntimeArg);
+
+  processor.processEvent('response.reasoning_summary_text.delta', [
+    JSON.stringify({ item_id: 'rs-1', output_index: 0, summary_index: 0, delta: 'Streamed part.' }),
+  ]);
+  processor.processEvent('response.reasoning_summary_text.done', [
+    JSON.stringify({ item_id: 'rs-1', output_index: 0, summary_index: 1, text: 'Unstreamed part.' }),
+  ]);
+
+  assert.equal(runtime.state.reasoningDelta, 'Streamed part.\n\nUnstreamed part.');
+});
+
+test('a .done echoing text the deltas already delivered adds nothing', () => {
+  const runtime = createRuntimeStub();
+  const processor = createStreamingEventProcessor(runtime as unknown as StreamingRuntimeArg);
+
+  processor.processEvent('response.reasoning_summary_text.delta', [
+    JSON.stringify({ item_id: 'rs-1', output_index: 0, summary_index: 0, delta: 'Streamed part.' }),
+  ]);
+  processor.processEvent('response.reasoning_summary_text.done', [
+    JSON.stringify({ item_id: 'rs-1', output_index: 0, summary_index: 0, text: 'Streamed part.' }),
+  ]);
+
+  assert.equal(runtime.state.reasoningDelta, 'Streamed part.');
+});
