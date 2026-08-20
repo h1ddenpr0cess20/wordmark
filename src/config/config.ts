@@ -76,7 +76,7 @@ export const PERSONALITY_PRESETS: ReadonlyArray<{ label: string; personality: st
   { label: "Sarcastic Jerk", personality: "a sarcastic jerk who loves to provoke thought" },
   { label: "Game Master", personality: "an imaginative game master who creates epic adventures" },
   { label: "Creative Artist", personality: "a passionate artist who sees beauty in everything" },
-  { label: "Financial Wizard", personality: "a financial wizard who loves to discuss the latest trends in finance" },
+  { label: "Financial Whiz", personality: "a financial expert who loves to discuss the latest trends in finance" },
   { label: "Master Chef", personality: "a charming and enthusiastic chef who loves sharing recipes" },
   { label: "😂", personality: "😂" },
   { label: "🤔", personality: "🤔" },
@@ -156,7 +156,7 @@ export const config: Config = {
             baseUrl: "https://api.openai.com/v1",
             apiKey: "",
             models: [],
-            defaultModel: "gpt-5.5",
+            defaultModel: "gpt-5.6-sol",
             organization: null,
             modelsFetching: false,
 
@@ -223,7 +223,7 @@ export const config: Config = {
             apiKey: "",
             models: [],
             embeddingModels: [],
-            defaultModel: "google/gemma-4-12b-qat",
+            defaultModel: "qwen/qwen3.8-27b",
             modelsFetching: false,
 
             /**
@@ -294,7 +294,7 @@ export const config: Config = {
             apiKey: "",
             models: [],
             embeddingModels: [],
-            defaultModel: "gemma4",
+            defaultModel: "qwen3.8",
             modelsFetching: false,
 
             /**
@@ -397,7 +397,7 @@ export const config: Config = {
             baseUrl: "https://api.x.ai/v1",
             apiKey: "",
             models: [],
-            defaultModel: "grok-4.5",
+            defaultModel: "grok-4.6",
             modelsFetching: false,
 
             /** Keeps only Grok chat models, excluding image/video/voice variants. */
