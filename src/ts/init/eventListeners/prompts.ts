@@ -3,18 +3,13 @@
  *
  * @remarks
  * Wires the prompt-mode radios, the personality and custom-prompt input fields,
- * and the preset persona dropdown.
+ * and the preset persona suggestion dropdown.
  */
 
 import { PERSONALITY_PRESETS } from "../../../config/config.ts";
 import { elements } from "../state.ts";
 import { debounce } from "../../utils/utils.ts";
-import { focusUserInputSafely } from "../../utils/dom/mobileHandling.ts";
-import { updateBrowserHistory } from "../../services/history/state.ts";
-import { startNewConversation } from "../../services/history/persistence.ts";
 import { updatePromptVisibility } from "../../components/ui/settingsControls.ts";
-import { updateHeaderInfo } from "../../components/settings.ts";
-import { closeSettingsPanelIfOpen } from "./settingsPanel.ts";
 
 /** Toggles prompt-field visibility when the active prompt-mode radio changes. */
 function setupPromptRadioEventListeners() {
@@ -66,7 +61,15 @@ function setupInputFieldEventListeners() {
   }
 }
 
-/** Populates the preset persona dropdown and starts a conversation on selection. */
+/**
+ * Populates the preset persona dropdown.
+ *
+ * @remarks
+ * The dropdown only suggests a persona: picking one fills the personality field
+ * and leaves the settings panel open so the choice can be edited. Applying it
+ * (starting a new conversation and closing the panel) stays with the
+ * "Set Personality" button.
+ */
 function setupPersonalityPresetEventListeners() {
   const presetSelect = document.querySelector<HTMLSelectElement>("#personality-preset-select");
   if (!presetSelect) {
@@ -87,23 +90,16 @@ function setupPersonalityPresetEventListeners() {
       return;
     }
 
-    startNewConversation(`Personality: ${personality}`);
     elements.personalityInput.value = personality;
 
     if (elements.personalityPromptRadio) {
       elements.personalityPromptRadio.checked = true;
     }
-    elements.personalityInput.setAttribute("data-explicitly-set", "true");
 
     updatePromptVisibility();
 
-    closeSettingsPanelIfOpen();
-
-    updateHeaderInfo();
-
-    updateBrowserHistory();
-
-    focusUserInputSafely();
+    elements.personalityInput.focus();
+    elements.personalityInput.select();
   });
 }
 

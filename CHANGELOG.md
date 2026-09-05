@@ -2,6 +2,11 @@
 
 All notable changes to Wordmark are documented here. Earlier versions didn't follow proper semver — this changelog reflects what actually shipped, not what the version numbers said at the time.
 
+## [Unreleased]
+
+### Fixed
+- **Persona suggestions applied themselves and shut the panel** — the "Need inspiration? Try one of these" dropdown under the personality field was not a suggestion at all: picking one started a new conversation, marked the personality as explicitly set, and closed the settings panel on the spot, so browsing the list cost the chat that was open and there was no chance to edit the wording first. Choosing a persona now only fills the personality field, selects it for editing, and switches the prompt mode to Personality; the panel stays open and applying the choice — clearing the chat and closing the panel — remains with the "Set Personality" button, which is what the rest of the tab already worked like.
+
 ## [4.4.0] - 2026-08-19
 
 Attaching a file to OpenAI no longer builds a vector store: the file goes to the model directly, the way it always has for Grok. Formats that were refused for their extension alone now upload, and two streaming bugs that put reasoning in the answer are fixed.
