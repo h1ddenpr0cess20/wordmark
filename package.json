@@ -84,10 +84,10 @@
     "@eslint/js": "^10.0.1",
     "@types/jsdom": "^30.0.0",
     "@types/node": "^26.6.5",
-    "@typescript-eslint/eslint-plugin": "^8.72.0",
-    "@typescript-eslint/parser": "^8.72.0",
-    "electron": "^44.9.2",
-    "electron-builder": "^26.15.3",
+    "@typescript-eslint/eslint-plugin": "^8.72.1",
+    "@typescript-eslint/parser": "^8.72.1",
+    "electron": "^45.1.0",
+    "electron-builder": "^26.18.0",
     "eslint": "^10.13.0",
     "globals": "^17.13.0",
     "html-validate": "^11.17.0",
@@ -96,8 +96,8 @@
     "tsx": "^4.23.15",
     "typescript": "npm:@typescript/typescript6@^6.0.2",
     "typescript-7": "npm:typescript@^7.0.2",
-    "typescript-eslint": "^8.72.0",
-    "vite": "^8.3.4"
+    "typescript-eslint": "^8.72.1",
+    "vite": "^8.3.5"
   },
   "files": [
     "index.html",
